@@ -1,0 +1,16 @@
+# Owners are asked to review pull requests that touch their folder.
+# Later lines win. Usernames must have write access to the repo.
+
+# Default + integration: Bruno
+*                   @brunohawkins
+/contracts/         @brunohawkins
+/tools/             @brunohawkins
+/.github/           @brunohawkins
+/operator/          @brunohawkins
+/twin/              @brunohawkins
+/runs/              @brunohawkins
+
+# TODO: fill in GitHub usernames, then uncomment.
+# /protocols/       @<mj-username> @<kilian-username>
+# /chip/            @<yuvraj-username> @<szonja-username>
+# /cad/             @<ayrton-username>
