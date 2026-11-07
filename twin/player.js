@@ -7,7 +7,7 @@
 //
 // Capsules are instanced meshes, so a real-scale chip can show all 10,000 of them.
 import * as THREE from 'three';
-import { ORDER } from './chip.js';
+import { ORDER, VALVE_COLORS } from './chip.js';
 
 export const LIBRARY_COLOR = '#ff5fd2';
 const CARRIER = 'carrier';
@@ -23,9 +23,18 @@ function hashHue(name) {
   return ((h >>> 0) * 0.618033988749895) % 1; // golden-ratio spread
 }
 
+// Fixed colours for things people recognise; everything else gets a hashed hue.
+const NAMED = { oil: '#fbbf24', photoinitiator: '#a78bfa', dextran_buffer: '#fda4af', quench_medium: '#86efac' };
+const FATE = { neuron: '#a78bfa', astrocyte: '#34d399', microglia: '#f59e0b' };
+export function fateCss(chamberId) {
+  const key = Object.keys(FATE).find((k) => chamberId.includes(k));
+  return key ? FATE[key] : reagentCss(chamberId);
+}
+
 // One colour per reagent, the same everywhere (scene, timeline, narration).
 export function reagentCss(name) {
   if (!name || name === CARRIER) return '#9fb4d1';
+  if (NAMED[name]) return NAMED[name];
   // Comma syntax: three.js Color.setStyle only parses hsl(h, s%, l%).
   return `hsl(${Math.round(hashHue(name) * 360)}, 72%, 58%)`;
 }
@@ -53,6 +62,15 @@ export function playDuration(ev) {
     case 'split':
     case 'pool': return 3.6;
     case 'release': return 4.6;
+    case 'valve': return 1.6;
+    case 'culture': return 5.5 + 0.8 * lg;
+    case 'collect': return 2.6;
+    case 'harvest': return 3.8;
+    case 'encapsulate': return 7;
+    case 'cure': return 2.8;
+    case 'mix': return 2.6;
+    case 'transfer': return 3.2;
+    case 'count': return 2.4;
     default: return 2;
   }
 }
@@ -89,7 +107,7 @@ class Polyline {
 // ------------------------------------------------------------------ state model
 
 function emptyState() {
-  return { capsules: [], fluid: {}, library: {}, nextId: 0 };
+  return { capsules: [], fluid: {}, library: {}, nextId: 0, valves: {}, labels: {}, culture: {}, cured: {}, counted: null, emulsion: 0 };
 }
 
 function cloneState(s) {
@@ -98,7 +116,19 @@ function cloneState(s) {
     fluid: Object.fromEntries(Object.entries(s.fluid).map(([k, v]) => [k, { ...v }])),
     library: { ...s.library },
     nextId: s.nextId,
+    valves: { ...s.valves },
+    labels: { ...s.labels },
+    culture: { ...s.culture },
+    cured: { ...s.cured },
+    counted: s.counted,
+    emulsion: s.emulsion,
   };
+}
+
+// Module 1b is a flow-through chip: the cells follow the stream into whichever stage acts next.
+function followStream(s, chip, target) {
+  if (!chip.flowThrough || !chip.chamber(target)) return;
+  s.capsules.forEach((c) => { if (c.alive && c.chamber !== target) { c.chamber = target; c.suspended = false; } });
 }
 
 function applyEvent(prev, ev, chip) {
@@ -110,10 +140,13 @@ function applyEvent(prev, ev, chip) {
       for (let i = 0; i < chip.capsuleCount; i++) {
         s.capsules.push({ id: s.nextId++, chamber: a.target, alive: true, suspended: false });
       }
-      s.fluid[a.target] = { reagent: CARRIER, level: 0.55 };
+      s.fluid[a.target] = { reagent: chip.module?.id === 'm2' ? 'oil' : CARRIER, level: 0.55 }; // Module 2: an emulsion
+      s.emulsion = 0;
       break;
     case 'exchange':
+      followStream(s, chip, a.target);
       s.fluid[a.target] = { reagent: a.reagent, level: 0.8 };
+      if (/^label/.test(a.reagent)) s.labels[a.target] = a.reagent;
       // Back-flush lifts capsules off the mesh; a normal wash settles them back onto it.
       inChamber(a.target).forEach((c) => { c.suspended = a.direction === 'backflush'; });
       break;
@@ -141,6 +174,48 @@ function applyEvent(prev, ev, chip) {
       if (out && !recovery) s.library[out] = true;
       break;
     }
+    case 'valve':
+      for (const v of a.valves) s.valves[v] = a.state;
+      break;
+    case 'culture':
+      a.targets.forEach((t, k) => {
+        s.fluid[t] = { reagent: a.reagents[k], level: 0.85 };
+        s.culture[t] = (s.culture[t] ?? 0) + a.duration_s;
+      });
+      break;
+    case 'collect':
+      for (const t of a.targets) if (s.fluid[t]) s.fluid[t] = { ...s.fluid[t], level: 0.55 };
+      break;
+    case 'harvest':
+      for (const t of a.targets) {
+        s.capsules.forEach((c) => { if (c.alive && c.chamber === t) c.alive = false; });
+        s.fluid[t] = { reagent: a.reagent, level: 0.2 };
+      }
+      break;
+    case 'encapsulate':
+      s.emulsion = a.capsules;
+      break;
+    case 'cure':
+      s.cured[a.target] = true;
+      break;
+    case 'mix':
+      followStream(s, chip, a.target);
+      s.fluid[a.target] = { reagent: a.reagent, level: 0.8 };
+      break;
+    case 'transfer':
+      if (chip.chamber(a.target)) {
+        s.capsules.forEach((c) => { if (c.alive && c.chamber === a.source) c.chamber = a.target; });
+        s.fluid[a.target] = { ...(s.fluid[a.source] ?? { reagent: CARRIER }), level: 0.7 };
+      } else {
+        s.capsules.forEach((c) => { if (c.alive && c.chamber === a.source) c.alive = false; });
+        s.library[a.target] = true;
+      }
+      if (s.fluid[a.source]) s.fluid[a.source] = { ...s.fluid[a.source], level: 0.15 };
+      break;
+    case 'count':
+      followStream(s, chip, a.target);
+      s.counted = { target: a.target, ...(ev.measured ?? {}) };
+      break;
     default:
       break;
   }
@@ -168,8 +243,9 @@ function assignHomes(state, chip) {
     const ch = chip.chamber(cid);
     if (!ch) continue;
     const margin = Math.min(0.3, Math.min(ch.size.x, ch.size.y) * 0.02);
-    const usableX = Math.max(ch.size.x - 2 * r - margin, 0.01);
-    const usableY = Math.max(ch.size.y - 2 * r - margin, 0.01);
+    const k = ch.round ? 0.68 : 1; // round chamber: stay inside its inscribed square
+    const usableX = Math.max(ch.size.x * k - 2 * r - margin, 0.01);
+    const usableY = Math.max(ch.size.y * k - 2 * r - margin, 0.01);
     const settled = caps.filter((c) => !c.suspended);
     const n = settled.length;
     const cols = Math.max(1, Math.round(Math.sqrt((n * ch.size.x) / ch.size.y)));
@@ -258,6 +334,10 @@ export class Player {
   load(run, { autoplay = false } = {}) {
     this.run = run;
     this.events = run.events;
+    // The longest total culture time on any chamber: differentiation colour is time / this.
+    const cult = {};
+    for (const ev of this.events) if (ev.command === 'culture') for (const t of ev.args.targets) cult[t] = (cult[t] ?? 0) + ev.args.duration_s;
+    this.maxCulture = Math.max(0, ...Object.values(cult));
     this.paths.clear();
     // Timeline: when each event starts, in playback seconds at 1x.
     this.starts = [];
@@ -377,12 +457,14 @@ export class Player {
     if (this.cap && this.cap.capacity >= n) return;
     this.#disposeCapsules();
     const r = this.chip.capsuleRadius;
-    const many = n > 400;
+    const many = n > 400 || this.chip.cells;
     const capacity = Math.max(n, 1);
-    const shellMat = many
+    const shellMat = this.chip.cells
+      ? new THREE.MeshStandardMaterial({ color: 0xfda4af, emissive: 0x9f1239, emissiveIntensity: 0.35, roughness: 0.5, transparent: true, opacity: 0.95 })
+      : many
       ? new THREE.MeshStandardMaterial({ color: 0xf1e4cf, emissive: 0x3a2a18, roughness: 0.45, transparent: true, opacity: 0.95 })
       : new THREE.MeshPhysicalMaterial({ color: 0xdff3ff, transparent: true, opacity: 0.5, roughness: 0.1, clearcoat: 1, depthWrite: false });
-    const shell = new THREE.InstancedMesh(many ? new THREE.IcosahedronGeometry(r, 1) : new THREE.SphereGeometry(r, 20, 14), shellMat, capacity);
+    const shell = new THREE.InstancedMesh(many ? new THREE.IcosahedronGeometry(r, this.chip.cells ? 2 : 1) : new THREE.SphereGeometry(r, 20, 14), shellMat, capacity);
     shell.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     shell.frustumCulled = false;
     shell.renderOrder = ORDER.capsule;
@@ -452,6 +534,7 @@ export class Player {
     const ev = this.events[Math.max(shown, 0)];
     const protoT = ev ? ev.t_s + (done ? (ev.duration_s ?? 0) : p * (ev.duration_s ?? 0)) : 0;
     this.handlers.onTick?.({ t: this.t, total: this.total, protocolT: protoT, index: shown, progress: p });
+    this.handlers.onOverlay?.({ nozzle: !done && ev?.command === 'encapsulate' ? { p, args: ev.args, fade: this.fade } : null });
   }
 
   #drawState(i) {
@@ -483,6 +566,50 @@ export class Player {
       ch.material.opacity = 0.5;
     }
     for (const b of this.blobs) b.visible = false;
+
+    // Module parts: valves, differentiation colour, labels, the counter reading, the cold coil.
+    for (const v of this.chip.valves.values()) {
+      const st = state.valves[v.id] ?? v.normal;
+      v.material.color.setHex(VALVE_COLORS[st]);
+      v.material.emissive.setHex(VALVE_COLORS[st]);
+      v.disc.scale.setScalar(1);
+    }
+    const maxCulture = this.maxCulture || 1;
+    for (const [cid, secs] of Object.entries(state.culture)) {
+      const part = this.chip.chamber(cid);
+      const fl = state.fluid[cid];
+      if (!part) continue;
+      const fate = new THREE.Color().setStyle(fateCss(cid), THREE.SRGBColorSpace);
+      this.#setFluid(part, fl?.reagent, fl?.level ?? 0.8, reagentColor(fl?.reagent).clone().lerp(fate, Math.min(1, secs / maxCulture)));
+      part.material.emissive.copy(fate);
+      part.material.emissiveIntensity = 0.08 + 0.25 * Math.min(1, secs / maxCulture);
+    }
+    for (const [cid, label] of Object.entries(state.labels)) {
+      const part = this.chip.chamber(cid);
+      if (!part) continue;
+      part.glow.visible = this.fade > 0.001;
+      part.glowMaterial.color.copy(reagentColor(label));
+      part.glowMaterial.opacity = 0.1 * this.fade;
+    }
+    if (state.counted?.cells_per_ul) {
+      const part = this.chip.chamber(state.counted.target);
+      if (part) {
+        part.tempLabel.visible = this.fade > 0.001;
+        part.tempLabel.element.textContent = `${state.counted.cells_per_ul.toLocaleString()} cells/µL · ${(state.counted.viability * 100).toFixed(1)}% viable`;
+        part.tempLabel.element.style.opacity = '1';
+        part.tempLabel.element.style.borderColor = '#f0abfc';
+      }
+    }
+    for (const st of this.chip.stages.values()) {
+      st.material.emissive.setHex(state.emulsion ? 0xfbbf24 : 0x3b82f6);
+      st.material.emissiveIntensity = state.emulsion ? 0.6 : 0.3;
+      st.blockMat.emissiveIntensity = 0.15;
+    }
+    for (const f of this.chip.features.values()) {
+      f.material.color.setHex(f.color);
+      f.material.opacity = f.baseOpacity;
+    }
+    if (this.cap?.shell && !this.chip.cells) this.cap.shell.material.emissive?.setHex(Object.keys(state.cured).length ? 0x5b21b6 : 0x3a2a18);
   }
 
   #setFluid(part, reagent, level, color = null) {
@@ -533,14 +660,18 @@ export class Player {
       case 'load': {
         const part = chip.chamber(a.target);
         const inlet = chip.findPort(a.target, { type: 'inlet', capsules: true }) ?? chip.findPort(a.target, { type: 'inlet' });
-        const path = this.#path(`load|${i}`, () => (inlet
-          ? [chip.parts.get(inlet).spawn.clone(), ...chip.pathPoints(inlet, a.target)]
-          : [part.center.clone().setZ(chip.top + chip.spawnHeight), part.center.clone()]));
+        const many = [...chip.parts.values()].filter((q) => q.kind === 'port' && q.type === 'inlet' && q.role === 'cells'
+          && chip.route(q.id, a.target).length);
+        const paths = (many.length > 1 ? many.map((q) => q.id) : [inlet]).map((pid, k) => this.#path(`load|${i}|${k}`, () => (pid
+          ? [chip.parts.get(pid).spawn.clone(), ...chip.pathPoints(pid, a.target)]
+          : [part.center.clone().setZ(chip.top + chip.spawnHeight), part.center.clone()])));
         this.#settle(i, p);
-        this.#arrive(i, p, path);
+        this.#arrive(i, p, paths);
         const fl = before.fluid[a.target];
-        this.#setFluid(part, CARRIER, THREE.MathUtils.lerp(fl?.level ?? 0, after.fluid[a.target].level, ease(span(p, 0.1, 0.8))));
-        if (inlet) this.#pulseChannels(chip.channelsBetween(inlet, a.target), reagentColor(CARRIER), envelope(p));
+        this.#setFluid(part, after.fluid[a.target].reagent, THREE.MathUtils.lerp(fl?.level ?? 0, after.fluid[a.target].level, ease(span(p, 0.1, 0.8))));
+        for (const q of (many.length > 1 ? many.map((x) => x.id) : inlet ? [inlet] : [])) {
+          this.#pulseChannels(chip.channelsBetween(q, a.target), reagentColor(after.fluid[a.target].reagent), envelope(p));
+        }
         break;
       }
       case 'exchange': {
@@ -568,6 +699,7 @@ export class Player {
         const color = cycle === 0 && old ? reagentColor(old.reagent).clone().lerp(newColor, ease(cp / 0.4)) : newColor;
         this.#setFluid(part, a.reagent, level, color);
         this.#settle(i, p);
+        if (chip.flowThrough) this.#travel(i, p); // Module 1b: the cells arrive with the stream
         // Capsules sway in the flow but stay on the mesh.
         const r = chip.capsuleRadius;
         for (const [id, home] of this.homes[i + 1]) {
@@ -580,7 +712,7 @@ export class Player {
         const inlet = chip.findPort(a.target, { type: 'inlet', capsules: true }) ?? chip.findPort(a.target, { type: 'inlet' });
         const feed = inlet ? chip.channelsBetween(inlet, a.target) : [];
         this.#pulseChannels(feed, newColor, cp < 0.45 ? Math.sin((cp / 0.45) * Math.PI) : 0);
-        const waste = chip.findPort(a.target, { type: 'outlet', role: 'waste' }) ?? chip.findPort(a.target, { type: 'outlet', capsules: false });
+        const waste = a.waste ?? chip.findPort(a.target, { type: 'outlet', role: 'waste' }) ?? chip.findPort(a.target, { type: 'outlet', capsules: false });
         if (waste) this.#pulseChannels(chip.channelsBetween(a.target, waste), color, cp > 0.6 ? Math.sin(((cp - 0.6) / 0.4) * Math.PI) : 0);
         break;
       }
@@ -588,6 +720,15 @@ export class Player {
         const part = chip.chamber(a.target);
         const env = envelope(p);
         const color = new THREE.Color().setStyle(tempCss(a.temp_c), THREE.SRGBColorSpace);
+        const stage = chip.stages.get(a.target);
+        if (stage) {
+          // Off-chip cold delay: the coil and the cold block glow while the shells set.
+          stage.material.emissive.copy(color);
+          stage.material.emissiveIntensity = 0.3 + 1.2 * env * (0.8 + 0.2 * Math.sin(p * Math.PI * 8));
+          stage.blockMat.emissiveIntensity = 0.15 + 0.8 * env;
+          break;
+        }
+        if (!part) break;
         part.glow.visible = true;
         part.glowMaterial.color.copy(color);
         part.glowMaterial.opacity = 0.32 * env * (0.85 + 0.15 * Math.sin(p * Math.PI * 6));
@@ -665,18 +806,209 @@ export class Player {
         }
         break;
       }
+      case 'valve': {
+        // Valves switch halfway; the control line flashes.
+        for (const id of a.valves) {
+          const v = chip.valves.get(id);
+          if (!v) continue;
+          const from = before.valves[id] ?? v.normal;
+          const st = p < 0.5 ? from : a.state;
+          v.material.color.setHex(VALVE_COLORS[st]);
+          v.material.emissive.setHex(VALVE_COLORS[st]);
+          v.material.emissiveIntensity = 0.6 + 1.2 * envelope(p, 0.3);
+          v.disc.scale.setScalar(1 + 0.6 * Math.sin(Math.PI * p));
+          if (v.line) v.line.material.opacity = 0.45 + 0.5 * envelope(p, 0.3);
+          if (v.kind === 'pair') {
+            const ch = chip.channel(v.spec.channel);
+            if (ch && a.state === 'open') this.#pulseChannels([ch], new THREE.Color(0xfde047), ease(span(p, 0.5, 1)));
+          }
+        }
+        break;
+      }
+      case 'culture': {
+        // Days pass: each chamber shifts towards its cell type's colour, and every medium
+        // change (one per exchange_interval_s) pulses fresh medium through each lane.
+        const changes = Math.max(1, Math.round(a.duration_s / a.exchange_interval_s));
+        const k = Math.min(Math.floor(p * changes), changes - 1);
+        const pulse = Math.sin(Math.PI * (p * changes - k));
+        a.targets.forEach((t, n) => {
+          const part = chip.chamber(t);
+          if (!part) return;
+          const secs = (before.culture[t] ?? 0) + p * a.duration_s;
+          const fate = new THREE.Color().setStyle(fateCss(t), THREE.SRGBColorSpace);
+          const medium = reagentColor(a.reagents[n]);
+          this.#setFluid(part, a.reagents[n], 0.85 - 0.1 * pulse, medium.clone().lerp(fate, Math.min(1, secs / (this.maxCulture || 1))));
+          part.material.emissive.copy(fate);
+          part.material.emissiveIntensity = 0.08 + 0.25 * Math.min(1, secs / (this.maxCulture || 1));
+          const mIn = chip.findPort(t, { type: 'inlet', role: 'medium' });
+          const out = chip.findPort(t, { type: 'outlet' });
+          if (mIn) this.#pulseChannels(chip.channelsBetween(mIn, t), medium, pulse);
+          if (out) this.#pulseChannels(chip.channelsBetween(t, out), medium, pulse * 0.7);
+          if (a.factors) {
+            const fIn = chip.findPort(t, { type: 'inlet', role: 'factor' });
+            if (fIn) this.#pulseChannels(chip.channelsBetween(fIn, t).slice(0, 1), reagentColor(a.factors[n]), pulse);
+          }
+        });
+        // Pair valves open: signals cross the microgrooves.
+        for (const v of chip.valves.values()) {
+          if (v.kind !== 'pair' || (before.valves[v.id] ?? v.normal) !== 'open') continue;
+          const ch = chip.channel(v.spec.channel);
+          if (ch) this.#pulseChannels([ch], new THREE.Color(0xfde047), 0.5 + 0.5 * Math.sin(p * Math.PI * 2 * changes));
+        }
+        for (const f of chip.features.values()) {
+          if (f.type !== 'heat_zone') continue;
+          f.material.opacity = f.baseOpacity + 0.12 * (0.6 + 0.4 * Math.sin(p * Math.PI * 6));
+        }
+        break;
+      }
+      case 'collect': {
+        // A sample of supernatant leaves each chamber through its outlet; the cells stay.
+        a.targets.forEach((t, n) => {
+          const out = chip.findPort(t, { type: 'outlet' });
+          const blob = this.blobs[n % this.blobs.length];
+          if (!out || !blob) return;
+          const path = this.#path(`col|${t}`, () => [...chip.pathPoints(t, out), chip.parts.get(out).spawn.clone()]);
+          const lp = span(p, 0.1 + n * 0.08, 0.8 + n * 0.06);
+          blob.visible = lp > 0 && lp < 1;
+          path.at(ease(lp), blob.position);
+          blob.material.color.set('#fde68a');
+          blob.material.opacity = 0.85 * this.fade;
+          this.#pulseChannels(chip.channelsBetween(t, out), new THREE.Color('#fde68a'), envelope(p, 0.25));
+        });
+        break;
+      }
+      case 'harvest': {
+        // Cells leave each chamber through that chamber's own outlet.
+        const outs = Object.fromEntries(a.targets.map((t) => [t, chip.findPort(t, { type: 'outlet' })]));
+        const leaving = [];
+        for (const [id, b] of this.homes[i]) if (!this.homes[i + 1].has(id)) leaving.push([id, b]);
+        leaving.forEach(([id, b], k) => {
+          const out = outs[b.chamber];
+          if (!out) return;
+          const path = this.#path(`hv|${b.chamber}`, () => [...chip.pathPoints(b.chamber, out), chip.parts.get(out).spawn.clone()]);
+          const delay = (0.45 * k) / Math.max(1, leaving.length - 1);
+          const local = span(p, delay, delay + 0.5);
+          if (local >= 1) { this.cap.scale[id] = 0; return; }
+          const e = ease(local);
+          path.at(e, _a);
+          _a.addScaledVector(_p.copy(b.pos).sub(path.start), 1 - e);
+          this.#setCap(id, _a, 1);
+        });
+        for (const t of a.targets) if (outs[t]) this.#pulseChannels(chip.channelsBetween(t, outs[t]), reagentColor(a.reagent), envelope(p, 0.2));
+        break;
+      }
+      case 'encapsulate': {
+        // Core (cells in dextran) and shell (GelMA) co-flow, oil pinches droplets off at the
+        // nozzle; the close-up overlay shows the droplets and the ring forming in each.
+        const flow = 0.6 + 0.4 * Math.sin(p * Math.PI * 10);
+        for (const ch of chip.channels) {
+          const color = ch.carries === 'oil' ? '#fbbf24' : ch.carries === 'cells' ? '#fda4af' : ch.carries === 'droplets' ? '#5eead4'
+            : ch.carries === 'liquid' && /shell/.test(ch.id) ? '#2dd4bf' : null;
+          if (color && !/emulsion_in|release|capsule_out/.test(ch.id)) this.#pulseChannels([ch], new THREE.Color(color), envelope(p, 0.1) * flow);
+        }
+        const nz = chip.chamber(a.target);
+        if (nz) { nz.glow.visible = true; nz.glowMaterial.color.set('#5eead4'); nz.glowMaterial.opacity = 0.5 * envelope(p) * flow; }
+        for (const st of chip.stages.values()) {
+          st.material.emissive.set('#fbbf24');
+          st.material.emissiveIntensity = 0.3 + 0.6 * ease(span(p, 0.6, 1));
+        }
+        break;
+      }
+      case 'cure': {
+        // UV flash through the curing window.
+        const flash = envelope(p, 0.15) * (0.7 + 0.3 * Math.sin(p * Math.PI * 14));
+        const violet = new THREE.Color('#a78bfa');
+        for (const f of chip.features.values()) {
+          if (f.type !== 'curing_window') continue;
+          f.material.color.copy(violet);
+          f.material.opacity = f.baseOpacity + 0.55 * flash;
+        }
+        const part = chip.chamber(a.target);
+        if (part) {
+          part.glow.visible = true;
+          part.glowMaterial.color.copy(violet);
+          part.glowMaterial.opacity = 0.55 * flash;
+          part.tempLabel.visible = flash > 0.02;
+          part.tempLabel.element.textContent = `${a.wavelength_nm} nm · ${formatDuration(a.duration_s)}`;
+          part.tempLabel.element.style.opacity = String(Math.min(1, flash * 1.5));
+          part.tempLabel.element.style.borderColor = '#a78bfa';
+        }
+        if (this.cap?.shell?.material.emissive) {
+          this.cap.shell.material.emissive.copy(violet);
+          this.cap.shell.material.emissiveIntensity = 0.2 + 1.2 * flash;
+        }
+        break;
+      }
+      case 'mix': {
+        const part = chip.chamber(a.target);
+        if (!part) break;
+        this.#travel(i, p);
+        const color = reagentColor(a.reagent);
+        const old = before.fluid[a.target];
+        this.#setFluid(part, a.reagent, THREE.MathUtils.lerp(old?.level ?? 0, 0.8, ease(span(p, 0.2, 0.8))),
+          old ? reagentColor(old.reagent).clone().lerp(color, ease(span(p, 0.2, 0.9))) : color);
+        if (part.serp) part.serp.userData.material.emissiveIntensity = 0.35 + 1.2 * envelope(p) * (0.7 + 0.3 * Math.sin(p * Math.PI * 12));
+        const rIn = chip.findPort(a.target, { type: 'inlet', role: 'reagent' });
+        if (rIn) this.#pulseChannels(chip.channelsBetween(rIn, a.target), color, envelope(p));
+        if (a.dilution) {
+          part.tempLabel.visible = true;
+          part.tempLabel.element.textContent = `diluted ${a.dilution}× with ${a.reagent.replaceAll('_', ' ')}`;
+          part.tempLabel.element.style.opacity = String(envelope(p, 0.25));
+          part.tempLabel.element.style.borderColor = reagentCss(a.reagent);
+        }
+        break;
+      }
+      case 'transfer': {
+        const src = before.fluid[a.source];
+        const color = reagentColor(src?.reagent);
+        if (chip.chamber(a.target)) {
+          this.#travel(i, p);
+          this.#pulseChannels(chip.channelsBetween(a.source, a.target), color, envelope(p, 0.2));
+          const dst = chip.chamber(a.target);
+          this.#setFluid(dst, src?.reagent, THREE.MathUtils.lerp(before.fluid[a.target]?.level ?? 0, 0.7, ease(span(p, 0.3, 1))), color);
+        } else {
+          const port = chip.parts.get(a.target);
+          const path = this.#path(`tr|${i}`, () => [...chip.pathPoints(a.source, a.target), port.spawn.clone()]);
+          this.#leave(i, p, path);
+          this.#pulseChannels(chip.channelsBetween(a.source, a.target), color, envelope(p, 0.2));
+          port.glow.visible = true;
+          port.glowMaterial.color.copy(color);
+          port.glowMaterial.opacity = 0.35 * envelope(span(p, 0.3, 1), 0.3) * this.fade;
+        }
+        if (src) this.#setFluid(chip.chamber(a.source), src.reagent, src.level * (1 - ease(span(p, 0, 0.6))));
+        break;
+      }
+      case 'count': {
+        const part = chip.chamber(a.target);
+        this.#travel(i, p);
+        if (part) {
+          part.glow.visible = true;
+          part.glowMaterial.color.set('#f0abfc');
+          part.glowMaterial.opacity = 0.45 * envelope(p) * (0.7 + 0.3 * Math.sin(p * Math.PI * 16));
+          const m = ev.measured;
+          part.tempLabel.visible = Boolean(m);
+          if (m) {
+            const shown = Math.round(m.cells_per_ul * ease(span(p, 0.1, 0.8)));
+            part.tempLabel.element.textContent = `${shown.toLocaleString()} cells/µL · ${(m.viability * 100).toFixed(1)}% viable`;
+            part.tempLabel.element.style.opacity = String(Math.min(1, p * 4));
+            part.tempLabel.element.style.borderColor = '#f0abfc';
+          }
+        }
+        break;
+      }
       default:
         break;
     }
   }
 
-  // New capsules (load) stream down `path` and fan out to their homes.
-  #arrive(i, p, path) {
+  // New capsules (load) stream down `paths` (one per inlet) and fan out to their homes.
+  #arrive(i, p, paths) {
     const homesBefore = this.homes[i];
     const movers = [];
     for (const [id, home] of this.homes[i + 1]) if (!homesBefore.has(id)) movers.push([id, home]);
     const m = movers.length;
     movers.forEach(([id, home], k) => {
+      const path = paths[k % paths.length];
       const delay = m > 1 ? (0.45 * k) / (m - 1) : 0;
       const local = span(p, delay, delay + 0.5);
       if (local <= 0) { this.cap.scale[id] = 0; return; }
@@ -728,5 +1060,6 @@ export function formatDuration(s) {
   if (s == null) return '';
   if (s < 90) return `${Math.round(s)} s`;
   if (s < 5400) return `${Math.round(s / 60)} min`;
-  return `${(s / 3600).toFixed(1)} h`;
+  if (s < 172800) return `${(s / 3600).toFixed(1)} h`;
+  return `${Math.round((s / 86400) * 10) / 10} days`;
 }

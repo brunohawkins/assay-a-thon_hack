@@ -76,6 +76,12 @@ Switching protocol replays on the same chip. `#run=<file>` in the URL opens a sp
 **Real scale / Display model** switches between the working chip (true sizes, down to
 70 µm capsules) and the printed show piece; the scale bar works in both. The **Chip
 sizing** panel shows what the sizing calculator says the chip needs next to what it has.
+The twin opens on the **pipeline view**: Module 1 (control + interaction chips side by side) ->
+Module 1b (automated cell prep, simulated) -> Module 2 -> Module 3 -> roadmap, with cells and
+capsules moving between them; click a module for its own view (tabs along the top). Module
+views show the chip with its animations (valves, a day counter while cells differentiate,
+Module 2's nozzle close-up with droplets forming core-shell capsules, the UV flash), a
+**Parameters** panel with the generator values used, and Printed / Draft design badges.
 Closed-loop runs add the **control loop** panel (believed vs true state, prediction vs
 measurement charts with model-update markers, the optimizer's choices, the event log
 with safety tags), an alert banner, and an **Open loop / Closed loop** toggle that
