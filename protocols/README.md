@@ -10,12 +10,18 @@ The format is explained, with examples, in [`contracts/README.md`](../contracts/
 
 | File | What |
 |---|---|
+| `ipsc_to_mgl_v1.json` | **Real.** iPSC to microglia-like cells, 109 steps, 47 days, end to end on `chip/ipsc_to_mgl_chip_v1.json` with nothing handled off-chip |
+| `build_ipsc_to_mgl.py` | Generates the above. Computes every flow rate from chamber geometry; `--report` prints the shear table |
+| `ipsc_to_mgl_design.md` | Why that protocol, why those chamber sizes, the physics, and the honest limits |
 | `placeholder_scrnaseq.json` | Generic scRNA-seq shape, 14 steps |
 | `placeholder_scdnaseq.json` | Generic scDNA-seq shape with two heat steps, 15 steps |
 | `placeholder_culture_then_scrnaseq.json` | Long media perfusion and culture first, then scRNA-seq, 15 steps |
 
-All values in these are fake. They exist so the operator and twin can be built
-before the real protocols are ready.
+Values in the `placeholder_*` files are fake. They exist so the operator and twin can
+be built before the real protocols are ready.
+
+Don't hand-edit `ipsc_to_mgl_v1.json`: change `build_ipsc_to_mgl.py` and re-run it, so
+the physics and the file stay in step.
 
 ## Replacing a placeholder with the real protocol
 
