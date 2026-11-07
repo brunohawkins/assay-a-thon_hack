@@ -6,6 +6,7 @@ closed loop, with an AI operator on top, and writes the run files the twin plays
 > **SIMULATED HARDWARE.** There is no physical pump, valves or sensors this weekend.
 > Closed-loop runs use a virtual chip (`adapters/virtual_chip.py`). The hardware drivers
 > are written and ready to plug in, but are **UNTESTED – no hardware available**.
+> What to buy, what it costs and where each part plugs in: [docs/hardware_roadmap.md](../docs/hardware_roadmap.md).
 
 ## How it works
 
