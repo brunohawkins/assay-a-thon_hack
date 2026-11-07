@@ -1,0 +1,55 @@
+{
+  "id": "capsule_prep_v1",
+  "name": "Cell prep and encapsulation v1",
+  "description": "Steps 1-15 of the cell prep and encapsulation table (Szonja's chip geometry requirements sheet), grouped into Flowmatter library parts.",
+  "source": "contracts/sources/chip_geometry_requirements.xlsx, sheet 'Step 1 to Step 2' (SPC-NAR; 10x; inDrops; TIP-seq)",
+  "placeholder": true,
+  "modules": [
+    {
+      "id": "culture_1", "part": "culture_chamber", "steps": [1, 2, 3],
+      "inlets": ["medium", "dissociation_enzyme"],
+      "does": "Grow the cells, then detach them in the same chamber at 37 C. The enzyme gets its own line, so a gentler enzyme is just a different reagent."
+    },
+    {
+      "id": "quench_join", "part": "t_junction", "steps": [4],
+      "inlets": ["quench_medium"],
+      "does": "Quench medium joins the cell stream."
+    },
+    {
+      "id": "quench_mix", "part": "serpentine_channel", "steps": [4],
+      "does": "Folded channel mixes the quench medium into the cell stream."
+    },
+    {
+      "id": "cell_wash", "part": "spiral_channel", "steps": [5, 6],
+      "inlets": ["cell_wash_buffer"],
+      "does": "Spiral inertial channel moves the cells into clean buffer. Replaces the centrifuge pellet and the repeat washes."
+    },
+    {
+      "id": "resuspend_mix", "part": "snake_channel", "steps": [9],
+      "inlets": ["encapsulation_buffer"],
+      "does": "Mixes the cells into the viscous encapsulation buffer. Rounded, wider turns keep the pressure drop down."
+    },
+    {
+      "id": "encapsulate", "part": "cross_junction", "steps": [10],
+      "inlets": ["shell_polymer", "oil"],
+      "does": "Flow-focusing junction: cells in the centre, shell polymer and oil from the sides make the capsules."
+    },
+    {
+      "id": "gelation", "part": "serpentine_channel", "steps": [11],
+      "does": "Delay line over a cold plate. About 700 uL at roughly 17 uL/min total flow gives about 40 min, more than the 15-30 min needed."
+    },
+    {
+      "id": "capsule_trap", "part": "culture_chamber", "steps": [12, 13, 14],
+      "inlets": ["emulsion_breaker", "photoinitiator", "capsule_wash_buffer"],
+      "mesh_pore_um": 25,
+      "does": "Capsules stop in the trap. Oil is flushed out, the shell is cured under the LED through a clear lid, and the capsules are washed, all without moving them."
+    }
+  ],
+  "off_chip": [
+    { "steps": [8], "why": "Count and viability check on the microscope; the library has no dedicated imaging window part." }
+  ],
+  "missing_parts": [
+    { "steps": [7], "need": "pillar filter, ~30 um gap", "why": "Strain clumps before encapsulation. No filter block in the library yet." },
+    { "steps": [15], "need": "pillar filter, ~100 um gap", "why": "Remove capsule aggregates before the outlet. No filter block in the library yet." }
+  ]
+}

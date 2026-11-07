@@ -1,0 +1,300 @@
+{
+  "_about": "Pre-made Flowmatter blocks, split from cad/BP_assayathon_chips.stl by chip/components/build_library.py. Sizes in mm, volume in uL (1 mm^3 = 1 uL). Regenerate, don't edit by hand; change names/roles in build_library.py.",
+  "source": "cad/BP_assayathon_chips.stl",
+  "parts": [
+    {
+      "part": "spiral_channel",
+      "role": "spiral",
+      "chip_type": "exchange",
+      "what_for": "Long spiral: delay line for residence time, or inertial cell/medium separation.",
+      "size_mm": [
+        104.826,
+        99.828,
+        1.0
+      ],
+      "volume_ul": 3522.62,
+      "stl": "cad/library/spiral_channel.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "flow_manifold",
+      "role": "split",
+      "chip_type": "split",
+      "what_for": "One stream in, several out: split-and-pool rounds, feeding parallel chambers.",
+      "size_mm": [
+        35.0,
+        20.0,
+        1.0
+      ],
+      "volume_ul": 500.22,
+      "stl": "cad/library/flow_manifold.stl",
+      "name_confidence": "medium: manifold vs distributor guessed from shape"
+    },
+    {
+      "part": "culture_chamber",
+      "role": "chamber",
+      "chip_type": "exchange",
+      "what_for": "Holds cells or capsules while liquids flow past: culture, trap, wash, incubate, image, cure.",
+      "size_mm": [
+        20.0,
+        80.0,
+        1.0
+      ],
+      "volume_ul": 1150.0,
+      "stl": "cad/library/culture_chamber.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "flow_distributor",
+      "role": "split",
+      "chip_type": "split",
+      "what_for": "One stream in, several out: split-and-pool rounds, feeding parallel chambers.",
+      "size_mm": [
+        20.0,
+        30.0,
+        1.0
+      ],
+      "volume_ul": 358.08,
+      "stl": "cad/library/flow_distributor.stl",
+      "name_confidence": "medium: manifold vs distributor guessed from shape"
+    },
+    {
+      "part": "y_junction",
+      "role": "merge",
+      "chip_type": "pool",
+      "what_for": "Two streams join: add a reagent to a flowing stream (quench, dilute).",
+      "size_mm": [
+        19.821,
+        17.165,
+        1.0
+      ],
+      "volume_ul": 139.3,
+      "stl": "cad/library/y_junction.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "cross_junction",
+      "role": "flow_focusing",
+      "chip_type": "exchange",
+      "what_for": "Cross junction: makes droplets/capsules (centre stream pinched by two side streams).",
+      "size_mm": [
+        20.0,
+        20.0,
+        1.0
+      ],
+      "volume_ul": 175.22,
+      "stl": "cad/library/cross_junction.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "t_junction",
+      "role": "merge",
+      "chip_type": "pool",
+      "what_for": "Two streams join: add a reagent to a flowing stream (quench, dilute).",
+      "size_mm": [
+        12.5,
+        20.0,
+        1.0
+      ],
+      "volume_ul": 137.61,
+      "stl": "cad/library/t_junction.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "fork_junction",
+      "role": "split",
+      "chip_type": "split",
+      "what_for": "One stream in, several out: split-and-pool rounds, feeding parallel chambers.",
+      "size_mm": [
+        19.821,
+        20.0,
+        1.0
+      ],
+      "volume_ul": 171.33,
+      "stl": "cad/library/fork_junction.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "y_junction_curved",
+      "role": "merge",
+      "chip_type": "pool",
+      "what_for": "Two streams join: add a reagent to a flowing stream (quench, dilute).",
+      "size_mm": [
+        12.049,
+        20.435,
+        1.0
+      ],
+      "volume_ul": 124.98,
+      "stl": "cad/library/y_junction_curved.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "serpentine_channel",
+      "role": "mixer",
+      "chip_type": "exchange",
+      "what_for": "Long folded channel: mixes two streams that just joined.",
+      "size_mm": [
+        25.0,
+        60.0,
+        1.0
+      ],
+      "volume_ul": 700.0,
+      "stl": "cad/library/serpentine_channel.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "snake_channel",
+      "role": "mixer",
+      "chip_type": "exchange",
+      "what_for": "Long folded channel: mixes two streams that just joined.",
+      "size_mm": [
+        35.0,
+        70.0,
+        1.0
+      ],
+      "volume_ul": 842.55,
+      "stl": "cad/library/snake_channel.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "ring_junction",
+      "role": "pool",
+      "chip_type": "pool",
+      "what_for": "Several streams into a ring: gather from parallel branches.",
+      "size_mm": [
+        37.141,
+        32.165,
+        1.0
+      ],
+      "volume_ul": 387.25,
+      "stl": "cad/library/ring_junction.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "curved_channel",
+      "role": "connector",
+      "chip_type": "exchange",
+      "what_for": "Plain channel piece for routing between parts.",
+      "size_mm": [
+        22.5,
+        22.5,
+        1.0
+      ],
+      "volume_ul": 178.54,
+      "stl": "cad/library/curved_channel.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "channel_corner",
+      "role": "connector",
+      "chip_type": "exchange",
+      "what_for": "Plain channel piece for routing between parts.",
+      "size_mm": [
+        12.5,
+        12.5,
+        1.0
+      ],
+      "volume_ul": 100.0,
+      "stl": "cad/library/channel_corner.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "tesla_valve",
+      "role": "check_valve",
+      "chip_type": "exchange",
+      "what_for": "Tesla valve: lets flow pass one way, resists backflow.",
+      "size_mm": [
+        10.686,
+        104.361,
+        1.0
+      ],
+      "volume_ul": 554.25,
+      "stl": "cad/library/tesla_valve.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "straight_channel",
+      "role": "connector",
+      "chip_type": "exchange",
+      "what_for": "Plain channel piece for routing between parts.",
+      "size_mm": [
+        20.0,
+        5.0,
+        2.0
+      ],
+      "volume_ul": 200.0,
+      "stl": "cad/library/straight_channel.stl",
+      "name_confidence": "high"
+    },
+    {
+      "part": "port",
+      "role": "port",
+      "chip_type": "exchange",
+      "what_for": "Where tubing or a pipette connects.",
+      "size_mm": [
+        24.994,
+        9.989,
+        2.0
+      ],
+      "volume_ul": 348.82,
+      "stl": "cad/library/port.stl",
+      "name_confidence": "medium: teardrop shape assumed to be the port"
+    },
+    {
+      "part": "mesh_body_a",
+      "role": "unknown",
+      "chip_type": "exchange",
+      "what_for": "Role not yet known.",
+      "size_mm": [
+        5.0,
+        8.75,
+        1.0
+      ],
+      "volume_ul": 41.0,
+      "stl": "cad/library/mesh_body_a.stl",
+      "name_confidence": "low: listed as MeshBody19/20 in Fusion"
+    },
+    {
+      "part": "normally_open_valve",
+      "role": "valve",
+      "chip_type": "exchange",
+      "what_for": "On/off valve on a line.",
+      "size_mm": [
+        15.0,
+        20.0,
+        1.0
+      ],
+      "volume_ul": 202.74,
+      "stl": "cad/library/normally_open_valve.stl",
+      "name_confidence": "low: NO and NC valves look identical from above"
+    },
+    {
+      "part": "normally_closed_valve",
+      "role": "valve",
+      "chip_type": "exchange",
+      "what_for": "On/off valve on a line.",
+      "size_mm": [
+        15.0,
+        20.0,
+        1.0
+      ],
+      "volume_ul": 202.74,
+      "stl": "cad/library/normally_closed_valve.stl",
+      "name_confidence": "low: NO and NC valves look identical from above"
+    },
+    {
+      "part": "mesh_body_b",
+      "role": "unknown",
+      "chip_type": "exchange",
+      "what_for": "Role not yet known.",
+      "size_mm": [
+        5.0,
+        8.75,
+        1.0
+      ],
+      "volume_ul": 41.0,
+      "stl": "cad/library/mesh_body_b.stl",
+      "name_confidence": "low: listed as MeshBody19/20 in Fusion"
+    }
+  ]
+}
