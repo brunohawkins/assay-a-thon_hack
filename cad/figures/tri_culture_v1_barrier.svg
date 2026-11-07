@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="1001" viewBox="0 0 980 1001" role="img" aria-label="tri_culture_v1: groove barrier detail">
+  <title>tri_culture_v1: groove barrier detail</title>
+  <rect width="980" height="1001" fill="#ffffff"/>
+  <text x="60" y="24" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="14.5" fill="#1b2026" text-anchor="start" font-weight="bold">The barrier, drawn at its real size</text>
+  <text x="60" y="41" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.5" fill="#5a636d" text-anchor="start">mc_nx_mx   ·   10 × 3 × 500 µm per groove   ·   ~100 grooves across the 20 mm shared edge</text>
+  <text x="60" y="58" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.5" fill="#c0392b" text-anchor="start" font-weight="bold">This is not a valve. It has no moving part and cannot be closed.</text>
+  <text x="60" y="84" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#8b949e" text-anchor="start" font-weight="bold">PLAN  ·  looking down</text>
+  <rect x="60" y="96" width="550" height="86" fill="#cfe3f7" stroke="#2f6fb0" stroke-width="1.2" rx="3"/>
+  <text x="335" y="143" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#2f6fb0" text-anchor="middle" font-weight="bold">nx_mature</text>
+  <rect x="60" y="457" width="550" height="86" fill="#fde6c8" stroke="#bf7b2f" stroke-width="1.2" rx="3"/>
+  <text x="335" y="504" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#bf7b2f" text-anchor="middle" font-weight="bold">mx_mature</text>
+  <rect x="60" y="182" width="550" height="275" fill="#faf4f9" stroke="none"/>
+  <rect x="112.25" y="182" width="5.5" height="275" fill="#f3dcf1" stroke="#a3449b" stroke-width="1"/>
+  <rect x="222.25" y="182" width="5.5" height="275" fill="#f3dcf1" stroke="#a3449b" stroke-width="1"/>
+  <rect x="332.25" y="182" width="5.5" height="275" fill="#f3dcf1" stroke="#a3449b" stroke-width="1"/>
+  <rect x="442.25" y="182" width="5.5" height="275" fill="#f3dcf1" stroke="#a3449b" stroke-width="1"/>
+  <rect x="552.25" y="182" width="5.5" height="275" fill="#f3dcf1" stroke="#a3449b" stroke-width="1"/>
+  <line x1="60" y1="182" x2="610" y2="182" stroke="#2f6fb0" stroke-width="1"/>
+  <line x1="60" y1="457" x2="610" y2="457" stroke="#bf7b2f" stroke-width="1"/>
+  <line x1="636" y1="182" x2="636" y2="457" stroke="#8b949e" stroke-width="0.8"/>
+  <line x1="632" y1="182" x2="640" y2="182" stroke="#8b949e" stroke-width="0.8"/>
+  <line x1="632" y1="457" x2="640" y2="457" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="643" y="322.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">500 µm long</text>
+  <line x1="115" y1="569" x2="225" y2="569" stroke="#8b949e" stroke-width="0.8"/>
+  <line x1="115" y1="565" x2="115" y2="573" stroke="#8b949e" stroke-width="0.8"/>
+  <line x1="225" y1="565" x2="225" y2="573" stroke="#8b949e" stroke-width="0.8"/>
+  <rect x="136" y="562" width="68" height="14" fill="#ffffff" stroke="none"/>
+  <text x="170" y="573" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="middle">200 µm pitch</text>
+  <text x="123" y="319.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#a3449b" text-anchor="start">10 µm wide</text>
+  <text x="636" y="112" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#8b949e" text-anchor="start">only 5 of ~100 grooves</text>
+  <text x="636" y="126" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#8b949e" text-anchor="start">are drawn</text>
+  <text x="60" y="647" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#8b949e" text-anchor="start" font-weight="bold">SECTION  ·  along one groove, looking from the side</text>
+  <rect x="60" y="833" width="700" height="30" fill="#d9edf3" stroke="#6f9fad" stroke-width="1"/>
+  <text x="68" y="853" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">floor</text>
+  <rect x="60" y="703" width="236" height="130" fill="#f8fbfd" stroke="none"/>
+  <rect x="296" y="817.4" width="464" height="15.6" fill="#f3dcf1" stroke="none"/>
+  <polygon points="60,671 760,671 760,817.4 296,817.4 296,703 60,703" fill="#e3eaf2" stroke="#8d9bab" stroke-width="1"/>
+  <text x="68" y="691" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">lid</text>
+  <line x1="778" y1="817.4" x2="778" y2="833" stroke="#8b949e" stroke-width="0.8"/>
+  <line x1="774" y1="817.4" x2="782" y2="817.4" stroke="#8b949e" stroke-width="0.8"/>
+  <line x1="774" y1="833" x2="782" y2="833" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="785" y="828.2" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">3 µm</text>
+  <text x="68" y="719" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="start">chamber, 300 µm tall — drawn short, not to scale</text>
+  <text x="308" y="803.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#a3449b" text-anchor="start" font-weight="bold">groove, 3 µm tall — to scale</text>
+  <circle cx="241" cy="794" r="39" fill="#f6d6d2" stroke="#c0392b" stroke-width="1.6"/>
+  <text x="241" y="797.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">cell</text>
+  <text x="241" y="881" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">cell body ~15 µm across</text>
+  <text x="241" y="893" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle">5× the groove: mostly blocked</text>
+  <line x1="274" y1="825.2" x2="746" y2="825.2" stroke="#2f7d32" stroke-width="5.2" stroke-linecap="round"/>
+  <text x="746" y="812.2" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f7d32" text-anchor="end" font-weight="bold">axon ~1 µm, plus soluble factors and vesicles: through</text>
+  <line x1="60" y1="909" x2="940" y2="909" stroke="#eaeef2" stroke-width="1"/>
+  <text x="60" y="925" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Published geometry: Taylor 2003 (10.1021/la026417v) 10 × 3 × 150 µm, 120 grooves; Taylor 2005 (10.1038/nmeth777) adds ≥450 µm; Tujula 2025 10 × 3.5 × 250 µm.</text>
+  <text x="60" y="939" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Isolation is a MAINTAINED hydrostatic difference, not a closed valve. Taylor 2005 held ~4.7 × 10³ across the barrier for over 20 h. The protocol levels the volumes to open it.</text>
+  <text x="60" y="953" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">3 µm leaks cells: Goshi 2022 (10.1039/d2lc00683a) counted 31.8 ± 30.3 escapes at 3 µm against 0.25 ± 0.65 at 1.5 µm. It stays at 3 µm because axons have to cross.</text>
+  <text x="60" y="967" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">That is what the per-lane barcode is for: a migrated cell keeps its own label, so it reads as data rather than contamination.</text>
+</svg>

@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="892" height="398" viewBox="0 0 892 398" role="img" aria-label="tri_culture_v1: feature sizes against the process floors">
+  <title>tri_culture_v1: feature sizes against the process floors</title>
+  <rect width="892" height="398" fill="#ffffff"/>
+  <text x="40" y="24" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="14.5" fill="#1b2026" text-anchor="start" font-weight="bold">Every feature on this chip, against what each process can make</text>
+  <text x="40" y="41" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.5" fill="#5a636d" text-anchor="start">chip/tri_culture_v1.json   ·   log scale   ·   micrometres</text>
+  <rect x="232" y="72" width="178.89" height="174" fill="#fdeeec" stroke="none"/>
+  <text x="402.89" y="48" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="end" font-weight="bold">no laser cutter reaches this</text>
+  <text x="402.89" y="60" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="end">photolithography territory</text>
+  <line x1="232" y1="72" x2="232" y2="268" stroke="#6b5bb0" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="232" y="276" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#6b5bb0" text-anchor="middle" font-weight="bold">1 µm</text>
+  <text x="232" y="288" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#6b5bb0" text-anchor="middle">photolithography (SU-8)</text>
+  <line x1="410.89" y1="72" x2="410.89" y2="268" stroke="#c0392b" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="410.89" y="276" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">80 µm</text>
+  <text x="410.89" y="288" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#c0392b" text-anchor="middle">CO2 laser, min feature</text>
+  <line x1="429.76" y1="72" x2="429.76" y2="294" stroke="#bf7b2f" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="429.76" y="302" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#bf7b2f" text-anchor="middle" font-weight="bold">127 µm</text>
+  <text x="429.76" y="314" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#bf7b2f" text-anchor="middle">CNC, smallest end mill</text>
+  <line x1="232" y1="246" x2="232" y2="251" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="232" y="263" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">1 µm</text>
+  <line x1="326" y1="246" x2="326" y2="251" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="326" y="263" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">10 µm</text>
+  <line x1="420" y1="246" x2="420" y2="251" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="420" y="263" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">100 µm</text>
+  <line x1="514" y1="246" x2="514" y2="251" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="514" y="263" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">1 mm</text>
+  <line x1="608" y1="246" x2="608" y2="251" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="608" y="263" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">10 mm</text>
+  <line x1="702" y1="246" x2="702" y2="251" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="702" y="263" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">100 mm</text>
+  <line x1="232" y1="246" x2="702" y2="246" stroke="#8b949e" stroke-width="1"/>
+  <line x1="232" y1="86" x2="276.85" y2="86" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="276.85" cy="86" r="5" fill="#6b5bb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="89.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">channel depth</text>
+  <text x="220" y="100" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">2 channels</text>
+  <text x="287.85" y="89.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#6b5bb0" text-anchor="start" font-weight="bold">3 µm</text>
+  <line x1="232" y1="106" x2="297.7" y2="106" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="297.7" cy="106" r="5" fill="#ffffff" stroke="#8b949e" stroke-width="1.8"/>
+  <text x="220" y="109.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">retention mesh pore</text>
+  <text x="220" y="120" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">bought sheet, NOT fabricated</text>
+  <text x="308.7" y="109.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#8b949e" text-anchor="start" font-weight="bold">5 µm</text>
+  <line x1="232" y1="126" x2="326" y2="126" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="326" cy="126" r="5" fill="#6b5bb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="129.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">channel width</text>
+  <text x="220" y="140" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">2 channels</text>
+  <text x="337" y="129.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#6b5bb0" text-anchor="start" font-weight="bold">10 µm</text>
+  <line x1="232" y1="146" x2="464.85" y2="146" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="464.85" cy="146" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="149.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">chamber depth</text>
+  <text x="220" y="160" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">set by the spacer</text>
+  <text x="475.85" y="149.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">300 µm</text>
+  <line x1="232" y1="166" x2="464.85" y2="166" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="464.85" cy="166" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="169.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">channel depth</text>
+  <text x="220" y="180" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">16 channels</text>
+  <text x="475.85" y="169.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">300 µm</text>
+  <line x1="232" y1="186" x2="504.89" y2="186" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="504.89" cy="186" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="189.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">channel width</text>
+  <text x="220" y="200" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">16 channels</text>
+  <text x="515.89" y="189.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">800 µm</text>
+  <line x1="232" y1="206" x2="542.3" y2="206" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="542.3" cy="206" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="209.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">tubing port</text>
+  <text x="220" y="220" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">drilled in the lid</text>
+  <text x="553.3" y="209.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">2000 µm  (2 mm)</text>
+  <line x1="232" y1="226" x2="608" y2="226" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="608" cy="226" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="229.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">chamber, smallest side</text>
+  <text x="220" y="240" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">mix_1</text>
+  <text x="619" y="229.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">10000 µm  (10 mm)</text>
+  <line x1="40" y1="328" x2="852" y2="328" stroke="#eaeef2" stroke-width="1"/>
+  <text x="40" y="342" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.5" fill="#1b2026" text-anchor="start" font-weight="bold">Smallest feature we have to make: 3 µm, below every cutting floor. This chip needs TWO processes.</text>
+  <text x="40" y="358" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Hollow markers are bought parts. A 5 µm mesh pore is below the laser floor too, but nobody has to cut it: it arrives as a sheet.</text>
+  <text x="40" y="372" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#8b949e" text-anchor="start">Floors are vendor/published typicals. cad/fabrication.json has laser_kerf_um = null, so tools/check_chip_spec.py still reports a TODO.</text>
+</svg>
