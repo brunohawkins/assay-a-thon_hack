@@ -746,3 +746,8 @@ body.presenter .pipeline {
 }
 @media (min-width: 1500px) { body.presenter .pipeline { --s: 1.1; } }
 @media (min-width: 1800px) { body.presenter .pipeline { --s: 1.2; } }
+/* presenter: prompt-to-chip step */
+.pr-parts { margin: 4px 0 0; padding-left: 1.3em; font-size: 0.78em; line-height: 1.45; columns: 2; column-gap: 28px; }
+.pr-mono { margin: 0; font-family: var(--mono); font-size: 0.78em; }
+.pr-src { margin: 14px 0 0; font-size: 0.62em; }
+.pr-tag.pass { color: #86efac; border-color: rgba(134, 239, 172, 0.7); background: rgba(20, 83, 45, 0.35); }

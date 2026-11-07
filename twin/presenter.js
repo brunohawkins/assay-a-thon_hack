@@ -14,7 +14,8 @@ import { modeStates } from './network.js';
 
 const FLOW = 11; // µL/min: Module 1's protocol feed (protocols/build_module1.py)
 const NAMES = { n_cx: 'neuron', g_cx: 'glia', a_cx: 'astrocyte' };
-const CHIP_OF = { m1v1: 'module1_v1', m4: 'module4_v1', m5: 'module5_v1' };
+const CHIP_OF = { m1v1: 'module1_v1', m4: 'module4_v1', m5: 'module5_v1', prompt: 'capsule_prep_v1' };
+const PROMPT = 'Turn steps 1–15 of the cell prep and encapsulation table into a chip, built from Flowmatter library parts.';
 const STATE_WORD = { CAP: 'capped', VENT: 'open', FEED: 'fed' };
 
 // Step 4's request: the scripted operator's blocked decision (runs/module1_v1/operator_scripted.json):
@@ -59,9 +60,55 @@ function makeSteps(api) {
   const legend = (speed) => `<p class="pr-legend">${[['neurons', 0], ['glia', 1], ['astrocytes', 2]]
     .map(([n, k]) => `<span><i style="background:${m1.dyeCss(k)}"></i>${n}</span>`).join('')}<span class="pr-faint">dye colours · time ×${speed}</span></p>`;
 
+  const stepRange = (xs) => (xs.length > 1 && xs.at(-1) - xs[0] === xs.length - 1 ? `${xs[0]}–${xs.at(-1)}` : xs.join(', '));
   return [
     {
-      id: 'pipeline', seconds: 10,
+      id: 'prompt', seconds: 13,
+      title: 'From a prompt to a chip',
+      text: 'Describe the protocol; Claude groups its steps into library parts, a script builds the chip spec, our checker tests it, and the twin draws it.',
+      async enter(s) {
+        const [design, check] = await Promise.all(['design.json', 'check.json'].map(async (f) => (await fetch(api.promptDir + f, { cache: 'no-store' })).json()));
+        s.check();
+        const card = s.card(`<p class="pr-who">Prompt</p><p class="pr-ask"></p>
+          <div class="pr-flow" hidden>
+            <p class="pr-who pr-op">Claude groups the steps into library parts</p>
+            <ol class="pr-parts"></ol>
+            <p class="pr-who pr-op">build_chip.py → chip spec</p><p class="pr-mono"></p>
+            <p class="pr-who pr-op">check_chip_spec</p><p class="pr-tag"></p>
+          </div>
+          <p class="pr-src pr-faint">Cached result from Yuvraj’s tool (branch chip/flowmatter-paper-to-chip @ ${esc(check.commit)}), so it runs offline.</p>`);
+        await s.show('prompt');
+        api.chip.group.visible = false;            // it appears once the check has passed
+        api.chip.setLabelsVisible(false);          // twelve port names would crowd it; the card lists the parts
+        player.setPlaying(false);
+        const ask = card.querySelector('.pr-ask');
+        for (let i = 1; i <= PROMPT.length; i += 2) { ask.textContent = `“${PROMPT.slice(0, i)}”`; await s.wait(22); }
+        ask.textContent = `“${PROMPT}”`;
+        await s.wait(500);
+        card.querySelector('.pr-flow').hidden = false;
+        const parts = card.querySelector('.pr-parts');
+        for (const m of design.modules) {
+          parts.insertAdjacentHTML('beforeend', `<li><b>${esc(m.id)}</b> · ${esc(m.part)} <span class="pr-faint">· step${m.steps.length > 1 ? 's' : ''} ${esc(stepRange(m.steps))}</span></li>`);
+          await s.wait(220);
+        }
+        const c = check.counts;
+        card.querySelector('.pr-mono').textContent = `${c.parts} parts · ${c.ports} ports · ${c.channels} channels · ${c.footprint_mm.map((x) => Math.round(x)).join(' × ')} mm`;
+        await s.wait(600);
+        const tag = card.querySelector('.pr-tag');
+        const short = (w) => { const mat = /^material '([^']+)' is not in/.exec(w); return mat ? `material “${mat[1]}” not in our list` : w.slice(0, 60); };
+        tag.textContent = check.passes
+          ? `PASSES · ${check.errors.length} errors · ${check.warnings.length} warning${check.warnings.length === 1 ? '' : 's'}${check.warnings.length ? ` (${check.warnings.map(short).join('; ')})` : ''}`
+          : `${check.errors.length + check.schema_errors.length} ERRORS · ${(check.errors[0] ?? check.schema_errors[0] ?? '').slice(0, 90)}`;
+        tag.className = `pr-tag ${check.passes ? 'pass' : 'blocked'}`;
+        await s.wait(500);
+        api.chip.group.visible = true;
+        api.frame();
+        player.seek(0);
+        player.setPlaying(true);
+      },
+    },
+    {
+      id: 'pipeline', seconds: 8,
       title: 'From stem cells to a sequencing library',
       text: 'Six modules, left to right. Badges say what is final, draft, translated or not designed yet. Only Module 1 is built for today’s demo; the others run in the twin.',
       async enter(s) {
@@ -72,19 +119,19 @@ function makeSteps(api) {
       },
     },
     {
-      id: 'grow', seconds: 11,
+      id: 'grow', seconds: 10,
       title: 'Module 1 · separate growth',
       text: 'Neurons, glia and astrocytes each get their own medium at 11 µL/min. All three drain through the middle junction and out of p_mid, so no chamber ever receives another’s medium.',
       async enter(s) { s.extra(legend(60)); await module1(s, 'grow', { speed: 60 }); },
     },
     {
-      id: 'interact', seconds: 11,
+      id: 'interact', seconds: 10,
       title: 'Module 1 · interaction',
       text: 'Same chip, different ports: only the neuron inlet is fed, and its medium (red) crosses the junction into the glia and astrocyte chambers. No valves: every route is set by which ports are fed, open or capped.',
       async enter(s) { s.extra(legend(90)); await module1(s, 'int_n', { from: 'grow', speed: 90 }); },
     },
     {
-      id: 'refuse', seconds: 12,
+      id: 'refuse', seconds: 11,
       title: 'The AI operator refuses an unsafe request',
       text: 'Back in separate growth, the operator is asked to change two ports. It runs the request through the chip’s flow model before it touches anything.',
       async enter(s) {
@@ -115,7 +162,7 @@ function makeSteps(api) {
       },
     },
     {
-      id: 'harvest', seconds: 15,
+      id: 'harvest', seconds: 14,
       title: 'Harvest: out through p_mid, on to Module 2',
       text: 'All three chambers are flushed into the junction at once and leave through p_mid, towards Module 2 (encapsulation).',
       async enter(s) {
@@ -131,7 +178,7 @@ function makeSteps(api) {
       },
     },
     {
-      id: 'm4', seconds: 13,
+      id: 'm4', seconds: 12,
       title: 'Module 4 · four sublibraries and index PCR',
       text: 'A rotary valve off the chip fills the four chambers one pulse at a time, in palindromic order (A B C D D C B A), so each gets the same share. Each gets its own index primer, then the whole chip is thermocycled.',
       async enter(s) {
@@ -146,7 +193,7 @@ function makeSteps(api) {
       },
     },
     {
-      id: 'm5', seconds: 10,
+      id: 'm5', seconds: 9,
       title: 'Module 5 · release and clean-up',
       text: 'Collagenase at 37 °C dissolves the capsules; the DNA is diluted, caught on magnetic beads, washed and eluted into a tube. One sublibrary per pass, four passes.',
       async enter(s) {
@@ -271,10 +318,13 @@ export function createPresenter(api, { extraSteps = [] } = {}) {
     return {
       wait,
       until,
+      check,
       async show(m) {
-        await api.showModule(m);
+        if (m === 'prompt') await api.showModule('other', api.promptFile);
+        else await api.showModule(m);
         check();
         if (m === 'pipeline') await until(() => api.pipeline.visible && api.pipeline.total > 1);
+        else if (m === 'prompt') await until(() => api.chip?.spec?.id === CHIP_OF.prompt && api.player.run?.chip_id === CHIP_OF.prompt);
         else if (CHIP_OF[m]) {
           await until(() => api.chip?.spec?.id === CHIP_OF[m] && api.player.run?.chip_id === CHIP_OF[m] && (m !== 'm1v1' || api.m1.attached));
         } else await until(() => api.player.run);
