@@ -361,12 +361,26 @@ def check_pipelines(report: Report) -> int:
     return len(found)
 
 
+SAME_AS_IGNORED = ("id", "name", "same_as", "variant")
+
+
 def check_pipeline(where: str, pipe: dict, report: Report, root: Path = ROOT) -> None:
     errs = schema_io.schema_errors("pipeline", pipe)
     for err in errs:
         report.error(f"{where} {schema_io.path_str(err)}: {schema_io.describe(err)}")
     if errs:
         return
+    if pipe.get("same_as"):
+        # pipeline_mvp.json is a copy of the chosen variant (tools/choose_assay.py); they must not drift.
+        src = root / pipe["same_as"]
+        if not src.is_file():
+            report.error(f"{where}: same_as '{pipe['same_as']}' does not exist")
+        else:
+            other = schema_io.load_json(src)
+            strip = lambda d: {k: v for k, v in d.items() if k not in SAME_AS_IGNORED}
+            if strip(other) != strip(pipe):
+                report.error(f"{where}: differs from {pipe['same_as']}, which it says it is a copy of: edit the variant and "
+                             f"run python tools/choose_assay.py {other.get('variant', '<variant>')}")
     # module id -> (entry, chip or None, protocol or None, switched automatically?)
     mods: dict[str, tuple[dict, dict | None, dict | None, bool]] = {}
     for m in pipe["modules"]:
@@ -380,9 +394,9 @@ def check_pipeline(where: str, pipe: dict, report: Report, root: Path = ROOT) ->
             if m.get(key) and not (root / m[key]).is_file():
                 report.error(f"{where}: module {name}: {key} '{m[key]}' does not exist")
         chip = proto = None
-        if status == "missing":
+        if status in ("missing", "bench"):
             if chip_path:
-                report.error(f"{where}: module {name} is missing but names a chip ({chip_path})")
+                report.error(f"{where}: module {name} is {status} but names a chip ({chip_path})")
         elif not (root / chip_path).is_file():
             report.error(f"{where}: module {name}: chip '{chip_path}' does not exist")
             continue

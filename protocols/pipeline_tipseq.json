@@ -1,0 +1,245 @@
+{
+  "kind": "pipeline",
+  "id": "pipeline_tipseq",
+  "variant": "tipseq",
+  "name": "TIP-seq (chromatin DNA): culture -> permeabilise + tagment (bench) -> capsules -> barcoding in oil -> release -> index PCR",
+  "placeholder": true,
+  "description": "TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + single-copy barcoding chip (read-only); MJ has since retired its own encapsulator (stage A), so its capsules come from spc_demo_v1, the only encapsulation geometry that can be printed. Release (module5_v1) comes BEFORE index PCR (module4_v1), as TIP-seq does; module5_v1's design note says either order works. protocols/pipeline_status.md retires sctip_spc_v1 as a duplicate in the CapSeq plan; it is used here because this variant needs its barcoding in oil.",
+  "modules": [
+    {
+      "module": "module1",
+      "name": "Module 1: culture (v1)",
+      "status": "final",
+      "owner": "MJ",
+      "chip": "chip/module1_v1.json",
+      "protocol": "protocols/module1_v1.json",
+      "build": {
+        "method": "resin print + hot emboss, 30 x 20 mm, 0.3 mm deep, one fluidic layer",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "contracts/blocks.json (fabrication_floors)"
+      },
+      "built_for_demo": false,
+      "note": "Rescaled from 140 x 75 mm. Its own dissociation and collect steps (179-182) are retired in favour of cell_prep_v1. The dye-demo doc (cad/module1_dye_demo.md) predates the rescale."
+    },
+    {
+      "module": "bench",
+      "name": "Permeabilise + tagment (bench)",
+      "status": "bench",
+      "status_note": "placeholder · bench step",
+      "owner": "TBC",
+      "build": {
+        "method": "bench, in tubes",
+        "connector": "TBC"
+      },
+      "built_for_demo": false,
+      "note": "Placeholder for TIP-seq's steps on the harvested cells before encapsulation: permeabilise, then tagment with Tn5 at the bench. No chip; the conditions come from the TIP-seq paper once MJ decides on the assay."
+    },
+    {
+      "module": "module2",
+      "name": "Module 2: encapsulation (spc_demo_v1)",
+      "status": "final",
+      "owner": "TBC",
+      "chip": "chip/spc_demo_v1.json",
+      "protocol": "protocols/spc_demo_v1.json",
+      "build": {
+        "method": "resin print + hot emboss, 30 x 20 mm, 0.15 mm deep, one fluidic layer; curing off-chip",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "contracts/blocks.json (fabrication_floors)"
+      },
+      "built_for_demo": false,
+      "note": "Capsules for the barcoding chip: sctip_spc_v1's own encapsulator (stage A) is retired."
+    },
+    {
+      "module": "sctip",
+      "name": "Barcoding in oil (sctip_spc_v1)",
+      "status": "draft",
+      "status_note": "MJ's sctip chip (stage B); retired as a duplicate in the CapSeq plan",
+      "owner": "MJ",
+      "chip": "chip/sctip_spc_v1.json",
+      "protocol": "protocols/sctip_spc_v1.json",
+      "build": {
+        "method": "resin print + hot emboss, 30 x 20 mm, 0.15 mm deep, one fluidic layer; curing off-chip",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "contracts/blocks.json (fabrication_floors)"
+      },
+      "built_for_demo": false,
+      "note": "Packs the capsules, adds the amplification mix and single-copy barcode, drops one capsule per droplet for the off-chip thermocycler, breaks the emulsion and washes the capsules in its trap."
+    },
+    {
+      "module": "module5",
+      "name": "Module 5: release + cleanup",
+      "status": "final",
+      "owner": "MJ",
+      "chip": "chip/module5_v1.json",
+      "protocol": "protocols/module5_v1.json",
+      "build": {
+        "method": "hot-embossed COC (Tg >= 130 C), thermally bonded; 0.5 / 0.3 / 1.0 mm",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "protocols/module5_design.md, section 1"
+      },
+      "built_for_demo": false,
+      "note": "Release first: in TIP-seq the DNA leaves the capsules before index PCR."
+    },
+    {
+      "module": "module4",
+      "name": "Module 4: sublibrary split + index PCR",
+      "status": "final",
+      "owner": "MJ",
+      "chip": "chip/module4_v1.json",
+      "protocol": "protocols/module4_v1.json",
+      "build": {
+        "method": "hot-embossed COC (Tg >= 130 C), thermally bonded; 0.5 / 0.3 / 1.0 mm",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "protocols/module5_design.md, section 1"
+      },
+      "built_for_demo": false,
+      "note": "Index PCR after release, as TIP-seq does."
+    }
+  ],
+  "handoffs": [
+    {
+      "id": "module1_to_bench",
+      "carries": "cells",
+      "from": {
+        "module": "module1",
+        "port": "p_mid"
+      },
+      "to": {
+        "module": "bench",
+        "port": "TBC"
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "TBC",
+        "status": "unknown",
+        "warning": "Bench step: tubing into a tube, no chip port."
+      },
+      "note": "Harvested cells to the bench."
+    },
+    {
+      "id": "bench_to_encapsulation",
+      "carries": "cells",
+      "from": {
+        "module": "bench",
+        "port": "TBC"
+      },
+      "to": {
+        "module": "module2",
+        "port": "in_core"
+      },
+      "connector": {
+        "from": "TBC",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "unknown",
+        "warning": "From a tube into spc_demo_v1's 0.8 mm drilled core inlet."
+      },
+      "note": "Permeabilised, tagmented cells into the core stream."
+    },
+    {
+      "id": "encapsulation_to_sctip",
+      "carries": "capsules",
+      "from": {
+        "module": "module2",
+        "port": "out_caps"
+      },
+      "to": {
+        "module": "sctip",
+        "port": "in_load"
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "match"
+      },
+      "note": "Cured capsules (curing is off-chip), close-packed, through in_load's selector valve."
+    },
+    {
+      "id": "sctip_to_release",
+      "carries": "capsules",
+      "from": {
+        "module": "sctip",
+        "port": "out_waste",
+        "note": "The recovery line of its selector valve: the bed is back-flushed out."
+      },
+      "to": {
+        "module": "module5",
+        "port": "in_lib"
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "match"
+      },
+      "note": "Barcoded capsules to release."
+    },
+    {
+      "id": "release_to_index_pcr",
+      "carries": "library",
+      "from": {
+        "module": "module5",
+        "port": "out_lib"
+      },
+      "to": {
+        "module": "module4",
+        "ports": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4"
+        ]
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "match"
+      },
+      "note": "Released DNA split four ways for index PCR."
+    },
+    {
+      "id": "index_pcr_to_spri_qc",
+      "carries": "library",
+      "from": {
+        "module": "module4",
+        "port": "TBC",
+        "note": "Module 4 has no product outlet; which port each sublibrary leaves through is not stated."
+      },
+      "to": {
+        "roadmap": "spri_qc"
+      },
+      "note": "Indexed sublibraries to SPRI and QC off-chip."
+    },
+    {
+      "id": "spri_qc_to_library_out",
+      "carries": "library",
+      "from": {
+        "roadmap": "spri_qc"
+      },
+      "to": {
+        "roadmap": "library_out"
+      },
+      "note": "Off-chip. No protocol written."
+    }
+  ],
+  "roadmap": [
+    {
+      "id": "spri_qc",
+      "name": "SPRI size selection + QC (off-chip)",
+      "note": "Qubit, TapeStation, qPCR. Undocumented: no protocol exists."
+    },
+    {
+      "id": "library_out",
+      "name": "Library out",
+      "note": "Finished, indexed library in a tube."
+    },
+    {
+      "id": "sequencing",
+      "name": "Sequencing",
+      "note": "Off-chip."
+    }
+  ]
+}

@@ -12,6 +12,8 @@
     "name": { "type": "string" },
     "placeholder": { "type": "boolean" },
     "description": { "type": "string" },
+    "variant": { "type": "string", "description": "Which assay this pipeline is, e.g. capseq or tipseq (protocols/pipeline_<variant>.json)." },
+    "same_as": { "type": "string", "description": "protocols/pipeline_mvp.json only: the variant file it is a copy of (tools/choose_assay.py writes it; tools/validate.py fails if the two drift apart)." },
     "modules": {
       "type": "array",
       "minItems": 1,
@@ -24,8 +26,8 @@
           "module": { "$ref": "#/$defs/snake_id", "description": "Pipeline id of this module, used by the hand-offs (e.g. module1, barcoding). Not necessarily the chip's id or part prefix." },
           "name": { "type": "string" },
           "status": {
-            "enum": ["final", "draft", "translated", "missing"],
-            "description": "final: the owner's finished design. draft: a stand-in until the owner's design lands. translated: converted by a script from another format (the chip's translated_from names the source). missing: not designed yet; no chip, every port TBC."
+            "enum": ["final", "draft", "translated", "missing", "bench"],
+            "description": "final: the owner's finished design. draft: a stand-in until the owner's design lands. translated: converted by a script from another format (the chip's translated_from names the source). missing: not designed yet (a placeholder); no chip, every port TBC. bench: an off-chip bench step (a placeholder); no chip, every port TBC."
           },
           "status_note": { "type": "string", "description": "Shown next to the badge, e.g. 'draft – being redesigned by MJ'." },
           "owner": { "type": "string" },
@@ -70,7 +72,7 @@
           "built_for_demo": { "type": "boolean", "description": "true if this module is physically built for the dye demo; false if it exists in the twin only." },
           "note": { "type": "string" }
         },
-        "if": { "properties": { "status": { "not": { "const": "missing" } } } },
+        "if": { "properties": { "status": { "not": { "enum": ["missing", "bench"] } } } },
         "then": { "required": ["chip"] }
       }
     },

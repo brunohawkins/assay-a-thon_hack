@@ -123,11 +123,13 @@ class Pipeline(unittest.TestCase):
     def test_m1b_is_superseded_and_the_pipeline_has_no_bench_step(self):
         self.assertEqual(M1B["module"]["status"], "superseded")
         self.assertEqual(M1B["module"]["superseded_by"], "chip/module1_v1.json")
-        (path, pipe), = schema_io.pipelines()
-        self.assertEqual(schema_io.schema_errors("pipeline", pipe), [])
-        self.assertNotIn("m1b", [m["module"] for m in pipe["modules"]])
-        self.assertNotIn("bench_step", path.read_text())
-        self.assertNotIn("pause_for_human", path.read_text())
+        found = schema_io.pipelines()   # pipeline_mvp.json and the assay variants it can copy
+        self.assertTrue(found)
+        for path, pipe in found:
+            self.assertEqual(schema_io.schema_errors("pipeline", pipe), [], path.name)
+            self.assertNotIn("m1b", [m["module"] for m in pipe["modules"]])
+            self.assertNotIn("bench_step", path.read_text())       # the old human-in-the-loop bridge
+            self.assertNotIn("pause_for_human", path.read_text())
 
 
 if __name__ == "__main__":
