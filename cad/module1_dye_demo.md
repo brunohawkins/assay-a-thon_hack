@@ -1,12 +1,11 @@
 # Module 1 v1: food-dye demo (Sunday)
 
-> **Check before cutting.** In `cad/exports/module1_v1/module1_v1.dxf` every channel stops
-> at the edge of its 2 mm port square, and the spacer cut path has nothing under the lid
-> holes. As drawn, each lid hole sits on solid 0.3 mm spacer and only touches its channel
-> along an edge, so no liquid can get in or out. MJ needs to add a 2 mm port pad in the
-> spacer under each hole (or run each channel to the port centre) before Ayrton cuts.
+> **Out of date.** The times below, the 2 mm square lid holes and the old laser-cut route
+> were worked out for the 140 × 75 mm board. The chip is now 30 × 20 mm, resin-printed and
+> hot-embossed, with 0.8 mm drilled ports and 0.2 mm channels, so every predicted time needs
+> re-deriving before the demo.
 
-Run food dye through the laser-cut chip (`chip/module1_v1.json`) next to the twin, and
+Run food dye through the printed chip (`chip/module1_v1.json`) next to the twin, and
 check that the liquid goes where the design says. No cells, so flow rates can be higher
 than the protocol's (shear only matters with cells).
 
@@ -33,8 +32,8 @@ enters the port hole: the tubing to the chip is not in the prediction.
   you use, pick the mode, and press **Start stopwatch** when you start the pumps. Type the
   times you measure into the **measured** boxes; the twin shows them against the prediction.
 
-Port positions (mm from the bottom-left corner of the board): `p_in` (12, 37.5),
-`p_g_in` (74, 64), `p_a_in` (74, 11), `p_mid` (82, 37.5), `p_g_out` (128, 52), `p_a_out` (128, 23).
+Port positions (mm from the bottom-left corner of the board): `p_in` (2.9, 8.2),
+`p_g_in` (15.8, 13.7), `p_a_in` (15.8, 2.7), `p_mid` (17.5, 8.2), `p_g_out` (27.1, 11.2), `p_a_out` (27.1, 5.2).
 
 ## 1. Separate growth: three colours meet only at the junction
 

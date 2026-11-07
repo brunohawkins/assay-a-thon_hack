@@ -139,7 +139,7 @@ def downstream_nozzles(chip: dict) -> list[tuple[float, str, str]]:
 
 
 def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, materials: dict, fab: dict,
-          downstream: list[tuple[float, str, str]] | None = None) -> Findings:
+          downstream: list[tuple[float, str, str]] | None = None, blocks: dict | None = None) -> Findings:
     f = Findings()
     caps = chip.get("capsule", {})
     d = caps.get("diameter_um", param(params, "capsule.diameter_um"))
@@ -304,7 +304,83 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
             f.todo.append(f"compatibility TODO: {mat['name']} with {', '.join(todo)}")
         if bad:
             f.warn(f"{mat['name']} is incompatible with {', '.join(bad)}")
+    if blocks:
+        check_blocks(chip, blocks, f)
     return f
+
+
+def _num(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def check_blocks(chip: dict, blocks: dict, f: Findings) -> None:
+    """Fabrication envelope, floors and CAD block library from contracts/blocks.json."""
+    env = blocks.get("envelope", {})
+    floors = blocks.get("fabrication_floors", {})
+    library = set(blocks.get("basic", {})) | set(blocks.get("advanced", {}))
+    chambers = [c for c in chip.get("chambers", []) if isinstance(c, dict)]
+    channels = [c for c in chip.get("channels", []) if isinstance(c, dict)]
+    ports = [p for p in chip.get("ports", []) if isinstance(p, dict)]
+
+    fp = chip.get("footprint") or {}
+    for axis, key in (("x", "max_x_mm"), ("y", "max_y_mm")):
+        if _num(fp.get(axis)) and _num(env.get(key)) and fp[axis] > env[key]:
+            f.error(f"footprint {axis} {fp[axis]:g} mm > build envelope {key} {env[key]:g} mm")
+
+    max_depth = env.get("max_depth_mm")
+    chamber_depths = []
+    for c in chambers:
+        size = c.get("size")
+        if isinstance(size, list) and len(size) > 2 and _num(size[2]):
+            chamber_depths.append(size[2])
+            if _num(max_depth) and size[2] > max_depth:
+                f.error(f"chamber '{c.get('id')}' is {size[2]:g} mm deep, > max depth {max_depth:g} mm")
+    for ch in channels:
+        if _num(max_depth) and _num(ch.get("depth_mm")) and ch["depth_mm"] > max_depth:
+            f.error(f"channel '{ch.get('id')}' is {ch['depth_mm']:g} mm deep, > max depth {max_depth:g} mm")
+
+    for kind, items in (("chamber", chambers), ("channel", channels)):
+        for item in items:
+            if "block" not in item:
+                f.warn(f"{kind} '{item.get('id')}' has no \"block\" field: we cannot fabricate what we cannot name")
+            elif item["block"] not in library:
+                f.error(f"{kind} '{item.get('id')}' declares block '{item['block']}', which is not in the CAD block "
+                        f"library (contracts/blocks.json basic/advanced)")
+
+    max_ports = floors.get("max_ports_per_chip")
+    if _num(max_ports) and len(ports) > max_ports:
+        f.error(f"{len(ports)} ports > max {max_ports:g} ports per chip")
+
+    pitch = floors.get("min_port_pitch_mm")
+    if _num(pitch):
+        placed = [p for p in ports if isinstance(p.get("position"), list) and len(p["position"]) >= 2
+                  and _num(p["position"][0]) and _num(p["position"][1])]
+        for i, a in enumerate(placed):
+            for b in placed[i + 1:]:
+                dist = ((a["position"][0] - b["position"][0]) ** 2 + (a["position"][1] - b["position"][1]) ** 2) ** 0.5
+                if dist < pitch - 1e-9:
+                    f.warn(f"ports '{a.get('id')}' and '{b.get('id')}' are {dist:.2f} mm apart, closer than the "
+                           f"{pitch:g} mm minimum port pitch")
+
+    min_open = floors.get("min_open_channel_mm")
+    if _num(min_open):
+        for ch in channels:
+            if _num(ch.get("width_mm")) and ch["width_mm"] < min_open:
+                f.error(f"channel '{ch.get('id')}' is {ch['width_mm']:g} mm wide, below the {min_open:g} mm "
+                        f"minimum open channel")
+
+    fluidic = [la for la in chip.get("layers", []) if isinstance(la, dict) and _num(la.get("thickness_mm"))
+               and any(abs(la["thickness_mm"] - d) < 1e-9 for d in chamber_depths)]
+    if len(fluidic) > 1:
+        f.warn(f"{len(fluidic)} layers ({', '.join(str(la.get('id')) for la in fluidic)}) match a chamber depth: "
+               f"we print one fluidic layer")
+
+    if _num(min_open):
+        for c in chambers:
+            pore = c.get("mesh_pore_um")
+            if _num(pore) and pore < min_open * 1000:
+                f.warn(f"chamber '{c.get('id')}' declares mesh_pore_um {pore:g}, below the {min_open * 1000:g} um we can "
+                       f"print: replace it with pillar_array, trap_chamber, pillar_funnel_trap or dld_array")
 
 
 def _segments(path: list[list[float]]) -> list[tuple[tuple[float, float], tuple[float, float]]]:
@@ -353,6 +429,11 @@ def main(argv: list[str] | None = None) -> int:
     params = schema_io.load_json(ROOT / "contracts" / "parameters.json")
     materials = schema_io.load_json(ROOT / "contracts" / "materials.json")["materials"]
     fab = schema_io.load_json(ROOT / "cad" / "fabrication.json")
+    blocks_path = ROOT / "contracts" / "blocks.json"
+    try:
+        blocks = schema_io.load_json(blocks_path) if blocks_path.exists() else None
+    except ValueError:
+        blocks = None
     total_errors = 0
     for path in spec_paths(args.specs):
         chip = schema_io.load_json(path)
@@ -362,7 +443,7 @@ def main(argv: list[str] | None = None) -> int:
             total_errors += 1
             continue
         protocols = paired_protocols(chip, args.protocol)
-        f = check(chip, protocols, params, materials, fab, downstream_nozzles(chip))
+        f = check(chip, protocols, params, materials, fab, downstream_nozzles(chip), blocks)
         names = ", ".join(p.stem for p, _ in protocols) or "none"
         print(f"{rel(path)}  (chip {chip['id']}; protocols: {names})")
         for o in f.ok:

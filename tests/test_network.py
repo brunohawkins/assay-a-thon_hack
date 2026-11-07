@@ -12,8 +12,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "operator"))
 
 import network as nw  # noqa: E402
+import schema_io  # noqa: E402
 
 NET = nw.module1_network()
+PROTO_FLOW = max(s["flow_ul_min"] for s in schema_io.load_json(ROOT / "protocols" / "module1_v1.json")["steps"]
+                 if s.get("flow_ul_min"))
 CULTURE = ["n_cx", "g_cx", "a_cx"]
 INLET = {"n_cx": "p_in", "g_cx": "p_g_in", "a_cx": "p_a_in"}
 SOURCE = {"int_n": "n_cx", "int_g": "g_cx", "int_a": "a_cx"}
@@ -22,8 +25,9 @@ SOURCE = {"int_n": "n_cx", "int_g": "g_cx", "int_a": "a_cx"}
 class Geometry(unittest.TestCase):
     def test_every_channel_comes_from_the_dxf(self):
         rects = nw.dxf_channel_segments(ROOT / "cad" / "exports" / "module1_v1" / "module1_v1.dxf")
-        self.assertEqual(len(rects), 9)
-        self.assertTrue(all(abs(r["width_mm"] - 0.8) < 1e-3 and r["closed"] for r in rects))
+        self.assertEqual(len(rects), len(NET.chip["channels"]))
+        widths = {round(c["width_mm"], 3) for c in NET.chip["channels"]}
+        self.assertTrue(all(round(r["width_mm"], 3) in widths and r["closed"] for r in rects))
         self.assertEqual({g["source"] for g in NET.geometry.values()}, {"DXF"})
 
     def test_resistance_formula(self):
@@ -63,7 +67,7 @@ class Modes(unittest.TestCase):
         self.assertEqual(sol["routing"]["foreign_medium"], {})
         for c in CULTURE:
             self.assertEqual(sol["routing"]["inflow_mix"][c], {INLET[c]: 1.0})
-        self.assertAlmostEqual(sol["ports"]["p_mid"]["into_chip_ul_min"], -33.0, places=6)
+        self.assertAlmostEqual(sol["ports"]["p_mid"]["into_chip_ul_min"], -3 * nw.DEFAULT_FEED_UL_MIN, places=6)
 
     def test_each_interaction_sends_the_source_medium_into_the_other_two(self):
         for mode, src in SOURCE.items():
@@ -77,7 +81,9 @@ class Modes(unittest.TestCase):
 
     def test_n_to_g_and_a_splits_evenly_by_symmetry(self):
         sol = NET.solve(nw.mode_ports("int_n"))
-        self.assertAlmostEqual(sol["chambers"]["g_cx"]["throughput_ul_min"], sol["chambers"]["a_cx"]["throughput_ul_min"], places=9)
+        g, a = (sol["chambers"][c]["throughput_ul_min"] for c in ("g_cx", "a_cx"))
+        # Symmetric to within the 1 um rounding of the scaled chamber coordinates, not to 9 decimals.
+        self.assertAlmostEqual(g, a, delta=1e-3 * (g + a) / 2)
 
     def test_design_doc_harvest_only_sweeps_n_cx(self):
         # The doc's harvest (feed p_in, vent p_mid) leaves g_cx and a_cx without flow;
@@ -94,15 +100,24 @@ class DesignNumbers(unittest.TestCase):
         self.assertAlmostEqual(nw.threshold_flow(0.8, 0.3, 0.01, nw.MU_37C), 0.9, places=6)
 
     def test_chambers_stay_under_the_shear_ceiling_at_the_protocol_flow(self):
-        for mode, sol in nw.solve_modes(NET).items():
+        for mode, sol in nw.solve_modes(NET, PROTO_FLOW).items():
             for c in CULTURE:
                 self.assertLess(sol["chambers"][c]["shear_dyn_cm2"], 0.01, msg=f"{mode} {c}")
+
+    def test_operator_default_feed_stays_under_the_shear_ceiling(self):
+        for mode, sol in nw.solve_modes(NET).items():
+            for c in CULTURE:
+                self.assertLess(sol["chambers"][c]["shear_dyn_cm2"], 0.01,
+                                msg=f"{mode} {c}: operator/network.py DEFAULT_FEED_UL_MIN={nw.DEFAULT_FEED_UL_MIN} is stale")
 
     def test_running_pressure_range_is_reported_not_tuned(self):
         rows = {r["quantity"]: r for r in nw.design_check(NET)}
         row = next(v for k, v in rows.items() if k.startswith("Running pressure"))
         lo, hi = (float(x) for x in row["solver"].split("-"))
-        self.assertTrue(0.03 < lo < 0.07 and 0.03 < hi < 0.07)   # what the geometry gives at 11 uL/min
+        expect = [s["max_pressure_mbar"] for m, s in nw.solve_modes(NET).items() if m != "collect"]
+        self.assertTrue(0 < lo <= hi)
+        self.assertAlmostEqual(lo, min(expect), places=3)
+        self.assertAlmostEqual(hi, max(expect), places=3)
 
 
 class AnyChip(unittest.TestCase):

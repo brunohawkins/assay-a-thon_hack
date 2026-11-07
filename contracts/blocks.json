@@ -1,0 +1,98 @@
+{
+  "_about": "The ONLY geometry primitives we can build. The CAD tool offers a fixed block library and we can place nothing else, so every chamber and channel in chip/*.json must map to a block id below. 'Multilayer' blocks are deliberately absent: we print a SINGLE fluidic layer, so no block that needs a second layer, a via or a crossing is usable. tools/check_chip_spec.py enforces this list, the single-layer rule and the build envelope.",
+  "envelope": {
+    "max_x_mm": 30,
+    "max_y_mm": 20,
+    "max_depth_mm": 0.3,
+    "layers": 1,
+    "note": "Resin 3D printing plus hot embossing, one fluidic layer, 30 x 20 mm build area."
+  },
+  "fabrication_floors": {
+    "min_open_channel_mm": 0.2,
+    "min_enclosed_printed_channel_mm": 0.5,
+    "min_wall_mm": 0.4,
+    "min_port_mm": 0.8,
+    "min_port_pitch_mm": 5.0,
+    "max_ports_per_chip": 6,
+    "note": "From the fabrication review. Print open and seal with film rather than printing an enclosed channel below 0.5 mm."
+  },
+  "basic": {
+    "straight_channel": "Straight run.",
+    "curved_channel": "Constant-radius bend.",
+    "channel_corner": "Right-angle corner.",
+    "serpentine_channel": "Folded run: length (resistance or residence time) in a small area.",
+    "snake_channel": "Tighter-pitch folded run.",
+    "ring_junction": "Closed loop with taps; recirculation.",
+    "port": "Through-hole to tubing. The only fluid inlet/outlet.",
+    "t_junction": "Three-way tee.",
+    "cross_junction": "Four-way cross.",
+    "y_junction": "Two-into-one or one-into-two merge/split.",
+    "curved_y_junction": "Y with swept arms, lower shear than a sharp Y.",
+    "fork_junction": "Symmetric 1-to-2 split.",
+    "network_node": "Three-arm node for routing.",
+    "polygon_chamber": "General-purpose chamber, straight walls.",
+    "culture_chamber": "Chamber shaped for cell culture.",
+    "trap_chamber": "Chamber with retention features at its outlet.",
+    "shape_array": "Repeated shapes across a region.",
+    "flow_focusing_funnel": "Tapered funnel into a narrow throat.",
+    "flow_restrictor": "Deliberate local constriction; sets resistance.",
+    "sudden_loss_element": "Abrupt area change; pressure drop.",
+    "flow_manifold": "One-to-many header.",
+    "flow_divider": "Splits a stream into set fractions.",
+    "flow_distributor": "One-to-many with matched path lengths.",
+    "text": "Engraved label. Non-fluidic."
+  },
+  "advanced": {
+    "pillar_array": "Regular pillars: filtration, support, or holding a lid flat.",
+    "pillar_funnel_trap": "Funnel into a pillar gap; traps a particle at the throat.",
+    "dld_array": "Deterministic lateral displacement: sorts by size continuously.",
+    "honeycomb_array": "Hexagonal cells; high surface area.",
+    "wells_array": "Array of discrete wells.",
+    "trap_channel": "Channel with inline traps.",
+    "lock_and_shift_trap": "Captures then releases on flow reversal.",
+    "merging_trap": "Brings two captured items together.",
+    "metering_trap": "Captures a FIXED VOLUME. The block for metered splitting.",
+    "round_sorting_junction": "Size/inertia sorting at a round junction.",
+    "square_sorting_junction": "As above, square geometry.",
+    "centipede_channel": "Many short side branches off a spine.",
+    "square_crenel_array": "Square castellations along a wall.",
+    "round_crenel_array": "Rounded castellations along a wall.",
+    "herringbone_mixer": "Chevron grooves; chaotic advection mixing at low Re.",
+    "asymmetric_serpentine": "Unequal-arm serpentine; mixing plus resistance.",
+    "spiral_channel": "Archimedean spiral; inertial focusing or long path.",
+    "round_maze": "Long tortuous path, round.",
+    "square_maze": "Long tortuous path, square.",
+    "flow_focusing": "Sheath-flow focusing junction; droplet generation.",
+    "phase_guide": "Capillary pinning ridge; stops a liquid front at a defined line.",
+    "side_port_aperture": "Aperture in a sidewall.",
+    "wagon_wheel_port": "Port with radial spokes; even feed, resists collapse.",
+    "gradient_generator": "Tree network producing a concentration gradient.",
+    "branching_arbor": "Repeated bifurcation tree.",
+    "organoid_chamber": "Chamber sized for a 3D construct.",
+    "angiogenesis": "Parallel channels separated by posts, for sprouting assays.",
+    "tesla_valve": "Passive flow diode. USELESS BELOW Re 1: diodicity is exactly 1.0 in Stokes flow, so do not use it for rectification at our flow rates."
+  },
+  "excluded": {
+    "multilayer": "All 15 multilayer blocks. We print one fluidic layer, so anything needing a second layer, a via, a membrane or a crossing channel is unavailable. This is why no chip may route two channels across each other."
+  },
+  "retention": {
+    "_problem": "The smallest feature we can print is 200 um IN PLANE. A capsule is 70 um, swelling to 140 um. So no printed in-plane gap can retain a capsule, and every 5-30 um mesh in the old designs is unbuildable. On-chip washing depends on retention, so this decides whether washing works at all.",
+    "solution": "DEPTH WEIR. The 200 um floor applies to WIDTH, not to z: a crest 240 um tall leaves a 60 um gap under the lid, which retains a 70 um capsule while liquid passes. It is still ONE fluidic layer, because the crest is relief in the same mould or print, exactly like the print-open-and-seal-with-film rule above. Prior art: Harrison/Oleschuk weir bead traps (US 7,312,611).",
+    "weir_geometry": {
+      "crest_height_um": 240,
+      "gap_um": 60,
+      "crest_thickness_um": 200,
+      "rule": "gap <= 0.5 x the smallest capsule diameter. Hydrogels extrude through gaps near 0.6 D, so a 100 um gap would pass 70 um capsules.",
+      "pressure_drop_pa_at_100_ul_min": 2,
+      "block": "trap_chamber",
+      "untested": "No published capture efficiency for weirs retaining particles above 100 um. Run a coupon with 40, 60 and 80 um gaps before committing. z tolerance of +/-20 um is a 33% error on a 60 um gap."
+    },
+    "alternatives_ranked": [
+      "dld_array as a CONTINUOUS WASH rather than retention: at gap 200 um and eps 0.125 the critical diameter is ~105 um, so swollen capsules displace and unswollen ones do not. Needs +/-10 um gap tolerance.",
+      "Bought woven nylon mesh insert (5 um and up) clamped in a recessed ledge. The 200 um floor does not apply to a bought part. Use only where retention below 50 um is needed. Adds a manual assembly step.",
+      "Sedimentation sump: keep upward velocity below the ~50-210 um/s settling speed, which caps exchange at roughly 6-9 uL/min in a 0.3 mm x 15 mm channel. Works, but slow.",
+      "Off-chip centrifuge. Works today but breaks the nothing-off-chip claim."
+    ],
+    "not_viable": "pillar_array and pillar_funnel_trap cannot retain by size exclusion at a 200 um throat. Stagnation-point traps need active feedback and were published for 1-15 um beads."
+  }
+}

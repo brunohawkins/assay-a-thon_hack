@@ -235,6 +235,7 @@
       "additionalProperties": false,
       "required": ["id", "type", "center", "size", "volume_ul"],
       "properties": {
+        "block": { "type": "string", "description": "Optional. Id of the CAD library block this feature is built from; see contracts/blocks.json. We can only fabricate blocks that exist in that library." },
         "id": { "$ref": "#/$defs/snake_id", "description": "Join key. STL files are named <id>.stl." },
         "type": { "enum": ["inlet", "exchange", "split", "pool", "outlet", "well", "culture", "junction", "bubble_trap", "filter", "mixer", "cell_wash", "qc_window"] },
         "shape": {
@@ -307,6 +308,7 @@
       "additionalProperties": false,
       "required": ["id", "from", "to", "width_mm", "depth_mm"],
       "properties": {
+        "block": { "type": "string", "description": "Optional. Id of the CAD library block this feature is built from; see contracts/blocks.json. We can only fabricate blocks that exist in that library." },
         "id": { "$ref": "#/$defs/snake_id" },
         "from": { "$ref": "#/$defs/snake_id", "description": "Upstream chamber or port id." },
         "to": { "$ref": "#/$defs/snake_id", "description": "Downstream chamber or port id." },

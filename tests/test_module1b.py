@@ -85,10 +85,27 @@ class CrossChipFilter(unittest.TestCase):
         materials = schema_io.load_json(ROOT / "contracts" / "materials.json")["materials"]
         return ccs.check(chip, [], params, materials, {"laser_kerf_um": None, "min_embossed_feature_um": None}, downstream)
 
-    def test_m1b_is_out_of_the_pipeline_and_module1_v1_now_feeds_the_nozzle(self):
+    def test_m1b_is_out_of_the_pipeline(self):
         self.assertEqual(ccs.downstream_nozzles(M1B), [])           # superseded: no longer in the pipeline
-        v1 = schema_io.load_json(ROOT / "chip" / "module1_v1.json")
-        self.assertEqual(ccs.downstream_nozzles(v1), [(40, "m2_encapsulation_v1", "module1_to_module2")])
+
+    def test_a_chip_feeding_a_declared_nozzle_through_a_handoff_is_told_about_it(self):
+        pipe_path, pipe = schema_io.pipelines()[0]
+        chips = {m["module"]: schema_io.load_json(ROOT / schema_io.pipeline_chip(m)[0])
+                 for m in pipe["modules"] if schema_io.pipeline_chip(m)[0]}
+        for h in pipe["handoffs"]:
+            src, dst = chips.get(h["from"].get("module")), chips.get(h["to"].get("module"))
+            nozzle = ((dst or {}).get("encapsulation") or {}).get("nozzle_um")
+            if src and nozzle and h["from"].get("port") in {p["id"] for p in src.get("ports", [])}:
+                self.assertIn((nozzle, dst["id"], h["id"]), ccs.downstream_nozzles(src), h["id"])
+
+    def test_the_pipelines_encapsulation_chip_declares_its_nozzle(self):
+        # Otherwise the upstream cell filter is never checked against it (check_chip_spec.downstream_nozzles is silent).
+        pipe_path, pipe = schema_io.pipelines()[0]
+        entry = next(m for m in pipe["modules"] if m["module"] == "module2")
+        chip_path = schema_io.pipeline_chip(entry)[0]
+        chip = schema_io.load_json(ROOT / chip_path)
+        self.assertTrue((chip.get("encapsulation") or {}).get("nozzle_um"),
+                        f"{chip_path} has no encapsulation.nozzle_um, so no upstream filter is checked against it")
 
     def test_filter_smaller_than_the_downstream_nozzle_is_confirmed(self):
         f = self.check(M1B, [(40, "m2_encapsulation_v1", "m1b_to_m2")])

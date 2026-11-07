@@ -4,71 +4,41 @@
   "chip_id": "m1_culture_v1",
   "chip_spec": "cad/m1_culture_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T15:17:10Z",
+  "created_at": "2026-11-07T17:15:22Z",
   "placeholder": true,
   "run_parameters": {
     "variant": "interaction"
   },
-  "total_duration_s": 1473460.0,
+  "total_duration_s": 1475820.0,
   "events": [
     {
       "t_s": 0.0,
-      "duration_s": 10.0,
-      "command": "valve",
-      "args": {
-        "valves": [
-          "m1_valve_branch_1",
-          "m1_valve_branch_2",
-          "m1_valve_branch_3"
-        ],
-        "state": "open"
-      },
-      "narration": "Open the three branch valves so cells can reach the culture chambers.",
-      "protocol_step": 1
-    },
-    {
-      "t_s": 10.0,
       "duration_s": 120.0,
       "command": "load",
       "args": {
         "target": "m1_ipsc_1",
-        "volume_ul": 20
+        "volume_ul": 1.5
       },
-      "narration": "Load the cells (expanded off-chip) into the seeding chamber.",
-      "protocol_step": 2
+      "narration": "Load the cells (expanded off-chip) into the seeding chamber: feed m1_ipsc_in_1 (selector valve on cells), vent m1_out_1, lane inlets capped.",
+      "protocol_step": 1
     },
     {
-      "t_s": 130.0,
+      "t_s": 120.0,
       "duration_s": 300.0,
       "command": "split",
       "args": {
         "source": "m1_ipsc_1",
         "targets": [
-          "m1_neuron_1",
-          "m1_astrocyte_1",
-          "m1_microglia_1"
+          "m1_bt_1",
+          "m1_bt_2",
+          "m1_bt_3"
         ]
       },
-      "narration": "The cells flow through the split into the three culture chambers.",
-      "protocol_step": 3
+      "narration": "The cells flow through the split into the three culture chambers; the three lanes open through m1_out_1, which is vented, while the lane inlets stay capped.",
+      "protocol_step": 2
     },
     {
-      "t_s": 430.0,
-      "duration_s": 10.0,
-      "command": "valve",
-      "args": {
-        "valves": [
-          "m1_valve_branch_1",
-          "m1_valve_branch_2",
-          "m1_valve_branch_3"
-        ],
-        "state": "closed"
-      },
-      "narration": "Close the branch valves: from now on each chamber is its own lane.",
-      "protocol_step": 4
-    },
-    {
-      "t_s": 440.0,
+      "t_s": 420.0,
       "duration_s": 1209600.0,
       "command": "culture",
       "args": {
@@ -84,8 +54,8 @@
         ],
         "duration_s": 1209600,
         "exchange_interval_s": 86400,
-        "volume_ul": 20,
-        "flow_ul_min": 10,
+        "volume_ul": 1.0,
+        "flow_ul_min": 2.0,
         "temp_c": 37,
         "factors": [
           "factor_1",
@@ -93,83 +63,92 @@
           "factor_3"
         ]
       },
-      "narration": "Differentiate. Once a day (placeholder) a batch of each lane's own medium and factor flows through its chamber, then the flow stops until the next change. 14 days (placeholder).",
-      "protocol_step": 5
+      "narration": "Differentiate. Once a day (placeholder) one chamber volume of each lane's own medium and factor is fed through its lane inlet (off-chip selector valve on medium plus factor), drains through m1_out_1, then flow stops. m1_ipsc_in_1 is capped. 14 days (placeholder).",
+      "protocol_step": 3
     },
     {
-      "t_s": 1210040.0,
+      "t_s": 1210020.0,
       "duration_s": 600.0,
       "command": "exchange",
       "args": {
         "target": "m1_neuron_1",
         "reagent": "label_1",
-        "volume_ul": 10,
+        "volume_ul": 1.0,
         "washes": 1,
-        "flow_ul_min": 10
+        "flow_ul_min": 2.0
       },
-      "narration": "Label each chamber with its own label, so cells from different chambers can be pooled later and still told apart.",
-      "protocol_step": 6
+      "narration": "Label each chamber with its own label (each lane inlet's selector valve set to its label), so cells from different chambers can be pooled later and still told apart.",
+      "protocol_step": 4
     },
     {
-      "t_s": 1210640.0,
+      "t_s": 1210620.0,
       "duration_s": 600.0,
       "command": "exchange",
       "args": {
         "target": "m1_astrocyte_1",
         "reagent": "label_2",
-        "volume_ul": 10,
+        "volume_ul": 1.0,
         "washes": 1,
-        "flow_ul_min": 10
+        "flow_ul_min": 2.0
       },
-      "narration": "Label each chamber with its own label, so cells from different chambers can be pooled later and still told apart.",
-      "protocol_step": 6
+      "narration": "Label each chamber with its own label (each lane inlet's selector valve set to its label), so cells from different chambers can be pooled later and still told apart.",
+      "protocol_step": 4
     },
     {
-      "t_s": 1211240.0,
+      "t_s": 1211220.0,
       "duration_s": 600.0,
       "command": "exchange",
       "args": {
         "target": "m1_microglia_1",
         "reagent": "label_3",
-        "volume_ul": 10,
+        "volume_ul": 1.0,
         "washes": 1,
-        "flow_ul_min": 10
+        "flow_ul_min": 2.0
       },
-      "narration": "Label each chamber with its own label, so cells from different chambers can be pooled later and still told apart.",
-      "protocol_step": 6
+      "narration": "Label each chamber with its own label (each lane inlet's selector valve set to its label), so cells from different chambers can be pooled later and still told apart.",
+      "protocol_step": 4
     },
     {
-      "t_s": 1211840.0,
+      "t_s": 1211820.0,
       "duration_s": 600.0,
       "command": "collect",
       "args": {
         "targets": [
-          "m1_neuron_1",
-          "m1_astrocyte_1",
+          "m1_neuron_1"
+        ],
+        "volume_ul": 1.0
+      },
+      "narration": "Collect supernatant from m1_neuron_1 (before): feed only m1_factor_1 and vent m1_out_1, with the other lane inlets capped, so only this lane's liquid reaches the one outlet.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 1212420.0,
+      "duration_s": 600.0,
+      "command": "collect",
+      "args": {
+        "targets": [
+          "m1_astrocyte_1"
+        ],
+        "volume_ul": 1.0
+      },
+      "narration": "Collect supernatant from m1_astrocyte_1 (before): feed only m1_factor_2 and vent m1_out_1, with the other lane inlets capped, so only this lane's liquid reaches the one outlet.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 1213020.0,
+      "duration_s": 600.0,
+      "command": "collect",
+      "args": {
+        "targets": [
           "m1_microglia_1"
         ],
-        "volume_ul": 10
+        "volume_ul": 1.0
       },
-      "narration": "Collect supernatant from each chamber (before).",
+      "narration": "Collect supernatant from m1_microglia_1 (before): feed only m1_factor_3 and vent m1_out_1, with the other lane inlets capped, so only this lane's liquid reaches the one outlet.",
       "protocol_step": 7
     },
     {
-      "t_s": 1212440.0,
-      "duration_s": 10.0,
-      "command": "valve",
-      "args": {
-        "valves": [
-          "m1_valve_pair_1",
-          "m1_valve_pair_2",
-          "m1_valve_pair_3"
-        ],
-        "state": "open"
-      },
-      "narration": "Interaction variant only: open the pair valves so signals can pass between the chambers through the microgrooves.",
-      "protocol_step": 8
-    },
-    {
-      "t_s": 1212450.0,
+      "t_s": 1213620.0,
       "duration_s": 259200.0,
       "command": "culture",
       "args": {
@@ -180,92 +159,101 @@
         ],
         "reagents": [
           "medium_1",
-          "medium_2",
-          "medium_3"
+          "medium_1",
+          "medium_1"
         ],
         "duration_s": 259200,
         "exchange_interval_s": 86400,
-        "volume_ul": 20,
-        "flow_ul_min": 10,
+        "volume_ul": 1.0,
+        "flow_ul_min": 1.5,
         "temp_c": 37
       },
-      "narration": "Interaction period, 3 days (placeholder). Interaction chip: the pair valves are open and the cell types signal to each other. Control chip: the valves stay closed, so it spends the same time in culture without signalling.",
+      "narration": "Interaction period, 3 days (placeholder), interaction chip: only m1_factor_1 is fed and m1_factor_2 and m1_factor_3 are vented, with m1_out_1 capped. Conditioned medium crosses the shared outlet junction so the cell types signal to each other.",
       "protocol_step": 9
     },
     {
-      "t_s": 1471650.0,
-      "duration_s": 10.0,
-      "command": "valve",
-      "args": {
-        "valves": [
-          "m1_valve_pair_1",
-          "m1_valve_pair_2",
-          "m1_valve_pair_3"
-        ],
-        "state": "closed"
-      },
-      "narration": "Interaction variant only: close the pair valves again, so each chamber's sample is its own.",
-      "protocol_step": 10
-    },
-    {
-      "t_s": 1471660.0,
+      "t_s": 1472820.0,
       "duration_s": 600.0,
       "command": "collect",
       "args": {
         "targets": [
-          "m1_neuron_1",
-          "m1_astrocyte_1",
-          "m1_microglia_1"
+          "m1_neuron_1"
         ],
-        "volume_ul": 10
+        "volume_ul": 1.0
       },
-      "narration": "Collect supernatant from each chamber (after).",
+      "narration": "Collect supernatant from m1_neuron_1 (after): feed only m1_factor_1 and vent m1_out_1, with the other lane inlets capped, so each chamber's sample is its own.",
+      "protocol_step": 10
+    },
+    {
+      "t_s": 1473420.0,
+      "duration_s": 600.0,
+      "command": "collect",
+      "args": {
+        "targets": [
+          "m1_astrocyte_1"
+        ],
+        "volume_ul": 1.0
+      },
+      "narration": "Collect supernatant from m1_astrocyte_1 (after): feed only m1_factor_2 and vent m1_out_1, with the other lane inlets capped, so each chamber's sample is its own.",
       "protocol_step": 11
     },
     {
-      "t_s": 1472260.0,
+      "t_s": 1474020.0,
+      "duration_s": 600.0,
+      "command": "collect",
+      "args": {
+        "targets": [
+          "m1_microglia_1"
+        ],
+        "volume_ul": 1.0
+      },
+      "narration": "Collect supernatant from m1_microglia_1 (after): feed only m1_factor_3 and vent m1_out_1, with the other lane inlets capped, so each chamber's sample is its own.",
+      "protocol_step": 12
+    },
+    {
+      "t_s": 1474620.0,
       "duration_s": 300.0,
       "command": "exchange",
       "args": {
         "target": "m1_neuron_1",
         "reagent": "detach_reagent",
-        "volume_ul": 10,
+        "volume_ul": 1.0,
         "washes": 1,
-        "flow_ul_min": 10
+        "flow_ul_min": 2.0
       },
-      "narration": "Detach the cells from the chamber floors.",
-      "protocol_step": 12
+      "narration": "Detach the cells from the chamber floors: feed m1_ipsc_in_1 (selector valve on detach reagent) and vent m1_out_1, lane inlets capped.",
+      "protocol_step": 13
     },
     {
-      "t_s": 1472560.0,
+      "t_s": 1474920.0,
       "duration_s": 300.0,
       "command": "exchange",
       "args": {
         "target": "m1_astrocyte_1",
         "reagent": "detach_reagent",
-        "volume_ul": 10,
+        "volume_ul": 1.0,
         "washes": 1,
-        "flow_ul_min": 10
+        "flow_ul_min": 2.0
       },
-      "narration": "Detach the cells from the chamber floors.",
-      "protocol_step": 12
+      "narration": "Detach the cells from the chamber floors: feed m1_ipsc_in_1 (selector valve on detach reagent) and vent m1_out_1, lane inlets capped.",
+      "protocol_step": 13
     },
     {
-      "t_s": 1472860.0,
+      "t_s": 1475220.0,
       "duration_s": 300.0,
       "command": "exchange",
       "args": {
         "target": "m1_microglia_1",
         "reagent": "detach_reagent",
-        "volume_ul": 10,
+        "volume_ul": 1.0,
         "washes": 1,
-        "flow_ul_min": 10
+        "flow_ul_min": 2.0
       },
-      "narration": "Detach the cells from the chamber floors.",
-      "protocol_step": 12
+      "narration": "Detach the cells from the chamber floors: feed m1_ipsc_in_1 (selector valve on detach reagent) and vent m1_out_1, lane inlets capped.",
+      "protocol_step": 13
     },
     {
-      "t_s": 1473160.0,
+      "t_s": 1475520.0,
       "duration_s": 300.0,
       "command": "harvest",
       "args": {
@@ -276,8 +264,16 @@
         ],
         "reagent": "harvest_buffer"
       },
-      "narration": "Cells out through m1_out_1/2/3, on their way to cell prep (Module 1b).",
-      "protocol_step": 13
+      "narration": "Cells out through the one outlet m1_out_1 on their way to cell prep (Module 1b): feed m1_ipsc_in_1 (selector valve on harvest buffer), lane inlets capped.",
+      "protocol_step": 14
+    }
+  ],
+  "log": [
+    {
+      "t_s": 1213620.0,
+      "kind": "skip",
+      "step": 8,
+      "message": "step 8 skipped: only in the control variant (this run: interaction). Interaction period, 3 days (placeholder), control chip: all three lane inlets are fed and m1_out_1 is vented, so each lane stays isolated and the chip spends the same time in culture without signalling."
     }
   ]
 }

@@ -144,9 +144,43 @@
         "direction": {
           "enum": ["forward", "backflush"],
           "description": "Optional, exchange only. backflush pushes liquid up through the mesh to lift capsules off it."
+        },
+        "ports": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "feed": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/snake_id" }, "description": "Ports driven as a pressure source. A driven port is a source, not a block." },
+            "vent": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/snake_id" }, "description": "Ports vented to act as the drain." },
+            "cap": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/snake_id" }, "description": "Ports capped shut. Only a capped port is a true block." }
+          },
+          "description": "Optional. The port state for this step, for chips that route by port rather than by valve. A port id may appear in at most one of feed, vent and cap (not enforceable in JSON Schema; the validator should check it)."
+        },
+        "cycles": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["count", "ramp_c_s", "profile"],
+          "properties": {
+            "count": { "type": "integer", "minimum": 1 },
+            "ramp_c_s": { "type": "number", "exclusiveMinimum": 0 },
+            "profile": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["temp_c", "duration_s"],
+                "properties": { "temp_c": { "type": "number" }, "duration_s": { "type": "number", "minimum": 0 } }
+              }
+            }
+          },
+          "description": "Optional, hold_temp only. Repeat the temperature profile count times, ramping at ramp_c_s degrees C per second between holds (thermocycling)."
         }
       },
       "allOf": [
+        {
+          "if": { "required": ["cycles"] },
+          "then": { "properties": { "operation": { "const": "hold_temp" } } }
+        },
         {
           "if": { "properties": { "operation": { "const": "load" } }, "required": ["operation"] },
           "then": { "properties": { "volume_ul": { "type": "number" } } }

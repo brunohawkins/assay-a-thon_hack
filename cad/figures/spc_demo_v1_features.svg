@@ -48,11 +48,11 @@
   <text x="220" y="167.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">channel width</text>
   <text x="220" y="178" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">12 channels</text>
   <text x="475.85" y="167.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">300 µm</text>
-  <line x1="232" y1="190" x2="542.3" y2="190" stroke="#eaeef2" stroke-width="1"/>
-  <circle cx="542.3" cy="190" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <line x1="232" y1="190" x2="504.89" y2="190" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="504.89" cy="190" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
   <text x="220" y="193.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">tubing port</text>
   <text x="220" y="204" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">drilled in the lid</text>
-  <text x="553.3" y="193.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">2000 µm  (2 mm)</text>
+  <text x="515.89" y="193.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">800 µm</text>
   <line x1="40" y1="298" x2="852" y2="298" stroke="#eaeef2" stroke-width="1"/>
   <text x="40" y="312" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.5" fill="#1b2026" text-anchor="start" font-weight="bold">Smallest feature we have to make: 150 µm, clear of every floor. One process is enough.</text>
   <text x="40" y="328" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Hollow markers are bought parts. A 5 µm mesh pore is below the laser floor too, but nobody has to cut it: it arrives as a sheet.</text>

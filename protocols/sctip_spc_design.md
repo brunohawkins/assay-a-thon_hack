@@ -2,6 +2,12 @@
 
 Notes for `sctip_spc_v1.json` and `chip/sctip_spc_v1.json`.
 
+> **Not fabricable as drawn.** The 150 × 100 mm board is far outside the 30 × 20 mm envelope,
+> and its 100 µm features are below the 200 µm floor. Stage A is retired in favour of
+> `chip/spc_demo_v1.json`; stages B and C have no chip. Retention features cannot be printed,
+> so capsule retention needs a bought mesh insert or sedimentation. See
+> [pipeline_status.md](pipeline_status.md).
+
 The brief: build our own capsule generator instead of buying one, and replace
 plate-based split-and-pool barcoding with a single random barcode per capsule that is
 amplified in place — the AmpliDrop idea
@@ -54,7 +60,7 @@ chemistry, no cleavage step, no protease.
 ## 2. The capsules are 135 µm because of the fabrication limit, not the biology
 
 A 40 µm nozzle is **not achievable** with 3D printing and hot embossing. A desktop DLP
-printer floors at about 100 µm for open channels and 200–500 µm for enclosed ones; hot
+printer floors at about 200 µm for open channels and 500 µm for enclosed ones (`contracts/blocks.json`); hot
 embossing replicates whatever its master has, and a 40 µm master needs photolithography
 or micromilling, both of which are outside the constraint.
 
@@ -135,8 +141,8 @@ share a barcode.
 
 ![Feature sizes against the process floors](../cad/figures/sctip_spc_v1_features.svg)
 
-Every feature is at or above 100 µm, so the whole board is **one embossing depth, one
-process**. Compare the three-lineage chip, which needs two.
+Every feature is at or above 100 µm (below the 200 µm floor in force now), so the whole
+board is **one embossing depth, one process** in principle. Compare the three-lineage chip, which needs two.
 
 | Stage | Does | Key dimension |
 |---|---|---|

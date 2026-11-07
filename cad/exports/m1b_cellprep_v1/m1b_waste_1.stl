@@ -1,0 +1,86 @@
+solid m1b_waste_1
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 1.146900e+01 1.347000e+00 1.500000e+00
+      vertex 1.346900e+01 3.347000e+00 1.500000e+00
+      vertex 1.346900e+01 1.347000e+00 1.500000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 1.146900e+01 1.347000e+00 1.500000e+00
+      vertex 1.146900e+01 3.347000e+00 1.500000e+00
+      vertex 1.346900e+01 3.347000e+00 1.500000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 1.146900e+01 1.347000e+00 2.500000e+00
+      vertex 1.346900e+01 1.347000e+00 2.500000e+00
+      vertex 1.346900e+01 3.347000e+00 2.500000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 1.146900e+01 1.347000e+00 2.500000e+00
+      vertex 1.346900e+01 3.347000e+00 2.500000e+00
+      vertex 1.146900e+01 3.347000e+00 2.500000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.146900e+01 1.347000e+00 1.500000e+00
+      vertex 1.346900e+01 1.347000e+00 1.500000e+00
+      vertex 1.346900e+01 1.347000e+00 2.500000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.146900e+01 1.347000e+00 1.500000e+00
+      vertex 1.346900e+01 1.347000e+00 2.500000e+00
+      vertex 1.146900e+01 1.347000e+00 2.500000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.146900e+01 3.347000e+00 1.500000e+00
+      vertex 1.146900e+01 3.347000e+00 2.500000e+00
+      vertex 1.346900e+01 3.347000e+00 2.500000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.146900e+01 3.347000e+00 1.500000e+00
+      vertex 1.346900e+01 3.347000e+00 2.500000e+00
+      vertex 1.346900e+01 3.347000e+00 1.500000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.146900e+01 1.347000e+00 1.500000e+00
+      vertex 1.146900e+01 1.347000e+00 2.500000e+00
+      vertex 1.146900e+01 3.347000e+00 2.500000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.146900e+01 1.347000e+00 1.500000e+00
+      vertex 1.146900e+01 3.347000e+00 2.500000e+00
+      vertex 1.146900e+01 3.347000e+00 1.500000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.346900e+01 1.347000e+00 1.500000e+00
+      vertex 1.346900e+01 3.347000e+00 1.500000e+00
+      vertex 1.346900e+01 3.347000e+00 2.500000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.346900e+01 1.347000e+00 1.500000e+00
+      vertex 1.346900e+01 3.347000e+00 2.500000e+00
+      vertex 1.346900e+01 1.347000e+00 2.500000e+00
+    endloop
+  endfacet
+endsolid m1b_waste_1

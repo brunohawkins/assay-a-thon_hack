@@ -6,8 +6,8 @@ This module sits between differentiated cells and encapsulation. The obvious ver
 does six things with no centrifuge and no pipetting: detach, neutralise, wash ×3, remove
 clumps, count, concentrate into the viscous encapsulation buffer.
 
-**Four of those six lose to a bench tube** once the 100 µm feature floor is applied. This
-note is mostly the evidence for that, because it is the useful part. See
+**Four of those six lose to a bench tube** once the feature floor is applied (written at
+100 µm; it is now 200 µm, which only strengthens the case). This note is mostly the evidence for that, because it is the useful part. See
 [CONFIDENTIALITY.md](../CONFIDENTIALITY.md).
 
 ![Plan view of the module](../cad/figures/cell_prep_v1_layout.svg)

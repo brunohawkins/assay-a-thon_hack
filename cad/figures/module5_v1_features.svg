@@ -53,11 +53,11 @@
   <text x="220" y="193.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">channel width</text>
   <text x="220" y="204" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">3 channels</text>
   <text x="504.15" y="193.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">600 µm</text>
-  <line x1="232" y1="216" x2="542.3" y2="216" stroke="#eaeef2" stroke-width="1"/>
-  <circle cx="542.3" cy="216" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <line x1="232" y1="216" x2="504.89" y2="216" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="504.89" cy="216" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
   <text x="220" y="219.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">tubing port</text>
   <text x="220" y="230" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">drilled in the lid</text>
-  <text x="553.3" y="219.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">2000 µm  (2 mm)</text>
+  <text x="515.89" y="219.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">800 µm</text>
   <line x1="232" y1="242" x2="551.41" y2="242" stroke="#eaeef2" stroke-width="1"/>
   <circle cx="551.41" cy="242" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
   <text x="220" y="245.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">chamber, smallest side</text>

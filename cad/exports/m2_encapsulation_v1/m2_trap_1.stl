@@ -1,0 +1,86 @@
+solid m2_trap_1
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 2.363750e+01 8.637500e+00 1.000000e+00
+      vertex 2.636250e+01 1.136250e+01 1.000000e+00
+      vertex 2.636250e+01 8.637500e+00 1.000000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 2.363750e+01 8.637500e+00 1.000000e+00
+      vertex 2.363750e+01 1.136250e+01 1.000000e+00
+      vertex 2.636250e+01 1.136250e+01 1.000000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 2.363750e+01 8.637500e+00 1.150000e+00
+      vertex 2.636250e+01 8.637500e+00 1.150000e+00
+      vertex 2.636250e+01 1.136250e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 2.363750e+01 8.637500e+00 1.150000e+00
+      vertex 2.636250e+01 1.136250e+01 1.150000e+00
+      vertex 2.363750e+01 1.136250e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.363750e+01 8.637500e+00 1.000000e+00
+      vertex 2.636250e+01 8.637500e+00 1.000000e+00
+      vertex 2.636250e+01 8.637500e+00 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.363750e+01 8.637500e+00 1.000000e+00
+      vertex 2.636250e+01 8.637500e+00 1.150000e+00
+      vertex 2.363750e+01 8.637500e+00 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.363750e+01 1.136250e+01 1.000000e+00
+      vertex 2.363750e+01 1.136250e+01 1.150000e+00
+      vertex 2.636250e+01 1.136250e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.363750e+01 1.136250e+01 1.000000e+00
+      vertex 2.636250e+01 1.136250e+01 1.150000e+00
+      vertex 2.636250e+01 1.136250e+01 1.000000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.363750e+01 8.637500e+00 1.000000e+00
+      vertex 2.363750e+01 8.637500e+00 1.150000e+00
+      vertex 2.363750e+01 1.136250e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.363750e+01 8.637500e+00 1.000000e+00
+      vertex 2.363750e+01 1.136250e+01 1.150000e+00
+      vertex 2.363750e+01 1.136250e+01 1.000000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.636250e+01 8.637500e+00 1.000000e+00
+      vertex 2.636250e+01 1.136250e+01 1.000000e+00
+      vertex 2.636250e+01 1.136250e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.636250e+01 8.637500e+00 1.000000e+00
+      vertex 2.636250e+01 1.136250e+01 1.150000e+00
+      vertex 2.636250e+01 8.637500e+00 1.150000e+00
+    endloop
+  endfacet
+endsolid m2_trap_1

@@ -10,27 +10,17 @@ Design note for `chip/module1_v1.json`. Geometry and flow numbers are ours. See
 **The microgroove barriers are gone. Routing is now done by pressure, not geometry.**
 
 The previous design put 10 × 3 × 500 µm grooves between the chambers, after Taylor et al.
-(doi 10.1021/la026417v, doi 10.1038/nmeth777). We cannot make them.
-
-| Process | Smallest feature |
-|---|---|
-| Photolithography + casting | 3 µm (needed) |
-| CO₂ laser | ~80 µm |
-| CNC tooling | ~127 µm |
+(doi 10.1021/la026417v, doi 10.1038/nmeth777). We cannot make them: the printable floor
+for an open channel is 200 µm.
 
 ## The upside
 
-**The whole board is laser-cut.** One process. No photolithography, no cast layer, no
-PDMS, no SU-8. Every feature is 0.3 mm or larger. This is a big simplification and the
-main gain of the redesign.
+**The whole board is one layer, resin-printed and hot-embossed.** One process. No
+photolithography, no cast layer, no PDMS, no SU-8, no on-chip valves (they need a second layer).
 
-| Layer | Material | Thickness |
-|---|---|---|
-| base | acrylic | 3 mm |
-| spacer (channels, chambers) | acrylic | 0.3 mm |
-| lid | acrylic | 3 mm |
-
-Board is 140 × 75 mm. Channels are 0.8 × 0.3 mm. Chambers are 20 × 12 × 0.3 mm, 72 µL.
+Board is 30 × 20 mm (scaled ×0.209 from 140 × 75 mm), 0.3 mm deep. Channels are 0.2 × 0.3 mm
+(clamped to the floor). Chambers are 4.2 × 2.5 × 0.3 mm, 3.1 µL. The flow, shear and
+diffusion numbers below were worked out for the 140 × 75 mm board and need re-deriving.
 
 ## How it works
 
@@ -67,7 +57,8 @@ Every port not listed is CAPPED. Each chamber also has its own in/out pair
 or harvested without disturbing the other two.
 
 `n_cx` has no retention mesh, because the seeding fallback must pass cells through it.
-`g_cx` and `a_cx` are terminal and drained, so they have a 5 µm mesh.
+`g_cx` and `a_cx` are terminal and drained, so they need a 5 µm mesh. It cannot be printed
+at this floor: it is a bought mesh insert.
 
 ## Drive it with syringe pumps, not pressure
 
@@ -83,12 +74,12 @@ unchanged — only the actuator is.
 ## Honest limits
 
 - **Isolation is maintained flow, not a barrier.** Stop the pumps and the chambers are
-  joined by open 0.8 × 0.3 mm channels. The groove design at least had a geometric one.
+  joined by open channels. The groove design at least had a geometric one.
 - **Only capped ports block.** A fed port is a pressure source; flow reverses into it the
   moment the node it feeds sits higher. Every mode's isolation rests on the capped lines
   actually being capped, which is a procedural guarantee, not a physical one.
 - **Nothing stops whole cells crossing.** The grooves were 3 µm specifically to block cell
-  bodies; an 0.8 × 0.3 mm channel blocks nothing. Cross-seeding is **expected**, not
+  bodies; an open channel blocks nothing. Cross-seeding is **expected**, not
   merely possible, so the per-lane barcode is load-bearing rather than a nice-to-have.
 - **Seeding through `n_cx` does not work.** A 12 µm cell settles 0.3 mm in ~43 s against a
   ~14 min residence time, so ≲5% reach the far chambers. Each chamber is seeded through

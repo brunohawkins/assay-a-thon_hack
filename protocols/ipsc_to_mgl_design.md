@@ -106,7 +106,7 @@ I had these conflated in the first version, and `tools/check_chip_spec.py` caugh
 
 - **A retention mesh** keeps cells *in* a chamber while liquid drains. It must be well
   below the cell diameter: 5 µm here, against the ~8 µm critical diameter in
-  `contracts/parameters.json`. `m1_expand` and `m2_hemogenic` have none, because their
+  `contracts/parameters.json`. It cannot be printed (floor 200 µm), so it is a bought mesh insert. `m1_expand` and `m2_hemogenic` have none, because their
   cells are attached to the floor.
 - **An in-line filter** blocks things that are *too big*. The 30 µm filter on the
   `ch_m2_m3` line stops detached endothelial sheet while passing 10–20 µm progenitors.
@@ -146,7 +146,7 @@ which need about 0.5 mL/day of fully stripped medium against a chamber volume of
 **A sealed static chamber is about seven times short.** Recirculating at ~3 µL/min
 through a vented reservoir covers it at 0.0017 dyn/cm², ten times below the shear
 threshold. Gas exchange therefore happens in the reservoir, not the chambers, which is
-why the chambers do not need to be gas-permeable and can be laser-cut acrylic.
+why the chambers do not need to be gas-permeable and can be resin-printed.
 
 **Why medium is never fully removed.** The published method tops the well up rather
 than exchanging it, because the cells depend on their own secreted factors; removing
@@ -184,8 +184,8 @@ If the gate fails, hold and re-test rather than spending an encapsulation run.
    best well, so a bad seed aborts the run.
 2. **Purifies without sorting.** The 30 µm filter blocks detached endothelial sheet,
    which contaminates the harvest in flasks as the layer ages.
-3. **Skims progenitors within hours of their birth** instead of every two days, and a
-   valve makes continuous versus batch harvest a controlled comparison. That experiment
+3. **Skims progenitors within hours of their birth** instead of every two days, and an
+   off-chip valve makes continuous versus batch harvest a controlled comparison. That experiment
    cannot be run in a plate.
 4. **Samples the supernatant for free.** Every exchange leaves through `waste_1`.
 
