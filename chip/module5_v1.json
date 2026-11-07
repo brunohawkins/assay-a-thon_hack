@@ -1,0 +1,156 @@
+{
+  "id": "module5_v1",
+  "name": "Module 5: capsule release and library cleanup",
+  "description": "Steps 16 and 17. Opens the capsule shells, recovers the DNA, captures it on magnetic beads, washes and elutes a finished library. 30 x 20 mm, 0.3 mm deep, hot-embossed COC. RELEASE IS COLLAGENASE AT 37 C, NOT PROTEINASE K. Published work shows proteinase K leaves a crosslinked capsule intact and still holding its DNA, while collagenase digests the gelatin backbone between crosslinks until the network dissolves; EDTA inhibits collagenase, so it must be absent from the incoming buffer. react_cx is that digest, and it needs only 37 C, which is why this chip has no high-temperature requirement of its own. bead_cx is an open capture chamber over an external magnet with a 0.5 mm floor so the field reaches the beads. THERE IS NO MECHANICAL BEAD TRAP, and there cannot be: SPRI beads are about 1 um and the smallest feature either process can make is 200 um, so retention is purely magnetic and the geometry only shapes the flow. EITHER ORDER WORKS. The team's protocol sheet runs index PCR before release, but published practice for these capsules is release first, then PCR. With the magnet off, react_cx drains through bead_cx to out_waste, so this chip can run before module 4 as well as after it; only the order of passes changes, not the geometry. Two honest limits are recorded in protocols/module5_design.md: the ethanol wash and dry that SPRI normally needs will smear the pellet, because a drying meniscus pulls on a bead about 100,000 times harder than the magnet, so ratio-based size selection stays in a tube for the MVP; and the dissolved shell contributes roughly 10,000 times more polymer mass than there is DNA, so the eluate must be diluted before it ever meets the beads. out_lib is the product path, kept short and narrow because the whole output is a few microlitres and DNA adsorbs to polymer. Geometry is ours; the chemistry is cited in protocols/module5_v1.json.",
+  "placeholder": false,
+  "units": "mm",
+  "footprint": {
+    "x": 30,
+    "y": 20
+  },
+  "layers": [
+    {
+      "id": "base",
+      "material": "coc",
+      "thickness_mm": 0.5
+    },
+    {
+      "id": "spacer",
+      "material": "coc",
+      "thickness_mm": 0.3
+    },
+    {
+      "id": "lid",
+      "material": "coc",
+      "thickness_mm": 1
+    }
+  ],
+  "chambers": [
+    {
+      "id": "react_cx",
+      "type": "exchange",
+      "center": [
+        10,
+        14,
+        0.65
+      ],
+      "size": [
+        9,
+        3,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 8.1
+    },
+    {
+      "id": "bead_cx",
+      "type": "pool",
+      "center": [
+        19,
+        6.5,
+        0.65
+      ],
+      "size": [
+        8,
+        2.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 6
+    }
+  ],
+  "channels": [
+    {
+      "id": "ch_in_lib",
+      "from": "in_lib",
+      "to": "react_cx",
+      "width_mm": 0.6,
+      "depth_mm": 0.3
+    },
+    {
+      "id": "ch_in_prot",
+      "from": "in_prot",
+      "to": "react_cx",
+      "width_mm": 0.4,
+      "depth_mm": 0.3
+    },
+    {
+      "id": "ch_react_bead",
+      "from": "react_cx",
+      "to": "bead_cx",
+      "width_mm": 0.6,
+      "depth_mm": 0.3
+    },
+    {
+      "id": "ch_in_bead",
+      "from": "in_bead",
+      "to": "bead_cx",
+      "width_mm": 0.4,
+      "depth_mm": 0.3
+    },
+    {
+      "id": "ch_waste",
+      "from": "bead_cx",
+      "to": "out_waste",
+      "width_mm": 0.6,
+      "depth_mm": 0.3
+    },
+    {
+      "id": "ch_out_lib",
+      "from": "bead_cx",
+      "to": "out_lib",
+      "width_mm": 0.3,
+      "depth_mm": 0.3
+    }
+  ],
+  "ports": [
+    {
+      "id": "in_lib",
+      "type": "inlet",
+      "position": [
+        2,
+        17,
+        1.8
+      ]
+    },
+    {
+      "id": "in_prot",
+      "type": "inlet",
+      "position": [
+        2,
+        11,
+        1.8
+      ]
+    },
+    {
+      "id": "in_bead",
+      "type": "inlet",
+      "position": [
+        2,
+        4,
+        1.8
+      ]
+    },
+    {
+      "id": "out_waste",
+      "type": "outlet",
+      "position": [
+        28,
+        14,
+        1.8
+      ],
+      "capsule_passable": false
+    },
+    {
+      "id": "out_lib",
+      "type": "outlet",
+      "position": [
+        28,
+        3,
+        1.8
+      ],
+      "capsule_passable": false,
+      "width_um": 300
+    }
+  ]
+}

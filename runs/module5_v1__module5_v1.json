@@ -1,0 +1,452 @@
+{
+  "protocol_id": "module5_v1",
+  "protocol_name": "Sublibrary split, index PCR, release and cleanup, library out (steps 15-17) - module5_v1",
+  "chip_id": "module5_v1",
+  "chip_spec": "chip/module5_v1.json",
+  "operator": "planner",
+  "created_at": "2026-11-07T15:56:14Z",
+  "placeholder": false,
+  "sizing": {
+    "capsule_count": null,
+    "capsule_count_note": "not in chip spec; sheet default 100,000 used",
+    "capsule_diameter_um": 70.0,
+    "cells_expected": 7696.9,
+    "trap_chambers": [
+      "react_cx"
+    ],
+    "monolayer_area_mm2_needed": 490.0,
+    "trap_area_mm2": 27,
+    "packed_volume_ul_needed": 28.062,
+    "trap_volume_ul": 8.1,
+    "channel_width_um": [
+      300.0,
+      600.0
+    ],
+    "channel_width_um_recommended": [
+      105.0,
+      140.0
+    ],
+    "trap_gap_um_recommended": [
+      21.0,
+      28.0
+    ],
+    "swollen_diameter_um": 140.0
+  },
+  "total_duration_s": 18704.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 88.0,
+      "command": "load",
+      "args": {
+        "target": "react_cx",
+        "volume_ul": 4.0
+      },
+      "narration": "Step 16, pass 1: move sublibrary 1 (sub_1) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 88.0,
+      "duration_s": 77.0,
+      "command": "load",
+      "args": {
+        "target": "bead_cx",
+        "volume_ul": 4.6
+      },
+      "narration": "Step 16, pass 1: load magnetic beads into bead_cx through in_bead with the magnet ON. Retention is magnetic only: the beads are about 1 um and no feature can be that small.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 165.0,
+      "duration_s": 28.0,
+      "command": "release",
+      "args": {
+        "target": "react_cx",
+        "reagent": "collagenase_solution"
+      },
+      "narration": "Step 16, pass 1: collagenase into react_cx through in_prot, all ports capped. It digests the gelatin between crosslinks until the capsule dissolves. Proteinase K would leave these capsules intact, and a chelator would stop collagenase, so none is carried in.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 193.0,
+      "duration_s": 1800.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "react_cx",
+        "temp_c": 37,
+        "duration_s": 1800
+      },
+      "narration": "Step 16, pass 1: hold react_cx at 37 C while the capsules dissolve and the DNA is released into solution.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 1993.0,
+      "duration_s": 1120.0,
+      "command": "exchange",
+      "args": {
+        "target": "react_cx",
+        "reagent": "dilution_buffer",
+        "volume_ul": 40.0,
+        "washes": 1,
+        "flow_ul_min": 3.0
+      },
+      "narration": "Step 16, pass 1: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 3113.0,
+      "duration_s": 336.0,
+      "command": "exchange",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "exchange_buffer",
+        "volume_ul": 6.0,
+        "washes": 2,
+        "flow_ul_min": 3.0
+      },
+      "narration": "Step 16, pass 1: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 3449.0,
+      "duration_s": 252.0,
+      "command": "exchange",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "elution_buffer",
+        "volume_ul": 3.0,
+        "washes": 1,
+        "flow_ul_min": 1.0
+      },
+      "narration": "Step 16, pass 1: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 3701.0,
+      "duration_s": 300.0,
+      "command": "release",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "elution_buffer"
+      },
+      "narration": "Step 17, pass 1: library 1 leaves through out_lib into a tube, chased with air to recover the liquid left in the short out_lib channel.",
+      "protocol_step": 8
+    },
+    {
+      "t_s": 4001.0,
+      "duration_s": 88.0,
+      "command": "load",
+      "args": {
+        "target": "react_cx",
+        "volume_ul": 4.0
+      },
+      "narration": "Step 16, pass 2: move sublibrary 2 (sub_2) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "protocol_step": 9
+    },
+    {
+      "t_s": 4089.0,
+      "duration_s": 77.0,
+      "command": "load",
+      "args": {
+        "target": "bead_cx",
+        "volume_ul": 4.6
+      },
+      "narration": "Step 16, pass 2: load magnetic beads into bead_cx through in_bead with the magnet ON. Retention is magnetic only: the beads are about 1 um and no feature can be that small.",
+      "protocol_step": 10
+    },
+    {
+      "t_s": 4166.0,
+      "duration_s": 28.0,
+      "command": "release",
+      "args": {
+        "target": "react_cx",
+        "reagent": "collagenase_solution"
+      },
+      "narration": "Step 16, pass 2: collagenase into react_cx through in_prot, all ports capped. It digests the gelatin between crosslinks until the capsule dissolves. Proteinase K would leave these capsules intact, and a chelator would stop collagenase, so none is carried in.",
+      "protocol_step": 11
+    },
+    {
+      "t_s": 4194.0,
+      "duration_s": 1800.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "react_cx",
+        "temp_c": 37,
+        "duration_s": 1800
+      },
+      "narration": "Step 16, pass 2: hold react_cx at 37 C while the capsules dissolve and the DNA is released into solution.",
+      "protocol_step": 12
+    },
+    {
+      "t_s": 5994.0,
+      "duration_s": 1120.0,
+      "command": "exchange",
+      "args": {
+        "target": "react_cx",
+        "reagent": "dilution_buffer",
+        "volume_ul": 40.0,
+        "washes": 1,
+        "flow_ul_min": 3.0
+      },
+      "narration": "Step 16, pass 2: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste.",
+      "protocol_step": 13
+    },
+    {
+      "t_s": 7114.0,
+      "duration_s": 336.0,
+      "command": "exchange",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "exchange_buffer",
+        "volume_ul": 6.0,
+        "washes": 2,
+        "flow_ul_min": 3.0
+      },
+      "narration": "Step 16, pass 2: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet.",
+      "protocol_step": 14
+    },
+    {
+      "t_s": 7450.0,
+      "duration_s": 252.0,
+      "command": "exchange",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "elution_buffer",
+        "volume_ul": 3.0,
+        "washes": 1,
+        "flow_ul_min": 1.0
+      },
+      "narration": "Step 16, pass 2: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put.",
+      "protocol_step": 15
+    },
+    {
+      "t_s": 7702.0,
+      "duration_s": 300.0,
+      "command": "release",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "elution_buffer"
+      },
+      "narration": "Step 17, pass 2: library 2 leaves through out_lib into a tube, chased with air to recover the liquid left in the short out_lib channel.",
+      "protocol_step": 16
+    },
+    {
+      "t_s": 8002.0,
+      "duration_s": 88.0,
+      "command": "load",
+      "args": {
+        "target": "react_cx",
+        "volume_ul": 4.0
+      },
+      "narration": "Step 16, pass 3: move sublibrary 3 (sub_3) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "protocol_step": 17
+    },
+    {
+      "t_s": 8090.0,
+      "duration_s": 77.0,
+      "command": "load",
+      "args": {
+        "target": "bead_cx",
+        "volume_ul": 4.6
+      },
+      "narration": "Step 16, pass 3: load magnetic beads into bead_cx through in_bead with the magnet ON. Retention is magnetic only: the beads are about 1 um and no feature can be that small.",
+      "protocol_step": 18
+    },
+    {
+      "t_s": 8167.0,
+      "duration_s": 28.0,
+      "command": "release",
+      "args": {
+        "target": "react_cx",
+        "reagent": "collagenase_solution"
+      },
+      "narration": "Step 16, pass 3: collagenase into react_cx through in_prot, all ports capped. It digests the gelatin between crosslinks until the capsule dissolves. Proteinase K would leave these capsules intact, and a chelator would stop collagenase, so none is carried in.",
+      "protocol_step": 19
+    },
+    {
+      "t_s": 8195.0,
+      "duration_s": 1800.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "react_cx",
+        "temp_c": 37,
+        "duration_s": 1800
+      },
+      "narration": "Step 16, pass 3: hold react_cx at 37 C while the capsules dissolve and the DNA is released into solution.",
+      "protocol_step": 20
+    },
+    {
+      "t_s": 9995.0,
+      "duration_s": 1120.0,
+      "command": "exchange",
+      "args": {
+        "target": "react_cx",
+        "reagent": "dilution_buffer",
+        "volume_ul": 40.0,
+        "washes": 1,
+        "flow_ul_min": 3.0
+      },
+      "narration": "Step 16, pass 3: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste.",
+      "protocol_step": 21
+    },
+    {
+      "t_s": 11115.0,
+      "duration_s": 336.0,
+      "command": "exchange",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "exchange_buffer",
+        "volume_ul": 6.0,
+        "washes": 2,
+        "flow_ul_min": 3.0
+      },
+      "narration": "Step 16, pass 3: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet.",
+      "protocol_step": 22
+    },
+    {
+      "t_s": 11451.0,
+      "duration_s": 252.0,
+      "command": "exchange",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "elution_buffer",
+        "volume_ul": 3.0,
+        "washes": 1,
+        "flow_ul_min": 1.0
+      },
+      "narration": "Step 16, pass 3: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put.",
+      "protocol_step": 23
+    },
+    {
+      "t_s": 11703.0,
+      "duration_s": 300.0,
+      "command": "release",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "elution_buffer"
+      },
+      "narration": "Step 17, pass 3: library 3 leaves through out_lib into a tube, chased with air to recover the liquid left in the short out_lib channel.",
+      "protocol_step": 24
+    },
+    {
+      "t_s": 12003.0,
+      "duration_s": 88.0,
+      "command": "load",
+      "args": {
+        "target": "react_cx",
+        "volume_ul": 4.0
+      },
+      "narration": "Step 16, pass 4: move sublibrary 4 (sub_4) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "protocol_step": 25
+    },
+    {
+      "t_s": 12091.0,
+      "duration_s": 77.0,
+      "command": "load",
+      "args": {
+        "target": "bead_cx",
+        "volume_ul": 4.6
+      },
+      "narration": "Step 16, pass 4: load magnetic beads into bead_cx through in_bead with the magnet ON. Retention is magnetic only: the beads are about 1 um and no feature can be that small.",
+      "protocol_step": 26
+    },
+    {
+      "t_s": 12168.0,
+      "duration_s": 28.0,
+      "command": "release",
+      "args": {
+        "target": "react_cx",
+        "reagent": "collagenase_solution"
+      },
+      "narration": "Step 16, pass 4: collagenase into react_cx through in_prot, all ports capped. It digests the gelatin between crosslinks until the capsule dissolves. Proteinase K would leave these capsules intact, and a chelator would stop collagenase, so none is carried in.",
+      "protocol_step": 27
+    },
+    {
+      "t_s": 12196.0,
+      "duration_s": 1800.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "react_cx",
+        "temp_c": 37,
+        "duration_s": 1800
+      },
+      "narration": "Step 16, pass 4: hold react_cx at 37 C while the capsules dissolve and the DNA is released into solution.",
+      "protocol_step": 28
+    },
+    {
+      "t_s": 13996.0,
+      "duration_s": 1120.0,
+      "command": "exchange",
+      "args": {
+        "target": "react_cx",
+        "reagent": "dilution_buffer",
+        "volume_ul": 40.0,
+        "washes": 1,
+        "flow_ul_min": 3.0
+      },
+      "narration": "Step 16, pass 4: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste.",
+      "protocol_step": 29
+    },
+    {
+      "t_s": 15116.0,
+      "duration_s": 336.0,
+      "command": "exchange",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "exchange_buffer",
+        "volume_ul": 6.0,
+        "washes": 2,
+        "flow_ul_min": 3.0
+      },
+      "narration": "Step 16, pass 4: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet.",
+      "protocol_step": 30
+    },
+    {
+      "t_s": 15452.0,
+      "duration_s": 252.0,
+      "command": "exchange",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "elution_buffer",
+        "volume_ul": 3.0,
+        "washes": 1,
+        "flow_ul_min": 1.0
+      },
+      "narration": "Step 16, pass 4: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put.",
+      "protocol_step": 31
+    },
+    {
+      "t_s": 15704.0,
+      "duration_s": 300.0,
+      "command": "release",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "elution_buffer"
+      },
+      "narration": "Step 17, pass 4: library 4 leaves through out_lib into a tube, chased with air to recover the liquid left in the short out_lib channel.",
+      "protocol_step": 32
+    },
+    {
+      "t_s": 16004.0,
+      "duration_s": 900.0,
+      "command": "release",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "ratio_size_selection"
+      },
+      "narration": "Step 17, hand-off to the bench: mix the four libraries in a tube and do the ratio-based size selection that removes primer dimers there. It is off chip because it needs an ethanol wash and dry, which a chip cannot do.",
+      "protocol_step": 33
+    },
+    {
+      "t_s": 16904.0,
+      "duration_s": 1800.0,
+      "command": "release",
+      "args": {
+        "target": "bead_cx",
+        "reagent": "off_chip_qc"
+      },
+      "narration": "Step 17, hand-off to the bench through out_lib: off-chip QC on the finished library (size distribution and quantity) before sequencing.",
+      "protocol_step": 34
+    }
+  ]
+}

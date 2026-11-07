@@ -1,0 +1,86 @@
+solid react_cx
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 5.500000e+00 1.250000e+01 5.000000e-01
+      vertex 1.450000e+01 1.550000e+01 5.000000e-01
+      vertex 1.450000e+01 1.250000e+01 5.000000e-01
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 5.500000e+00 1.250000e+01 5.000000e-01
+      vertex 5.500000e+00 1.550000e+01 5.000000e-01
+      vertex 1.450000e+01 1.550000e+01 5.000000e-01
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 5.500000e+00 1.250000e+01 8.000000e-01
+      vertex 1.450000e+01 1.250000e+01 8.000000e-01
+      vertex 1.450000e+01 1.550000e+01 8.000000e-01
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 5.500000e+00 1.250000e+01 8.000000e-01
+      vertex 1.450000e+01 1.550000e+01 8.000000e-01
+      vertex 5.500000e+00 1.550000e+01 8.000000e-01
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.500000e+00 1.250000e+01 5.000000e-01
+      vertex 1.450000e+01 1.250000e+01 5.000000e-01
+      vertex 1.450000e+01 1.250000e+01 8.000000e-01
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.500000e+00 1.250000e+01 5.000000e-01
+      vertex 1.450000e+01 1.250000e+01 8.000000e-01
+      vertex 5.500000e+00 1.250000e+01 8.000000e-01
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.500000e+00 1.550000e+01 5.000000e-01
+      vertex 5.500000e+00 1.550000e+01 8.000000e-01
+      vertex 1.450000e+01 1.550000e+01 8.000000e-01
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.500000e+00 1.550000e+01 5.000000e-01
+      vertex 1.450000e+01 1.550000e+01 8.000000e-01
+      vertex 1.450000e+01 1.550000e+01 5.000000e-01
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.500000e+00 1.250000e+01 5.000000e-01
+      vertex 5.500000e+00 1.250000e+01 8.000000e-01
+      vertex 5.500000e+00 1.550000e+01 8.000000e-01
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.500000e+00 1.250000e+01 5.000000e-01
+      vertex 5.500000e+00 1.550000e+01 8.000000e-01
+      vertex 5.500000e+00 1.550000e+01 5.000000e-01
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.450000e+01 1.250000e+01 5.000000e-01
+      vertex 1.450000e+01 1.550000e+01 5.000000e-01
+      vertex 1.450000e+01 1.550000e+01 8.000000e-01
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.450000e+01 1.250000e+01 5.000000e-01
+      vertex 1.450000e+01 1.550000e+01 8.000000e-01
+      vertex 1.450000e+01 1.250000e+01 8.000000e-01
+    endloop
+  endfacet
+endsolid react_cx
