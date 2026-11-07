@@ -11,6 +11,9 @@ Writes, into cad/figures/:
   <chip_id>_schedule.svg  lane timing, only for chips whose protocol stages lanes
   <chip_id>_modes.svg     one mini plan view per operating mode, only for chips that are
                           routed by port pressure instead of valves
+  module4_v1_pipeline.svg the whole pipeline end to end, cell prep to library, with the
+                          temperature of every stage and which stages are on or off chip.
+                          Written once, with PIPELINE_CHIP, not once per chip.
 
 Channel geometry is imported from make_train_cad rather than re-derived, so a drawing
 and the DXF cut path cannot disagree.
@@ -56,7 +59,9 @@ FLOORS = [
     (127.0, "CNC, smallest end mill", "#bf7b2f"),
 ]
 TIGHT_MM = 0.5          # thin-rib threshold for the clearance warnings
-SCALE = 6.0             # px per mm in the layout figure
+SCALE = 6.0             # px per mm in the layout figure, the floor: big boards stay at this
+LAYOUT_W_PX = 840.0     # a small chip is scaled up until its board is about this wide
+PIPELINE_CHIP = "module4_v1"   # the whole-pipeline figure is written once, with this chip
 
 FONT = "DejaVu Sans, Helvetica, Arial, sans-serif"
 INK, INK2, INK3 = "#1b2026", "#5a636d", "#8b949e"
@@ -297,12 +302,25 @@ def geometry_warnings(chip):
     return msgs, tightest
 
 
+def layout_scale(chip):
+    """px per mm: SCALE for a big board, larger for a small one so it is still drawable."""
+    return max(SCALE, LAYOUT_W_PX / chip["footprint"]["x"])
+
+
+def is_embossed(chip):
+    """All-COC chips are hot-embossed from a tool, not laser-cut from sheet."""
+    return bool(chip["layers"]) and all(l["material"] == "coc" for l in chip["layers"])
+
+
 def lanes_of(chip):
     """Rows of >=2 non-pool chambers sharing an id prefix: one differentiation lane.
 
     Pool chambers are excluded because a pool is shared by every lane by definition.
-    A serial train (one row, mixed prefixes) yields no lanes, which is correct.
+    A serial train (one row, mixed prefixes) yields no lanes, which is correct. So does a
+    row of parallel reactors that merely share a prefix: a lane is a CHAIN, so
+    neighbours in the row must be joined by a channel.
     """
+    linked = {frozenset((ch["from"], ch["to"])) for ch in chip["channels"]}
     rows: dict[float, list] = {}
     for c in chip["chambers"]:
         if c.get("type") == "pool":
@@ -311,8 +329,10 @@ def lanes_of(chip):
     lanes = []
     for y, cs in sorted(rows.items(), reverse=True):
         prefixes = {c["id"].split("_")[0] for c in cs}
-        if len(cs) >= 2 and len(prefixes) == 1:
-            lanes.append((prefixes.pop(), y, sorted(cs, key=lambda c: c["center"][0])))
+        cs = sorted(cs, key=lambda c: c["center"][0])
+        chained = all(frozenset((a["id"], b["id"])) in linked for a, b in zip(cs, cs[1:]))
+        if len(cs) >= 2 and len(prefixes) == 1 and chained:
+            lanes.append((prefixes.pop(), y, cs))
     return lanes
 
 
@@ -396,13 +416,14 @@ def barrier_band(chip, ch):
 def fig_layout(chip, sched):
     fx, fy = chip["footprint"]["x"], chip["footprint"]["y"]
     lanes, names = lanes_of(chip), lane_names(chip, sched)
+    scale = layout_scale(chip)
     pad_l = 104 if lanes else 44
     pad_t, pad_r = 56, 86
-    board_h = fy * SCALE
-    w = pad_l + fx * SCALE + pad_r
+    board_h = fy * scale
+    w = pad_l + fx * scale + pad_r
     h = pad_t + board_h + 154
     svg = Svg(w, h, f"{chip['id']}: plan view")
-    v = View(chip, SCALE, pad_l, pad_t)
+    v = View(chip, scale, pad_l, pad_t)
     bottom = v.y(0)
 
     svg.text(pad_l, 24, chip["name"], 14.5, INK, weight="bold")
@@ -412,7 +433,7 @@ def fig_layout(chip, sched):
     svg.text(w - pad_r + 72, 36, "cad/make_figures.py", 8, INK3, "end", mono=True)
     svg.text(w - pad_r + 72, 48, "do not edit by hand", 8, INK3, "end")
 
-    svg.rect(v.x(0), v.y(fy), fx * SCALE, board_h, BOARD_F, BOARD_S, 1.3, rx=5)
+    svg.rect(v.x(0), v.y(fy), fx * scale, board_h, BOARD_F, BOARD_S, 1.3, rx=5)
 
     for i, (prefix, y, cs) in enumerate(lanes):
         x1 = max(c["center"][0] + c["size"][0] / 2 for c in cs)
@@ -441,9 +462,10 @@ def fig_layout(chip, sched):
         cx, cy = v.x(c["center"][0]), v.y(c["center"][1])
         mesh = f"  ·  mesh {c['mesh_pore_um']:g} µm" if c.get("mesh_pore_um") else ""
         if v.d(sx) >= 66 and v.d(sy) >= 36:
-            svg.text(cx, cy - 4, c["id"], 9.5, stroke, "middle", "bold", mono=True)
-            svg.text(cx, cy + 9, f"{sx:g} × {sy:g} mm", 8, INK2, "middle")
-            svg.text(cx, cy + 20, f"{c['volume_ul']:g} µL{mesh}", 8, INK2, "middle")
+            k = min(1.5, (scale / SCALE) ** 0.5)      # bigger type once the boxes are big
+            svg.text(cx, cy - 4 * k, c["id"], 9.5 * k, stroke, "middle", "bold", mono=True)
+            svg.text(cx, cy + 9 * k, f"{sx:g} × {sy:g} mm", 8 * k, INK2, "middle")
+            svg.text(cx, cy + 20 * k, f"{c['volume_ul']:g} µL{mesh}", 8 * k, INK2, "middle")
         else:
             svg.halo(cx, py - 16, c["id"], 9, stroke, "middle", "bold", mono=True)
             svg.halo(cx, py - 6, f"{sx:g} × {sy:g} mm · {c['volume_ul']:g} µL{mesh}",
@@ -491,8 +513,9 @@ def fig_layout(chip, sched):
         svg.circle(v.x(x), v.y(y), v.d(PORT_SIZE_MM / 2) - 3.5, colour, "none")
         dx, dy = x - fx / 2, y - fy / 2
         mag = max((dx * dx + dy * dy) ** 0.5, 1e-6)
-        bx = v.x(x) + dx / mag * 19
-        by_ = v.y(y) - dy / mag * 19
+        off = v.d(PORT_SIZE_MM / 2) + 13      # clear of the port ring at any scale
+        bx = v.x(x) + dx / mag * off
+        by_ = v.y(y) - dy / mag * off
         svg.circle(bx, by_, 7.5, PAPER, colour, 1.2)
         svg.text(bx, by_ + 3.2, str(i), 8.5, colour, "middle", "bold")
         balloons.append((i, port, colour))
@@ -511,7 +534,10 @@ def fig_layout(chip, sched):
     for t in seen:
         fill, stroke = TYPES.get(t, TYPE_FALLBACK)
         x = _swatch(svg, x, row, fill, stroke, f"{t} chamber")
-    x = _swatch(svg, x, row, CHAN_F, CHAN_S, "channel (0.3 mm deep, in the spacer)")
+    depths = sorted({c["depth_mm"] for c in chip["channels"]})
+    where = "" if is_embossed(chip) else ", in the spacer"
+    x = _swatch(svg, x, row, CHAN_F, CHAN_S,
+                f"channel ({'/'.join(f'{d:g}' for d in depths)} mm deep{where})")
     if grooves:
         x = _swatch(svg, x, row, GROOVE_F, GROOVE_S, "groove barrier (exaggerated)")
     svg.circle(x + 6, row - 3, 5, PAPER, INLET_C, 1.8)
@@ -542,7 +568,11 @@ def fig_layout(chip, sched):
 def _layout_notes(chip, grooves, tightest, msgs):
     spacer = spacer_of(chip)
     out = []
-    if spacer:
+    if spacer and is_embossed(chip):
+        out.append(f"Every chamber and channel is {spacer['thickness_mm']:g} mm deep: one "
+                   f"embossing depth, hot-embossed in {spacer['material'].upper()}, with the "
+                   f"tubing ports drilled through the lid.")
+    elif spacer:
         out.append(f"Chamber height is the {spacer['thickness_mm']:g} mm "
                    f"{spacer['material']} '{spacer['id']}' layer, so every chamber and "
                    f"channel is a cut-out in one flat sheet.")
@@ -569,8 +599,10 @@ MATERIAL_FILL = {
     "glass": ("#d9edf3", "#6f9fad"),
     "pdms": ("#efdcf2", "#a3449b"),
     "psa": ("#f6e9cf", "#bf9b4f"),
+    "coc": ("#e4edf0", "#7f9aa5"),
 }
 LASER_C, LITHO_C, STOCK_C = "#c0392b", "#6b5bb0", "#6e7781"
+EMBOSS_C = "#1f7a6d"
 
 
 def groove_layer_of(chip):
@@ -581,8 +613,12 @@ def process_of(layer, chip, spacer, groove_layer):
     if groove_layer is not None and layer["id"] == groove_layer["id"]:
         return ("photolithography", "SU-8 master, then cast: the groove array", LITHO_C)
     if spacer is not None and layer["id"] == spacer["id"]:
+        if is_embossed(chip):
+            return ("hot embossing", "tool relief: chamber cavities + channels", EMBOSS_C)
         return ("laser", "cut right through: chamber cavities + channels", LASER_C)
     if layer is chip["layers"][-1]:
+        if is_embossed(chip):
+            return ("drilling", "cut to outline, ports drilled through", STOCK_C)
         return ("laser", "cut to outline, ports drilled through", LASER_C)
     return ("stock", "stock sheet, cut to outline only", STOCK_C)
 
@@ -642,9 +678,11 @@ def fig_stack(chip):
     row = pad_t + body_h + 46
     svg.line(pad_l, row - 18, w - 40, row - 18, GRID, 1.0)
     if spacer is not None:
+        how = ("That is why every feature shares one embossing depth."
+               if is_embossed(chip) else
+               "That is why a chamber is a rectangle in a flat sheet rather than a milled pocket.")
         svg.text(pad_l, row, f"The chamber height IS the spacer: {spacer['thickness_mm']:g} mm. "
-                             f"That is why a chamber is a rectangle in a flat sheet rather than "
-                             f"a milled pocket.", 9, INK2)
+                             f"{how}", 9, INK2)
         row += 15
     if has_grooves and groove_layer is not None:
         svg.text(pad_l, row, f"Two processes, not one. '{spacer['id'] if spacer else '?'}' goes to "
@@ -657,6 +695,10 @@ def fig_stack(chip):
     elif has_grooves:
         svg.text(pad_l, row, "WARNING: this chip has sub-spacer channels but no layer to hold "
                              "them. Add a cast layer to chip.layers.", 9, LASER_C, weight="bold")
+        row += 15
+    elif is_embossed(chip):
+        svg.text(pad_l, row, "One process: every feature is one embossing depth, so a single "
+                             "tool makes the whole chip. See the feature figure.", 9, INK2)
         row += 15
     else:
         svg.text(pad_l, row, "One process: every feature on this chip is within reach of the "
@@ -695,7 +737,7 @@ def feature_rows(chip):
 def fig_features(chip):
     rows = feature_rows(chip)
     pad_l, pad_t = 232, 86
-    axw, axh = 470.0, 20.0
+    axw, axh = 470.0, 26.0
     w = pad_l + axw + 190
     h = pad_t + len(rows) * axh + 150
     svg = Svg(w, h, f"{chip['id']}: feature sizes against the process floors")
@@ -1231,6 +1273,264 @@ def fig_modes(chip):
     return svg
 
 
+# --- figure: the whole pipeline -------------------------------------------------------
+
+# Cold blue at 4 C, warm at 37 C, hot red at 98 C, with room temperature between the first two.
+TEMP_STOPS = [(4, "#2f6fb0"), (22, "#6bbfb0"), (37, "#f2b134"), (60, "#e8772e"), (98, "#c0392b")]
+ON_C, ON_F = "#2b3f6b", "#e8edf7"      # on-chip: solid navy
+OFF_C = "#8b949e"                       # off-chip: dashed grey
+OUT_F = "#e6f3e6"
+
+
+def temp_colour(t):
+    t = max(TEMP_STOPS[0][0], min(TEMP_STOPS[-1][0], t))
+    for (t0, c0), (t1, c1) in zip(TEMP_STOPS, TEMP_STOPS[1:]):
+        if t <= t1:
+            f = (t - t0) / (t1 - t0)
+            a = [int(c0[i:i + 2], 16) for i in (1, 3, 5)]
+            b = [int(c1[i:i + 2], 16) for i in (1, 3, 5)]
+            return "#" + "".join(f"{round(x + (y - x) * f):02x}" for x, y in zip(a, b))
+    return TEMP_STOPS[-1][1]
+
+
+def on_temp(colour):
+    """Readable text colour on a temperature fill."""
+    r, g, b = (int(colour[i:i + 2], 16) for i in (1, 3, 5))
+    return "#ffffff" if 0.299 * r + 0.587 * g + 0.114 * b < 125 else INK
+
+
+# One entry per stage, left to right. Setpoints are protocols/thermal_map.md; the traces are a
+# schematic of the same numbers (right temperatures, durations NOT to scale). `pills` are
+# (what, [(label, deg C), ...]); several labels in one pill are shown side by side.
+def _pcr_trace(cycles=7):
+    pts, step = [], 0.9 / (cycles * 3)
+    for i in range(cycles):
+        for k, t in enumerate((98, 60, 72)):
+            pts.append((0.05 + (i * 3 + k) * step, t))
+    return pts
+
+
+PIPELINE = [
+    dict(w=136, tag="STEP 1", name="Cell prep", chip=False,
+         notes=["tube + incubator"], on=["bench tubes", "no chip"],
+         trace=[(0, 37), (.45, 37), (.45, 22), (1, 22)],
+         pills=[("dissociate, 3–10 min", [("37 °C", 37)]),
+                ("wash, filter, viability", [("RT", 22), ("4 °C", 4)])]),
+    dict(w=136, tag="STEP 2", name="Encapsulation", chip=True,
+         notes=["GelMA droplets,", "then chilled"], on=["encapsulation chip", "spec not in chip/"],
+         trace=[(0, 38), (.25, 38), (.25, 4), (.6, 4), (.6, 22), (1, 22)],
+         pills=[("GelMA droplets", [("37–40 °C", 38)]),
+                ("gelation, 15–30 min", [("4 °C", 4)]),
+                ("emulsion break, washes", [("4 °C", 4), ("RT", 22)]),
+                ("405 nm crosslink", [("RT", 22)])]),
+    dict(w=136, tag="MODULES 1–3", name="Culture", chip=True,
+         notes=["37 °C incubator,", "days to weeks"], on=["module1_v1.json", "modules 2, 3: no spec"],
+         trace=[(0, 37), (1, 37)], trace_note="days–weeks",
+         pills=[("culture + interaction", [("37 °C · 5% CO₂", 37)])]),
+    dict(w=136, tag="STEP 3", name="Library prep", chip=True,
+         notes=["3 split-pool rounds,", "hairpin ligation"], on=["library-prep chip", "spec not in chip/"],
+         trace=[(0, 22), (.3, 22), (.3, 46), (.55, 46), (.55, 25), (1, 25)],
+         pills=[("lysis", [("RT", 22)]),
+                ("washes", [("RT", 22), ("4 °C", 4)]),
+                ("RT + template switch", [("42–50 °C", 46)]),
+                ("ligate BC2, BC3", [("16–25", 20), ("37 °C", 37)]),
+                ("hairpin ligation", [("16–25", 20), ("37 °C", 37)])]),
+    dict(w=136, tag="MODULE 4", name="Split + index PCR", chip=True, cycled=True,
+         notes=["4 sublibraries, 1 index", "each; cycler is external"], on=["module 4", "module4_v1.json"],
+         trace=_pcr_trace(), trace_note="8–14 cycles",
+         pills=[("index PCR, ~1 h", [("98", 98), ("60", 60), ("72 °C", 72)])]),
+    dict(w=136, tag="MODULE 5", name="Release + beads", chip=True,
+         notes=["magnet under bead_cx"], on=["module 5", "module5_v1.json"],
+         trace=[(0, 37), (.5, 37), (.5, 22), (1, 22)],
+         pills=[("collagenase release", [("37 °C", 37)]),
+                ("bead capture + elute", [("RT", 22)])]),
+    dict(w=74, tag="", name="", chip=None, out=True, on=["port", "out_lib"]),
+    dict(w=136, tag="OFF-CHIP", name="SPRI + QC", chip=False,
+         notes=["size selection in a", "tube, then QC"], on=["tubes + instruments", "SPRI beads, QC"],
+         trace=[(0, 22), (.5, 22), (.5, 4), (1, 4)],
+         pills=[("SPRI size selection", [("RT", 22)]),
+                ("QC, storage", [("4 °C", 4), ("−20 °C", 4)])]),
+]
+
+
+def fig_pipeline():
+    pad, lab_w = 28.0, 100.0
+    x0 = pad + lab_w
+    total = sum(s["w"] for s in PIPELINE)
+    w = x0 + total + pad
+    ys = dict(banner=74.0, chev=104.0, where=164.0, on=214.0, mode=272.0, trace=298.0, pills=404.0)
+    chev_h, where_h, on_h, tr_h, pill_h, pill_gap = 48.0, 44.0, 52.0, 92.0, 28.0, 7.0
+    most = max(len(s.get("pills", [])) for s in PIPELINE)
+    pills_end = ys["pills"] + most * (pill_h + pill_gap)
+    svg = Svg(w, pills_end + 190, "pipeline: temperature, on-chip and off-chip, cell prep to library")
+
+    svg.text(pad, 24, "The whole pipeline: where it is cold, where it is hot, and the one step that cycles",
+             14.5, INK, weight="bold")
+    svg.text(pad, 41, "protocols/thermal_map.md   ·   chips: chip/module1_v1, module4_v1, module5_v1   ·   "
+                      "temperatures in °C, time not to scale", 9.5, INK2)
+    svg.text(w - pad, 24, "generated by", 8, INK3, "end")
+    svg.text(w - pad, 36, "cad/make_figures.py", 8, INK3, "end", mono=True)
+    svg.text(w - pad, 48, "do not edit by hand", 8, INK3, "end")
+    svg.text(pad, 60, "Index PCR in module 4 is the ONLY thermocycling step. Every other stage "
+                      "is a constant-temperature hold.", 10.5, LASER_C, weight="bold")
+
+    xs, x = [], x0
+    for s in PIPELINE:
+        xs.append(x)
+        x += s["w"]
+
+    # Row labels, and the faint rules between rows.
+    rows = [("ON / OFF CHIP", "", ys["where"], where_h), ("RUNS ON", "", ys["on"], on_h),
+            ("HEAT PROFILE", "temperature vs time", ys["mode"], 20 + tr_h + 6),
+            ("SETPOINTS", "from thermal_map.md", ys["pills"], 0)]
+    for label, sub, y, hh in rows:
+        svg.line(pad, y - 5, w - pad, y - 5, GRID, 1.0)
+        svg.text(pad, y + 14, label, 9, INK2, weight="bold")
+        if sub:
+            svg.text(pad, y + 26, sub, 8, INK3)
+
+    # The thermocycled column gets a backing panel, drawn first so everything sits on it.
+    for s, sx in zip(PIPELINE, xs):
+        if s.get("cycled"):
+            svg.rect(sx + 1, ys["banner"] - 4, s["w"] - 2, pills_end - ys["banner"] + 2,
+                     "#fff5f4", LASER_C, 2.0, rx=6)
+            svg.rect(sx + 9, ys["banner"], s["w"] - 18, 20, LASER_C, "none", rx=10)
+            svg.text(sx + s["w"] / 2, ys["banner"] + 14, "THERMOCYCLED", 9.5, PAPER, "middle",
+                     "bold")
+
+    # Temperature axis for the heat-profile row: gridlines at 4, 37 and 98.
+    ty0, ty1 = ys["trace"] + 8, ys["trace"] + tr_h - 8
+
+    def ty(t):
+        return ty1 - (t / 100.0) * (ty1 - ty0)
+
+    for t, lab in ((98, "98 °C"), (37, "37 °C"), (4, "4 °C")):
+        svg.line(x0, ty(t), w - pad, ty(t), GRID, 1.0, dash="3 3")
+        svg.text(x0 - 8, ty(t) + 3, lab, 8.5, temp_colour(t) if t != 37 else "#c98a0f",
+                 "end", weight="bold")
+
+    d = 9.0
+    for s, sx in zip(PIPELINE, xs):
+        sw = s["w"]
+        top, mid, bot = ys["chev"], ys["chev"] + chev_h / 2, ys["chev"] + chev_h
+        pts = [(sx + 2, top), (sx + sw - 2 - d, top), (sx + sw - 2, mid),
+               (sx + sw - 2 - d, bot), (sx + 2, bot), (sx + 2 + d, mid)]
+        cx = sx + sw / 2 + 1
+        if s.get("out"):
+            svg.poly(pts, OUT_F, INLET_C, 1.4)
+            svg.text(cx, mid - 2, "LIBRARY", 9.5, INLET_C, "middle", "bold")
+            svg.text(cx, mid + 11, "OUT", 9.5, INLET_C, "middle", "bold")
+        else:
+            if s.get("cycled"):
+                svg.poly(pts, "#fdeeec", LASER_C, 2.0)
+            elif s["chip"]:
+                svg.poly(pts, ON_F, ON_C, 1.4)
+            else:
+                svg.poly(pts, PAPER, OFF_C, 1.4, dash="4 3")
+            ink = LASER_C if s.get("cycled") else (ON_C if s["chip"] else INK2)
+            svg.text(cx, mid - 4, s["tag"], 8, ink, "middle", "bold")
+            svg.text(cx, mid + 11, s["name"], 10.5, INK, "middle", "bold")
+
+        # On / off chip.
+        cell = (sx + 4, ys["where"], sw - 8, where_h)
+        if s.get("out"):
+            svg.text(cx, ys["where"] + 18, "product", 8.5, INK2, "middle")
+            svg.text(cx, ys["where"] + 30, "leaves", 8.5, INK2, "middle")
+        elif s["chip"]:
+            svg.rect(*cell, ON_C, "none", rx=4)
+            svg.text(cx, ys["where"] + 15, "ON CHIP", 10.5, PAPER, "middle", "bold")
+            for i, line in enumerate(s["notes"]):
+                svg.text(cx, ys["where"] + 27 + i * 10, line, 8.5, "#d5dcee", "middle")
+        else:
+            svg.rect(*cell, PAPER, OFF_C, 1.3, rx=4, dash="4 3")
+            svg.text(cx, ys["where"] + 15, "OFF CHIP", 10.5, INK2, "middle", "bold")
+            for i, line in enumerate(s["notes"]):
+                svg.text(cx, ys["where"] + 27 + i * 10, line, 8.5, INK3, "middle")
+
+        # Which module / chip.
+        svg.text(cx, ys["on"] + 16, s["on"][0], 9.5, INK, "middle", "bold")
+        svg.text(cx, ys["on"] + 29, s["on"][1], 8.5, INK2, "middle",
+                 mono=s["on"][1].endswith(".json") or s["on"][1] == "out_lib")
+        if s.get("out"):
+            continue
+
+        # Mode tag.
+        if s.get("cycled"):
+            svg.rect(sx + 9, ys["mode"], sw - 18, 20, LASER_C, "none", rx=10)
+            svg.text(cx, ys["mode"] + 14, "CYCLED 98/60/72", 9, PAPER, "middle", "bold")
+        else:
+            svg.rect(sx + 9, ys["mode"], sw - 18, 20, "#f1f3f5", "#c9d1d9", 1.0, rx=10)
+            svg.text(cx, ys["mode"] + 14, "isothermal holds", 9, INK2, "middle")
+
+        # Temperature trace.
+        bx, bw = sx + 9, sw - 18
+        svg.rect(bx, ys["trace"], bw, tr_h, "none", GRID, 1.0, rx=3)
+        thick = 3.4 if s.get("cycled") else 2.6
+        px = [(bx + 6 + t * (bw - 12), ty(T)) for t, T in s["trace"]]
+        temps = [T for _, T in s["trace"]]
+        for i in range(len(px) - 1):
+            if px[i] == px[i + 1]:
+                continue
+            svg.line(px[i][0], px[i][1], px[i + 1][0], px[i + 1][1],
+                     temp_colour(98 if s.get("cycled") else (temps[i] + temps[i + 1]) / 2),
+                     thick, cap="round")
+        if s.get("trace_note"):
+            hot = s.get("cycled")
+            svg.text(bx + bw / 2, ty(30) if hot else ty(37) + 18, s["trace_note"], 9,
+                     LASER_C if hot else INK2, "middle", "bold" if hot else "normal")
+
+        # Setpoints.
+        y = ys["pills"]
+        for what, segs in s["pills"]:
+            svg.text(sx + 9, y + 9, what, 9, INK)
+            sw_ = (sw - 18) / len(segs)
+            for k, (label, t) in enumerate(segs):
+                fill = temp_colour(t)
+                svg.rect(sx + 9 + k * sw_, y + 13, sw_, 15, fill, "none")
+                svg.text(sx + 9 + k * sw_ + sw_ / 2, y + 24.3, label, 9, on_temp(fill), "middle",
+                         "bold")
+            y += pill_h + pill_gap
+
+    # Legend.
+    row = pills_end + 18
+    svg.line(pad, row - 12, w - pad, row - 12, GRID, 1.0)
+    svg.text(x0, row + 10, "temperature", 9, INK2, weight="bold")
+    bar_x, bar_w = x0 + 78, 300.0
+    steps = 60
+    for i in range(steps):
+        t = 4 + (98 - 4) * i / (steps - 1)
+        svg.rect(bar_x + i * bar_w / steps, row, bar_w / steps + 0.6, 12, temp_colour(t), "none")
+    for t, lab in ((4, "4 °C"), (22, "RT"), (37, "37 °C"), (60, "60"), (98, "98 °C")):
+        lx_ = bar_x + (t - 4) / 94.0 * bar_w
+        svg.line(lx_, row + 12, lx_, row + 16, INK3, 0.8)
+        svg.text(lx_, row + 27, lab, 8, INK2, "middle")
+    kx = bar_x + bar_w + 50
+    svg.rect(kx, row, 26, 12, ON_C, "none", rx=3)
+    svg.text(kx + 34, row + 10, "on chip", 9, INK2)
+    svg.rect(kx + 96, row, 26, 12, PAPER, OFF_C, 1.3, rx=3, dash="4 3")
+    svg.text(kx + 130, row + 10, "off chip", 9, INK2)
+    svg.rect(kx + 196, row - 1, 26, 14, LASER_C, "none", rx=7)
+    svg.text(kx + 230, row + 10, "thermocycled", 9, INK2)
+    svg.rect(kx + 322, row - 1, 26, 14, "#f1f3f5", "#c9d1d9", 1.0, rx=7)
+    svg.text(kx + 356, row + 10, "isothermal hold", 9, INK2)
+
+    row += 52
+    for note, ink in [
+        ("Culture cannot share a chip with anything after it: everything from room temperature "
+         "onward kills cells, so modules 1–3 stay at or below 37 °C.", INK2),
+        ("The thermocycler is off-chip hardware pressed against module 4, and is optional: the "
+         "PCR can move to tubes (module4_v1.json). SPRI size selection stays in a tube.", INK2),
+        ("Module 5 releases with collagenase at 37 °C (chip/module5_v1.json). Proteinase K does "
+         "not open these capsules, so step 16 needs no heat beyond an incubator.", INK2),
+        ("Unconfirmed: if the RT and template-switch step is a stepped ramp like SPLiT-seq, "
+         "that one counts as cycled too (thermal_map.md, 3c).", INK3),
+    ]:
+        svg.text(pad, row, note, 8.5, ink)
+        row += 14
+    svg.h = row + 12
+    return svg
+
+
 # --- main -----------------------------------------------------------------------------
 
 def main() -> int:
@@ -1261,6 +1561,9 @@ def main() -> int:
                             (fig_modes(chip), "modes")):
             if fig is not None:
                 written.append(fig.save(FIGURES / f"{chip['id']}_{suffix}.svg"))
+
+        if chip["id"] == PIPELINE_CHIP:
+            written.append(fig_pipeline().save(FIGURES / f"{chip['id']}_pipeline.svg"))
 
         print(f"\nchip {chip['id']}")
         for p in written:
