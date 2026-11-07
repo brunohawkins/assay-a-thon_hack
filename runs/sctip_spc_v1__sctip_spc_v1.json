@@ -1,0 +1,292 @@
+{
+  "protocol_id": "sctip_spc_v1",
+  "protocol_name": "Capsule generation and single-copy barcoding",
+  "chip_id": "sctip_spc_v1",
+  "chip_spec": "chip/sctip_spc_v1.json",
+  "operator": "planner",
+  "created_at": "2026-11-07T16:15:29Z",
+  "placeholder": false,
+  "sizing": {
+    "capsule_count": null,
+    "capsule_count_note": "not in chip spec; sheet default 100,000 used",
+    "capsule_diameter_um": 70.0,
+    "cells_expected": 7696.9,
+    "trap_chambers": [
+      "delay_1"
+    ],
+    "monolayer_area_mm2_needed": 490.0,
+    "trap_area_mm2": 432,
+    "packed_volume_ul_needed": 28.062,
+    "trap_volume_ul": 64.8,
+    "channel_width_um": [
+      300.0,
+      400.0
+    ],
+    "channel_width_um_recommended": [
+      105.0,
+      140.0
+    ],
+    "trap_gap_um_recommended": [
+      21.0,
+      28.0
+    ],
+    "swollen_diameter_um": 140.0
+  },
+  "total_duration_s": 83847.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 300.0,
+      "command": "load",
+      "args": {
+        "target": "filt_core",
+        "volume_ul": 130
+      },
+      "narration": "Load the prepared cell suspension. Cells arrive live from culture and are permeabilised, antibody-bound and transposase-bound in a tube before they reach the chip: those are bulk steps that gain nothing from being on a chip. They are permeabilised, NOT fixed and NOT live, which is what the published chromatin method needs and which removes the fixation conflict entirely.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 300.0,
+      "duration_s": 1120.0,
+      "command": "exchange",
+      "args": {
+        "target": "filt_shell",
+        "reagent": "shell_polymer",
+        "volume_ul": 20,
+        "washes": 1,
+        "flow_ul_min": 1.5
+      },
+      "narration": "Prime the shell line. The guard filter has 100 um gaps and exists only to stop gel lumps reaching a 100 um orifice. It cannot strain cell clumps: a 100 um gap passes a clump of five cells, so cells are strained off-chip at 40 um first.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 1420.0,
+      "duration_s": 1804.0,
+      "command": "exchange",
+      "args": {
+        "target": "nozzle_1",
+        "reagent": "carrier_oil",
+        "volume_ul": 236.17904494078135,
+        "washes": 1,
+        "flow_ul_min": 11.0
+      },
+      "narration": "Run the flow-focusing cross. Shell and core meet, oil cuts them into droplets at about 39 Hz, and the two aqueous polymers demix inside each droplet so the shell polymer wets the oil interface and the core stays liquid. 50,000 capsules of about 135 um take 21 min.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 3224.0,
+      "duration_s": 120.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "delay_1",
+        "temp_c": 22,
+        "duration_s": 120
+      },
+      "narration": "Dark residence line. It is NOT a cure window. The phase separation that makes the shell takes minutes, and a serpentine that holds minutes at this flow would be metres long, so curing is done off-chip in the collection tube.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 3344.0,
+      "duration_s": 1200.0,
+      "command": "release",
+      "args": {
+        "target": "delay_1",
+        "reagent": "photoinitiator"
+      },
+      "narration": "Release the emulsion to a sealed collection tube. Let it demix, then flood-cure at 405 nm. Keep the dose low and the oil degassed: dissolved oxygen in fluorinated oil inhibits the cure, and a high dose kills cells.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 4544.0,
+      "duration_s": 300.0,
+      "command": "load",
+      "args": {
+        "target": "pack_1",
+        "volume_ul": 100.6
+      },
+      "narration": "Re-inject the cured capsules close-packed. The entrance is 115 um against a 135 um capsule, so capsules deform slightly and arrive in single file at a steady rate. This is the step that beats Poisson on the capsule: published work gets 93-97% single occupancy this way, against about 30% by chance.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 4844.0,
+      "duration_s": 240.0,
+      "command": "exchange",
+      "args": {
+        "target": "pack_1",
+        "reagent": "amplification_mix",
+        "volume_ul": 0.013,
+        "washes": 1,
+        "flow_ul_min": 6.7
+      },
+      "narration": "Meet the amplification mix carrying the barcode pool, diluted to about 3 molecules per droplet. One molecule per droplet would be ideal but is unreachable: a free molecule cannot be ordered, so at a mean of 1 about 37% of droplets would get none. At 3 only 5% get none, and the droplets that get several are resolved afterwards by merging barcodes that share fragments, which is what the source method does.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 5084.0,
+      "duration_s": 1288.0,
+      "command": "exchange",
+      "args": {
+        "target": "nozzle_2",
+        "reagent": "carrier_oil",
+        "volume_ul": 0.013,
+        "washes": 1,
+        "flow_ul_min": 16.7
+      },
+      "narration": "Cut each capsule plus its barcode back into its own oil droplet. From here until the emulsion is broken, every capsule is chemically alone.",
+      "protocol_step": 8
+    },
+    {
+      "t_s": 6372.0,
+      "duration_s": 600.0,
+      "command": "release",
+      "args": {
+        "target": "nozzle_2",
+        "reagent": "carrier_oil"
+      },
+      "narration": "Release the droplets to a tube for thermocycling. On-chip cycling is not faster than a tube at this scale and invites evaporation and bubbles, so only the steps that genuinely need a chip are on it.",
+      "protocol_step": 9
+    },
+    {
+      "t_s": 6972.0,
+      "duration_s": 7200.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "nozzle_2",
+        "temp_c": 72,
+        "duration_s": 7200
+      },
+      "narration": "Thermocycle in the tube. Each droplet clonally amplifies its own barcode and, in the same reaction, overlap-extends it onto that cell's tagmented fragments. THIS IS THE STEP THE WHOLE DESIGN EXISTS TO PROTECT: the barcode copies are short enough to leak through the shell, so they are kept inside an oil droplet until they are part of a long molecule the capsule retains.",
+      "protocol_step": 10
+    },
+    {
+      "t_s": 14172.0,
+      "duration_s": 300.0,
+      "command": "load",
+      "args": {
+        "target": "brk_1",
+        "volume_ul": 201.2
+      },
+      "narration": "Return the emulsion to the chip. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
+      "protocol_step": 11
+    },
+    {
+      "t_s": 14472.0,
+      "duration_s": 605.0,
+      "command": "exchange",
+      "args": {
+        "target": "brk_1",
+        "reagent": "emulsion_breaker",
+        "volume_ul": 14.4,
+        "washes": 1,
+        "flow_ul_min": 2.0
+      },
+      "narration": "Separate the phases. Oil leaves through its own line; the capsules go on in the aqueous stream. Driven by a pressure difference across a wetted slot array, so it needs a controller rather than a fixed flow.",
+      "protocol_step": 12
+    },
+    {
+      "t_s": 15077.0,
+      "duration_s": 617.0,
+      "command": "exchange",
+      "args": {
+        "target": "trap_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 29.4,
+        "washes": 1,
+        "flow_ul_min": 4.0
+      },
+      "narration": "Settle the capsules into a packed bed. Retention is by chamber geometry and downward flow, not by a size gap: a liquid-core capsule deforms, and the gap that would reliably hold one is 70-80 um, below what we can make.",
+      "protocol_step": 13
+    },
+    {
+      "t_s": 15694.0,
+      "duration_s": 1852.0,
+      "command": "exchange",
+      "args": {
+        "target": "trap_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 29.4,
+        "washes": 3,
+        "flow_ul_min": 4.0
+      },
+      "narration": "Flow-through wash after the emulsion break, replacing a centrifugation. Exchange is limited by diffusion into the capsule rather than by flushing, so each one takes a few minutes however fast the pump runs.",
+      "protocol_step": 14
+    },
+    {
+      "t_s": 17546.0,
+      "duration_s": 1852.0,
+      "command": "exchange",
+      "args": {
+        "target": "trap_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 29.4,
+        "washes": 3,
+        "flow_ul_min": 4.0
+      },
+      "narration": "Flow-through wash before transcription, replacing a centrifugation. Exchange is limited by diffusion into the capsule rather than by flushing, so each one takes a few minutes however fast the pump runs.",
+      "protocol_step": 15
+    },
+    {
+      "t_s": 19398.0,
+      "duration_s": 180.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "trap_1",
+        "temp_c": 72,
+        "duration_s": 180
+      },
+      "narration": "Gap-fill. The highest temperature any capsule sees in the whole workflow, and it is well inside what the shell and the board tolerate.",
+      "protocol_step": 16
+    },
+    {
+      "t_s": 19578.0,
+      "duration_s": 617.0,
+      "command": "exchange",
+      "args": {
+        "target": "trap_1",
+        "reagent": "transcription_mix",
+        "volume_ul": 29.4,
+        "washes": 1,
+        "flow_ul_min": 4.0
+      },
+      "narration": "Load the transcription mix. The polymerase is small enough to cross the shell; the barcoded template is far too large to leave it.",
+      "protocol_step": 17
+    },
+    {
+      "t_s": 20195.0,
+      "duration_s": 61200.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "trap_1",
+        "temp_c": 37,
+        "duration_s": 61200
+      },
+      "narration": "Linear amplification in place, overnight. Linear rather than exponential because a single transposon insertion is enough, errors do not propagate and coverage stays even. Held in an incubator with the ports sealed, not on a chip heater.",
+      "protocol_step": 18
+    },
+    {
+      "t_s": 81395.0,
+      "duration_s": 1852.0,
+      "command": "exchange",
+      "args": {
+        "target": "trap_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 29.4,
+        "washes": 3,
+        "flow_ul_min": 4.0
+      },
+      "narration": "Final wash before recovery.",
+      "protocol_step": 19
+    },
+    {
+      "t_s": 83247.0,
+      "duration_s": 600.0,
+      "command": "release",
+      "args": {
+        "target": "trap_1",
+        "reagent": "release_buffer"
+      },
+      "narration": "Back-flush the bed out of the recovery port. Reverse the flow on a slow ramp: the bed lifts at well under a pascal, so a sharp start throws capsules at the walls. Downstream library steps are bulk and off-chip.",
+      "protocol_step": 20
+    }
+  ]
+}

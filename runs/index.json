@@ -2,6 +2,24 @@
   "generated_by": "operator/run.py",
   "runs": [
     {
+      "file": "sctip_spc_v1__sctip_spc_v1.json",
+      "protocol_id": "sctip_spc_v1",
+      "protocol_name": "Capsule generation and single-copy barcoding",
+      "chip_id": "sctip_spc_v1",
+      "chip_spec": "chip/sctip_spc_v1.json",
+      "operator": "planner",
+      "events": 20,
+      "total_duration_s": 83847.0,
+      "placeholder": false,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null,
+      "variant": null,
+      "module": null
+    },
+    {
       "file": "m1_culture__m1_culture_v1__control.json",
       "protocol_id": "m1_culture",
       "protocol_name": "Module 1: culture",
