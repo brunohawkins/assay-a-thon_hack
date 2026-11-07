@@ -1,0 +1,86 @@
+solid cult_1
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 5.591500e+00 6.077500e+00 1.000000e+00
+      vertex 1.208050e+01 1.094450e+01 1.000000e+00
+      vertex 1.208050e+01 6.077500e+00 1.000000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 5.591500e+00 6.077500e+00 1.000000e+00
+      vertex 5.591500e+00 1.094450e+01 1.000000e+00
+      vertex 1.208050e+01 1.094450e+01 1.000000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 5.591500e+00 6.077500e+00 1.150000e+00
+      vertex 1.208050e+01 6.077500e+00 1.150000e+00
+      vertex 1.208050e+01 1.094450e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 5.591500e+00 6.077500e+00 1.150000e+00
+      vertex 1.208050e+01 1.094450e+01 1.150000e+00
+      vertex 5.591500e+00 1.094450e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.591500e+00 6.077500e+00 1.000000e+00
+      vertex 1.208050e+01 6.077500e+00 1.000000e+00
+      vertex 1.208050e+01 6.077500e+00 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.591500e+00 6.077500e+00 1.000000e+00
+      vertex 1.208050e+01 6.077500e+00 1.150000e+00
+      vertex 5.591500e+00 6.077500e+00 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.591500e+00 1.094450e+01 1.000000e+00
+      vertex 5.591500e+00 1.094450e+01 1.150000e+00
+      vertex 1.208050e+01 1.094450e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.591500e+00 1.094450e+01 1.000000e+00
+      vertex 1.208050e+01 1.094450e+01 1.150000e+00
+      vertex 1.208050e+01 1.094450e+01 1.000000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.591500e+00 6.077500e+00 1.000000e+00
+      vertex 5.591500e+00 6.077500e+00 1.150000e+00
+      vertex 5.591500e+00 1.094450e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 5.591500e+00 6.077500e+00 1.000000e+00
+      vertex 5.591500e+00 1.094450e+01 1.150000e+00
+      vertex 5.591500e+00 1.094450e+01 1.000000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.208050e+01 6.077500e+00 1.000000e+00
+      vertex 1.208050e+01 1.094450e+01 1.000000e+00
+      vertex 1.208050e+01 1.094450e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.208050e+01 6.077500e+00 1.000000e+00
+      vertex 1.208050e+01 1.094450e+01 1.150000e+00
+      vertex 1.208050e+01 6.077500e+00 1.150000e+00
+    endloop
+  endfacet
+endsolid cult_1

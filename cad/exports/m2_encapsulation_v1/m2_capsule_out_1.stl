@@ -1,0 +1,86 @@
+solid m2_capsule_out_1
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 1.760000e+01 1.610000e+01 1.150000e+00
+      vertex 1.840000e+01 1.690000e+01 1.150000e+00
+      vertex 1.840000e+01 1.610000e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 1.760000e+01 1.610000e+01 1.150000e+00
+      vertex 1.760000e+01 1.690000e+01 1.150000e+00
+      vertex 1.840000e+01 1.690000e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 1.760000e+01 1.610000e+01 2.150000e+00
+      vertex 1.840000e+01 1.610000e+01 2.150000e+00
+      vertex 1.840000e+01 1.690000e+01 2.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 1.760000e+01 1.610000e+01 2.150000e+00
+      vertex 1.840000e+01 1.690000e+01 2.150000e+00
+      vertex 1.760000e+01 1.690000e+01 2.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.760000e+01 1.610000e+01 1.150000e+00
+      vertex 1.840000e+01 1.610000e+01 1.150000e+00
+      vertex 1.840000e+01 1.610000e+01 2.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.760000e+01 1.610000e+01 1.150000e+00
+      vertex 1.840000e+01 1.610000e+01 2.150000e+00
+      vertex 1.760000e+01 1.610000e+01 2.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.760000e+01 1.690000e+01 1.150000e+00
+      vertex 1.760000e+01 1.690000e+01 2.150000e+00
+      vertex 1.840000e+01 1.690000e+01 2.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.760000e+01 1.690000e+01 1.150000e+00
+      vertex 1.840000e+01 1.690000e+01 2.150000e+00
+      vertex 1.840000e+01 1.690000e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.760000e+01 1.610000e+01 1.150000e+00
+      vertex 1.760000e+01 1.610000e+01 2.150000e+00
+      vertex 1.760000e+01 1.690000e+01 2.150000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.760000e+01 1.610000e+01 1.150000e+00
+      vertex 1.760000e+01 1.690000e+01 2.150000e+00
+      vertex 1.760000e+01 1.690000e+01 1.150000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.840000e+01 1.610000e+01 1.150000e+00
+      vertex 1.840000e+01 1.690000e+01 1.150000e+00
+      vertex 1.840000e+01 1.690000e+01 2.150000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.840000e+01 1.610000e+01 1.150000e+00
+      vertex 1.840000e+01 1.690000e+01 2.150000e+00
+      vertex 1.840000e+01 1.610000e+01 2.150000e+00
+    endloop
+  endfacet
+endsolid m2_capsule_out_1

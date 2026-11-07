@@ -1,0 +1,95 @@
+{
+  "protocol_id": "m1b_cellprep",
+  "protocol_name": "Module 1b: cell prep",
+  "chip_id": "m1b_cellprep_v1",
+  "chip_spec": "cad/m1b_cellprep_spec.json",
+  "operator": "planner",
+  "created_at": "2026-11-07T17:15:18Z",
+  "placeholder": true,
+  "total_duration_s": 990.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 180.0,
+      "command": "load",
+      "args": {
+        "target": "m1b_merge_1",
+        "volume_ul": 1.0
+      },
+      "narration": "Cells arrive at m1b_cells_in_1 from Module 1's one outlet m1_out_1, already merged (labelled per chamber in Module 1, so they share one line); m1b_waste_1 is vented.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 180.0,
+      "duration_s": 180.0,
+      "command": "mix",
+      "args": {
+        "target": "m1b_mix_1",
+        "reagent": "quench_medium",
+        "volume_ul": 0.9,
+        "flow_ul_min": 0.3
+      },
+      "narration": "Quench: m1b_quench_in_1 (off-chip selector valve on quench medium) joins the cells at the T-junction and the serpentine mixes it in, neutralising the detach reagent.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 360.0,
+      "duration_s": 300.0,
+      "command": "exchange",
+      "args": {
+        "target": "m1b_cellwash_1",
+        "reagent": "cell_wash_buffer",
+        "volume_ul": 3.0,
+        "washes": 2,
+        "flow_ul_min": 2.0,
+        "waste": "m1b_waste_1"
+      },
+      "narration": "Wash the cells into clean buffer fed at m1b_wash_in_1; the old liquid leaves through the vented m1b_waste_1. (Method TBC: DLD array, spiral channel or density cushion.)",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 660.0,
+      "duration_s": 120.0,
+      "command": "transfer",
+      "args": {
+        "source": "m1b_cellwash_1",
+        "target": "m1b_qc_window_1"
+      },
+      "narration": "Through the 30 um pillar filter to the QC window: clumps stay behind, single cells go on. m1b_waste_1 is capped and m1b_buffer_in_1 is vented as the drain; m1b_to_module2_1 stays capped.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 780.0,
+      "duration_s": 30.0,
+      "command": "count",
+      "args": {
+        "target": "m1b_qc_window_1"
+      },
+      "narration": "Count: with every port capped and the flow stopped, the QC window reads the cell concentration and viability.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 810.0,
+      "duration_s": 120.0,
+      "command": "mix",
+      "args": {
+        "target": "m1b_resuspend_1",
+        "reagent": "dextran_buffer",
+        "flow_ul_min": 0.25
+      },
+      "narration": "Resuspend in dextran buffer fed at m1b_buffer_in_1 (off-chip selector valve on dextran buffer) at the dilution that gives about 0.1 cells per capsule in Module 2; the operator sets it from the count. m1b_to_module2_1 stays capped.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 930.0,
+      "duration_s": 60.0,
+      "command": "transfer",
+      "args": {
+        "source": "m1b_resuspend_1",
+        "target": "m1b_to_module2_1"
+      },
+      "narration": "Cells out through m1b_to_module2_1 to Module 2's core inlet (m2_core_in_1), once the safety checker approves them; m1b_buffer_in_1 pushes them.",
+      "protocol_step": 7
+    }
+  ]
+}

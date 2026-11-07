@@ -56,17 +56,27 @@ status and how it is built:
 
 | Module | Chip spec | Protocol | Owner | Status | Build |
 |---|---|---|---|---|---|
-| 1. Culture (v1) | `chip/module1_v1.json` | `protocols/module1_v1.json` | MJ | final; built for the dye demo | laser-cut acrylic, 2 mm square lid holes |
-| 2. Encapsulation | `cad/m2_encapsulation_spec.json` | `protocols/m2_encapsulation.json` | MJ (redesign) | **draft – being redesigned by MJ**; a `chip/module2*.json` replaces it automatically | TBC |
-| 3. Load, lysis, wash | `chip/module3_v1_translated.json` (from Szonja's `chip/modules/module3_step1_3.json`) | steps in her file | Szonja | translated | TBC |
-| Barcoding (split and pool) | none | none | TBC | **missing**: not yet designed | TBC |
+| 1. Culture (v1) | `chip/module1_v1.json` | `protocols/module1_v1.json` | MJ | final | resin print + hot emboss, 0.8 mm drilled ports |
+| Cell prep | `chip/cell_prep_v1.json` | `protocols/cell_prep_v1.json` | TBC | final | resin print + hot emboss, 0.8 mm drilled ports |
+| 2. Encapsulation | `chip/spc_demo_v1.json` | `protocols/spc_demo_v1.json` | TBC | final; the only fabricable encapsulation chip | resin print + hot emboss, 0.8 mm drilled ports |
+| 3. Load, lysis, wash | `chip/module3_v1_translated.json` (from Szonja's `chip/modules/module3_step1_3.json`) | steps in her file | Szonja | translated | resin print + hot emboss; retention gap is a bought mesh insert |
+| Reverse transcription (un-barcoded) | `module3_v1_translated` | `module3_v1.json` | ~42–50 °C hold | Runs in the existing capsule trap after lysis and wash. Split-and-pool (BC1/BC2/BC3) and the hairpin ligation are dropped: cells already carry a per-lane barcode from module 1, so the RT primer is a plain poly(dT) | MJ |
 | 4. Sublibrary + index PCR | `chip/module4_v1.json` | `protocols/module4_v1.json` | MJ | final | hot-embossed COC, 0.8 mm drilled ports |
 | 5. Release + cleanup | `chip/module5_v1.json` | `protocols/module5_v1.json` | MJ | final | hot-embossed COC, 0.8 mm drilled ports |
 
 **Superseded drafts**, kept for reference and out of the pipeline: `cad/m1_culture_spec.json`
-and `cad/m1b_cellprep_spec.json` (replaced by Module 1 v1) and `cad/m3_wash_spec.json`
-(replaced by Module 3). Their `module` block says `"status": "superseded"` and
-`superseded_by`; `tools/validate.py` fails if one is put back in the pipeline.
+(replaced by Module 1 v1), `cad/m1b_cellprep_spec.json` (replaced by `cell_prep_v1`) and
+`cad/m3_wash_spec.json` (replaced by Module 3). Their `module` block says
+`"status": "superseded"` and `superseded_by`; `tools/validate.py` fails if one is put back in
+the pipeline. `cad/m2_encapsulation_spec.json` is retired too (it cannot make capsules at
+30 × 20 mm; `spc_demo_v1` replaces it), and so is stage A of `chip/sctip_spc_v1.json`
+(150 × 100 mm). Stage map: `protocols/pipeline_status.md`.
+
+**Fabrication.** Every chip is 30 × 20 mm, 0.3 mm deep, one fluidic layer, resin-printed and
+hot-embossed, using only the blocks in `contracts/blocks.json`. On-chip valves need a second
+layer and are not allowed: use off-chip rotary or selector valves. Retention features
+cannot be printed at this floor (200 µm), so capsule retention needs a bought mesh insert
+or sedimentation.
 
 **Translated specs.** Szonja's Module 3 file is in its own format. `tools/convert_module3.py`
 writes it as a chip spec, keeping her ids and numbers; whatever it had to infer (footprint,
@@ -146,6 +156,8 @@ numbers, and to `false` only when it holds the real thing. The twin shows a
 | `washes` | how many fill-and-drain cycles, or `null` |
 | `flow_ul_min` | µL/min, or `null` |
 | `note` | one plain-English sentence; **this is what the audience reads** in the twin |
+| `ports` | optional. Port state for the step: `{"feed": [port ids], "vent": [port ids], "cap": [port ids]}`, each list optional. A port appears in at most one list. A fed (driven) port is a pressure source, not a block; a vented port is the drain; only a capped port blocks. For chips that route by port, not by valve |
+| `cycles` | optional, `hold_temp` only. Thermocycling: `{"count": int ≥ 1, "ramp_c_s": number > 0, "profile": [{"temp_c", "duration_s"}, …]}` (non-empty). The profile repeats `count` times, ramping at `ramp_c_s` between holds |
 
 **Which fields each operation needs** (the rest can be `null`):
 
@@ -237,20 +249,20 @@ fields**: they're what `tools/check_chip_spec.py` checks the real-scale design a
 | Field | Meaning |
 |---|---|
 | `capsule.diameter_um`, `.swell_factor`, `.count` | The capsules the chip is designed for. `count` is **capsules, not cells**; use `operator/sizing.py --cells` to convert. |
-| `trap.gap_um` | Target trap gap; must stay below 0.4 × capsule diameter (sheet: 21–28 µm for 70 µm capsules). |
+| `trap.gap_um` | Target trap gap; must stay below 0.4 × capsule diameter (sheet: 21–28 µm for 70 µm capsules; unprintable, so a bought mesh). |
 | `capsule_filter.gap_um`, `cell_filter.gap_um` | Pre-filter gaps. The cell filter must be ≤ the encapsulation nozzle (`encapsulation.nozzle_um`). |
 | `thermal_zones[]` | `{id, chambers, max_temp_c, min_temp_c, purpose}`; `purpose: "culture"` means capsules swell there. |
-| `barcoding.rounds`, `.chambers_per_round`, `.sublibraries` | Split-and-pool scheme; used for the barcode-collision check. |
+| `barcoding.lanes`, `.sublibraries` | Barcoding scheme; used for the barcode-collision check. Split-and-pool is dropped, so `.rounds` and `.chambers_per_round` are legacy and ignored: cells arrive carrying a per-lane barcode and reverse transcription adds none. |
 | `chambers[].height_um`, `.sealed` | Internal height in µm; sealed against evaporation. |
-| `chambers[].retention` | `{type: mesh/pillars/weir, opening_um, source: bought/fabricated}`: what holds the capsules. |
+| `chambers[].retention` | `{type: mesh/pillars/weir, opening_um, source: bought/fabricated}`: what holds the capsules. At the 200 µm floor nothing can be `fabricated`: use a bought mesh insert or sedimentation. |
 | `ports[].role`, `.capsule_passable`, `.width_um` | The sheet's `outlets[]`: which ports capsules can pass (a waste line below a mesh can't), and the opening width. |
 | `module`, `generator` | Which MVP module the chip is (`{id: m1, name, status: designed/draft, printed}`), and the script + parameter values that generated it. |
 | `run_parameters` | Named run parameters, e.g. `{"variant": {"values": ["control", "interaction"], "default": "control"}}`: one spec, several instances. |
 | `chambers[].shape` | `box` (default) or `cylinder` (round chamber: `size` is `[diameter, diameter, depth]`). Types also include `culture`, `junction` (where channels meet), `bubble_trap`. |
 | `channels[].carries` | `capsules`, `droplets`, `cells`, `liquid`, `oil` or `signals`: picks the design rule (capsules: ≥ 1.5 × diameter; cells: ≥ 50 µm). |
 | `channels[].path` | Centreline waypoints `[[x, y], …]`; without it, channels are routed automatically. Channels with paths are checked for crossings. |
-| `channels[].capsule_passable`, `.fabricable` | `capsule_passable: false` (MJ's proposal): deliberately too small for capsules or cells, e.g. microgrooves. `fabricable: false`: drawn, but too small to make here. |
-| `valves[]` | `{id, type: normally_closed/normally_open, kind: branch/pair/isolation, channel, position, control_port, connects}`. A `pair` valve can't be opened in a `control` run. Control ports are `ports` with `type: control`. |
+| `channels[].capsule_passable`, `.fabricable` | `capsule_passable: false` (MJ's proposal): deliberately too small for capsules or cells (microgrooves were this; they cannot be printed here). `fabricable: false`: drawn, but too small to make here. |
+| `valves[]` | `{id, type: normally_closed/normally_open, kind: branch/pair/isolation, channel, position, control_port, connects}`. A `pair` valve can't be opened in a `control` run. Control ports are `ports` with `type: control`. Pneumatic on-chip valves are removed from current chips (they need a second layer). |
 | `chambers[].mixer` | For `type: mixer`: `{kind: serpentine/wide_short, channel_width_mm, turns, length_mm}`. Types `cell_wash` (method TBC) and `qc_window` are Module 1b's other stages. |
 | `chambers[].filter` | For `type: filter`: `{type: pillars/mesh, gap_um, purpose: cells/particles/capsule_aggregates}`. A filter whose purpose is `cells` must have a gap **smaller** than the encapsulation nozzle. |
 | `encapsulation` | `{nozzle_um, nozzle_depth_um, nozzle, core_flow_ul_h, shell_flow_ul_h, oil_flow_ul_h, core_inlet}`: Module 1b uses these flows to set the cell concentration. |

@@ -1,0 +1,159 @@
+{
+  "protocol_id": "module3_v1",
+  "protocol_name": "Module 3: load capsules, lysis, washes, reverse transcription, wash, release - module3_v1",
+  "chip_id": "module3_v1_translated",
+  "chip_spec": "chip/module3_v1_translated.json",
+  "operator": "planner",
+  "created_at": "2026-11-07T17:31:41Z",
+  "placeholder": true,
+  "sizing": {
+    "capsule_count": 650000,
+    "capsule_count_note": "from chip spec",
+    "capsule_diameter_um": 70,
+    "cells_expected": 50029.9,
+    "trap_chambers": [
+      "main_trap"
+    ],
+    "monolayer_area_mm2_needed": 3185.0,
+    "trap_area_mm2": 128.142,
+    "packed_volume_ul_needed": 182.401,
+    "trap_volume_ul": 38.443,
+    "channel_width_um": [
+      200.0,
+      200.0
+    ],
+    "channel_width_um_recommended": [
+      105.0,
+      140.0
+    ],
+    "trap_gap_um_recommended": [
+      21.0,
+      28.0
+    ],
+    "swollen_diameter_um": 140.0
+  },
+  "total_duration_s": 12746.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 214.0,
+      "command": "load",
+      "args": {
+        "target": "main_trap",
+        "volume_ul": 38.4
+      },
+      "narration": "Load the capsule suspension into the trap through the pre-filter. Capsules settle on the retention gap and the carrier leaves through the wash waste; the load is one chamber volume.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 214.0,
+      "duration_s": 1068.0,
+      "command": "exchange",
+      "args": {
+        "target": "main_trap",
+        "reagent": "lysis_buffer",
+        "volume_ul": 192.2,
+        "washes": 1,
+        "flow_ul_min": 10.8,
+        "waste": "lysis_waste"
+      },
+      "narration": "Lyse the cells in the capsules: push lysis buffer through the bed to its own dedicated waste line, which never meets the other waste. Five chamber volumes so the bed is fully exchanged.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 1282.0,
+      "duration_s": 600.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "main_trap",
+        "temp_c": 22,
+        "duration_s": 600
+      },
+      "narration": "Lysis dwell with every port capped, at room temperature, so the lysis buffer reaches the cells inside the capsules.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 1882.0,
+      "duration_s": 3204.0,
+      "command": "exchange",
+      "args": {
+        "target": "main_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 192.2,
+        "washes": 3,
+        "flow_ul_min": 10.8,
+        "waste": "waste"
+      },
+      "narration": "Wash out the lysis buffer through the retention gap to the wash waste. Several washes of several chamber volumes each, since carryover would inhibit the next step.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 5086.0,
+      "duration_s": 214.0,
+      "command": "exchange",
+      "args": {
+        "target": "main_trap",
+        "reagent": "rt_mix",
+        "volume_ul": 38.4,
+        "washes": 1,
+        "flow_ul_min": 10.8,
+        "waste": "waste"
+      },
+      "narration": "Fill the trap with the reverse-transcription mix, which carries a plain poly(dT) primer: no barcode and no UMI are added here, because the cells already carry their per-lane barcode from module 1. One chamber volume, so the bed is covered and no more is spent.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 5300.0,
+      "duration_s": 3600.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "main_trap",
+        "temp_c": 42,
+        "duration_s": 3600
+      },
+      "narration": "Reverse transcription: one isothermal hold in the trap, in the heated zone under the chamber, with every port capped. The only thermal step on this chip; the chamber is held between 4 and 50 C by its thermal zone.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 8900.0,
+      "duration_s": 3204.0,
+      "command": "exchange",
+      "args": {
+        "target": "main_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 192.2,
+        "washes": 3,
+        "flow_ul_min": 10.8,
+        "waste": "waste"
+      },
+      "narration": "Wash the reverse-transcription mix out through the retention gap to the wash waste, leaving cDNA inside the capsules.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 12104.0,
+      "duration_s": 214.0,
+      "command": "exchange",
+      "args": {
+        "target": "main_trap",
+        "reagent": "resuspension_buffer",
+        "volume_ul": 38.4,
+        "washes": 1,
+        "flow_ul_min": 10.8,
+        "direction": "backflush"
+      },
+      "narration": "Back-flush the trap through backflush_in: liquid pushed up through the retention gap lifts the capsules off it and sweeps them towards the capsule outlet.",
+      "protocol_step": 8
+    },
+    {
+      "t_s": 12318.0,
+      "duration_s": 428.0,
+      "command": "release",
+      "args": {
+        "target": "main_trap",
+        "reagent": "resuspension_buffer"
+      },
+      "narration": "Release the capsules to module 4 as one counted suspension through to_split_tree. Twice the chamber volume carries the bed out; module 4 then splits it into the sublibraries and adds the index.",
+      "protocol_step": 9
+    }
+  ]
+}

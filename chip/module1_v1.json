@@ -1,38 +1,228 @@
 {
   "id": "module1_v1",
   "name": "Module 1: flow-gated three-lineage chamber",
-  "description": "Three culture chambers on one 140 x 75 mm board in a Y, meeting at a shared junction: n_cx (neurons) on the left, g_cx (glia) upper right, a_cx (astrocytes) lower right, all joining j_mid, which drains to p_mid. There are no valves and no barriers anywhere on this chip. Routing is done entirely by which port is driven and which is vented, so the only moving parts are off-chip pumps. j_mid is a junction, not a culture chamber: it exists so the three lineages meet at a shared node OUTSIDE the chambers. That matters, because if the drain hung off n_cx instead, glial and astrocyte medium would have to cross the neuron chamber to reach it, and the three media could never be kept apart. Driving a port makes it a source; venting makes it the drain; capping it makes it a block. Separate growth: drive p_in, p_g_in and p_a_in with three different media and vent only p_mid, so all three converge on j_mid and leave without entering another chamber. Interaction: drive one chamber's inlet, cap p_mid, vent the others, and that chamber's conditioned medium crosses the junction to the other two. Harvest: every channel is oriented toward j_mid so the three chambers pool there. Every feature is 0.3 mm deep or more, so unlike the groove design this board is laser-cut only, with no photolithography and no cast layer. n_cx has no retention mesh because the shared-inlet seeding fallback has to pass cells through it; g_cx and a_cx are terminal and drained, so they do. Channel directions record the harvest path; several modes deliberately reverse them, which the mode table in protocols/module1_v1.json sets out. Geometry and flow numbers are ours; the schedules they serve cite published protocols in protocols/module1_v1.json.",
+  "description": "DEMO SCALE: this chip has been scaled down uniformly in x and y by a factor of 0.209 (fit_chip.py) from 140 x 75 mm to fit the 30 x 20 mm, 0.3 mm deep, single-layer resin-print and hot-emboss envelope; depths are unchanged and chamber volumes were recomputed from the new geometry. Channel widths were clamped to the 0.2 mm fabrication floor, which changed the channel aspect ratio, so flow resistances no longer match the original design and flow numbers drawn from it must be re-derived. The text below describes the original design intent and still quotes its original dimensions. Three culture chambers on one 140 x 75 mm board in a Y, meeting at a shared junction: n_cx (neurons) on the left, g_cx (glia) upper right, a_cx (astrocytes) lower right, all joining j_mid, which drains to p_mid. There are no valves and no barriers anywhere on this chip. Routing is done entirely by which port is driven and which is vented, so the only moving parts are off-chip pumps. j_mid is a junction, not a culture chamber: it exists so the three lineages meet at a shared node OUTSIDE the chambers. That matters, because if the drain hung off n_cx instead, glial and astrocyte medium would have to cross the neuron chamber to reach it, and the three media could never be kept apart. Driving a port makes it a source; venting makes it the drain; capping it makes it a block. Separate growth: drive p_in, p_g_in and p_a_in with three different media and vent only p_mid, so all three converge on j_mid and leave without entering another chamber. Interaction: drive one chamber's inlet, cap p_mid, vent the others, and that chamber's conditioned medium crosses the junction to the other two. Harvest: every channel is oriented toward j_mid so the three chambers pool there. Every feature is 0.3 mm deep or more, so unlike the groove design this board is laser-cut only, with no photolithography and no cast layer. n_cx has no retention mesh because the shared-inlet seeding fallback has to pass cells through it; g_cx and a_cx are terminal and drained, so they do. Channel directions record the harvest path; several modes deliberately reverse them, which the mode table in protocols/module1_v1.json sets out. Geometry and flow numbers are ours; the schedules they serve cite published protocols in protocols/module1_v1.json.",
   "placeholder": false,
   "units": "mm",
-  "footprint": { "x": 140, "y": 75 },
+  "footprint": {
+    "x": 30,
+    "y": 20
+  },
   "layers": [
-    { "id": "base", "material": "acrylic", "thickness_mm": 3 },
-    { "id": "spacer", "material": "acrylic", "thickness_mm": 0.3 },
-    { "id": "lid", "material": "acrylic", "thickness_mm": 3 }
+    {
+      "id": "base",
+      "material": "acrylic",
+      "thickness_mm": 3
+    },
+    {
+      "id": "spacer",
+      "material": "acrylic",
+      "thickness_mm": 0.3
+    },
+    {
+      "id": "lid",
+      "material": "acrylic",
+      "thickness_mm": 3
+    }
   ],
   "chambers": [
-    { "id": "n_cx", "type": "exchange", "center": [45, 37.5, 3.15], "size": [20, 12, 0.3], "mesh_pore_um": null, "volume_ul": 72 },
-    { "id": "g_cx", "type": "exchange", "center": [100, 52, 3.15], "size": [20, 12, 0.3], "mesh_pore_um": 5, "volume_ul": 72 },
-    { "id": "a_cx", "type": "exchange", "center": [100, 23, 3.15], "size": [20, 12, 0.3], "mesh_pore_um": 5, "volume_ul": 72 },
-    { "id": "j_mid", "type": "pool", "center": [72, 37.5, 3.15], "size": [6, 6, 0.3], "mesh_pore_um": null, "volume_ul": 10.8 }
+    {
+      "id": "n_cx",
+      "type": "exchange",
+      "center": [
+        9.786,
+        8.221,
+        3.15
+      ],
+      "size": [
+        4.171,
+        2.503,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 3.132,
+      "block": "culture_chamber"
+    },
+    {
+      "id": "g_cx",
+      "type": "exchange",
+      "center": [
+        21.257,
+        11.246,
+        3.15
+      ],
+      "size": [
+        4.171,
+        2.503,
+        0.3
+      ],
+      "mesh_pore_um": 5,
+      "volume_ul": 3.132,
+      "block": "culture_chamber"
+    },
+    {
+      "id": "a_cx",
+      "type": "exchange",
+      "center": [
+        21.257,
+        5.197,
+        3.15
+      ],
+      "size": [
+        4.171,
+        2.503,
+        0.3
+      ],
+      "mesh_pore_um": 5,
+      "volume_ul": 3.132,
+      "block": "culture_chamber"
+    },
+    {
+      "id": "j_mid",
+      "type": "pool",
+      "center": [
+        15.417,
+        8.221,
+        3.15
+      ],
+      "size": [
+        1.251,
+        1.251,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.47,
+      "block": "cross_junction"
+    }
   ],
   "channels": [
-    { "id": "ch_in_n", "from": "p_in", "to": "n_cx", "width_mm": 0.8, "depth_mm": 0.3 },
-    { "id": "ch_gin_g", "from": "p_g_in", "to": "g_cx", "width_mm": 0.8, "depth_mm": 0.3 },
-    { "id": "ch_ain_a", "from": "p_a_in", "to": "a_cx", "width_mm": 0.8, "depth_mm": 0.3 },
-    { "id": "ch_n_j", "from": "n_cx", "to": "j_mid", "width_mm": 0.8, "depth_mm": 0.3 },
-    { "id": "ch_g_j", "from": "g_cx", "to": "j_mid", "width_mm": 0.8, "depth_mm": 0.3 },
-    { "id": "ch_a_j", "from": "a_cx", "to": "j_mid", "width_mm": 0.8, "depth_mm": 0.3 },
-    { "id": "ch_j_mid", "from": "j_mid", "to": "p_mid", "width_mm": 0.8, "depth_mm": 0.3 },
-    { "id": "ch_g_out", "from": "g_cx", "to": "p_g_out", "width_mm": 0.8, "depth_mm": 0.3 },
-    { "id": "ch_a_out", "from": "a_cx", "to": "p_a_out", "width_mm": 0.8, "depth_mm": 0.3 }
+    {
+      "id": "ch_in_n",
+      "from": "p_in",
+      "to": "n_cx",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_gin_g",
+      "from": "p_g_in",
+      "to": "g_cx",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "curved_channel"
+    },
+    {
+      "id": "ch_ain_a",
+      "from": "p_a_in",
+      "to": "a_cx",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "curved_channel"
+    },
+    {
+      "id": "ch_n_j",
+      "from": "n_cx",
+      "to": "j_mid",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_g_j",
+      "from": "g_cx",
+      "to": "j_mid",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "curved_channel"
+    },
+    {
+      "id": "ch_a_j",
+      "from": "a_cx",
+      "to": "j_mid",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "curved_channel"
+    },
+    {
+      "id": "ch_j_mid",
+      "from": "j_mid",
+      "to": "p_mid",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_g_out",
+      "from": "g_cx",
+      "to": "p_g_out",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_a_out",
+      "from": "a_cx",
+      "to": "p_a_out",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    }
   ],
   "ports": [
-    { "id": "p_in", "type": "inlet", "position": [12, 37.5, 6.3] },
-    { "id": "p_g_in", "type": "inlet", "position": [74, 64, 6.3] },
-    { "id": "p_a_in", "type": "inlet", "position": [74, 11, 6.3] },
-    { "id": "p_mid", "type": "outlet", "position": [82, 37.5, 6.3] },
-    { "id": "p_g_out", "type": "outlet", "position": [128, 52, 6.3] },
-    { "id": "p_a_out", "type": "outlet", "position": [128, 23, 6.3] }
+    {
+      "id": "p_in",
+      "type": "inlet",
+      "position": [
+        2.903,
+        8.221,
+        6.3
+      ]
+    },
+    {
+      "id": "p_g_in",
+      "type": "inlet",
+      "position": [
+        15.834,
+        13.749,
+        6.3
+      ]
+    },
+    {
+      "id": "p_a_in",
+      "type": "inlet",
+      "position": [
+        15.834,
+        2.694,
+        6.3
+      ]
+    },
+    {
+      "id": "p_mid",
+      "type": "outlet",
+      "position": [
+        17.503,
+        8.221,
+        6.3
+      ]
+    },
+    {
+      "id": "p_g_out",
+      "type": "outlet",
+      "position": [
+        27.097,
+        11.246,
+        6.3
+      ]
+    },
+    {
+      "id": "p_a_out",
+      "type": "outlet",
+      "position": [
+        27.097,
+        5.197,
+        6.3
+      ]
+    }
   ]
 }

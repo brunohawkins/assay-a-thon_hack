@@ -7,7 +7,7 @@
 - Sensors: pressure_kpa, outlet_absorbance
 - Faults injected: clog {'start_wash': 2, 'growth_per_ul': 0.035, 'backflush_clears': 0.8}
 - Status: **done** · Protocol time: 283.2 s
-- Created: 2026-11-07T15:17:11Z
+- Created: 2026-11-07T17:18:40Z
 
 ## Outcome
 

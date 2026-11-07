@@ -40,7 +40,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from make_train_cad import PORT_SIZE_MM, clip_to_box  # noqa: E402  (sibling module)
+from make_train_cad import PORT_SIZE_MM, clip_to_box, in_envelope  # noqa: E402  (sibling module)
 
 ROOT = Path(__file__).resolve().parents[1]
 FIGURES = ROOT / "cad" / "figures"
@@ -58,6 +58,7 @@ FLOORS = [
     (80.0, "CO2 laser, min feature", "#c0392b"),
     (127.0, "CNC, smallest end mill", "#bf7b2f"),
 ]
+BLOCKS_JSON = ROOT / "contracts" / "blocks.json"
 TIGHT_MM = 0.5          # thin-rib threshold for the clearance warnings
 SCALE = 6.0             # px per mm in the layout figure, the floor: big boards stay at this
 LAYOUT_W_PX = 840.0     # a small chip is scaled up until its board is about this wide
@@ -141,10 +142,13 @@ class Svg:
             a += f' stroke-width="{n(sw)}"'
         self.add(a + "/>")
 
-    def text(self, x, y, s, size=10.0, fill=INK, anchor="start", weight="normal", mono=False):
+    def text(self, x, y, s, size=10.0, fill=INK, anchor="start", weight="normal", mono=False,
+             rot=None):
         fam = "ui-monospace, SFMono-Regular, Menlo, monospace" if mono else FONT
         a = f'<text x="{n(x)}" y="{n(y)}" font-family="{fam}" font-size="{n(size)}"'
         a += f' fill="{fill}" text-anchor="{anchor}"'
+        if rot:
+            a += f' transform="rotate({n(rot[0])} {n(rot[1])} {n(rot[2])})"'
         if weight != "normal":
             a += f' font-weight="{weight}"'
         self.add(a + f">{esc(s)}</text>")
@@ -249,6 +253,32 @@ def _seg_seg(a, b, c, d):
                _point_seg(c, a, b), _point_seg(d, a, b))
 
 
+def _chamber_rect(c):
+    sx, sy = c["size"][0], c["size"][1]
+    return (c["center"][0] - sx / 2, c["center"][1] - sy / 2,
+            c["center"][0] + sx / 2, c["center"][1] + sy / 2)
+
+
+def _seg_rect(a, b, r):
+    """Distance from segment a-b to rectangle r = (x0, y0, x1, y1); 0 if they touch."""
+    inside = lambda p: r[0] <= p[0] <= r[2] and r[1] <= p[1] <= r[3]
+    if inside(a) or inside(b):
+        return 0.0
+    corners = [(r[0], r[1]), (r[2], r[1]), (r[2], r[3]), (r[0], r[3])]
+    edges = list(zip(corners, corners[1:] + corners[:1]))
+    if any(_seg_seg(a, b, e0, e1) == 0.0 for e0, e1 in edges):
+        return 0.0
+    return min([_point_seg(c, a, b) for c in corners]
+               + [min(_point_seg(a, e0, e1), _point_seg(b, e0, e1)) for e0, e1 in edges])
+
+
+def _rect_rect(r, q):
+    """Gap between two rectangles; negative depth is not needed, 0 means they touch."""
+    dx = max(q[0] - r[2], r[0] - q[2], 0.0)
+    dy = max(q[1] - r[3], r[1] - q[3], 0.0)
+    return math.hypot(dx, dy)
+
+
 def geometry_warnings(chip):
     """Planar collisions and thin ribs. Returns (messages, tightest_clearance_mm).
 
@@ -258,6 +288,14 @@ def geometry_warnings(chip):
     """
     segs = segments_of(chip)
     ports = {p["id"]: p for p in chip["ports"]}
+    wall = load_blocks().get("fabrication_floors", {}).get("min_wall_mm")
+
+    def rib(gap):
+        under = f", UNDER the {wall:g} mm minimum wall" if wall and gap < wall else ""
+        return f"a thinner rib than {TIGHT_MM:g} mm{under}."
+    # A junction chamber is a place streams are MEANT to converge: a flow-focusing cross
+    # is three channels meeting in a 300 um square. Treat it like a port, not a collision.
+    meeting = set(ports) | {c["id"] for c in chip["chambers"] if c.get("type") == "junction"}
     msgs, tightest = [], (float("inf"), "")
 
     def note(gap, what):
@@ -268,8 +306,8 @@ def geometry_warnings(chip):
     for i, (c1, a1, b1, _) in enumerate(segs):
         for c2, a2, b2, _ in segs[i + 1:]:
             shared = {c1["from"], c1["to"]} & {c2["from"], c2["to"]}
-            # Channels meeting at a port genuinely merge there: that is what a port is.
-            if shared & ports.keys():
+            # Channels meeting at a port or junction genuinely merge there.
+            if shared & meeting:
                 continue
             gap = _seg_seg(a1, b1, a2, b2) - (c1["width_mm"] + c2["width_mm"]) / 2
             what = f"channels '{c1['id']}' and '{c2['id']}'"
@@ -281,8 +319,7 @@ def geometry_warnings(chip):
                 msgs.append(f"ERROR  {what} overlap by {-gap:.2f} mm where they leave "
                             f"'{sorted(shared)[0]}'.")
             elif gap < TIGHT_MM:
-                msgs.append(f"WARN   {what} are {gap:.2f} mm apart, a thinner rib than "
-                            f"{TIGHT_MM:g} mm.")
+                msgs.append(f"WARN   {what} are {gap:.2f} mm apart, {rib(gap)}")
 
     for pid, port in ports.items():
         pos = port["position"][:2]
@@ -297,8 +334,68 @@ def geometry_warnings(chip):
                             f"into a channel it is not connected to: a short circuit "
                             f"between '{ch['from']}' and '{ch['to']}'.")
             elif gap < TIGHT_MM:
-                msgs.append(f"WARN   {what} are {gap:.2f} mm apart, a thinner rib than "
-                            f"{TIGHT_MM:g} mm.")
+                msgs.append(f"WARN   {what} are {gap:.2f} mm apart, {rib(gap)}")
+    # --- everything else that shares the one layer -----------------------------------------
+    chambers = chip["chambers"]
+    rects = {c["id"]: _chamber_rect(c) for c in chambers}
+    fx, fy = chip["footprint"]["x"], chip["footprint"]["y"]
+    half = PORT_SIZE_MM / 2
+
+    for i, c1 in enumerate(chambers):
+        for c2 in chambers[i + 1:]:
+            gap = _rect_rect(rects[c1["id"]], rects[c2["id"]])
+            overlap = (min(rects[c1["id"]][2], rects[c2["id"]][2])
+                       - max(rects[c1["id"]][0], rects[c2["id"]][0]) > 0
+                       and min(rects[c1["id"]][3], rects[c2["id"]][3])
+                       - max(rects[c1["id"]][1], rects[c2["id"]][1]) > 0)
+            what = f"chambers '{c1['id']}' and '{c2['id']}'"
+            if overlap:
+                note(-1.0, what)
+                msgs.append(f"ERROR  {what} overlap in plan view: one chamber, not two.")
+            else:
+                note(gap, what)
+                if gap < TIGHT_MM:
+                    msgs.append(f"WARN   {what} are {gap:.2f} mm apart, {rib(gap)}")
+
+    for ch, a, b, _ in segs:
+        for c in chambers:
+            if c["id"] in (ch["from"], ch["to"]):
+                continue
+            gap = _seg_rect(a, b, rects[c["id"]]) - ch["width_mm"] / 2
+            what = f"channel '{ch['id']}' and chamber '{c['id']}'"
+            note(gap, what)
+            if gap < 0:
+                msgs.append(f"ERROR  {what} overlap by {-gap:.2f} mm. The channel runs through "
+                            f"a chamber it is not connected to: a short circuit.")
+            elif gap < TIGHT_MM:
+                msgs.append(f"WARN   {what} are {gap:.2f} mm apart, {rib(gap)}")
+
+    for pid, port in ports.items():
+        x, y = port["position"][0], port["position"][1]
+        if not (half <= x <= fx - half and half <= y <= fy - half):
+            msgs.append(f"ERROR  port '{pid}' at ({x:g}, {y:g}) is not fully inside the "
+                        f"{fx:g} x {fy:g} mm board.")
+        for c in chambers:
+            gap = _rect_rect(rects[c["id"]], (x - half, y - half, x + half, y + half))
+            what = f"port '{pid}' and chamber '{c['id']}'"
+            note(gap, what)
+            if gap == 0.0:
+                msgs.append(f"ERROR  {what} overlap: the port is drilled into a chamber.")
+            elif gap < TIGHT_MM:
+                msgs.append(f"WARN   {what} are {gap:.2f} mm apart, {rib(gap)}")
+    pitch = load_blocks().get("fabrication_floors", {}).get("min_port_pitch_mm")
+    if pitch:
+        plist = list(ports.values())
+        for i, p1 in enumerate(plist):
+            for p2 in plist[i + 1:]:
+                d = math.dist(p1["position"][:2], p2["position"][:2])
+                if d < pitch:
+                    msgs.append(f"WARN   ports '{p1['id']}' and '{p2['id']}' are {d:.2f} mm "
+                                f"apart (centre to centre), under the {pitch:g} mm port pitch.")
+    for c in chambers:
+        r = rects[c["id"]]
+        if r[0] < 0 or r[1] < 0 or r[2] > fx or r[3] > fy:
+            msgs.append(f"ERROR  chamber '{c['id']}' sticks out of the {fx:g} x {fy:g} mm board.")
     return msgs, tightest
 
 
@@ -308,14 +405,32 @@ def layout_scale(chip):
 
 
 def is_embossed(chip):
-    """All-COC chips are hot-embossed from a tool, not laser-cut from sheet."""
-    return bool(chip["layers"]) and all(l["material"] == "coc" for l in chip["layers"])
+    """Hot-embossed from a resin-printed tool, not laser-cut from sheet.
+
+    True for every chip inside the build envelope in contracts/blocks.json (30 x 20 mm,
+    one layer, resin print + hot embossing) and, as before, for any all-COC chip.
+    """
+    return in_envelope(chip) or (bool(chip["layers"])
+                                 and all(l["material"] == "coc" for l in chip["layers"]))
+
+
+def load_blocks():
+    """contracts/blocks.json, or {} if it is absent or unreadable."""
+    try:
+        return json.loads(BLOCKS_JSON.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def library_of(blocks):
+    return set(blocks.get("basic", {})) | set(blocks.get("advanced", {}))
 
 
 def lanes_of(chip):
     """Rows of >=2 non-pool chambers sharing an id prefix: one differentiation lane.
 
-    Pool chambers are excluded because a pool is shared by every lane by definition.
+    Pool and junction chambers are excluded: a pool is shared by every lane by
+    definition, and a junction is plumbing.
     A serial train (one row, mixed prefixes) yields no lanes, which is correct. So does a
     row of parallel reactors that merely share a prefix: a lane is a CHAIN, so
     neighbours in the row must be joined by a channel.
@@ -323,7 +438,8 @@ def lanes_of(chip):
     linked = {frozenset((ch["from"], ch["to"])) for ch in chip["channels"]}
     rows: dict[float, list] = {}
     for c in chip["chambers"]:
-        if c.get("type") == "pool":
+        # A pool is shared by every lane, and a junction is plumbing, not a lane.
+        if c.get("type") in ("pool", "junction"):
             continue
         rows.setdefault(round(c["center"][1], 3), []).append(c)
     lanes = []
@@ -371,6 +487,114 @@ def lane_names(chip, sched):
     return out
 
 
+# --- label placement ------------------------------------------------------------------
+#
+# At 30 x 20 mm most features are smaller than their own labels, so labels cannot just be
+# centred on the feature. Each label is a rectangle; it goes inside its chamber if it
+# fits at a readable size, otherwise it is tried in a ring of positions around the
+# feature and the one that overlaps the least (chambers, channels, ports, other labels,
+# the board edge) wins. Leaders join a label to a feature it is not touching.
+
+def text_w(s, size, mono=False, bold=False):
+    """Rendered width estimate in px. Deliberately generous: clipping is worse than slack."""
+    return len(str(s)) * size * (0.62 if mono else (0.60 if bold else 0.56))
+
+
+def _overlap(a, b):
+    w = min(a[2], b[2]) - max(a[0], b[0])
+    h = min(a[3], b[3]) - max(a[1], b[1])
+    return w * h if w > 0 and h > 0 else 0.0
+
+
+def _seg_rects(p0, p1, half, step=5.0):
+    """A thick segment as a chain of small squares: cheap obstacle for the placer."""
+    L = math.hypot(p1[0] - p0[0], p1[1] - p0[1])
+    k = max(1, int(L / step))
+    out = []
+    for i in range(k + 1):
+        t = i / k
+        x, y = p0[0] + (p1[0] - p0[0]) * t, p0[1] + (p1[1] - p0[1]) * t
+        out.append((x - half, y - half, x + half, y + half))
+    return out
+
+
+def shape_rects(cx, cy, tw, th, ang):
+    """A tw x th label rotated `ang` degrees about (cx, cy), as small squares for overlap tests."""
+    k = max(1, int(math.ceil(tw / max(th * 0.8, 1.0))))
+    ux, uy = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+    half = th / 2
+    out = []
+    for i in range(k):
+        t = (-tw / 2 + half + (tw - th) * (i / (k - 1) if k > 1 else 0.5)) if tw > th else 0.0
+        x, y = cx + ux * t, cy + uy * t
+        out.append((x - half, y - half, x + half, y + half))
+    return out
+
+
+class Placer:
+    W_OBST, W_LABEL, W_OUT = 10.0, 40.0, 40.0
+
+    def __init__(self, bounds):
+        self.bounds = bounds           # (x0, y0, x1, y1) px: labels must stay inside
+        self.obst: list[tuple] = []    # (rect, owner): chambers, channels, ports
+        self.placed: list[tuple] = []  # squares of labels already down
+
+    def add_obstacle(self, rect, owner=None):
+        self.obst.append((rect, owner))
+
+    def cost(self, rects, ignore=None):
+        c = 0.0
+        for r in rects:
+            c += self.W_OBST * sum(_overlap(r, o) for o, who in self.obst
+                                        if ignore is None or who != ignore)
+            c += self.W_LABEL * sum(_overlap(r, o) for o in self.placed)
+            c += self.W_OUT * ((r[2] - r[0]) * (r[3] - r[1]) - _overlap(r, self.bounds))
+        return c
+
+    def best(self, cands, ignore=None):
+        """cands: (shape, pull), shape = (cx, cy, tw, th, angle). -> (shape, overlap cost).
+
+        `pull` only breaks ties between positions; the returned cost is overlap alone, so a
+        caller can tell "fits cleanly" (about 0) from "least bad".
+        """
+        pick = None
+        for shape, pull in cands:
+            c = self.cost(shape_rects(*shape), ignore)
+            if pick is None or c + pull < pick[1] + pick[2]:
+                pick = (shape, c, pull)
+        return pick[0], pick[1]
+
+    def add(self, shape):
+        self.placed += shape_rects(*shape)
+
+
+def ring_candidates(box, w, h, gaps=(4, 10, 20, 34, 52, 72, 96)):
+    """Positions for a w x h label around box = (x0, y0, x1, y1), nearest first."""
+    x0, y0, x1, y1 = box
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    out = []
+
+    def add(x, y, pull):
+        out.append(((x + w / 2, y + h / 2, w, h, 0.0), pull))
+
+    for g in gaps:
+        pull = g * 0.2
+        for x in (cx - w / 2, x0, x1 - w):
+            add(x, y0 - g - h, pull)          # above
+            add(x, y1 + g, pull + 0.3)        # below
+        for y in (cy - h / 2, y0, y1 - h):
+            add(x1 + g, y, pull + 0.6)        # right
+            add(x0 - g - w, y, pull + 0.6)    # left
+        for x in (x1 + g, x0 - g - w):                # the four diagonals
+            add(x, y0 - g - h, pull + 0.9)
+            add(x, y1 + g, pull + 0.9)
+    return out
+
+
+def _nearest_on_rect(r, pt):
+    return (min(max(pt[0], r[0]), r[2]), min(max(pt[1], r[1]), r[3]))
+
+
 # --- figure: plan view ----------------------------------------------------------------
 
 def _dim_h(svg, x0, x1, y, label):
@@ -413,6 +637,45 @@ def barrier_band(chip, ch):
     return None
 
 
+def port_marks(chip, v, scale):
+    """Port circles and their number balloons, in px: (i, port, colour, px, py, bx, by)."""
+    fx, fy = chip["footprint"]["x"], chip["footprint"]["y"]
+    out = []
+    for i, port in enumerate(chip["ports"], start=1):
+        x, y = port["position"][0], port["position"][1]
+        colour = INLET_C if port.get("type") == "inlet" else OUTLET_C
+        dx, dy = x - fx / 2, y - fy / 2
+        mag = max((dx * dx + dy * dy) ** 0.5, 1e-6)
+        off = v.d(PORT_SIZE_MM / 2) + 13      # clear of the port ring at any scale
+        out.append((i, port, colour, v.x(x), v.y(y),
+                    v.x(x) + dx / mag * off, v.y(y) - dy / mag * off))
+    return out
+
+
+def chamber_label_inside(c, bw, bh, stroke, scale, block, block_ok):
+    """Lines (text, size, colour, weight, mono) that fit inside a bw x bh px box, or None."""
+    sx, sy = c["size"][0], c["size"][1]
+    mesh = f" · mesh {c['mesh_pore_um']:g} µm" if c.get("mesh_pore_um") else ""
+    dims = f"{sx:g} × {sy:g} mm"
+    vol = f"{c['volume_ul']:g} µL{mesh}"
+    bcol = INK3 if block_ok else LASER_C
+    for size in (11.0, 10.0, 9.0, 8.0):
+        small = size * 0.82
+        for variant in ("full", "tight"):
+            lines = [(c["id"], size, stroke, "bold", True)]
+            if block:
+                lines.append((block, small, bcol, "normal", True))
+            if variant == "full":
+                lines += [(dims, small, INK2, "normal", False), (vol, small, INK2, "normal", False)]
+            else:
+                lines += [(f"{dims} · {vol}", small, INK2, "normal", False)]
+            w = max(text_w(t, z, m, wt == "bold") for t, z, _, wt, m in lines)
+            h = sum(z * 1.32 for _, z, _, _, _ in lines)
+            if w + 8 <= bw and h + 6 <= bh:
+                return lines
+    return None
+
+
 def fig_layout(chip, sched):
     fx, fy = chip["footprint"]["x"], chip["footprint"]["y"]
     lanes, names = lanes_of(chip), lane_names(chip, sched)
@@ -425,6 +688,23 @@ def fig_layout(chip, sched):
     svg = Svg(w, h, f"{chip['id']}: plan view")
     v = View(chip, scale, pad_l, pad_t)
     bottom = v.y(0)
+    envelope = in_envelope(chip)
+    blocks = load_blocks()
+    library = library_of(blocks)
+    has_blocks = any(f.get("block") for f in chip["chambers"] + chip["channels"])
+    unknown_blocks: list[str] = []
+    missing_blocks: list[str] = []
+
+    def block_of(feature):
+        b = feature.get("block")
+        ok = True
+        if b and library and b not in library:
+            ok = False
+            unknown_blocks.append(f"{feature['id']}={b}")
+        if has_blocks and not b:
+            missing_blocks.append(feature["id"])
+            return "no block!", False
+        return b, ok
 
     svg.text(pad_l, 24, chip["name"], 14.5, INK, weight="bold")
     svg.text(pad_l, 41, f"chip/{chip['id']}.json   ·   footprint {fx:g} × {fy:g} mm   ·   "
@@ -445,31 +725,156 @@ def fig_layout(chip, sched):
                  "end", weight="bold")
         svg.text(v.x(0) - 12, v.y(y) + 11, f"ids {prefix}_*", 8, INK3, "end", mono=True)
 
-    grooves = []
+    grooves, badcut = [], []
+    seg_px = []
     for ch, p0, p1, is_groove in segments_of(chip):
-        if is_groove:
+        if is_groove and envelope:
+            badcut.append(ch["id"])          # drawn as a channel, but flagged below
+        elif is_groove:
             grooves.append((ch, p0, p1))
             continue
         pts = quad(p0, p1, ch["width_mm"])
         if pts:
-            svg.poly([v.p(c) for c in pts], CHAN_F, CHAN_S, 0.8)
+            svg.poly([v.p(c) for c in pts], CHAN_F, LASER_C if is_groove else CHAN_S,
+                     1.4 if is_groove else 0.8, dash="4 2" if is_groove else None)
+            seg_px.append((ch, v.p(p0), v.p(p1), is_groove))
 
+    # --- obstacles for the label placer ---------------------------------------------------
+    marks = port_marks(chip, v, scale)
+    placer = Placer((v.x(0) + 3, v.y(fy) + 3, v.x(fx) - 3, v.y(0) - 3))
+    for ch, a, b, _ in seg_px:
+        for r in _seg_rects(a, b, v.d(ch["width_mm"]) / 2 + 1.5):
+            placer.add_obstacle(r, ch["id"])
+    for c in chip["chambers"]:
+        sx, sy = c["size"][0], c["size"][1]
+        placer.add_obstacle((v.x(c["center"][0] - sx / 2) - 3, v.y(c["center"][1] + sy / 2) - 3,
+                             v.x(c["center"][0] + sx / 2) + 3, v.y(c["center"][1] - sy / 2) + 3))
+    rp = v.d(PORT_SIZE_MM / 2) + 2
+    for _, _, _, px, py, bx, by_ in marks:
+        placer.add_obstacle((px - rp, py - rp, px + rp, py + rp))
+        placer.add_obstacle((bx - 9, by_ - 9, bx + 9, by_ + 9))
+
+    leaders = []
+    labels = []          # (rect, lines, anchor_x, halo?) drawn after the leaders
+
+    # Chambers first: the ones whose label fits inside add no obstacle, the rest go out.
+    outside, inside = [], []
     for c in chip["chambers"]:
         fill, stroke = TYPES.get(c.get("type"), TYPE_FALLBACK)
         sx, sy = c["size"][0], c["size"][1]
         px, py = v.x(c["center"][0] - sx / 2), v.y(c["center"][1] + sy / 2)
         svg.rect(px, py, v.d(sx), v.d(sy), fill, stroke, 1.3, rx=2.5)
-        cx, cy = v.x(c["center"][0]), v.y(c["center"][1])
-        mesh = f"  ·  mesh {c['mesh_pore_um']:g} µm" if c.get("mesh_pore_um") else ""
-        if v.d(sx) >= 66 and v.d(sy) >= 36:
-            k = min(1.5, (scale / SCALE) ** 0.5)      # bigger type once the boxes are big
-            svg.text(cx, cy - 4 * k, c["id"], 9.5 * k, stroke, "middle", "bold", mono=True)
-            svg.text(cx, cy + 9 * k, f"{sx:g} × {sy:g} mm", 8 * k, INK2, "middle")
-            svg.text(cx, cy + 20 * k, f"{c['volume_ul']:g} µL{mesh}", 8 * k, INK2, "middle")
+        block, ok = block_of(c)
+        lines = chamber_label_inside(c, v.d(sx), v.d(sy), stroke, scale, block, ok)
+        if lines:
+            hh = sum(z * 1.32 for _, z, _, _, _ in lines)
+            ww = max(text_w(t, z, m, wt == "bold") for t, z, _, wt, m in lines)
+            inside.append((v.x(c["center"][0]), v.y(c["center"][1]), ww, hh, 0.0))
+            y = v.y(c["center"][1]) - hh / 2
+            for t, z, col, wt, mono in lines:
+                y += z * 1.32
+                svg.text(v.x(c["center"][0]), y - z * 0.30, t, z, col, "middle", wt, mono)
         else:
-            svg.halo(cx, py - 16, c["id"], 9, stroke, "middle", "bold", mono=True)
-            svg.halo(cx, py - 6, f"{sx:g} × {sy:g} mm · {c['volume_ul']:g} µL{mesh}",
-                     7.5, INK2, "middle")
+            outside.append((c, (px, py, px + v.d(sx), py + v.d(sy)), stroke, block, ok))
+
+    for shape in inside:
+        placer.add(shape)
+    for c, box, stroke, block, ok in sorted(outside, key=lambda o: -(o[1][2] - o[1][0])):
+        sx, sy = c["size"][0], c["size"][1]
+        mesh = f" · mesh {c['mesh_pore_um']:g} µm" if c.get("mesh_pore_um") else ""
+        head = [(c["id"], 9.0, stroke, "bold", True)]
+        if block:
+            head.append((block, 7.5, INK3 if ok else LASER_C, "normal", True))
+        # A wide label (size and volume on one line) first, a narrow one if the wide one
+        # has nowhere clean to go: junctions sit in crowded places.
+        variants = [head + [(f"{sx:g} × {sy:g} mm · {c['volume_ul']:g} µL{mesh}", 7.5, INK2,
+                             "normal", False)],
+                    head + [(f"{sx:g} × {sy:g} mm", 7.5, INK2, "normal", False),
+                            (f"{c['volume_ul']:g} µL{mesh}", 7.5, INK2, "normal", False)]]
+        pick = None
+        for lines in variants:
+            lw = max(text_w(t, z, m, wt == "bold") for t, z, _, wt, m in lines) + 6
+            lh = sum(z * 1.3 for _, z, _, _, _ in lines) + 3
+            shape, cost = placer.best(ring_candidates(box, lw, lh))
+            if pick is None or cost < pick[2] - 0.5:
+                pick = (lines, shape, cost, lw, lh)
+            if cost < 0.5:
+                break
+        lines, shape, cost, lw, lh = pick
+        placer.add(shape)
+        rect = (shape[0] - lw / 2, shape[1] - lh / 2, shape[0] + lw / 2, shape[1] + lh / 2)
+        labels.append((rect, lines))
+        near = _nearest_on_rect(box, ((rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2))
+        edge = _nearest_on_rect(rect, near)
+        if math.hypot(edge[0] - near[0], edge[1] - near[1]) > 5:
+            leaders.append((edge, near))
+
+    # Channels: "id · block" along the run when there is clean room for it, otherwise a
+    # numbered tag on the run and a line in the key under the figure. A label that has to
+    # sit on top of another feature is worse than a number.
+    chan_labels, chan_tags = [], []
+    for ch, a, b, _ in sorted(seg_px, key=lambda s: -math.hypot(s[2][0] - s[1][0],
+                                                                  s[2][1] - s[1][1])):
+        if not ch.get("block") and not has_blocks:
+            continue
+        block, ok = block_of(ch)
+        txt = f"{ch['id']} · {block}"
+        size = 7.5
+        tw, th = text_w(txt, size, True) + 6, size * 1.3 + 3
+        hw = v.d(ch["width_mm"]) / 2
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        L = max(math.hypot(dx, dy), 1e-6)
+        nx, ny = -dy / L, dx / L
+        ang = math.degrees(math.atan2(dy, dx))
+        if ang > 90:
+            ang -= 180
+        elif ang <= -90:
+            ang += 180
+        shape = None
+        if L >= tw + 8:
+            cands = []
+            for g in (3, 6, 10):
+                for ti, t in enumerate((0.5, 0.4, 0.6, 0.3, 0.7)):
+                    mx, my = a[0] + dx * t, a[1] + dy * t
+                    for side in (1, -1):
+                        off = hw + g + th / 2
+                        cands.append(((mx + side * nx * off, my + side * ny * off, tw, th, ang),
+                                      g * 0.2 + ti * 0.8))
+            shape, cost = placer.best(cands, ignore=ch["id"])
+            if cost > 0.5:
+                shape = None
+        if shape is not None:
+            placer.add(shape)
+            chan_labels.append((shape, txt, ok, size))
+        else:
+            tags = []
+            for ti, t in enumerate((0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8)):
+                tags.append(((a[0] + dx * t, a[1] + dy * t, 14.0, 14.0, 0.0), ti * 0.5))
+            for ti, t in enumerate((0.5, 0.3, 0.7)):      # beside a run too short to carry one
+                for side in (1, -1):
+                    off = hw + 9.5
+                    tags.append(((a[0] + dx * t + side * nx * off, a[1] + dy * t + side * ny * off,
+                                  14.0, 14.0, 0.0), 6 + ti))
+            shape, _ = placer.best(tags, ignore=ch["id"])
+            placer.add(shape)
+            chan_tags.append((len(chan_tags) + 1, shape, ch, block, ok))
+
+    for (x0, y0), (x1, y1) in leaders:
+        svg.line(x0, y0, x1, y1, INK3, 0.7)
+    for rect, lines in labels:
+        svg.rect(rect[0], rect[1], rect[2] - rect[0], rect[3] - rect[1], PAPER, "none", op=0.92)
+        y = rect[1] + 1.5
+        for t, z, col, wt, mono in lines:
+            y += z * 1.3
+            svg.text((rect[0] + rect[2]) / 2, y - z * 0.28, t, z, col, "middle", wt, mono)
+    for (cx_, cy_, tw, th, ang), txt, ok, size in chan_labels:
+        ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+        pts = [(cx_ + ca * x - sa * y, cy_ + sa * x + ca * y)
+               for x, y in ((-tw / 2, -th / 2), (tw / 2, -th / 2),
+                            (tw / 2, th / 2), (-tw / 2, th / 2))]
+        svg.poly(pts, PAPER, "none", op=0.92)
+        svg.text(cx_, cy_ + size * 0.34, txt, size, INK2 if ok else LASER_C, "middle",
+                 mono=True, rot=(ang, cx_, cy_) if ang else None)
 
     # After the chambers: the barrier sits in a 0.5 mm gap, so a chamber fill would
     # otherwise paint over most of it.
@@ -505,20 +910,16 @@ def fig_layout(chip, sched):
         svg.halo(px - 10, py + ph / 2 + 14, f"~{GROOVE_COUNT} grooves, {length_mm * 1000:g} µm",
                  7.5, INK3, "end")
 
-    balloons = []
-    for i, port in enumerate(chip["ports"], start=1):
-        x, y = port["position"][0], port["position"][1]
-        colour = INLET_C if port.get("type") == "inlet" else OUTLET_C
-        svg.circle(v.x(x), v.y(y), v.d(PORT_SIZE_MM / 2), PAPER, colour, 2.0)
-        svg.circle(v.x(x), v.y(y), v.d(PORT_SIZE_MM / 2) - 3.5, colour, "none")
-        dx, dy = x - fx / 2, y - fy / 2
-        mag = max((dx * dx + dy * dy) ** 0.5, 1e-6)
-        off = v.d(PORT_SIZE_MM / 2) + 13      # clear of the port ring at any scale
-        bx = v.x(x) + dx / mag * off
-        by_ = v.y(y) - dy / mag * off
+    for i, port, colour, px, py, bx, by_ in marks:
+        svg.circle(px, py, v.d(PORT_SIZE_MM / 2), PAPER, colour, 2.0)
+        svg.circle(px, py, v.d(PORT_SIZE_MM / 2) - 3.5, colour, "none")
         svg.circle(bx, by_, 7.5, PAPER, colour, 1.2)
         svg.text(bx, by_ + 3.2, str(i), 8.5, colour, "middle", "bold")
-        balloons.append((i, port, colour))
+    balloons = [(i, port, colour) for i, port, colour, *_ in marks]
+    for k, (cx_, cy_, *_), ch, block, ok in chan_tags:
+        svg.circle(cx_, cy_, 6.5, PAPER, INK2 if ok else LASER_C, 1.0)
+        svg.text(cx_, cy_ + (2.4 if k < 10 else 2.2), str(k), 8 if k < 10 else 6.5, INK2,
+                 "middle", "bold")
 
     _dim_h(svg, v.x(0), v.x(fx), bottom + 26, f"{fx:g}")
     _dim_v(svg, v.y(fy), v.y(0), v.x(fx) + 24, f"{fy:g}")
@@ -540,6 +941,8 @@ def fig_layout(chip, sched):
                 f"channel ({'/'.join(f'{d:g}' for d in depths)} mm deep{where})")
     if grooves:
         x = _swatch(svg, x, row, GROOVE_F, GROOVE_S, "groove barrier (exaggerated)")
+    if badcut:
+        x = _swatch(svg, x, row, CHAN_F, LASER_C, "wrong depth for this build")
     svg.circle(x + 6, row - 3, 5, PAPER, INLET_C, 1.8)
     svg.text(x + 16, row, "inlet", 8.5, INK2)
     svg.circle(x + 58, row - 3, 5, PAPER, OUTLET_C, 1.8)
@@ -556,26 +959,55 @@ def fig_layout(chip, sched):
         svg.text(px, row, label, 8.5, colour, mono=True)
         px += len(label) * 5.4 + 20
 
+    if chan_tags:
+        row += 20
+        svg.text(pad_l, row, "channels", 8.5, INK3, weight="bold")
+        kx = pad_l + 52
+        for k, _, ch, block, ok in chan_tags:
+            label = f"{k}  {ch['id']} · {block}"
+            wpx = text_w(label, 8, True) + 22
+            if kx + wpx > w - pad_r + 72:
+                row += 14
+                kx = pad_l + 52
+            svg.text(kx, row, label, 8, INK2 if ok else LASER_C, mono=True)
+            kx += wpx
+
     msgs, tightest = geometry_warnings(chip)
+    if unknown_blocks:
+        msgs.append(f"WARN   blocks not in contracts/blocks.json: {', '.join(unknown_blocks)}")
+    if missing_blocks:
+        msgs.append(f"WARN   no block field on: {', '.join(missing_blocks)}")
+    if badcut:
+        msgs.append(f"WARN   depth: {len(badcut)} channel(s) are not at the fluidic layer depth "
+                    f"(would need a GROOVES layer, i.e. photolithography): {', '.join(badcut)}")
     row += 22
-    for note in _layout_notes(chip, grooves, tightest, msgs):
-        svg.text(pad_l, row, note, 8.5, INK2)
+    for note in _layout_notes(chip, grooves, tightest, msgs, has_blocks, badcut):
+        svg.text(pad_l, row, note, 8.5, LASER_C if note.startswith("BUILD PROBLEM") else INK2)
         row += 13
     svg.h = max(svg.h, row + 14)
     return svg, msgs, tightest
 
 
-def _layout_notes(chip, grooves, tightest, msgs):
+def _layout_notes(chip, grooves, tightest, msgs, has_blocks=False, badcut=()):
     spacer = spacer_of(chip)
     out = []
     if spacer and is_embossed(chip):
         out.append(f"Every chamber and channel is {spacer['thickness_mm']:g} mm deep: one "
-                   f"embossing depth, hot-embossed in {spacer['material'].upper()}, with the "
-                   f"tubing ports drilled through the lid.")
+                   f"embossing depth, a resin-printed tool hot-embossed into the layer, with "
+                   f"the tubing ports drilled through the lid.")
     elif spacer:
         out.append(f"Chamber height is the {spacer['thickness_mm']:g} mm "
                    f"{spacer['material']} '{spacer['id']}' layer, so every chamber and "
                    f"channel is a cut-out in one flat sheet.")
+    if has_blocks:
+        out.append("Small grey names are the contracts/blocks.json CAD block each chamber and "
+                   "channel is built from; red means it is not in the library.")
+    else:
+        out.append("This spec has no 'block' fields, so this figure cannot show that it is "
+                   "built from the CAD library.")
+    if badcut:
+        out.append(f"BUILD PROBLEM: {len(badcut)} channel(s), outlined red, are not at the "
+                   f"layer depth. A second depth needs photolithography, which we do not have.")
     if grooves:
         g = grooves[0][0]
         out.append(f"Groove barriers are drawn thicker than they are: each is an ARRAY of "
@@ -585,8 +1017,11 @@ def _layout_notes(chip, grooves, tightest, msgs):
         out.append("They need photolithography, not the laser: see the stack and feature "
                    "figures.")
     if tightest[0] < float("inf"):
-        verdict = "no overlaps" if not any(m.startswith("ERROR") for m in msgs) \
-            else f"{sum(m.startswith('ERROR') for m in msgs)} OVERLAP(S) — see the run log"
+        n_err = sum(m.startswith("ERROR") for m in msgs)
+        n_warn = sum("thinner rib" in m for m in msgs)
+        verdict = "no overlaps" if not n_err else f"{n_err} OVERLAP(S), a short circuit in one layer"
+        if n_warn:
+            verdict += f"; {n_warn} rib(s) under {TIGHT_MM:g} mm"
         out.append(f"Tightest clearance between unconnected features: "
                    f"{tightest[0]:.2f} mm, between {tightest[1]}. Planar check: {verdict}.")
     return out
@@ -613,13 +1048,20 @@ def process_of(layer, chip, spacer, groove_layer):
     if groove_layer is not None and layer["id"] == groove_layer["id"]:
         return ("photolithography", "SU-8 master, then cast: the groove array", LITHO_C)
     if spacer is not None and layer["id"] == spacer["id"]:
+        if in_envelope(chip):
+            return ("hot embossing", "resin-printed tool, hot-embossed: chambers + channels",
+                    EMBOSS_C)
         if is_embossed(chip):
             return ("hot embossing", "tool relief: chamber cavities + channels", EMBOSS_C)
         return ("laser", "cut right through: chamber cavities + channels", LASER_C)
     if layer is chip["layers"][-1]:
+        if in_envelope(chip):
+            return ("drilling", "stock sheet, ports drilled through", STOCK_C)
         if is_embossed(chip):
             return ("drilling", "cut to outline, ports drilled through", STOCK_C)
         return ("laser", "cut to outline, ports drilled through", LASER_C)
+    if in_envelope(chip):
+        return ("stock", "stock sheet, bonded under the embossed layer", STOCK_C)
     return ("stock", "stock sheet, cut to outline only", STOCK_C)
 
 
@@ -677,14 +1119,23 @@ def fig_stack(chip):
 
     row = pad_t + body_h + 46
     svg.line(pad_l, row - 18, w - 40, row - 18, GRID, 1.0)
+    envelope = in_envelope(chip)
     if spacer is not None:
         how = ("That is why every feature shares one embossing depth."
                if is_embossed(chip) else
                "That is why a chamber is a rectangle in a flat sheet rather than a milled pocket.")
-        svg.text(pad_l, row, f"The chamber height IS the spacer: {spacer['thickness_mm']:g} mm. "
+        what = "fluidic layer" if envelope else "spacer"
+        svg.text(pad_l, row, f"The chamber height IS the {what}: {spacer['thickness_mm']:g} mm. "
                              f"{how}", 9, INK2)
         row += 15
-    if has_grooves and groove_layer is not None:
+    if has_grooves and envelope:
+        svg.text(pad_l, row, "BUILD PROBLEM: some channels are shallower than the fluidic layer. "
+                             "One embossing tool makes one depth.", 9, LASER_C, weight="bold")
+        row += 15
+        svg.text(pad_l, row, "A second depth needs photolithography, which we do not have, "
+                             "so this chip cannot be built as drawn.", 9, INK2)
+        row += 15
+    elif has_grooves and groove_layer is not None:
         svg.text(pad_l, row, f"Two processes, not one. '{spacer['id'] if spacer else '?'}' goes to "
                              f"the laser cutter; '{groove_layer['id']}' cannot, because its "
                              f"features are microns tall.", 9, INK, weight="bold")
@@ -696,6 +1147,11 @@ def fig_stack(chip):
         svg.text(pad_l, row, "WARNING: this chip has sub-spacer channels but no layer to hold "
                              "them. Add a cast layer to chip.layers.", 9, LASER_C, weight="bold")
         row += 15
+    elif envelope:
+        svg.text(pad_l, row, "One process chain: resin-print the tool, hot-emboss the layer. "
+                             "Every feature is one depth, so one tool makes the whole chip.",
+                 9, INK2)
+        row += 15
     elif is_embossed(chip):
         svg.text(pad_l, row, "One process: every feature is one embossing depth, so a single "
                              "tool makes the whole chip. See the feature figure.", 9, INK2)
@@ -704,8 +1160,15 @@ def fig_stack(chip):
         svg.text(pad_l, row, "One process: every feature on this chip is within reach of the "
                              "laser cutter. See the feature figure.", 9, INK2)
         row += 15
-    svg.text(pad_l, row, "Process floors are vendor typicals, not measured: "
-                         "cad/fabrication.json still has laser_kerf_um = null.", 8.5, INK3)
+    if envelope:
+        fl = load_blocks().get("fabrication_floors", {})
+        svg.text(pad_l, row, f"Floors are from the fabrication review in contracts/blocks.json: "
+                             f"open channel {fl.get('min_open_channel_mm', '?')} mm, wall "
+                             f"{fl.get('min_wall_mm', '?')} mm, port {fl.get('min_port_mm', '?')} mm.",
+                 8.5, INK3)
+    else:
+        svg.text(pad_l, row, "Process floors are vendor typicals, not measured: "
+                             "cad/fabrication.json still has laser_kerf_um = null.", 8.5, INK3)
     svg.h = row + 26
     return svg
 
@@ -734,35 +1197,79 @@ def feature_rows(chip):
     return sorted(rows, key=lambda r: r[1])
 
 
+def envelope_floors():
+    """(um, label, colour) rows from contracts/blocks.json for the resin-print + emboss build."""
+    fl = load_blocks().get("fabrication_floors", {})
+    rows = [("min_open_channel_mm", "min open channel", LASER_C),
+            ("min_wall_mm", "min wall", "#bf7b2f"),
+            ("min_enclosed_printed_channel_mm", "min enclosed channel", "#6b5bb0"),
+            ("min_port_mm", "min port", EMBOSS_C)]
+    out = [(fl[k] * 1000, label, col) for k, label, col in rows if k in fl]
+    env = load_blocks().get("envelope", {})
+    if "max_depth_mm" in env:
+        out.append((env["max_depth_mm"] * 1000, "max depth (build limit)", "#2f6fb0"))
+    return out
+
+
 def fig_features(chip):
     rows = feature_rows(chip)
-    pad_l, pad_t = 232, 86
+    envelope = in_envelope(chip)
+    floors = (envelope_floors() if envelope else []) or FLOORS
+    envelope = envelope and floors is not FLOORS
+    pad_l, pad_t = 232, 100
     axw, axh = 470.0, 26.0
     w = pad_l + axw + 190
     h = pad_t + len(rows) * axh + 150
     svg = Svg(w, h, f"{chip['id']}: feature sizes against the process floors")
 
+    # The printable range is a few hundred micrometres, so an envelope chip zooms the axis
+    # in: 100 um up past its biggest feature. Smaller features sit on the left edge, marked.
+    if envelope:
+        lo_um = 100.0
+        hi_um = 10.0 ** max(4, math.ceil(math.log10(max(r[1] for r in rows) * 1.2)))
+    else:
+        lo_um, hi_um = 1.0, 1e5
+    span = math.log10(hi_um) - math.log10(lo_um)
+
     def lx(um):
-        return pad_l + (math.log10(max(um, 1.0)) / 5.0) * axw
+        return pad_l + (math.log10(min(max(um, lo_um), hi_um)) - math.log10(lo_um)) / span * axw
 
     fab = [r for r in rows if r[2]]
     smallest = min(r[1] for r in fab) if fab else float("inf")
-    # The lowest floor of any process that CUTS. Below it, a feature has to be cast.
-    laser = min(v for v, label, _ in FLOORS if "lithograph" not in label.lower())
+    if envelope:
+        # In-plane features only: depth has a ceiling, not a floor, in this build.
+        laser = min(v for v, label, _ in floors if "depth" not in label)
+        port_floor = next((v for v, label, _ in floors if label == "min port"), 0.0)
+
+        def floor_of(label):
+            if label in ("channel width", "chamber, smallest side"):
+                return laser
+            return port_floor if label == "tubing port" else 0.0
+    else:
+        # The lowest floor of any process that CUTS. Below it, a feature has to be cast.
+        laser = min(v for v, label, _ in floors if "lithograph" not in label.lower())
+
+        def floor_of(label):
+            return laser
 
     svg.text(40, 24, "Every feature on this chip, against what each process can make",
              14.5, INK, weight="bold")
     svg.text(40, 41, f"chip/{chip['id']}.json   ·   log scale   ·   micrometres", 9.5, INK2)
 
     y0, y1 = pad_t - 14, pad_t + len(rows) * axh
-    svg.rect(lx(1), y0, lx(laser) - lx(1), y1 - y0, "#fdeeec", "none")
-    svg.text(lx(laser) - 8, y0 - 24, "no laser cutter reaches this", 8.5, LASER_C, "end",
-             weight="bold")
-    svg.text(lx(laser) - 8, y0 - 12, "photolithography territory", 8.5, LASER_C, "end")
+    svg.rect(lx(lo_um), y0, lx(laser) - lx(lo_um), y1 - y0, "#fdeeec", "none")
+    if envelope:
+        svg.text(lx(laser) - 8, y0 - 24, "below the open-channel floor", 8.5, LASER_C, "end",
+                 weight="bold")
+        svg.text(lx(laser) - 8, y0 - 12, "not printable", 8.5, LASER_C, "end")
+    else:
+        svg.text(lx(laser) - 8, y0 - 24, "no laser cutter reaches this", 8.5, LASER_C, "end",
+                 weight="bold")
+        svg.text(lx(laser) - 8, y0 - 12, "photolithography territory", 8.5, LASER_C, "end")
 
     # Floors that sit close together on a log axis get their own row, or the labels merge.
     taken: list[tuple[float, float, int]] = []
-    for um, label, colour in FLOORS:
+    for um, label, colour in floors:
         x, half = lx(um), max(len(label) * 2.3, 30.0)
         tier = 0
         while any(t == tier and x - half < hi and lo < x + half for lo, hi, t in taken):
@@ -774,18 +1281,28 @@ def fig_features(chip):
         svg.text(x, base + 12, label, 8, colour, "middle")
     tiers = max(t for _, _, t in taken) + 1 if taken else 1
 
-    for e in range(6):
-        um = 10.0 ** e
-        svg.line(lx(um), y1, lx(um), y1 + 5, INK3, 0.8)
-        pretty = f"{um:g} µm" if um < 1000 else f"{um / 1000:g} mm"
-        svg.text(lx(um), y1 + 17, pretty, 8, INK3, "middle")
-    svg.line(lx(1), y1, lx(10 ** 5), y1, INK3, 1.0)
+    for e in range(int(math.floor(math.log10(lo_um))), int(math.log10(hi_um)) + 1):
+        for mult in ((1.0, 2.0, 5.0) if envelope else (1.0,)):
+            um = mult * 10.0 ** e
+            if not lo_um - 1e-9 <= um <= hi_um + 1e-9:
+                continue
+            if any(abs(lx(um) - lx(fu)) < 18 for fu, _, _ in floors):
+                svg.line(lx(um), y1, lx(um), y1 + 5, INK3, 0.8)     # the floor labels it
+                continue
+            svg.line(lx(um), y1, lx(um), y1 + 5, INK3, 0.8)
+            pretty = f"{um:g} µm" if um < 1000 else f"{um / 1000:g} mm"
+            svg.text(lx(um), y1 + 17, pretty, 8, INK3, "middle")
+    svg.line(lx(lo_um), y1, lx(hi_um), y1, INK3, 1.0)
 
     y = pad_t
+    below = []
     for label, um, fabricated, detail in rows:
         svg.line(pad_l, y, lx(um), y, GRID, 1.0)
         if fabricated:
-            colour = LITHO_C if um < laser else "#2f6fb0"
+            bad = um < floor_of(label)
+            if bad:
+                below.append(f"{label} {um:g} µm ({detail})")
+            colour = (LASER_C if envelope else LITHO_C) if bad else "#2f6fb0"
             svg.circle(lx(um), y, 5.0, colour, PAPER, 1.4)
         else:
             colour = INK3
@@ -793,12 +1310,22 @@ def fig_features(chip):
         svg.text(pad_l - 12, y + 3.4, label, 9, INK, "end")
         svg.text(pad_l - 12, y + 14, detail, 7.5, INK3, "end")
         pretty = f"{um:g} µm" if um < 1000 else f"{um:g} µm  ({um / 1000:g} mm)"
-        svg.text(lx(um) + 11, y + 3.4, pretty, 8.5, colour, weight="bold")
+        if um < lo_um:
+            pretty += "  (off the left edge)"
+        svg.halo(lx(um) + 11, y + 3.4, pretty, 8.5, colour, weight="bold", pad=2.0)
         y += axh
 
     row = y1 + 44 + tiers * 26
     svg.line(40, row - 14, w - 40, row - 14, GRID, 1.0)
-    if smallest < laser:
+    if envelope:
+        if below:
+            svg.text(40, row, f"Below the printable floor: {'; '.join(below)}.", 9.5, LASER_C,
+                     weight="bold")
+        else:
+            svg.text(40, row, f"Smallest feature we have to make: {smallest:g} µm. Every "
+                              f"in-plane feature clears the printable floors.", 9.5, INK,
+                     weight="bold")
+    elif smallest < laser:
         svg.text(40, row, f"Smallest feature we have to make: {smallest:g} µm, below every "
                           f"cutting floor. This chip needs TWO processes.", 9.5, INK,
                  weight="bold")
@@ -806,14 +1333,19 @@ def fig_features(chip):
         svg.text(40, row, f"Smallest feature we have to make: {smallest:g} µm, clear of every "
                           f"floor. One process is enough.", 9.5, INK, weight="bold")
     row += 16
-    svg.text(40, row, "Hollow markers are bought parts. A 5 µm mesh pore is below the laser "
-                      "floor too, but nobody has to cut it: it arrives as a sheet.", 8.5, INK2)
+    svg.text(40, row, "Hollow markers are bought parts. A 5 µm mesh pore is far below any "
+                      "floor too, but nobody has to make it: it arrives as a sheet.", 8.5, INK2)
     row += 14
-    svg.text(40, row, "Floors are vendor/published typicals. cad/fabrication.json has "
-                      "laser_kerf_um = null, so tools/check_chip_spec.py still reports a TODO.",
-             8.5, INK3)
+    if envelope:
+        svg.text(40, row, "Floors are the fabrication-review numbers in contracts/blocks.json "
+                          "(resin print + hot embossing). Depth is checked against the build limit.",
+                 8.5, INK3)
+    else:
+        svg.text(40, row, "Floors are vendor/published typicals. cad/fabrication.json has "
+                          "laser_kerf_um = null, so tools/check_chip_spec.py still reports a TODO.",
+                 8.5, INK3)
     svg.h = row + 26
-    return svg
+    return svg, below
 
 
 # --- figure: groove barrier detail ----------------------------------------------------
@@ -1128,10 +1660,10 @@ def fig_modes(chip):
         return None
 
     fx, fy = chip["footprint"]["x"], chip["footprint"]["y"]
-    S = MODE_SCALE
+    S = max(MODE_SCALE, 480.0 / fx)     # a 30 mm board still needs room for its captions
     bw, bh = fx * S, fy * S
     pad_x, gap_x = 40.0, 44.0
-    head, gap_y = 54.0, 30.0
+    head, gap_y = 66.0, 30.0
     cell_h = head + bh + gap_y
     w = pad_x * 2 + bw * 2 + gap_x
     top = 84.0
@@ -1178,12 +1710,14 @@ def fig_modes(chip):
         svg.circle(x0 + 8, y0 + 6, 8, INK, "none")
         svg.text(x0 + 8, y0 + 9.4, str(k + 1), 9, PAPER, "middle", "bold")
         svg.text(x0 + 24, y0 + 10, title, 11.5, INK, weight="bold")
-        svg.text(x0 + 24, y0 + 25, caption, 8.5, INK2)
+        cap_lines = caption.split("\n")
+        for ci, cl in enumerate(cap_lines):
+            svg.text(x0 + 24, y0 + 25 + ci * 11, cl, 8.5, INK2)
         groups = {kind: [p for p in PORT_STATE if state[p][0] == kind] for kind in "PVB"}
         summary = "  |  ".join(f"{word}: {', '.join(groups[kind])}" for kind, word in
                             (("P", "pressurised"), ("V", "vented"), ("B", "blocked"))
                             if groups[kind])
-        svg.text(x0 + 24, y0 + 38, summary, 7.5, INK3, mono=True)
+        svg.text(x0 + 24, y0 + 38 + (len(cap_lines) - 1) * 11, summary, 7.5, INK3, mono=True)
 
         svg.rect(v.x(0), v.y(fy), bw, bh, BOARD_F, BOARD_S, 1.2, rx=4)
 
@@ -1208,8 +1742,12 @@ def fig_modes(chip):
             svg.rect(v.x(c["center"][0] - sx / 2), v.y(c["center"][1] + sy / 2),
                      v.d(sx), v.d(sy), fill, stroke, 1.3, rx=2.5)
             cx, cy = v.x(c["center"][0]), v.y(c["center"][1])
-            svg.text(cx, cy - 1, c["id"], 9, stroke, "middle", "bold", mono=True)
-            svg.text(cx, cy + 10, lineage.get(c["id"], ""), 8, INK2, "middle")
+            if v.d(sx) >= text_w(c["id"], 9, True, True) + 6:
+                svg.text(cx, cy - 1, c["id"], 9, stroke, "middle", "bold", mono=True)
+                svg.text(cx, cy + 10, lineage.get(c["id"], ""), 8, INK2, "middle")
+            else:       # a junction: the id will not fit inside, so it goes above-left
+                svg.halo(cx + 4, v.y(c["center"][1] + sy / 2) - 6, c["id"], 8, stroke, "end",
+                         "bold", mono=True, pad=2.0)
 
         for a, b, colour in arrows:
             length = math.hypot(b[0] - a[0], b[1] - a[1])
@@ -1266,8 +1804,11 @@ def fig_modes(chip):
     svg.text(pad_x, row, "Every mode is a different pressure map on the same board; nothing on "
                          "it moves. Arrows are derived from the port states, not simulated.",
              8.5, INK2)
-    svg.text(pad_x, row + 14, "Channels are drawn wider than the 0.8 mm they are, so the "
-                              "arrows fit. The port table is in fig_modes() in cad/make_figures.py.",
+    narrow = min(c["width_mm"] for c in chip["channels"])
+    wide = (f"Channels narrower than {5.0 / S:.2f} mm are drawn that wide so the arrows fit "
+            f"(narrowest is {narrow:g} mm). " if narrow < 5.0 / S - 1e-9 else
+            "Channel widths are to scale. ")
+    svg.text(pad_x, row + 14, wide + "The port table is in fig_modes() in cad/make_figures.py.",
              8.5, INK3)
     svg.h = row + 34
     return svg
@@ -1550,9 +2091,12 @@ def main() -> int:
             continue
         sched = load_schedule(chip["id"])
         layout, msgs, tightest = fig_layout(chip, sched)
+        features, below = fig_features(chip)
+        if below:
+            msgs.append(f"WARN   below the printable floor: {'; '.join(below)}")
         written = [layout.save(FIGURES / f"{chip['id']}_layout.svg"),
                    fig_stack(chip).save(FIGURES / f"{chip['id']}_stack.svg"),
-                   fig_features(chip).save(FIGURES / f"{chip['id']}_features.svg")]
+                   features.save(FIGURES / f"{chip['id']}_features.svg")]
         try:
             schedule = fig_schedule(chip, sched)
         except (KeyError, ValueError, TypeError, IndexError):

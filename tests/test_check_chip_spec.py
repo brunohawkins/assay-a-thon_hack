@@ -94,7 +94,8 @@ class Rules(unittest.TestCase):
 
     def test_barcode_collisions_warn(self):
         chip = copy.deepcopy(GOOD)
-        chip["barcoding"] = {"rounds": 3, "chambers_per_round": 8, "sublibraries": 4}
+        # 3 lanes x 1 sublibrary is only 3 barcodes, so a full capsule load collides.
+        chip["barcoding"] = {"lanes": 3, "sublibraries": 1}
         self.assertTrue(has(run(chip).warnings, "barcode collisions"))
 
     def test_reagent_compatibility_todo_and_incompatible(self):

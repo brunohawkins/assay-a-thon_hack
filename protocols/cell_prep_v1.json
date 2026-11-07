@@ -1,0 +1,93 @@
+{
+  "id": "cell_prep_v1",
+  "name": "Cell detachment, neutralisation and QC",
+  "source": "Shear-based disaggregation of clumps in a branching channel with features at or above 100 um: Qiu Y et al., Lab Chip 2015;15:339, doi:10.1039/c4lc01126k, and Qiu Y et al., Sci Rep 2018;8:2774, doi:10.1038/s41598-018-20931-y. Advective mixing is needed because diffusion is too slow at this scale: Stroock AD et al., Science 2002;295:647, doi:10.1126/science.1066238. Inertial focusing needs a particle Reynolds number that a viscous buffer destroys: Di Carlo D et al., PNAS 2007;104:18892, doi:10.1073/pnas.0704958104. Dissociation at 37 C induces stress transcripts, which is why the steps after detachment are kept cold and short: van den Brink SC et al., Nat Methods 2017;14:935, doi:10.1038/nmeth.4437; Massoni-Badosa R et al., Genome Biol 2020;21:112, doi:10.1186/s13059-020-02032-0.",
+  "placeholder": false,
+  "description": "Detaches adherent cells, quenches and disaggregates them on the way out, and presents them in a counting window. Deliberately does NOT wash, filter, concentrate or exchange into the viscous encapsulation buffer: at a 100 um feature floor those four steps lose to a bench tube on both recovery and time, and --report prints the comparison. About 20 min, all features at or above 100 um. Reagent names are generic; see the source citation.",
+  "steps": [
+    {
+      "step": 1,
+      "operation": "exchange",
+      "target": "cult_1",
+      "reagent": "wash_buffer",
+      "volume_ul": 45,
+      "duration_s": 378,
+      "temp_c": null,
+      "washes": 2,
+      "flow_ul_min": 20.0,
+      "note": "Rinse the adherent layer into a divalent-free buffer. The rinse matters more than it looks: leftover medium slows the enzyme and leftover divalent cations keep the cells stuck down, and both show up later as clumps."
+    },
+    {
+      "step": 2,
+      "operation": "exchange",
+      "target": "cult_1",
+      "reagent": "dissociation_reagent",
+      "volume_ul": 45,
+      "duration_s": 189,
+      "temp_c": 37,
+      "washes": 1,
+      "flow_ul_min": 20.0,
+      "note": "Flow in the dissociation reagent and warm the chamber. This is the only heated zone on the board."
+    },
+    {
+      "step": 3,
+      "operation": "hold_temp",
+      "target": "cult_1",
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 420,
+      "temp_c": 37,
+      "washes": null,
+      "flow_ul_min": null,
+      "note": "Hold at 37 C until the cells round up and lift. Watch rather than trust a timer: under-digestion leaves clumps, which is the thing most likely to block a 100 um orifice downstream, and over-digestion costs viability."
+    },
+    {
+      "step": 4,
+      "operation": "exchange",
+      "target": "mix_1",
+      "reagent": "quench_buffer",
+      "volume_ul": 12.6,
+      "duration_s": 180,
+      "temp_c": 4,
+      "washes": 1,
+      "flow_ul_min": 20.0,
+      "note": "Carry the lifted cells into the serpentine and co-flow the quench. Quenching here rather than in the chamber stops the enzyme as the cells leave instead of minutes later. The folded path is there because diffusion across a 100 um channel takes about 100 s; the mixing has to be advective."
+    },
+    {
+      "step": 5,
+      "operation": "exchange",
+      "target": "mix_1",
+      "reagent": "quench_buffer",
+      "volume_ul": 12.6,
+      "duration_s": 120,
+      "temp_c": 4,
+      "washes": 1,
+      "flow_ul_min": 20.0,
+      "note": "Shear the remaining clumps apart against the serpentine turns. Published branching constrictions at or above 100 um raise single cells from about 75% to about 92%, with viability unaffected when an enzyme has been used. It will not reach 100%, which is why a bought 40 um strainer still sits downstream."
+    },
+    {
+      "step": 6,
+      "operation": "hold_temp",
+      "target": "qc_1",
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 300,
+      "temp_c": 4,
+      "washes": null,
+      "flow_ul_min": null,
+      "note": "Stop the flow and image the window. Count about 400 cells for a 5% Poisson error, then dilute to the concentration the encapsulator needs: about 310 cells/uL for a 135 um capsule at a mean of 0.2. THAT NUMBER IS NOT TRANSFERABLE between capsule sizes, because it falls as the cube of the diameter. A 20% counting error only moves single occupancy by about 15%, so a window and a phone camera are enough and an in-line counter is not worth building."
+    },
+    {
+      "step": 7,
+      "operation": "release",
+      "target": "qc_1",
+      "reagent": "wash_buffer",
+      "volume_ul": null,
+      "duration_s": 120,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": null,
+      "note": "Deliver to a chilled tube. Everything after this is bench work and stays there: one spin, a 40 um strainer, and resuspension into the viscous encapsulation buffer. The module stops here deliberately."
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+solid m2_under_mesh_1
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 2.460000e+01 3.100000e+00 -1.000000e+00
+      vertex 2.540000e+01 3.900000e+00 -1.000000e+00
+      vertex 2.540000e+01 3.100000e+00 -1.000000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 2.460000e+01 3.100000e+00 -1.000000e+00
+      vertex 2.460000e+01 3.900000e+00 -1.000000e+00
+      vertex 2.540000e+01 3.900000e+00 -1.000000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 2.460000e+01 3.100000e+00 0.000000e+00
+      vertex 2.540000e+01 3.100000e+00 0.000000e+00
+      vertex 2.540000e+01 3.900000e+00 0.000000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 2.460000e+01 3.100000e+00 0.000000e+00
+      vertex 2.540000e+01 3.900000e+00 0.000000e+00
+      vertex 2.460000e+01 3.900000e+00 0.000000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.460000e+01 3.100000e+00 -1.000000e+00
+      vertex 2.540000e+01 3.100000e+00 -1.000000e+00
+      vertex 2.540000e+01 3.100000e+00 0.000000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.460000e+01 3.100000e+00 -1.000000e+00
+      vertex 2.540000e+01 3.100000e+00 0.000000e+00
+      vertex 2.460000e+01 3.100000e+00 0.000000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.460000e+01 3.900000e+00 -1.000000e+00
+      vertex 2.460000e+01 3.900000e+00 0.000000e+00
+      vertex 2.540000e+01 3.900000e+00 0.000000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.460000e+01 3.900000e+00 -1.000000e+00
+      vertex 2.540000e+01 3.900000e+00 0.000000e+00
+      vertex 2.540000e+01 3.900000e+00 -1.000000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.460000e+01 3.100000e+00 -1.000000e+00
+      vertex 2.460000e+01 3.100000e+00 0.000000e+00
+      vertex 2.460000e+01 3.900000e+00 0.000000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.460000e+01 3.100000e+00 -1.000000e+00
+      vertex 2.460000e+01 3.900000e+00 0.000000e+00
+      vertex 2.460000e+01 3.900000e+00 -1.000000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.540000e+01 3.100000e+00 -1.000000e+00
+      vertex 2.540000e+01 3.900000e+00 -1.000000e+00
+      vertex 2.540000e+01 3.900000e+00 0.000000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.540000e+01 3.100000e+00 -1.000000e+00
+      vertex 2.540000e+01 3.900000e+00 0.000000e+00
+      vertex 2.540000e+01 3.100000e+00 0.000000e+00
+    endloop
+  endfacet
+endsolid m2_under_mesh_1

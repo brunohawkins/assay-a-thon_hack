@@ -29,6 +29,7 @@ chamber_height_um >= swollen_diameter_um, channels 1.5-2 x capsule diameter (sch
 
 from __future__ import annotations
 
+import json
 import math
 import sys
 from pathlib import Path
@@ -39,6 +40,8 @@ from genlib import ParamError, r  # noqa: E402
 
 import flow_calc  # noqa: E402
 import schema_io  # noqa: E402
+
+ROOT = Path(__file__).resolve().parents[2]
 import sizing  # noqa: E402
 
 NAME = "m3_wash"
@@ -94,7 +97,17 @@ def build(p: dict) -> dict:
     fx, fy = round(side + 2 * margin, 3), round(side + 2 * 2.5, 3)
     cx, cy = fx / 2, fy / 2
     top = BASE_MM + h + LID_MM
+    # The capsule rule says 1.5-2 x diameter, but we also cannot PRINT below the
+    # fabrication floor in contracts/blocks.json. Take whichever is larger: a channel
+    # narrower than the floor is not manufacturable, however good the fluidics are.
     w = round(p["channel_width_factor"] * d / 1000, 4)
+    try:
+        _floor = json.loads((ROOT / "contracts" / "blocks.json").read_text())
+        _min_w = _floor["fabrication_floors"]["min_open_channel_mm"]
+    except (OSError, KeyError):
+        _min_w = 0.0
+    if w < _min_w:
+        w = _min_w
     s = sizing.compute({"capsule_count": p["capsule_count"], "capsule_diameter_um": d})
 
     def port(pid, typ, x, y, z, role, passable):

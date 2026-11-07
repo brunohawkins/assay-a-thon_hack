@@ -1,37 +1,234 @@
 {
   "id": "placeholder_chip_v1",
   "name": "Placeholder capsule processor v1",
-  "description": "Generic layout for development: inlet, one exchange chamber with a mesh floor, a four-way split, a pool chamber and an outlet, left to right on a 75 x 25 mm slide. All numbers are placeholders.",
+  "description": "PLACEHOLDER - not a real design. Generic layout for development: inlet, one exchange chamber with a mesh floor, a four-way split, a pool chamber and an outlet, left to right. DEMO SCALE: originally 75 x 25 mm, scaled uniformly by 0.389 into the 30 x 20 mm envelope (0.4 mm margin); depth capped at 0.3 mm (was 2-3 mm / 0.5 mm channels) and channels clamped at the 0.2 mm floor. Ports: 2, no merges needed. mesh_pore_um is left at the placeholder 20 um on exchange_1, split_1-4 and pool_1, which CANNOT be printed (floor 200 um); exchange_1 is mapped to pillar_array. All numbers are placeholders.",
   "placeholder": true,
   "units": "mm",
-  "footprint": { "x": 75, "y": 25 },
+  "footprint": {
+    "x": 30,
+    "y": 20
+  },
   "layers": [
-    { "id": "base", "material": "acrylic", "thickness_mm": 2 },
-    { "id": "fluidic", "material": "acrylic", "thickness_mm": 3 },
-    { "id": "lid", "material": "acrylic", "thickness_mm": 2 }
+    {
+      "id": "base",
+      "material": "acrylic",
+      "thickness_mm": 2
+    },
+    {
+      "id": "fluidic",
+      "material": "acrylic",
+      "thickness_mm": 3
+    },
+    {
+      "id": "lid",
+      "material": "acrylic",
+      "thickness_mm": 2
+    }
   ],
   "chambers": [
-    { "id": "exchange_1", "type": "exchange", "center": [17, 12.5, 3.5], "size": [10, 8, 2], "mesh_pore_um": 20, "volume_ul": 160 },
-    { "id": "split_1", "type": "split", "center": [36, 4, 3.5], "size": [7, 4, 2], "mesh_pore_um": 20, "volume_ul": 56 },
-    { "id": "split_2", "type": "split", "center": [36, 9.5, 3.5], "size": [7, 4, 2], "mesh_pore_um": 20, "volume_ul": 56 },
-    { "id": "split_3", "type": "split", "center": [36, 15.5, 3.5], "size": [7, 4, 2], "mesh_pore_um": 20, "volume_ul": 56 },
-    { "id": "split_4", "type": "split", "center": [36, 21, 3.5], "size": [7, 4, 2], "mesh_pore_um": 20, "volume_ul": 56 },
-    { "id": "pool_1", "type": "pool", "center": [55, 12.5, 3.5], "size": [8, 8, 2], "mesh_pore_um": 20, "volume_ul": 128 }
+    {
+      "id": "exchange_1",
+      "type": "exchange",
+      "center": [
+        7.019,
+        5.267,
+        3.5
+      ],
+      "size": [
+        3.893,
+        3.115,
+        0.3
+      ],
+      "mesh_pore_um": 20,
+      "volume_ul": 3.638,
+      "block": "pillar_array"
+    },
+    {
+      "id": "split_1",
+      "type": "split",
+      "center": [
+        14.416,
+        1.957,
+        3.5
+      ],
+      "size": [
+        2.725,
+        1.557,
+        0.3
+      ],
+      "mesh_pore_um": 20,
+      "volume_ul": 1.273,
+      "block": "polygon_chamber"
+    },
+    {
+      "id": "split_2",
+      "type": "split",
+      "center": [
+        14.416,
+        4.099,
+        3.5
+      ],
+      "size": [
+        2.725,
+        1.557,
+        0.3
+      ],
+      "mesh_pore_um": 20,
+      "volume_ul": 1.273,
+      "block": "polygon_chamber"
+    },
+    {
+      "id": "split_3",
+      "type": "split",
+      "center": [
+        14.416,
+        6.435,
+        3.5
+      ],
+      "size": [
+        2.725,
+        1.557,
+        0.3
+      ],
+      "mesh_pore_um": 20,
+      "volume_ul": 1.273,
+      "block": "polygon_chamber"
+    },
+    {
+      "id": "split_4",
+      "type": "split",
+      "center": [
+        14.416,
+        8.576,
+        3.5
+      ],
+      "size": [
+        2.725,
+        1.557,
+        0.3
+      ],
+      "mesh_pore_um": 20,
+      "volume_ul": 1.273,
+      "block": "polygon_chamber"
+    },
+    {
+      "id": "pool_1",
+      "type": "pool",
+      "center": [
+        21.813,
+        5.267,
+        3.5
+      ],
+      "size": [
+        3.115,
+        3.115,
+        0.3
+      ],
+      "mesh_pore_um": 20,
+      "volume_ul": 2.911,
+      "block": "polygon_chamber"
+    }
   ],
   "channels": [
-    { "id": "ch_1", "from": "inlet_1", "to": "exchange_1", "width_mm": 0.5, "depth_mm": 0.5 },
-    { "id": "ch_2", "from": "exchange_1", "to": "split_1", "width_mm": 0.5, "depth_mm": 0.5 },
-    { "id": "ch_3", "from": "exchange_1", "to": "split_2", "width_mm": 0.5, "depth_mm": 0.5 },
-    { "id": "ch_4", "from": "exchange_1", "to": "split_3", "width_mm": 0.5, "depth_mm": 0.5 },
-    { "id": "ch_5", "from": "exchange_1", "to": "split_4", "width_mm": 0.5, "depth_mm": 0.5 },
-    { "id": "ch_6", "from": "split_1", "to": "pool_1", "width_mm": 0.5, "depth_mm": 0.5 },
-    { "id": "ch_7", "from": "split_2", "to": "pool_1", "width_mm": 0.5, "depth_mm": 0.5 },
-    { "id": "ch_8", "from": "split_3", "to": "pool_1", "width_mm": 0.5, "depth_mm": 0.5 },
-    { "id": "ch_9", "from": "split_4", "to": "pool_1", "width_mm": 0.5, "depth_mm": 0.5 },
-    { "id": "ch_10", "from": "pool_1", "to": "outlet_1", "width_mm": 0.5, "depth_mm": 0.5 }
+    {
+      "id": "ch_1",
+      "from": "inlet_1",
+      "to": "exchange_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_2",
+      "from": "exchange_1",
+      "to": "split_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_3",
+      "from": "exchange_1",
+      "to": "split_2",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_4",
+      "from": "exchange_1",
+      "to": "split_3",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_5",
+      "from": "exchange_1",
+      "to": "split_4",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_6",
+      "from": "split_1",
+      "to": "pool_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_7",
+      "from": "split_2",
+      "to": "pool_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_8",
+      "from": "split_3",
+      "to": "pool_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_9",
+      "from": "split_4",
+      "to": "pool_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_10",
+      "from": "pool_1",
+      "to": "outlet_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel"
+    }
   ],
   "ports": [
-    { "id": "inlet_1", "type": "inlet", "position": [4, 12.5, 7] },
-    { "id": "outlet_1", "type": "outlet", "position": [70, 12.5, 7] }
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "position": [
+        1.957,
+        5.267,
+        7
+      ]
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "position": [
+        27.653,
+        5.267,
+        7
+      ]
+    }
   ]
 }

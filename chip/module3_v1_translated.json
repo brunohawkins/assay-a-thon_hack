@@ -1,15 +1,13 @@
 {
   "id": "module3_v1_translated",
   "name": "Module 3: load, lysis, wash (translated from Szonja's file)",
-  "description": "TRANSLATED by tools/convert_module3.py from chip/modules/module3_step1_3.json (Step 3, substeps 1–3: load, lysis, wash (main capsule trap); inputs: chip_geometry_requirements.xlsx (Sizing Calculator, Step 3 rows 1–3), 7 Nov 2026). Do not edit by hand: edit the source and re-run the converter. Ids, trap, gaps, channel size and capsule figures are the source's; layout, footprint, layers, channel routes and valve construction are inferred and marked placeholder. Open questions for the owner: (1) the design uses seven valves, and the MVP rule is no valves; (2) the 25 um retention gap and 140 um channels are far below what the laser cutter makes (Module 1's cut features are 0.8 mm), so how is it fabricated (bought mesh, embossing)? (3) footprint, material and port positions.",
+  "description": "DEMO SCALE: scaled uniformly x0.4 in x and y (fit_chip.py, 64 x 48 mm -> 30 x 20 mm) for the 30 x 20 mm, 0.3 mm deep, single-layer resin-print and hot-emboss envelope. Depths: trap 0.35 -> 0.3 mm, channels 0.15 mm. Volumes recomputed (trap 38.4 uL). Channel widths were clamped from 0.056 mm to the 0.2 mm floor, which changed the aspect ratio, so flow resistances no longer match the source and any flow numbers must be re-derived; the 25 um trap gap and 100 um prefilter gap are below the 0.2 mm floor and cannot be printed. fit_chip.py does not move channel paths, valves or thermal zones, so the layout was redrawn by hand at demo scale with no channel crossings. PORT MERGES, 13 -> 6: lysis_buffer + wash_buffer -> reagent_in (off-chip rotary valve; lost: independent or overlapped lysis and wash feeds); wash_buffer's backflush branch -> backflush_in (own port, outlet side); capsule_in, waste, lysis_waste, to_split_tree unchanged; ctrl_v_capsule_in, ctrl_v_lysis_buffer, ctrl_v_wash_buffer, ctrl_v_waste, ctrl_v_lysis_waste, ctrl_v_backflush, ctrl_v_to_split_tree removed together with the 7 on-chip valves v_*: pneumatic membrane valves need a second layer, so isolation moves to off-chip rotary or selector valves (lost: on-chip dead-volume-free isolation, so every line has tubing dead volume and capsule_in and to_split_tree must be closed off-chip). Ids kept: main_trap, capsule_prefilter, capsule_in, waste, lysis_waste, to_split_tree. This file no longer matches tools/convert_module3.py output. Originally translated by tools/convert_module3.py from chip/modules/module3_step1_3.json (Step 3, substeps 1\u20133: load, lysis, wash (main capsule trap); inputs: chip_geometry_requirements.xlsx (Sizing Calculator, Step 3 rows 1\u20133), 7 Nov 2026).  REVERSE TRANSCRIPTION (added 7 Nov 2026): split-and-pool barcoding is dropped (no BC2 or BC3 ligation, no hairpin ligation), so the only step left after the washes is reverse transcription with a plain poly(dT) primer; cells already carry a per-lane lipid-anchored barcode from module 1, so nothing is barcoded here. That is one isothermal hold at about 42-50 C, so it runs in main_trap straight after lysis and the washes and no new chip is needed. The chip schema supports thermal_zones, so main_trap_zone now spans 4-50 C (purpose rt; max 50 C is the printed-resin working limit in contracts/materials.json). The trap is a sealed 0.3 mm chamber under the lid with all six ports closable off-chip, so the hold runs with every port capped; evaporation and bubbles in a 0.3 mm chamber at 42 C are untested. No ports, channels or chambers were added or moved. Protocol: protocols/module3_v1.json. Every feature is now a single 0.3 mm etch depth: one fluidic layer means one depth, and anything shallower would read as a second process we cannot run.",
   "placeholder": true,
   "translated_from": "chip/modules/module3_step1_3.json",
   "units": "mm",
   "footprint": {
-    "x": 64.0,
-    "y": 48.0,
-    "placeholder": true,
-    "note": "Inferred: the source gives the trap (28.3 mm square) but no board size."
+    "x": 30,
+    "y": 20
   },
   "layers": [
     {
@@ -22,9 +20,9 @@
     {
       "id": "fluidic",
       "material": "tbc",
-      "thickness_mm": 0.35,
+      "thickness_mm": 0.3,
       "placeholder": true,
-      "note": "Trap height 350 um from the source; the 150 um channels need a second, shallower depth."
+      "note": "Trap height capped at the 0.3 mm build limit (source: 350 um). All channels are 0.15 mm deep, one fluidic layer; the source's second, shallower depth is kept as 0.15 mm."
     },
     {
       "id": "lid",
@@ -50,47 +48,49 @@
       "type": "exchange",
       "shape": "box",
       "center": [
-        32.0,
-        24.0,
-        1.175
+        12.5,
+        10.0,
+        1.15
       ],
       "size": [
-        28.3,
-        28.3,
-        0.35
+        11.32,
+        11.32,
+        0.3
       ],
-      "height_um": 350,
-      "volume_ul": 280.3,
+      "height_um": 300,
+      "volume_ul": 38.443,
       "retention": {
         "type": "pillars",
         "opening_um": 25,
         "source": "fabricated"
       },
-      "note": "square, wide and flat; holds 650,000 capsules in ~4 layers (packed volume 182.4 uL, fill 0.65). Retention 25 um (pillar row or mesh at the outlet side; allowed 21–28 um) on the outlet (right) side: keeps 70 µm capsules, passes buffer, lysate and debris. inlet and outlet manifolds across the full width so buffer sweeps the whole bed. must tolerate 4 M guanidinium thiocyanate. Size, height, volume and gap from the source; position inferred; retention type: the source says 'pillar row or mesh', pillars assumed here.",
-      "placeholder": true
+      "note": "Demo scale (x0.4). Source: square, wide, flat, 650,000 capsules in ~4 layers. At 0.4 scale and 0.3 mm depth the bed holds 38.4 uL, about 140,000 capsules at fill 0.65, roughly a fifth of the source figure. Retention opening is still 25 um (source) and CANNOT be printed: floor is 0.2 mm, so a 25 um pillar row or mesh needs a bought mesh bonded under the lid, or the chamber must be re-thought; block set to trap_chamber, with pillar_array or pillar_funnel_trap as the in-chamber alternatives. Retention is on the outlet (right) side. Must tolerate 4 M guanidinium thiocyanate. Size, height, volume and gap from the source; position inferred. Also hosts the reverse-transcription hold (see thermal_zones and protocols/module3_v1.json).",
+      "placeholder": true,
+      "block": "trap_chamber"
     },
     {
       "id": "capsule_prefilter",
       "type": "filter",
       "shape": "box",
       "center": [
-        11.0,
-        34.0,
+        4.5,
+        14.0,
         1.075
       ],
       "size": [
-        3.0,
-        2.0,
-        0.15
+        1.2,
+        0.8,
+        0.3
       ],
-      "volume_ul": 0.9,
+      "volume_ul": 0.288,
       "filter": {
         "type": "pillars",
         "gap_um": 100,
         "purpose": "capsule_aggregates"
       },
-      "note": "on capsule_in, upstream of the trap; removes capsule aggregates (SPC-NAR). Gap from the source; size and position inferred.",
-      "placeholder": true
+      "note": "on capsule_in, upstream of the trap; removes capsule aggregates (SPC-NAR). Gap from the source is 100 um, which CANNOT be printed (floor 0.2 mm): replace with a pillar_array at a 0.2 mm gap, which only stops aggregates over about 0.2 mm and passes the 70 um capsules, or use a bought mesh. Size and position inferred.",
+      "placeholder": true,
+      "block": "pillar_array"
     }
   ],
   "channels": [
@@ -98,180 +98,162 @@
       "id": "ch_capsule_in",
       "from": "capsule_in",
       "to": "capsule_prefilter",
-      "width_mm": 0.14,
-      "depth_mm": 0.15,
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
       "carries": "capsules",
       "capsule_passable": true,
+      "block": "straight_channel",
       "path": [
         [
-          5.0,
-          34.0
+          2.5,
+          14.0
         ],
         [
-          9.5,
-          34.0
+          3.9,
+          14.0
         ]
       ],
-      "note": "Capsules from encapsulation to the pre-filter. Width and depth from the source; id and route inferred.",
+      "note": "Capsules from encapsulation to the pre-filter. Width clamped from 0.056 to 0.2 mm.",
       "placeholder": true
     },
     {
       "id": "ch_prefilter_trap",
       "from": "capsule_prefilter",
       "to": "main_trap",
-      "width_mm": 0.14,
-      "depth_mm": 0.15,
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
       "carries": "capsules",
       "capsule_passable": true,
+      "block": "straight_channel",
       "path": [
         [
-          12.5,
-          34.0
+          5.1,
+          14.0
         ],
         [
-          17.85,
-          34.0
+          6.84,
+          14.0
         ]
       ],
-      "note": "Filtered capsules into the trap (inlet side). Width and depth from the source; id and route inferred.",
+      "note": "Filtered capsules into the trap (inlet side).",
       "placeholder": true
     },
     {
-      "id": "ch_lysis_buffer",
-      "from": "lysis_buffer",
+      "id": "ch_reagent",
+      "from": "reagent_in",
       "to": "main_trap",
-      "width_mm": 0.14,
-      "depth_mm": 0.15,
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
       "carries": "liquid",
       "capsule_passable": false,
+      "block": "straight_channel",
       "path": [
         [
-          5.0,
-          26.0
+          2.5,
+          6.0
         ],
         [
-          17.85,
-          26.0
+          6.84,
+          6.0
         ]
       ],
-      "note": "Lysis buffer into the trap (inlet side). Width and depth from the source; id and route inferred.",
-      "placeholder": true
-    },
-    {
-      "id": "ch_wash_buffer",
-      "from": "wash_buffer",
-      "to": "main_trap",
-      "width_mm": 0.14,
-      "depth_mm": 0.15,
-      "carries": "liquid",
-      "capsule_passable": false,
-      "path": [
-        [
-          5.0,
-          18.0
-        ],
-        [
-          17.85,
-          18.0
-        ]
-      ],
-      "note": "Wash buffer into the trap (inlet side). Width and depth from the source; id and route inferred.",
+      "note": "MERGED ch_lysis_buffer + ch_wash_buffer: one reagent line to the trap inlet side, selected off-chip. It also carries the reverse-transcription mix.",
       "placeholder": true
     },
     {
       "id": "ch_backflush",
-      "from": "wash_buffer",
+      "from": "backflush_in",
       "to": "main_trap",
-      "width_mm": 0.14,
-      "depth_mm": 0.15,
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
       "carries": "liquid",
       "capsule_passable": false,
+      "block": "straight_channel",
       "path": [
         [
-          5.0,
-          18.0
+          27.5,
+          10.0
         ],
         [
-          5.0,
-          5.0
-        ],
-        [
-          52.0,
-          5.0
-        ],
-        [
-          52.0,
-          14.0
-        ],
-        [
-          46.15,
-          14.0
+          18.16,
+          10.0
         ]
       ],
-      "note": "Wash buffer routed to the outlet side of the retention gap (v_backflush), to lift the bed. Width and depth from the source; id and route inferred.",
+      "note": "Backflush buffer to the outlet side of the retention gap, to lift the bed. Was a long loop under the chip; now a direct run because its own port is on the right.",
       "placeholder": true
     },
     {
       "id": "ch_waste",
       "from": "main_trap",
       "to": "waste",
-      "width_mm": 0.14,
-      "depth_mm": 0.15,
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
       "carries": "liquid",
       "capsule_passable": false,
+      "block": "channel_corner",
       "path": [
         [
-          46.15,
-          32.0
+          18.16,
+          14.0
         ],
         [
-          59.0,
-          32.0
+          27.5,
+          14.0
+        ],
+        [
+          27.5,
+          16.0
         ]
       ],
-      "note": "Wash waste, through the retention gap. Width and depth from the source; id and route inferred.",
+      "note": "Wash waste, through the retention gap.",
       "placeholder": true
     },
     {
       "id": "ch_lysis_waste",
       "from": "main_trap",
       "to": "lysis_waste",
-      "width_mm": 0.14,
-      "depth_mm": 0.15,
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
       "carries": "liquid",
       "capsule_passable": false,
+      "block": "channel_corner",
       "path": [
         [
-          46.15,
-          22.0
+          18.16,
+          6.0
         ],
         [
-          59.0,
-          22.0
+          27.5,
+          6.0
+        ],
+        [
+          27.5,
+          4.0
         ]
       ],
-      "note": "Lysis waste, through the retention gap; kept apart from the general waste. Width and depth from the source; id and route inferred.",
+      "note": "Lysis (GITC) waste, kept on its own port and line.",
       "placeholder": true
     },
     {
       "id": "ch_to_split_tree",
       "from": "main_trap",
       "to": "to_split_tree",
-      "width_mm": 0.14,
-      "depth_mm": 0.15,
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
       "carries": "capsules",
       "capsule_passable": true,
+      "block": "straight_channel",
       "path": [
         [
-          24.0,
-          38.15
+          12.5,
+          15.66
         ],
         [
-          24.0,
-          44.0
+          12.5,
+          18.5
         ]
       ],
-      "note": "Resuspended capsules out to the barcoding split tree (closed during steps 1–3). Width and depth from the source; id and route inferred.",
+      "note": "Resuspended capsules out of the trap, on to module 4. Open at all times, so close it off-chip until the release step.",
       "placeholder": true
     }
   ],
@@ -280,260 +262,78 @@
       "id": "capsule_in",
       "type": "inlet",
       "position": [
-        5.0,
-        34.0,
-        2.35
+        2.5,
+        14.0,
+        2.3
       ],
       "role": "load",
       "capsule_passable": true,
-      "note": "capsules from encapsulation, after crosslinking and washes Source: SPC-NAR. Position inferred.",
+      "width_um": 1600,
+      "note": "capsules from encapsulation, after crosslinking and washes. Source: SPC-NAR. Kept unchanged.",
       "placeholder": true
     },
     {
-      "id": "lysis_buffer",
+      "id": "reagent_in",
       "type": "inlet",
       "position": [
-        5.0,
-        26.0,
-        2.35
+        2.5,
+        6.0,
+        2.3
       ],
       "role": "reagent",
-      "note": "mild lysis, or 4 M GITC for fragile cells Source: CapSeq. Position inferred.",
+      "note": "MERGED lysis_buffer + wash_buffer: an off-chip rotary valve selects lysis, wash or reverse-transcription mix. Lost: lysis and wash can no longer be fed independently or overlapped; the shared line needs flushing between them.",
       "placeholder": true
     },
     {
-      "id": "wash_buffer",
+      "id": "backflush_in",
       "type": "inlet",
       "position": [
-        5.0,
-        18.0,
-        2.35
+        27.5,
+        10.0,
+        2.3
       ],
       "role": "reagent",
-      "note": "washes and back-flush Position inferred.",
+      "note": "Backflush to the outlet side (was the second branch of wash_buffer). Off-chip valve connects it to the wash reservoir.",
       "placeholder": true
     },
     {
       "id": "waste",
       "type": "outlet",
       "position": [
-        59.0,
-        32.0,
-        2.35
+        27.5,
+        16.0,
+        2.3
       ],
       "role": "waste",
       "capsule_passable": false,
-      "note": "wash waste, through the retention gap Position inferred.",
+      "note": "wash waste, through the retention gap. Kept unchanged.",
       "placeholder": true
     },
     {
       "id": "lysis_waste",
       "type": "outlet",
       "position": [
-        59.0,
-        22.0,
-        2.35
+        27.5,
+        4.0,
+        2.3
       ],
       "role": "waste",
       "capsule_passable": false,
-      "note": "dedicated lysis waste, through the retention gap GITC waste must never meet bleach (releases toxic gas). Position inferred.",
+      "note": "dedicated lysis waste. GITC waste must never meet bleach (releases toxic gas), so it keeps its own port instead of being merged into waste.",
       "placeholder": true
     },
     {
       "id": "to_split_tree",
       "type": "outlet",
       "position": [
-        24.0,
-        44.0,
-        2.35
+        12.5,
+        18.5,
+        2.3
       ],
       "role": "release",
       "capsule_passable": true,
-      "note": "capsule outlet to the barcoding split tree (step 3 #4) Position inferred.",
-      "placeholder": true
-    },
-    {
-      "id": "ctrl_v_capsule_in",
-      "type": "control",
-      "position": [
-        4.0,
-        46.0,
-        2.35
-      ],
-      "role": "control",
-      "note": "Control line for v_capsule_in. Inferred: the source lists the valve but not how it is driven.",
-      "placeholder": true
-    },
-    {
-      "id": "ctrl_v_lysis_buffer",
-      "type": "control",
-      "position": [
-        12.0,
-        46.0,
-        2.35
-      ],
-      "role": "control",
-      "note": "Control line for v_lysis_buffer. Inferred: the source lists the valve but not how it is driven.",
-      "placeholder": true
-    },
-    {
-      "id": "ctrl_v_wash_buffer",
-      "type": "control",
-      "position": [
-        20.0,
-        46.0,
-        2.35
-      ],
-      "role": "control",
-      "note": "Control line for v_wash_buffer. Inferred: the source lists the valve but not how it is driven.",
-      "placeholder": true
-    },
-    {
-      "id": "ctrl_v_waste",
-      "type": "control",
-      "position": [
-        28.0,
-        46.0,
-        2.35
-      ],
-      "role": "control",
-      "note": "Control line for v_waste. Inferred: the source lists the valve but not how it is driven.",
-      "placeholder": true
-    },
-    {
-      "id": "ctrl_v_lysis_waste",
-      "type": "control",
-      "position": [
-        36.0,
-        46.0,
-        2.35
-      ],
-      "role": "control",
-      "note": "Control line for v_lysis_waste. Inferred: the source lists the valve but not how it is driven.",
-      "placeholder": true
-    },
-    {
-      "id": "ctrl_v_backflush",
-      "type": "control",
-      "position": [
-        44.0,
-        46.0,
-        2.35
-      ],
-      "role": "control",
-      "note": "Control line for v_backflush. Inferred: the source lists the valve but not how it is driven.",
-      "placeholder": true
-    },
-    {
-      "id": "ctrl_v_to_split_tree",
-      "type": "control",
-      "position": [
-        52.0,
-        46.0,
-        2.35
-      ],
-      "role": "control",
-      "note": "Control line for v_to_split_tree. Inferred: the source lists the valve but not how it is driven.",
-      "placeholder": true
-    }
-  ],
-  "valves": [
-    {
-      "id": "v_capsule_in",
-      "type": "normally_closed",
-      "kind": "isolation",
-      "channel": "ch_capsule_in",
-      "position": [
-        7.25,
-        34.0,
-        1.15
-      ],
-      "control_port": "ctrl_v_capsule_in",
-      "note": "Controls capsule_in (source). Valve type, position and control port inferred.",
-      "placeholder": true
-    },
-    {
-      "id": "v_lysis_buffer",
-      "type": "normally_closed",
-      "kind": "isolation",
-      "channel": "ch_lysis_buffer",
-      "position": [
-        11.425,
-        26.0,
-        1.15
-      ],
-      "control_port": "ctrl_v_lysis_buffer",
-      "note": "Controls lysis_buffer (source). Valve type, position and control port inferred.",
-      "placeholder": true
-    },
-    {
-      "id": "v_wash_buffer",
-      "type": "normally_closed",
-      "kind": "isolation",
-      "channel": "ch_wash_buffer",
-      "position": [
-        11.425,
-        18.0,
-        1.15
-      ],
-      "control_port": "ctrl_v_wash_buffer",
-      "note": "Controls wash_buffer (source). Valve type, position and control port inferred.",
-      "placeholder": true
-    },
-    {
-      "id": "v_waste",
-      "type": "normally_closed",
-      "kind": "isolation",
-      "channel": "ch_waste",
-      "position": [
-        52.575,
-        32.0,
-        1.15
-      ],
-      "control_port": "ctrl_v_waste",
-      "note": "Controls waste (source). Valve type, position and control port inferred.",
-      "placeholder": true
-    },
-    {
-      "id": "v_lysis_waste",
-      "type": "normally_closed",
-      "kind": "isolation",
-      "channel": "ch_lysis_waste",
-      "position": [
-        52.575,
-        22.0,
-        1.15
-      ],
-      "control_port": "ctrl_v_lysis_waste",
-      "note": "Controls lysis_waste (source). Valve type, position and control port inferred.",
-      "placeholder": true
-    },
-    {
-      "id": "v_backflush",
-      "type": "normally_closed",
-      "kind": "isolation",
-      "channel": "ch_backflush",
-      "position": [
-        28.5,
-        5.0,
-        1.15
-      ],
-      "control_port": "ctrl_v_backflush",
-      "note": "Controls wash_buffer routed to the outlet side of the retention gap (source). Valve type, position and control port inferred.",
-      "placeholder": true
-    },
-    {
-      "id": "v_to_split_tree",
-      "type": "normally_closed",
-      "kind": "isolation",
-      "channel": "ch_to_split_tree",
-      "position": [
-        24.0,
-        41.075,
-        1.15
-      ],
-      "control_port": "ctrl_v_to_split_tree",
-      "note": "Controls to_split_tree (source). Valve type, position and control port inferred.",
+      "width_um": 1600,
+      "note": "capsule outlet, to module 4 now that split-and-pool barcoding is dropped (no BC2, BC3 or hairpin round in between). Id and position kept. Open at all times, so close it off-chip until the release step.",
       "placeholder": true
     }
   ],
@@ -544,8 +344,8 @@
         "main_trap"
       ],
       "min_temp_c": 4,
-      "max_temp_c": 37,
-      "purpose": "wash"
+      "max_temp_c": 50,
+      "purpose": "rt"
     }
   ]
 }

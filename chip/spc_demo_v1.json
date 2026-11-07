@@ -1,0 +1,319 @@
+{
+  "id": "spc_demo_v1",
+  "name": "Capsule generator, demo scale",
+  "description": "DEMO SCALE: authored directly at demo scale, so the scale factor is 1.0 and fit_chip.py changes nothing. 30 x 20 mm, one fluidic layer, 0.15 mm deep (limit 0.3 mm), 4 ports (limit 6), so no ports were merged and no channel widths were clamped; every channel is 0.3 mm, above the 0.2 mm floor, so flow resistances are as designed. Every chamber and channel now carries a block from contracts/blocks.json: Y-junctions for the oil split and aqueous merge, channel corners for the oil loop, the flow_focusing block for the droplet junction, a serpentine_channel for the delay line, and straight channels for the rest. Residual: the 100 um orifice is below the 0.2 mm open-channel floor, so it must be widened to 0.2 mm or be a documented exception, and droplets would then be about 260 um. The demo build: a 30 x 20 mm single-depth droplet generator, which is the one stage worth filming because you can watch capsules form. It is the front of chip/sctip_spc_v1.json shrunk to the real fabrication envelope, and it supersedes that board for anything anyone actually prints. SINGLE LAYER, ONE DEPTH of 0.15 mm everywhere, smallest feature 100 um at the orifice, so it is resin-printable and hot-embossable. Built only from blocks in the available library: Port, Straight Channel, Curved Channel, Y-Junction, Cross Junction, Flow-Focusing Funnel and Serpentine Channel. No pillar arrays, no phase guides and no traps, because a phase guide is a partial-height ridge and a trap gap would have to be under 100 um, and neither survives a single-depth 2D rule. The oil path deliberately loops around the outside so the two aqueous inlets sit inside it and nothing has to cross: in a single layer there are no vias, so planar routing is the whole game. aq_merge brings the shell and core streams together; they do NOT mix before the junction and are not meant to, since at this speed diffusion would need about 25 mm of channel, and they mix inside each droplet instead. xj_1 is the flow-focusing cross and funnel. delay_1 is a folded residence and observation line, about 104 mm long, which is roughly 20 s at the design flow. Curing stays off-chip. Geometry is ours; the biology is cited in protocols/. Orifice as drawn. NOTE this is above the 40 um the published method uses, because 40 um is below the 200 um printable floor, so capsules from this chip will be much larger than 70 um. See protocols/pipeline_status.md.",
+  "placeholder": false,
+  "units": "mm",
+  "footprint": {
+    "x": 30,
+    "y": 20
+  },
+  "layers": [
+    {
+      "id": "base",
+      "material": "coc",
+      "thickness_mm": 1
+    },
+    {
+      "id": "channels",
+      "material": "coc",
+      "thickness_mm": 0.15
+    },
+    {
+      "id": "lid",
+      "material": "coc",
+      "thickness_mm": 0.2
+    }
+  ],
+  "chambers": [
+    {
+      "id": "oil_split",
+      "type": "junction",
+      "center": [
+        5,
+        10,
+        1.075
+      ],
+      "size": [
+        0.3,
+        0.3,
+        0.15
+      ],
+      "volume_ul": 0.013,
+      "note": "Y-junction splitting the oil into the two arms that loop around the outside. One oil port instead of two, which saves a port on a board where ports are the scarce resource.",
+      "block": "y_junction"
+    },
+    {
+      "id": "oil_nw",
+      "type": "junction",
+      "center": [
+        5,
+        17.5,
+        1.075
+      ],
+      "size": [
+        0.3,
+        0.3,
+        0.15
+      ],
+      "volume_ul": 0.013,
+      "note": "Channel Corner. The oil has to turn rather than cut across, because a diagonal would run straight through the shell feed and a single layer has no vias.",
+      "block": "channel_corner"
+    },
+    {
+      "id": "oil_ne",
+      "type": "junction",
+      "center": [
+        14,
+        17.5,
+        1.075
+      ],
+      "size": [
+        0.3,
+        0.3,
+        0.15
+      ],
+      "volume_ul": 0.013,
+      "note": "Channel Corner, north arm, turning down into the junction.",
+      "block": "channel_corner"
+    },
+    {
+      "id": "oil_sw",
+      "type": "junction",
+      "center": [
+        5,
+        2.5,
+        1.075
+      ],
+      "size": [
+        0.3,
+        0.3,
+        0.15
+      ],
+      "volume_ul": 0.013,
+      "note": "Channel Corner, south arm.",
+      "block": "channel_corner"
+    },
+    {
+      "id": "oil_se",
+      "type": "junction",
+      "center": [
+        14,
+        2.5,
+        1.075
+      ],
+      "size": [
+        0.3,
+        0.3,
+        0.15
+      ],
+      "volume_ul": 0.013,
+      "note": "Channel Corner, south arm, turning up into the junction.",
+      "block": "channel_corner"
+    },
+    {
+      "id": "aq_merge",
+      "type": "junction",
+      "center": [
+        11,
+        10,
+        1.075
+      ],
+      "size": [
+        0.3,
+        0.3,
+        0.15
+      ],
+      "volume_ul": 0.013,
+      "note": "Y-junction merging shell and core. They travel side by side as a laminar pair for the last 3 mm and only mix inside the droplet, which is what makes the core-shell form.",
+      "block": "y_junction"
+    },
+    {
+      "id": "xj_1",
+      "type": "junction",
+      "center": [
+        14,
+        10,
+        1.075
+      ],
+      "size": [
+        0.3,
+        0.3,
+        0.15
+      ],
+      "volume_ul": 0.013,
+      "note": "Cross junction with a flow-focusing funnel: the aqueous pair enters from the west, oil pinches from north and south, and the 100 um orifice is the smallest feature on the board. Droplets come out at roughly 1.3x the orifice, so about 135 um.",
+      "block": "flow_focusing"
+    },
+    {
+      "id": "delay_1",
+      "type": "exchange",
+      "center": [
+        20.5,
+        10,
+        1.075
+      ],
+      "size": [
+        11,
+        13,
+        0.15
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 21.5,
+      "note": "Serpentine residence and observation line. The footprint is 11 x 13 mm; the folded path inside it is about 104 mm of 0.3 mm channel at 0.7 mm pitch (0.4 mm wall between 0.3 mm lanes, the wall floor; it was 0.5 mm, which left a 0.2 mm wall), which is about 20 s at the design flow. This is the window you film. It is NOT a cure window: the two aqueous polymers need minutes to demix, so curing happens in the collection tube.",
+      "block": "serpentine_channel"
+    }
+  ],
+  "channels": [
+    {
+      "id": "ch_oil_split",
+      "from": "in_oil",
+      "to": "oil_split",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_oil_nw",
+      "from": "oil_split",
+      "to": "oil_nw",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_oil_n",
+      "from": "oil_nw",
+      "to": "oil_ne",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_n_xj",
+      "from": "oil_ne",
+      "to": "xj_1",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_oil_sw",
+      "from": "oil_split",
+      "to": "oil_sw",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_oil_s",
+      "from": "oil_sw",
+      "to": "oil_se",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_s_xj",
+      "from": "oil_se",
+      "to": "xj_1",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_shell_aq",
+      "from": "in_shell",
+      "to": "aq_merge",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_core_aq",
+      "from": "in_core",
+      "to": "aq_merge",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_aq_xj",
+      "from": "aq_merge",
+      "to": "xj_1",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_xj_delay",
+      "from": "xj_1",
+      "to": "delay_1",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_delay_out",
+      "from": "delay_1",
+      "to": "out_caps",
+      "width_mm": 0.3,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    }
+  ],
+  "ports": [
+    {
+      "id": "in_oil",
+      "type": "inlet",
+      "position": [
+        2.5,
+        10,
+        1.35
+      ],
+      "role": "oil",
+      "width_um": 1600,
+      "note": "Press-fit 1.6 mm hole for 1/16 inch tubing, 3 mm keep-out. Standard threaded fittings need a 9.5 mm footprint and would eat half the board."
+    },
+    {
+      "id": "in_shell",
+      "type": "inlet",
+      "position": [
+        7,
+        14,
+        1.35
+      ],
+      "role": "reagent",
+      "width_um": 1600,
+      "note": "Shell polymer stream. Sits INSIDE the oil loop, which is how the board stays planar."
+    },
+    {
+      "id": "in_core",
+      "type": "inlet",
+      "position": [
+        7,
+        6,
+        1.35
+      ],
+      "role": "cells",
+      "width_um": 1600,
+      "note": "Core stream with the permeabilised cells."
+    },
+    {
+      "id": "out_caps",
+      "type": "outlet",
+      "position": [
+        27.5,
+        10,
+        1.35
+      ],
+      "role": "harvest",
+      "capsule_passable": true,
+      "width_um": 1600,
+      "note": "To a collection tube on ice, then flood-cure."
+    }
+  ],
+  "encapsulation": {
+    "nozzle_um": 300.0
+  }
+}

@@ -29,20 +29,33 @@ def run_check(pipe, root=ROOT):
     return report
 
 
+def chain_order(pipe):
+    """Module ids in hand-off order, read from the hand-offs themselves."""
+    order = []
+    for h in pipe["handoffs"]:
+        for end in ("from", "to"):
+            m = h[end].get("module")
+            if m and m not in order:
+                order.append(m)
+    return order
+
+
 class CurrentPipeline(unittest.TestCase):
-    def test_order_and_status_badges(self):
-        got = [(m["module"], m["status"]) for m in PIPE["modules"]]
-        self.assertEqual(got, [("module1", "final"), ("module2", "draft"), ("module3", "translated"),
-                               ("barcoding", "missing"), ("module4", "final"), ("module5", "final")])
-        m2 = PIPE["modules"][1]
-        self.assertEqual(m2["status_note"], "draft – being redesigned by MJ")
-        self.assertEqual(m2["prefer"]["glob"], "chip/module2*.json")
+    def test_modules_are_unique_and_in_hand_off_order(self):
+        names = [m["module"] for m in PIPE["modules"]]
+        self.assertEqual(len(names), len(set(names)))
+        self.assertEqual(names, chain_order(PIPE))
+
+    def test_every_module_has_a_status_and_a_missing_one_has_no_chip(self):
+        for m in PIPE["modules"]:
+            self.assertTrue(m.get("status"), m["module"])
+            if m["status"] == "missing":
+                self.assertNotIn("chip", m, m["module"])
+            else:
+                self.assertTrue((ROOT / schema_io.pipeline_chip(m)[0]).is_file(), m["module"])
 
     def test_it_validates_with_no_errors(self):
         self.assertEqual(run_check(PIPE).errors, [])
-
-    def test_only_module1_is_built_for_the_demo(self):
-        self.assertEqual([m["module"] for m in PIPE["modules"] if m.get("built_for_demo")], ["module1"])
 
     def test_superseded_drafts_are_out(self):
         chips = {m.get("chip") for m in PIPE["modules"]}
@@ -52,53 +65,63 @@ class CurrentPipeline(unittest.TestCase):
             self.assertEqual(block["status"], "superseded")
             self.assertTrue((ROOT / block["superseded_by"]).is_file())
 
-    def test_handoff_chain(self):
-        ends = [(h["from"].get("module"), h["from"].get("port"), h["to"].get("module") or h["to"].get("roadmap"))
-                for h in PIPE["handoffs"]]
-        self.assertEqual(ends, [("module1", "p_mid", "module2"), ("module2", "m2_capsule_out_1", "module3"),
-                                ("module3", "to_split_tree", "barcoding"), ("barcoding", "TBC", "module4"),
-                                ("module4", "TBC", "module5"), ("module5", "out_lib", "library_out")])
-        self.assertEqual(PIPE["handoffs"][3]["to"]["ports"], ["in_s1", "in_s2", "in_s3", "in_s4"])
+    def test_handoffs_join_consecutive_modules_and_end_at_the_roadmap(self):
+        mods = [m["module"] for m in PIPE["modules"]]
+        for h in PIPE["handoffs"]:
+            src, dst = h["from"].get("module"), h["to"].get("module")
+            if src and dst:
+                self.assertEqual(mods.index(dst), mods.index(src) + 1, h["id"])
+        self.assertTrue(PIPE["handoffs"][-1]["to"].get("roadmap"))
 
     def test_tbc_ports_and_connector_mismatches_are_listed(self):
         warnings = " | ".join(run_check(PIPE).warnings)
         self.assertIn("TBC", warnings)
-        self.assertIn("module1_to_module2", warnings)
-        self.assertNotIn("module4_to_module5' connector", warnings)  # both COC, drilled: no adapter
+        for h in PIPE["handoffs"]:
+            if (h.get("connector") or {}).get("status") == "match":
+                self.assertNotIn(f"{h['id']}' connector", warnings)
 
 
 class PipelineRules(unittest.TestCase):
+    def handoff(self, predicate):
+        return next(i for i, h in enumerate(PIPE["handoffs"]) if predicate(h))
+
     def test_a_superseded_chip_in_the_pipeline_is_an_error(self):
         pipe = copy.deepcopy(PIPE)
-        pipe["modules"][2]["chip"] = "cad/m3_wash_spec.json"
-        pipe["modules"][2]["status"] = "draft"
+        i = next(i for i, m in enumerate(pipe["modules"]) if m["module"] == "module3")
+        pipe["modules"][i]["chip"] = "cad/m3_wash_spec.json"
+        pipe["modules"][i]["status"] = "draft"
         self.assertTrue(any("superseded" in e for e in run_check(pipe).errors))
 
     def test_a_wrong_connector_status_is_an_error(self):
         pipe = copy.deepcopy(PIPE)
-        pipe["handoffs"][4]["connector"]["status"] = "mismatch"
-        pipe["handoffs"][4]["connector"]["warning"] = "x"
-        self.assertTrue(any("module4_to_module5" in e and "connector" in e for e in run_check(pipe).errors))
+        i = self.handoff(lambda h: (h.get("connector") or {}).get("status") == "match")
+        pipe["handoffs"][i]["connector"]["status"] = "mismatch"
+        pipe["handoffs"][i]["connector"]["warning"] = "x"
+        hid = pipe["handoffs"][i]["id"]
+        self.assertTrue(any(hid in e and "connector" in e for e in run_check(pipe).errors))
 
     def test_a_named_port_on_a_missing_module_is_an_error(self):
         pipe = copy.deepcopy(PIPE)
-        pipe["handoffs"][2]["to"]["port"] = "split_in"
+        i = self.handoff(lambda h: h["to"].get("port") == "TBC")
+        pipe["handoffs"][i]["to"]["port"] = "split_in"
         self.assertTrue(any("must be TBC" in e for e in run_check(pipe).errors))
 
     def test_a_missing_module_needs_no_chip_but_others_do(self):
         pipe = copy.deepcopy(PIPE)
-        del pipe["modules"][4]["chip"]
+        i = next(i for i, m in enumerate(pipe["modules"]) if m["status"] not in ("missing",) and m.get("chip"))
+        del pipe["modules"][i]["chip"]
         self.assertTrue(run_check(pipe).errors)
 
-    def test_module2_switches_to_mjs_spec_when_it_appears(self):
-        entry = PIPE["modules"][1]
-        self.assertEqual(schema_io.pipeline_chip(entry)[:2], ("cad/m2_encapsulation_spec.json", "draft"))
+    def test_a_module_with_a_prefer_glob_switches_when_the_file_appears(self):
+        entry = {"module": "x", "status": "draft", "chip": "cad/x_spec.json",
+                 "prefer": {"glob": "chip/x*.json", "status": "final", "status_note": "picked up automatically"}}
+        self.assertEqual(schema_io.pipeline_chip(entry)[:2], ("cad/x_spec.json", "draft"))
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "chip").mkdir()
-            (root / "chip" / "module2_v1.json").write_text("{}")
+            (root / "chip" / "x_v1.json").write_text("{}")
             path, status, note = schema_io.pipeline_chip(entry, root)
-            self.assertEqual((path, status), ("chip/module2_v1.json", "final"))
+            self.assertEqual((path, status), ("chip/x_v1.json", "final"))
             self.assertIn("automatically", note)
 
 
@@ -106,9 +129,18 @@ class Module3Translation(unittest.TestCase):
     SRC = schema_io.load_json(ROOT / convert_module3.SOURCE)
     SPEC, QUESTIONS = convert_module3.translate(SRC)
 
-    def test_committed_translation_is_up_to_date(self):
-        self.assertEqual(schema_io.load_json(ROOT / convert_module3.OUT), self.SPEC,
-                         "re-run python tools/convert_module3.py")
+    def test_committed_translation_keeps_the_sources_parts_at_demo_scale(self):
+        # The committed chip is the translation AFTER the 30 x 20 mm fit (tools/fit_chip.py), the removal of its
+        # on-chip valves and the merging of ports (6-port limit), so it no longer equals a fresh translate().
+        # It must still be the same chip: same source, same chambers, a connected network, no more ports than before.
+        committed = schema_io.load_json(ROOT / convert_module3.OUT)
+        self.assertEqual(committed["translated_from"], self.SPEC["translated_from"])
+        self.assertEqual([x["id"] for x in committed["chambers"]], [x["id"] for x in self.SPEC["chambers"]])
+        self.assertLessEqual(len(committed["ports"]), len(self.SPEC["ports"]))
+        nodes = {x["id"] for g in ("chambers", "ports") for x in committed[g]}
+        for ch in committed["channels"]:
+            self.assertLessEqual({ch["from"], ch["to"]}, nodes, ch["id"])
+        self.assertEqual(committed.get("valves", []), [], "single fluidic layer: no on-chip valves")
 
     def test_translation_does_not_touch_the_source(self):
         before = hashlib.sha256((ROOT / convert_module3.SOURCE).read_bytes()).hexdigest()

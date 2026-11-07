@@ -1,0 +1,86 @@
+solid out_cells
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 2.725300e+01 8.111000e+00 1.150000e+00
+      vertex 2.805300e+01 8.911000e+00 1.150000e+00
+      vertex 2.805300e+01 8.111000e+00 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 2.725300e+01 8.111000e+00 1.150000e+00
+      vertex 2.725300e+01 8.911000e+00 1.150000e+00
+      vertex 2.805300e+01 8.911000e+00 1.150000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 2.725300e+01 8.111000e+00 1.350000e+00
+      vertex 2.805300e+01 8.111000e+00 1.350000e+00
+      vertex 2.805300e+01 8.911000e+00 1.350000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 2.725300e+01 8.111000e+00 1.350000e+00
+      vertex 2.805300e+01 8.911000e+00 1.350000e+00
+      vertex 2.725300e+01 8.911000e+00 1.350000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.725300e+01 8.111000e+00 1.150000e+00
+      vertex 2.805300e+01 8.111000e+00 1.150000e+00
+      vertex 2.805300e+01 8.111000e+00 1.350000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.725300e+01 8.111000e+00 1.150000e+00
+      vertex 2.805300e+01 8.111000e+00 1.350000e+00
+      vertex 2.725300e+01 8.111000e+00 1.350000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.725300e+01 8.911000e+00 1.150000e+00
+      vertex 2.725300e+01 8.911000e+00 1.350000e+00
+      vertex 2.805300e+01 8.911000e+00 1.350000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.725300e+01 8.911000e+00 1.150000e+00
+      vertex 2.805300e+01 8.911000e+00 1.350000e+00
+      vertex 2.805300e+01 8.911000e+00 1.150000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.725300e+01 8.111000e+00 1.150000e+00
+      vertex 2.725300e+01 8.111000e+00 1.350000e+00
+      vertex 2.725300e+01 8.911000e+00 1.350000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.725300e+01 8.111000e+00 1.150000e+00
+      vertex 2.725300e+01 8.911000e+00 1.350000e+00
+      vertex 2.725300e+01 8.911000e+00 1.150000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.805300e+01 8.111000e+00 1.150000e+00
+      vertex 2.805300e+01 8.911000e+00 1.150000e+00
+      vertex 2.805300e+01 8.911000e+00 1.350000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.805300e+01 8.111000e+00 1.150000e+00
+      vertex 2.805300e+01 8.911000e+00 1.350000e+00
+      vertex 2.805300e+01 8.111000e+00 1.350000e+00
+    endloop
+  endfacet
+endsolid out_cells

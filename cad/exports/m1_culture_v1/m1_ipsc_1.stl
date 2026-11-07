@@ -1,0 +1,86 @@
+solid m1_ipsc_1
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 2.347000e+00 4.099000e+00 1.100000e+00
+      vertex 4.683000e+00 6.435000e+00 1.100000e+00
+      vertex 4.683000e+00 4.099000e+00 1.100000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 2.347000e+00 4.099000e+00 1.100000e+00
+      vertex 2.347000e+00 6.435000e+00 1.100000e+00
+      vertex 4.683000e+00 6.435000e+00 1.100000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 2.347000e+00 4.099000e+00 1.400000e+00
+      vertex 4.683000e+00 4.099000e+00 1.400000e+00
+      vertex 4.683000e+00 6.435000e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 2.347000e+00 4.099000e+00 1.400000e+00
+      vertex 4.683000e+00 6.435000e+00 1.400000e+00
+      vertex 2.347000e+00 6.435000e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.347000e+00 4.099000e+00 1.100000e+00
+      vertex 4.683000e+00 4.099000e+00 1.100000e+00
+      vertex 4.683000e+00 4.099000e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.347000e+00 4.099000e+00 1.100000e+00
+      vertex 4.683000e+00 4.099000e+00 1.400000e+00
+      vertex 2.347000e+00 4.099000e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.347000e+00 6.435000e+00 1.100000e+00
+      vertex 2.347000e+00 6.435000e+00 1.400000e+00
+      vertex 4.683000e+00 6.435000e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.347000e+00 6.435000e+00 1.100000e+00
+      vertex 4.683000e+00 6.435000e+00 1.400000e+00
+      vertex 4.683000e+00 6.435000e+00 1.100000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.347000e+00 4.099000e+00 1.100000e+00
+      vertex 2.347000e+00 4.099000e+00 1.400000e+00
+      vertex 2.347000e+00 6.435000e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.347000e+00 4.099000e+00 1.100000e+00
+      vertex 2.347000e+00 6.435000e+00 1.400000e+00
+      vertex 2.347000e+00 6.435000e+00 1.100000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 4.683000e+00 4.099000e+00 1.100000e+00
+      vertex 4.683000e+00 6.435000e+00 1.100000e+00
+      vertex 4.683000e+00 6.435000e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 4.683000e+00 4.099000e+00 1.100000e+00
+      vertex 4.683000e+00 6.435000e+00 1.400000e+00
+      vertex 4.683000e+00 4.099000e+00 1.400000e+00
+    endloop
+  endfacet
+endsolid m1_ipsc_1

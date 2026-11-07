@@ -5,7 +5,9 @@ chip for it, and an AI operator runs the protocol on that chip, shown live as a 
 digital twin. Cells sit in capsules that stay put on mesh floors while liquids are
 exchanged around them, split into chambers and pooled back together. This weekend
 there are no pumps, cameras or wet-lab data: everything runs in software, with
-laser-cut and 3D-printed parts for the physical chip. Closed-loop runs use a
+resin-printed, hot-embossed parts for the physical chip (30 × 20 mm, 0.3 mm deep, one
+fluidic layer). Retention features cannot be printed at this floor, so capsule
+retention needs a bought mesh insert or sedimentation. Stage map: [protocols/pipeline_status.md](protocols/pipeline_status.md). Closed-loop runs use a
 **virtual chip** and are labelled **SIMULATED HARDWARE** everywhere; what to buy to
 run them for real is in [docs/hardware_roadmap.md](docs/hardware_roadmap.md).
 
@@ -84,15 +86,15 @@ python -m http.server 8000          # 3. serve the repo root...
 In the twin: pick a protocol, then Play/Pause (Space), Step (→), speed 1x/5x/20x
 (keys 1/2/3), click the timeline to jump, IDs (L) to toggle part labels, drag to orbit.
 Switching protocol replays on the same chip. `#run=<file>` in the URL opens a specific run.
-**Real scale / Display model** switches between the working chip (true sizes, down to
-70 µm capsules) and the printed show piece; the scale bar works in both. The **Chip
+**Real scale / Display model** switches between the working chip (true sizes) and the
+printed show piece; the scale bar works in both. The **Chip
 sizing** panel shows what the sizing calculator says the chip needs next to what it has.
 The twin opens on the **pipeline view**: every current module left to right (from
-`protocols/pipeline_mvp.json`): Module 1 v1 (culture) -> Module 2 (encapsulation, draft) ->
-Module 3 (load, lysis, wash; translated from Szonja's file) -> barcoding (not designed yet) ->
-Module 4 (sublibrary split + index PCR) -> Module 5 (release + cleanup) -> library out. Each card
-has a status badge (FINAL, DRAFT, TRANSLATED, MISSING), says whether it is **built for Sunday's
-dye demo** (Module 1) or **twin only**, and shows its hand-off ports (TBC where not named) with
+`protocols/pipeline_mvp.json`): Module 1 v1 (culture) -> cell prep -> Module 2 (encapsulation, `spc_demo_v1`) ->
+Module 3 (load, lysis, wash; translated from Szonja's file) -> barcoding (a HOLE: no chip, no protocol) ->
+Module 4 (sublibrary split + index PCR) -> Module 5 (release + cleanup) -> SPRI and QC (off-chip) -> library out. Each card
+has a status badge (FINAL, DRAFT, TRANSLATED, MISSING), says whether it is **built for the
+dye demo** or **twin only**, and shows its hand-off ports (TBC where not named) with
 a ⚠ where the two chips' ports differ (the demo needs an adapter). Cells, capsules and library
 move between the cards; click a module for its own view (tabs along the top). Module 1 v1 is a
 flow twin (see below); Module 3 plays Szonja's workflow on the translated chip; Modules 4 and 5

@@ -88,7 +88,7 @@
       "id": "m3_ch_load",
       "from": "m3_inlet_1",
       "to": "m3_trap_1",
-      "width_mm": 0.14,
+      "width_mm": 0.2,
       "depth_mm": 0.15,
       "carries": "capsules"
     },
@@ -96,7 +96,7 @@
       "id": "m3_ch_waste",
       "from": "m3_trap_1",
       "to": "m3_waste_1",
-      "width_mm": 0.14,
+      "width_mm": 0.2,
       "depth_mm": 0.15,
       "carries": "liquid"
     },
@@ -104,7 +104,7 @@
       "id": "m3_ch_backflush",
       "from": "m3_backflush_1",
       "to": "m3_trap_1",
-      "width_mm": 0.14,
+      "width_mm": 0.2,
       "depth_mm": 0.15,
       "carries": "liquid"
     },
@@ -112,7 +112,7 @@
       "id": "m3_ch_release",
       "from": "m3_trap_1",
       "to": "m3_release_1",
-      "width_mm": 0.14,
+      "width_mm": 0.2,
       "depth_mm": 0.15,
       "carries": "capsules"
     }
