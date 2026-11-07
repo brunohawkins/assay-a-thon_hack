@@ -1,4 +1,11 @@
-"""Valve controller (pinch or solenoid valves via a microcontroller). STUB.
+"""Valve controller for the RIG'S OFF-CHIP valves (pinch or solenoid, via a
+microcontroller). STUB.
+
+NOT the removed on-chip `valve` command. On-chip membrane valves need a second fluidic
+layer, so they were dropped from every chip and the command with them; what remains is the
+tubing-side routing of the bench rig, which is real hardware on the roadmap
+(docs/hardware_roadmap.md) and the injection point of
+adapters/syringe_pump.py (SyringePumpAdapter(valves=...), which calls .route()).
 
 UNTESTED – no hardware available. Not implemented: every method raises
 NotImplementedError. This documents the plan so the firmware and this driver can be
@@ -14,7 +21,8 @@ Serial protocol (ASCII, newline-terminated, one request at a time):
                 "ALL 0"                       close everything (safe state)
   mcu -> host   "OK"  |  "STATE <valve_id> <0|1>"  |  "ERR <message>"
 Valve ids and named routes come from a rig file (contracts/hardware/rig_example.json,
-"valves" and "routes"), e.g. "wash_forward": m3_inlet_1 -> m3_trap_1 -> m3_waste_1.
+"valves" and "routes"), e.g. "wash_forward": m3_inlet_1 -> m3_trap_1 -> m3_waste_1. These
+are tubing routes between ports, never features inside a chip.
 On any error, or if the host disconnects, the firmware closes all valves.
 """
 

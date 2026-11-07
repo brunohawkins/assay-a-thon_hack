@@ -595,6 +595,26 @@
       "assumption": true,
       "note": "Room temperature"
     },
+    "demo.target_fill_s": {
+      "value": 30,
+      "min": 10,
+      "max": 60,
+      "units": "s",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "FILMABLE FILL TIME for the food-dye demo, per chamber. 'value' is what tools/demo_plan.py aims the chip's largest chamber at; 'min'/'max' are the window a viewer can actually read on camera - below about 10 s the chamber is full before anyone has looked at it, above about 60 s nobody watches to the end. DYE HAS NO SHEAR LIMIT: shear.culture_ceiling_dyn_cm2 is the ADHERENT-CELL ceiling and capsule.escape_pressure_kpa is the capsule limit, and neither applies to coloured water on an empty chip. The only bounds on a dye flow are this window and demo.max_drive_pressure_kpa. Holding a dye fill to the cell ceiling is what left spc_demo_v1's protocol running at 0.071 uL/min, over an hour to fill 4.68 uL, which nobody could film."
+    },
+    "demo.max_drive_pressure_kpa": {
+      "value": 20,
+      "units": "kPa",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "TODO PLACEHOLDER, NOT A MEASUREMENT. A deliberately conservative stand-in for how much pressure the bonded seal of a printed-and-embossed chip will take, used only as a ceiling on the demo drive pressure in tools/demo_plan.py. The contracts hold no bond-strength value because nobody has burst a real chip yet; when someone does, replace this with the measured figure, drop 'assumption' and say which chip and which bonding run it came from. Film- and thermally-bonded thermoplastic devices in the literature hold hundreds of kPa, so 20 kPa is about an order of magnitude inside the expected failure point. Never quote it as this chip's bond strength, and never design a flow that sits AT it."
+    },
     "dye.diffusivity_m2_s": {
       "value": 4e-10,
       "units": "m2/s",
@@ -603,6 +623,15 @@
       ],
       "assumption": true,
       "note": "TODO placeholder for a small-molecule dye in water; confirm from literature. Used by flow_calc's open-channel estimate (APPROXIMATE)"
+    },
+    "dye_demo.bench_flow_ul_min": {
+      "value": 6.3,
+      "units": "uL/min",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Syringe rate for the Module 1 bench dye demo, and the key the twin and operator/module1_operator.py both read. DERIVED, not chosen: tools/demo_plan.py takes the one-pump route through module1_v1 (feed p_in, vent p_mid, everything else plugged) and picks the flow that puts the most chambers on it inside the demo.target_fill_s window - n_cx's 3.132 uL fills in about 30 s and j_mid's 1.728 uL in about 16 s - then checks the predicted drive pressure (operator/flow_calc.py at fluid.viscosity_pa_s, water at 20 C) against demo.max_drive_pressure_kpa. It comes out around 0.007 kPa, well under. Marked an assumption because the window it rests on is one. It REPLACES a bare 50 uL/min literal in module1_operator.py, at which n_cx filled in under 4 s - too fast for anyone to watch, which is the whole point of the demo. Note this is a DYE rate: no cells, so shear.culture_ceiling_dyn_cm2 does not apply and the culture feed is a different, much lower number. tests/test_demo_plan.py fails if this value and the derivation drift apart."
     },
     "reservoir.default_ul": {
       "value": 1000,

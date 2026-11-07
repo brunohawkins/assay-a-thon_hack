@@ -72,11 +72,16 @@ def goal_for_step(step: dict, chip: dict) -> dict:
     planner would have sent, including the chip-derived split/pool fan-out.
     """
     op = step["operation"]
-    command, args = planner.step_to_command(step, chip)
+    # An exchange with several targets is one command per target (planner.step_to_commands);
+    # the goal is written for the first and `fan_out` names them all, so the controller can
+    # run the same plan through each chamber in turn instead of planning a target of None.
+    fan_out = [c[1]["target"] for c in planner.step_to_commands(step, chip)] if (
+        op == "exchange" and step.get("targets")) else []
+    command, args = planner.step_to_command({**step, "targets": None, "target": fan_out[0]} if fan_out else step, chip)
     target = args.get("target") or args.get("source") or (list(args.get("targets") or []) or [None])[0]
     g = {"step": step["step"], "operation": op, "command": command, "args": dict(args),
          "target": target, "targets": list(args.get("targets") or []),
-         "sources": list(args.get("sources") or []),
+         "sources": list(args.get("sources") or []), "fan_out": fan_out,
          "reagent": step.get("reagent"), "volume_ul": step.get("volume_ul"), "note": step.get("note", "")}
     if op == "exchange" and step.get("direction") == "backflush":
         g.update(kind="backflush", fraction=_param("backflush.target_fraction"))
@@ -160,27 +165,43 @@ def _soak_needed(c: float, ci: float, target: float, tau: float) -> float:
     return tau * math.log((c - ci) / (c - target))
 
 
+def exchange_flows(goal: dict) -> list[float]:
+    """Flows to try for an exchange: the fixed ladder plus the flow the step itself states.
+
+    The step's own flow matters because it is where a chip's own limits ended up: a culture
+    chamber's protocol flow is derived from shear.culture_ceiling_dyn_cm2, and every flow on
+    the ladder is many times over that ceiling, so without this the safety checker rightly
+    blocked all of them and a perfectly good culture step had no feasible plan at all.
+    """
+    stated = (goal.get("args") or {}).get("flow_ul_min")
+    flows = set(EXCHANGE_FLOWS)
+    if stated:
+        flows.add(float(stated))
+    return sorted(flows)
+
+
 def candidates_for(goal: dict, believed: ChipState, model: ProcessModel) -> list[tuple[str, dict]]:
     t = goal.get("target")
     vc = model.params.chamber_volume_ul.get(t, 10.0)
     v = float(goal.get("volume_ul") or 2 * vc)
     if goal["kind"] == "exchange":
         kind = goal.get("exchange_kind", "sweep")
+        flows = exchange_flows(goal)
         if kind == "fill":
             # One pass of the stated volume (never more than the chamber holds); the only
             # choice left is how fast.
             fill = float(goal.get("fill_volume_ul") or min(v, vc))
             return [("exchange", {"target": t, "reagent": goal["reagent"], "volume_ul": fill, "washes": 1,
-                                  "flow_ul_min": q}) for q in EXCHANGE_FLOWS]
+                                  "flow_ul_min": q}) for q in flows]
         if kind == "partial":
             # The replaced fraction is deliberate, so neither the volume nor the number of
             # washes is the optimizer's to change: more would wash out the conditioned
             # medium the step is keeping.
             washes = max(1, int(goal.get("washes") or 1))
             return [("exchange", {"target": t, "reagent": goal["reagent"], "volume_ul": v, "washes": washes,
-                                  "flow_ul_min": q}) for q in EXCHANGE_FLOWS]
+                                  "flow_ul_min": q}) for q in flows]
         return [("exchange", {"target": t, "reagent": goal["reagent"], "volume_ul": v, "washes": w, "flow_ul_min": q})
-                for q in EXCHANGE_FLOWS for w in (1, 2, 3, 4)]
+                for q in flows for w in (1, 2, 3, 4)]
     if goal["kind"] == "backflush":
         return [("exchange", {"target": t, "reagent": goal["reagent"], "volume_ul": round(m * v, 1), "washes": 1,
                               "flow_ul_min": q, "direction": "backflush"})

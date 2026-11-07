@@ -5,8 +5,11 @@
 At m1b_qc_window_1 a SIMULATED counter reports the cell concentration and viability
 (the scenario sets what is really there; the counter adds seeded noise). The operator
 then sets the dilution at m1b_resuspend_1 itself, so the cells give ~0.1 cells per capsule
-at Module 2's flows (sizing.py), and logs why. Before the cells leave for Module 2, the
-safety checker (safety.check_cell_prep) approves or blocks them:
+at Module 2's flows (sizing.py), and logs why. Nothing counts the cells again after the
+mixer, so what goes to Module 2 is an ASSUMPTION - counted / dilution - and everything
+that reports or judges it says so. Before the cells leave the chip through its transfer
+outlet (found from the chip spec, not from a hard-coded port id), the safety checker
+(safety.check_cell_prep) approves or blocks them:
   - viability below 90% (10x)                  -> blocked: the operator stops and reports
   - still off target after the dilution        -> blocked with the fix, e.g.
     ("too dilute - concentrate 1.6x", or more dilution than the mixer can do)
@@ -26,6 +29,14 @@ from adapters.sim import SimAdapter
 
 ROOT = schema_io.ROOT
 
+# How the concentration that leaves for Module 2 is arrived at. It is NOT measured: the
+# counter reads before the mixer, and the dilution is what the operator ASKED the mixer for,
+# so the number the safety checker judges is counted / dilution - an assumption. Said out
+# loud here, in the verdict, in the summary and in the report, because an approval that
+# rests on an assumed number has to say so.
+ASSUMED_BASIS = ("ASSUMED, not measured: counted at the QC window (before the mixer) divided by the dilution the "
+                 "operator set. There is no counter after the mixer, so the dilution is commanded, not verified")
+
 
 class SimulatedCounter:
     """SIMULATED HARDWARE: the cell counter at the QC window."""
@@ -40,6 +51,20 @@ class SimulatedCounter:
         conc = self.cells_per_ul * (1 + self.rng.gauss(0, self.cv))
         via = min(1.0, max(0.0, self.viability + self.rng.gauss(0, 0.005)))
         return {"cells_per_ul": round(conc), "viability": round(via, 3)}
+
+
+def leaves_the_chip(chip: dict, target: str) -> bool:
+    """True when `target` is an outlet port that sends the cells on to the next module.
+
+    Keyed off the chip's own structure - an outlet port that is not the waste - and not off
+    the id "m1b_to_module2_1". Keyed on the literal id, renaming that port in the spec
+    would have silently stopped the only safety gate between these cells and Module 2,
+    while the run still reported itself as done.
+    """
+    port = next((p for p in chip.get("ports", []) if p["id"] == target), None)
+    if port is None:
+        return False
+    return port.get("type") == "outlet" and port.get("role") != "waste"
 
 
 def choose_dilution(count: dict, target: dict) -> tuple[float, str]:
@@ -76,11 +101,13 @@ def run(protocol: dict, chip: dict, chip_path: Path, scenario: dict, scenario_pa
                 dilution, why = choose_dilution(count, target)
                 args = {**args, "dilution": dilution, "volume_ul": round(sample_ul * (dilution - 1), 1) or 0.1}
                 sim.note("decision", f"m1b_resuspend_1 dilution set to {dilution:g}x: {why}", step["step"])
-            if command == "transfer" and args["target"] == "m1b_to_module2_1":
-                final = count["cells_per_ul"] / dilution
-                verdict = safety.check_cell_prep(final, count["viability"], m2_chip)
+            if command == "transfer" and leaves_the_chip(chip, args["target"]):
+                assumed_final = count["cells_per_ul"] / dilution
+                verdict = safety.check_cell_prep(assumed_final, count["viability"], m2_chip)
+                verdict.reasons.append(f"this verdict rests on {assumed_final:,.0f} cells/uL, which is {ASSUMED_BASIS}")
                 sim.note("safety" if verdict.ok else "blocked",
-                         f"cells to Module 2: {verdict.status}: {'; '.join(verdict.reasons)}", step["step"])
+                         f"cells to Module 2 through {args['target']}: {verdict.status}: "
+                         f"{'; '.join(verdict.reasons)}", step["step"])
                 if not verdict.ok:
                     status = "stopped"
                     sim.note("stop", "stopped before Module 2: the cells stay in m1b_resuspend_1 for a person to fix "
@@ -98,17 +125,26 @@ def run(protocol: dict, chip: dict, chip_path: Path, scenario: dict, scenario_pa
 
     header = planner.run_header(protocol, chip, chip_path, "planner")
     run_ = sim.to_run(header)
-    final = count["cells_per_ul"] / dilution if count else None
+    assumed_final = count["cells_per_ul"] / dilution if count else None
     run_.update({
         "simulated_hardware": True, "adapter": "simulated_counter", "loop": "closed", "status": status,
         "scenario": {**{k: v for k, v in scenario.items() if k != "description"}, "file": planner.repo_relative(scenario_path),
                      "description": scenario.get("description", "")},
         "summary": {
-            "status": status, "counted": count, "dilution": dilution,
-            "final_cells_per_ul": round(final) if final else None,
-            "mean_cells_per_capsule": round(safety.mean_cells_per_capsule(final, target), 4) if final else None,
+            "status": status, "counted": count, "counted_where": "m1b_qc_window_1, by a SIMULATED counter",
+            "dilution": dilution, "dilution_basis": "set by the operator; commanded, not verified",
+            "assumed_final_cells_per_ul": round(assumed_final) if assumed_final else None,
+            "assumed_mean_cells_per_capsule": (round(safety.mean_cells_per_capsule(assumed_final, target), 4)
+                                               if assumed_final else None),
+            "assumption_basis": ASSUMED_BASIS,
+            # Same assumed numbers under their original names, which operator/run.py's
+            # console line reads. The assumed_* keys above are the ones to quote.
+            "final_cells_per_ul": round(assumed_final) if assumed_final else None,
+            "mean_cells_per_capsule": (round(safety.mean_cells_per_capsule(assumed_final, target), 4)
+                                       if assumed_final else None),
             "target_mean": target["target_mean"], "target_cells_per_ul": round(target["target_cells_per_ul"]),
             "verdict": verdict.to_dict() if verdict else None,
+            "verdict_rests_on": "an assumed concentration (see assumption_basis)",
         },
     })
     return run_
@@ -123,17 +159,23 @@ def render_report(run_: dict) -> str:
          f"- Status: **{run_['status']}**", f"- Created: {run_['created_at']}", "",
          "## Outcome", "",
          "| | |", "|---|---|",
-         f"| Counted at the QC window | {c.get('cells_per_ul', '–'):,} cells/uL, {c.get('viability', 0):.1%} viable |" if c else "| Counted | – |",
-         f"| Dilution set by the operator | {s['dilution']:g}x |",
-         f"| Sent to Module 2 | {s['final_cells_per_ul']:,} cells/uL -> {s['mean_cells_per_capsule']:.3f} cells per capsule "
-         f"(target {s['target_mean']:g}, i.e. ~{s['target_cells_per_ul']:,} cells/uL) |" if s.get("final_cells_per_ul") else "| Sent | – |",
-         f"| Safety checker | **{(s.get('verdict') or {}).get('result', '–')}**: {'; '.join((s.get('verdict') or {}).get('reasons', []))} |",
+         f"| MEASURED at the QC window (simulated counter) | {c.get('cells_per_ul', '–'):,} cells/uL, "
+         f"{c.get('viability', 0):.1%} viable |" if c else "| Counted | – |",
+         f"| Dilution set by the operator (commanded, not verified) | {s['dilution']:g}x |",
+         f"| ASSUMED sent to Module 2 | {s['assumed_final_cells_per_ul']:,} cells/uL -> "
+         f"{s['assumed_mean_cells_per_capsule']:.3f} cells per capsule "
+         f"(target {s['target_mean']:g}, i.e. ~{s['target_cells_per_ul']:,} cells/uL) |"
+         if s.get("assumed_final_cells_per_ul") else "| Sent | – |",
+         f"| How that number was arrived at | {s.get('assumption_basis', '–')} |",
+         f"| Safety checker (on the ASSUMED number) | **{(s.get('verdict') or {}).get('result', '–')}**: "
+         f"{'; '.join((s.get('verdict') or {}).get('reasons', []))} |",
          "", "## Steps", "", "| Start | Step | Command | Duration | What happened |", "|---|---|---|---|---|"]
     for e in run_["events"]:
         a = e["args"]
         what = ", ".join(f"{k}={v}" for k, v in a.items())
         if e.get("measured"):
-            what += f" -> measured {e['measured']['cells_per_ul']:,} cells/uL, {e['measured']['viability']:.1%} viable"
+            what += (f" -> MEASURED (simulated counter) {e['measured']['cells_per_ul']:,} cells/uL, "
+                     f"{e['measured']['viability']:.1%} viable")
         L.append(f"| {e['t_s']:.0f} s | {e['protocol_step']} | {e['command']} | {e['duration_s']:.0f} s | {what} |")
     L += ["", "## Operator log (measurements, decisions, safety)", ""]
     L += [f"- `{x['t_s']:7.0f} s` **{x['kind']}** (step {x.get('step')}): {x['message']}" for x in run_.get("log", [])]

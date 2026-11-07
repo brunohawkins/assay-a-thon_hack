@@ -173,14 +173,22 @@ class Controller:
         if not plan["feasible"]:
             self._log("blocked", f"step {step_no}: nothing to execute (no safe plan)", step_no)
             return {"status": "no_safe_plan"}
-        verdict = self._check(plan["command"], plan["args"], step_no)
-        self._log("safety", f"{verdict.status}: {self._describe(plan['command'], plan['args'])}"
-                  + (f" ({'; '.join(verdict.reasons)})" if verdict.reasons else ""), step_no, safety=verdict.to_dict(),
-                  explanation=explanation)
-        if verdict.status == "blocked":
-            return {"status": "blocked", "reasons": verdict.reasons}
-        outcome = self._run(plan, step_no, self.steps[step_no].get("note", ""), verdict,
-                            explanation=explanation or self.rationale(plan))
+        # One step can be one command per chamber (an exchange with several targets). Each
+        # chamber is approved on its own and run in turn; the step is done when all are.
+        targets = plan["goal"].get("fan_out") or [plan["args"].get("target")]
+        outcome = {"status": "done"}
+        for target in targets:
+            args = plan["args"] if target == plan["args"].get("target") else {**plan["args"], "target": target}
+            verdict = self._check(plan["command"], args, step_no)
+            self._log("safety", f"{verdict.status}: {self._describe(plan['command'], args)}"
+                      + (f" ({'; '.join(verdict.reasons)})" if verdict.reasons else ""), step_no,
+                      safety=verdict.to_dict(), explanation=explanation)
+            if verdict.status == "blocked":
+                return {"status": "blocked", "reasons": verdict.reasons}
+            outcome = self._run({**plan, "args": args}, step_no, self.steps[step_no].get("note", ""), verdict,
+                                explanation=explanation or self.rationale(plan))
+            if outcome["status"] != "done":
+                return outcome
         if outcome["status"] == "done":
             self.step_results[step_no] = self._step_result(step_no)
         return outcome
@@ -403,9 +411,9 @@ class Controller:
             self._anchor["volume"] += sl["volume_ul"]
         pred_state, pred = self.model.predict(before, command, sl)
         self.adapter.send(command, sl, wash_start=wash_start)
-        readings = self.adapter.read_sensors()
-        predicted_readings = readings if self.readings_are_predictions else {}
-        meas = {} if self.readings_are_predictions else {k: v for k, v in readings.items() if k in self.trusted}
+        meas = {k: v for k, v in self.adapter.read_sensors().items() if k in self.trusted}
+        predicted_readings = (self.adapter.predicted_readings()
+                              if self.readings_are_predictions and hasattr(self.adapter, "predicted_readings") else {})
         self.last_measurement = meas
         true = self._true()
         believed = self._fuse(pred_state, pred, meas, command, sl, target, before)

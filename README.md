@@ -114,6 +114,8 @@ Other tools: `python operator/sizing.py mvp cells:100000` (chip sizing, port of 
 project's geometry requirements sheet), `python cad/export_display_model.py cad/m3_wash_spec.json` (printable display model),
 `python -m unittest discover -s tests` (tests).
 
+The physical food-dye demo (one pump, one chip at a time): [docs/demo.md](docs/demo.md), derived from the chip specs by `python tools/demo_plan.py --write`.
+
 The twin only reads run files, so a recorded run always works offline. That's the
 demo fallback: if the live LLM run misbehaves, play the committed run.
 

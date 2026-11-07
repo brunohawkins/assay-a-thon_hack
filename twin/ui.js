@@ -290,15 +290,21 @@ export function createUI(actions) {
     setCadStatus(r) {
       const bad = [];
       if (!r.dir) bad.push(r.why ?? `No CAD folder belongs to ${r.chipId}, so every part is a box from the spec.`);
+      // Say what was measured, not what caused it: the same mismatch is another chip's part
+      // when x or y is wrong, and a stale export of this chip's own part when only z is.
       for (const m of r.mismatched ?? []) {
-        bad.push(`${m.id}.stl sits at (${m.at.join(', ')}) mm, but ${r.chipId} puts ${m.id} at (${m.expected.join(', ')}) mm: another chip's part, not drawn.`);
+        const flat = m.at[0] === m.expected[0] && m.at[1] === m.expected[1];
+        bad.push(`${m.id}.stl sits at (${m.at.join(', ')}) mm, but ${r.chipId} puts ${m.id} at (${m.expected.join(', ')}) mm, so it is not drawn. `
+          + (flat
+            ? 'Same x and y, wrong depth: a stale export of this chip, from before its port moved through the other face. Re-run cad/make_train_cad.py.'
+            : "Wrong position in plane: that file is another chip's part, or this chip's layout has moved since it was exported."));
       }
       if (r.listed && r.failed?.length) bad.push(`${r.failed.join(', ')}: listed in ${r.dir} but could not be read.`);
       const detail = [
         r.dir ? `CAD from ${r.dir}` : 'no CAD folder for this chip',
         r.loaded?.length ? `${r.loaded.length} part${r.loaded.length > 1 ? 's' : ''} drawn from STL: ${r.loaded.join(', ')}` : 'no part drawn from STL',
         r.missing?.length ? `no STL for ${r.missing.join(', ')} (box drawn from the spec instead)` : null,
-        r.mismatched?.length ? `REFUSED, wrong coordinates for this chip: ${r.mismatched.map((m) => `${m.id} at ${m.at.join(', ')} not ${m.expected.join(', ')}`).join('; ')}` : null,
+        r.mismatched?.length ? `REFUSED, wrong coordinates for this chip (box drawn from the spec instead): ${r.mismatched.map((m) => `${m.id} at (${m.at.join(', ')}) not (${m.expected.join(', ')})`).join('; ')}` : null,
         r.failed?.length ? `could not be read: ${r.failed.join(', ')}${r.listed ? '' : ' (no directory listing: these may simply not exist)'}` : null,
         r.unrelated?.length ? `${r.unrelated.join(', ')} in that folder belong to no part of this chip` : null,
         ...(r.undrawn ?? []),

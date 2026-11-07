@@ -1,14 +1,21 @@
-// Hydraulic network solver for the twin: the same model as operator/network.py (which is the
-// reference; the Playwright check compares the two on every Module 1 v1 mode).
+// Hydraulic network solver for the twin: the same model as operator/network.py, which is the
+// reference implementation.
 //   nodes  chambers + ports;  edges  channels, R = 12 mu L / (w h^3 (1 - 0.63 h/w)), plus each
 //   chamber's slab from the entry edge to its centre;  ports  FEED (uL/min), VENT (0 Pa), CAP.
 // Also: the medium tracer, dye arrival times, the one-line result and the safety rules of
 // operator/module1_operator.py, so editing a pump rate in the twin re-solves on the spot.
 //
+// PARITY IS NOT CHECKED AUTOMATICALLY. Nothing in the repo compares this file against
+// operator/network.py; docs/module1_v1_twin/ holds screenshots of the modes, not a test. The
+// header used to claim a Playwright check did the comparison, which is how the two drifted.
+// Compare by hand after changing either: python operator/network.py chip/module1_v1.json
+// --report against the twin's "Solver: every channel" table.
+//
 // Viscosity, the port bore and the shear ceiling come from twin/contracts.js, which reads the
 // same contracts/ files operator/network.py reads. They are not constants here: this file
-// held MU_37C = 0.8e-3 and PORT_HOLE_MM = 2.0 while the contracts said 0.001 Pa s and
-// 0.8 mm, so loadContracts() must have finished before anything in here is called.
+// held MU_37C = 0.8e-3 and PORT_HOLE_MM = 2.0 as bare literals, and the port bore had gone
+// stale against contracts/blocks.json (0.8 mm) without a word. loadContracts() must have
+// finished before anything in here is called.
 import { contracts, portHoleUl } from './contracts.js';
 
 const mu37c = () => contracts().mu_pa_s;

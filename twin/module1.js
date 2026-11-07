@@ -562,7 +562,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
         <div class="meta">${esc(d.summary)}</div>${[...(d.reasons ?? []).map((r) => `<div class="blk">✕ ${esc(r)}</div>`), ...(d.warnings ?? []).map((w) => `<div class="wrn">! ${esc(w)}</div>`)].join('')}</li>`).join('');
     panel.innerHTML = `
       <div class="cp-head"><h2>Module 1 v1 · flow</h2>
-        <p class="meta">MJ's chip (resin print + hot emboss) · real scale · channels from the DXF · solver: twin/network.js = operator/network.py</p>
+        <p class="meta">MJ's chip (resin print + hot emboss) · real scale · channels from module1_v1.dxf · same model as operator/network.py (parity checked by hand, not by a test)</p>
         <p class="meta">µ = ${C.mu_pa_s} Pa s (fluid.viscosity_37c_pa_s: culture medium at 37 °C, not the ${C.muWater20cPaS} Pa s water-at-20 °C value) · shear ceiling ${ceiling} dyn/cm² · port bore ${net.portHoleMm} mm — all from contracts/</p>
         ${net.estimated.length ? `<p class="wrn">! no DXF rectangle matched ${esc(net.estimated.join(', '))}: those lengths are straight-line estimates, not cut geometry</p>` : ''}
         ${C.missing.map((m) => `<p class="wrn">! ${esc(m.wanted)} does not exist: ${esc(String(m.name))} = ${m.value} comes from ${esc(m.from)}</p>`).join('')}</div>

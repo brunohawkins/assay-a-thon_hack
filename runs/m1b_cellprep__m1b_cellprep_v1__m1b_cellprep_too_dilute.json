@@ -4,8 +4,25 @@
   "chip_id": "m1b_cellprep_v1",
   "chip_spec": "cad/m1b_cellprep_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T23:06:32Z",
+  "created_at": "2026-11-07T23:21:54Z",
   "placeholder": true,
+  "simulated_hardware": true,
+  "adapter": "simulated_counter",
+  "scenario": {
+    "name": "m1b_cellprep_too_dilute",
+    "protocol": "protocols/m1b_cellprep.json",
+    "chip": "cad/m1b_cellprep_spec.json",
+    "module2_chip": "cad/m2_encapsulation_spec.json",
+    "seed": 7,
+    "sample_volume_ul": 50,
+    "counter": {
+      "cells_per_ul": 1100,
+      "viability": 0.94,
+      "cv": 0.05
+    },
+    "file": "scenarios/m1b_cellprep_too_dilute.json",
+    "description": "Too few cells per uL: even undiluted they give well under 0.1 cells per capsule, so the safety checker blocks the hand-off and says how much to concentrate."
+  },
   "total_duration_s": 1302.0,
   "events": [
     {
@@ -104,7 +121,7 @@
       "t_s": 1302.0,
       "kind": "blocked",
       "step": 7,
-      "message": "cells to Module 2: blocked: too dilute - concentrate 1.8x: 1,086 cells/uL gives 0.056 cells per capsule at Module 2's flows (target 0.1)"
+      "message": "cells to Module 2 through m1b_to_module2_1: blocked: too dilute - concentrate 1.8x: 1,086 cells/uL gives 0.056 cells per capsule at Module 2's flows (target 0.1); this verdict rests on 1,086 cells/uL, which is ASSUMED, not measured: counted at the QC window (before the mixer) divided by the dilution the operator set. There is no counter after the mixer, so the dilution is commanded, not verified"
     },
     {
       "t_s": 1302.0,
@@ -113,32 +130,20 @@
       "message": "stopped before Module 2: the cells stay in m1b_resuspend_1 for a person to fix (too dilute - concentrate 1.8x: 1,086 cells/uL gives 0.056 cells per capsule at Module 2's flows (target 0.1))"
     }
   ],
-  "simulated_hardware": true,
-  "adapter": "simulated_counter",
   "loop": "closed",
   "status": "stopped",
-  "scenario": {
-    "name": "m1b_cellprep_too_dilute",
-    "protocol": "protocols/m1b_cellprep.json",
-    "chip": "cad/m1b_cellprep_spec.json",
-    "module2_chip": "cad/m2_encapsulation_spec.json",
-    "seed": 7,
-    "sample_volume_ul": 50,
-    "counter": {
-      "cells_per_ul": 1100,
-      "viability": 0.94,
-      "cv": 0.05
-    },
-    "file": "scenarios/m1b_cellprep_too_dilute.json",
-    "description": "Too few cells per uL: even undiluted they give well under 0.1 cells per capsule, so the safety checker blocks the hand-off and says how much to concentrate."
-  },
   "summary": {
     "status": "stopped",
     "counted": {
       "cells_per_ul": 1086,
       "viability": 0.943
     },
+    "counted_where": "m1b_qc_window_1, by a SIMULATED counter",
     "dilution": 1.0,
+    "dilution_basis": "set by the operator; commanded, not verified",
+    "assumed_final_cells_per_ul": 1086,
+    "assumed_mean_cells_per_capsule": 0.0557,
+    "assumption_basis": "ASSUMED, not measured: counted at the QC window (before the mixer) divided by the dilution the operator set. There is no counter after the mixer, so the dilution is commanded, not verified",
     "final_cells_per_ul": 1086,
     "mean_cells_per_capsule": 0.0557,
     "target_mean": 0.1,
@@ -146,9 +151,11 @@
     "verdict": {
       "result": "blocked",
       "reasons": [
-        "too dilute - concentrate 1.8x: 1,086 cells/uL gives 0.056 cells per capsule at Module 2's flows (target 0.1)"
+        "too dilute - concentrate 1.8x: 1,086 cells/uL gives 0.056 cells per capsule at Module 2's flows (target 0.1)",
+        "this verdict rests on 1,086 cells/uL, which is ASSUMED, not measured: counted at the QC window (before the mixer) divided by the dilution the operator set. There is no counter after the mixer, so the dilution is commanded, not verified"
       ]
-    }
+    },
+    "verdict_rests_on": "an assumed concentration (see assumption_basis)"
   },
   "report": "runs/m1b_cellprep__m1b_cellprep_v1__m1b_cellprep_too_dilute_report.md"
 }

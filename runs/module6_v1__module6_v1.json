@@ -4,7 +4,7 @@
   "chip_id": "module6_v1",
   "chip_spec": "chip/module6_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T23:06:03Z",
+  "created_at": "2026-11-07T23:21:54Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": null,
@@ -29,6 +29,11 @@
       28.0
     ],
     "swollen_diameter_um": 140.0
+  },
+  "simulated_hardware": true,
+  "adapter": "sim",
+  "scenario": {
+    "description": "No scenario file: the sim adapter records the commands the planner sent and nothing else. No virtual chip, no sensors and no injected faults, so there is no reality to configure - and nothing was measured, which is why simulated_hardware is true."
   },
   "total_duration_s": 102552.0,
   "events": [

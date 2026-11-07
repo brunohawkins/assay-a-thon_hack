@@ -69,7 +69,7 @@ class DryRun(Adapter):
                 route = f"{self.inlet or 'inlet'} -> {t} -> {self.release or 'release'}"
             else:
                 route = f"{self.inlet or 'inlet'} -> {t} -> {self.waste or 'waste'}"
-            self._say(f"VALVES  route {route}")
+            self._say(f"ROUTE   {route}")
             self._say(f"PUMP    [{reagent}] rate {args.get('flow_ul_min', 20):g} uL/min, volume {args['volume_ul']:.3f} uL, RUN")
         elif command == "hold_temp":
             self._say(f"HEATER  setpoint {args['temp_c']:g} C for {args['duration_s']:.1f} s (ramp {args.get('ramp_c_per_s', 1):g} C/s)")
@@ -81,6 +81,13 @@ class DryRun(Adapter):
         return {"ok": True, "dry_run": True, "dispensed_ul": self.last["dispensed_ul"]}
 
     def read_sensors(self) -> dict:
+        """Nothing is connected, so there is nothing to read. Deliberately empty: see
+        predicted_readings() for what the model expects, clearly labelled as a prediction."""
+        return {}
+
+    def predicted_readings(self) -> dict:
+        """What the model expects each of those instruments WOULD read. Predictions, not
+        measurements: the controller records them under "model_readings"."""
         o = self.last
         pred = {"pump_volume_ul": o.get("dispensed_ul"), "pressure_kpa": o.get("pressure_kpa"),
                 "outlet_absorbance": o.get("outlet_absorbance"), "temperature_c": o.get("temp_c"),
