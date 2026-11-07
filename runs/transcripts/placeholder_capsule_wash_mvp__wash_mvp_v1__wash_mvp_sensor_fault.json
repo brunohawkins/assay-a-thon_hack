@@ -1,0 +1,87 @@
+{
+  "source": "planner (deterministic; not model output)",
+  "model": null,
+  "protocol_id": "placeholder_capsule_wash_mvp",
+  "chip_id": "wash_mvp_v1",
+  "scenario": "wash_mvp_sensor_fault",
+  "created_at": "2026-11-07T13:08:19+00:00",
+  "calls": [
+    {
+      "tool": "plan_step",
+      "input": {
+        "step": 1
+      },
+      "explanation": "Plan step 1 (load): pick the fastest safe settings that meet its goal."
+    },
+    {
+      "tool": "execute_plan",
+      "input": {
+        "step": 1
+      },
+      "explanation": ""
+    },
+    {
+      "tool": "plan_step",
+      "input": {
+        "step": 2
+      },
+      "explanation": "Plan step 2 (exchange): pick the fastest safe settings that meet its goal."
+    },
+    {
+      "tool": "execute_plan",
+      "input": {
+        "step": 2
+      },
+      "explanation": ""
+    },
+    {
+      "tool": "distrust_sensor",
+      "input": {
+        "sensor": "pressure_kpa"
+      },
+      "explanation": "The pressure_kpa sensor disagrees with the model; ignore it and fall back to the model for that quantity."
+    },
+    {
+      "tool": "plan_step",
+      "input": {
+        "step": 2
+      },
+      "explanation": "Re-plan the rest of the step without the distrusted sensor."
+    },
+    {
+      "tool": "execute_plan",
+      "input": {
+        "step": 2
+      },
+      "explanation": ""
+    },
+    {
+      "tool": "plan_step",
+      "input": {
+        "step": 3
+      },
+      "explanation": "Plan step 3 (exchange): pick the fastest safe settings that meet its goal."
+    },
+    {
+      "tool": "execute_plan",
+      "input": {
+        "step": 3
+      },
+      "explanation": ""
+    },
+    {
+      "tool": "plan_step",
+      "input": {
+        "step": 4
+      },
+      "explanation": "Plan step 4 (release): pick the fastest safe settings that meet its goal."
+    },
+    {
+      "tool": "execute_plan",
+      "input": {
+        "step": 4
+      },
+      "explanation": ""
+    }
+  ]
+}

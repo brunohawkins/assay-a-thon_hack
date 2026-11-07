@@ -274,6 +274,31 @@ def check_contract_data(report: Report) -> None:
                     report.error(f"contracts/materials.json {mid}.{reagent}: '{verdict}' must be one of {', '.join(sorted(allowed))}")
 
 
+def check_scenarios(report: Report) -> int:
+    """scenarios/*.json: referenced files exist, sensor and fault names are known."""
+    known_sensors = {"pump_volume_ul", "pressure_kpa", "outlet_absorbance", "temperature_c", "capsules_counted"}
+    known_faults = {"clog", "reagent_low", "capsule_loss", "sensor_fault"}
+    paths = sorted((ROOT / "scenarios").glob("*.json"))
+    for path in paths:
+        try:
+            scn = schema_io.load_json(path)
+        except ValueError as e:
+            report.error(f"{rel(path)}: {e}")
+            continue
+        for key in ("protocol", "chip"):
+            if key in scn and not (ROOT / scn[key]).is_file():
+                report.error(f"{rel(path)}: {key} '{scn[key]}' does not exist")
+        for name in scn.get("sensors", {}):
+            if name not in known_sensors:
+                report.error(f"{rel(path)}: unknown sensor '{name}' (known: {', '.join(sorted(known_sensors))})")
+        for f in scn.get("faults", []):
+            if f.get("type") not in known_faults:
+                report.error(f"{rel(path)}: unknown fault type '{f.get('type')}' (known: {', '.join(sorted(known_faults))})")
+            if f.get("type") == "sensor_fault" and f.get("sensor") not in known_sensors:
+                report.error(f"{rel(path)}: sensor_fault on unknown sensor '{f.get('sensor')}'")
+    return len(paths)
+
+
 def check_cad(chips: dict[str, tuple[Path, dict]], report: Report) -> int:
     # An STL may be one part (named by chamber, port or channel id) or a whole
     # one-piece print (named by the chip spec id, e.g. hello_world_plate.stl).
@@ -339,6 +364,7 @@ def main() -> int:
         check_run(path, run, protocols, chips, report)
     check_index(run_files, report)
     check_contract_data(report)
+    n_scn = check_scenarios(report)
     n_stl = check_cad(chips, report)
 
     print("capsule-processor contract check")
@@ -346,6 +372,7 @@ def main() -> int:
     print(f"  chip specs    {len(chip_files)} file(s) (chip/ and cad/*_spec.json)")
     print(f"  runs/         {len(run_files)} file(s)")
     print(f"  cad/exports/  {n_stl} STL file(s)")
+    print(f"  scenarios/    {n_scn} file(s)")
     print()
     for line in report.errors:
         print(f"ERROR  {line}")

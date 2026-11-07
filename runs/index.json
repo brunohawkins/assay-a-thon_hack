@@ -10,7 +10,98 @@
       "operator": "planner",
       "events": 4,
       "total_duration_s": 360.0,
-      "placeholder": true
+      "placeholder": true,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null
+    },
+    {
+      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_clog.json",
+      "protocol_id": "placeholder_capsule_wash_mvp",
+      "protocol_name": "Placeholder capsule wash (MVP)",
+      "chip_id": "wash_mvp_v1",
+      "chip_spec": "cad/wash_mvp_spec.json",
+      "operator": "planner",
+      "events": 8,
+      "total_duration_s": 283.2,
+      "placeholder": true,
+      "simulated_hardware": true,
+      "scenario": "wash_mvp_clog",
+      "loop": "closed",
+      "faults": [
+        "clog"
+      ],
+      "status": "done"
+    },
+    {
+      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_clog_open_loop.json",
+      "protocol_id": "placeholder_capsule_wash_mvp",
+      "protocol_name": "Placeholder capsule wash (MVP)",
+      "chip_id": "wash_mvp_v1",
+      "chip_spec": "cad/wash_mvp_spec.json",
+      "operator": "planner",
+      "events": 4,
+      "total_duration_s": 286.4,
+      "placeholder": true,
+      "simulated_hardware": true,
+      "scenario": "wash_mvp_clog_open_loop",
+      "loop": "open",
+      "faults": [
+        "clog"
+      ],
+      "status": "done"
+    },
+    {
+      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_closed_loop.json",
+      "protocol_id": "placeholder_capsule_wash_mvp",
+      "protocol_name": "Placeholder capsule wash (MVP)",
+      "chip_id": "wash_mvp_v1",
+      "chip_spec": "cad/wash_mvp_spec.json",
+      "operator": "planner",
+      "events": 5,
+      "total_duration_s": 281.15,
+      "placeholder": true,
+      "simulated_hardware": true,
+      "scenario": "wash_mvp_closed_loop",
+      "loop": "closed",
+      "faults": [],
+      "status": "done"
+    },
+    {
+      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_open_loop.json",
+      "protocol_id": "placeholder_capsule_wash_mvp",
+      "protocol_name": "Placeholder capsule wash (MVP)",
+      "chip_id": "wash_mvp_v1",
+      "chip_spec": "cad/wash_mvp_spec.json",
+      "operator": "planner",
+      "events": 4,
+      "total_duration_s": 286.4,
+      "placeholder": true,
+      "simulated_hardware": true,
+      "scenario": "wash_mvp_open_loop",
+      "loop": "open",
+      "faults": [],
+      "status": "done"
+    },
+    {
+      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_sensor_fault.json",
+      "protocol_id": "placeholder_capsule_wash_mvp",
+      "protocol_name": "Placeholder capsule wash (MVP)",
+      "chip_id": "wash_mvp_v1",
+      "chip_spec": "cad/wash_mvp_spec.json",
+      "operator": "planner",
+      "events": 6,
+      "total_duration_s": 283.4,
+      "placeholder": true,
+      "simulated_hardware": true,
+      "scenario": "wash_mvp_sensor_fault",
+      "loop": "closed",
+      "faults": [
+        "sensor_fault"
+      ],
+      "status": "done"
     },
     {
       "file": "placeholder_culture_then_scrnaseq__placeholder_chip_v1.json",
@@ -21,7 +112,12 @@
       "operator": "planner",
       "events": 15,
       "total_duration_s": 17460.0,
-      "placeholder": true
+      "placeholder": true,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null
     },
     {
       "file": "placeholder_scdnaseq__placeholder_chip_v1.json",
@@ -32,7 +128,12 @@
       "operator": "planner",
       "events": 15,
       "total_duration_s": 2700.0,
-      "placeholder": true
+      "placeholder": true,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null
     },
     {
       "file": "placeholder_scrnaseq__placeholder_chip_v1.json",
@@ -43,7 +144,12 @@
       "operator": "planner",
       "events": 14,
       "total_duration_s": 2040.0,
-      "placeholder": true
+      "placeholder": true,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null
     }
   ]
 }
