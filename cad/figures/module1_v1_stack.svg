@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="814" height="418" viewBox="0 0 814 418" role="img" aria-label="module1_v1: layer stack and fabrication route">
+  <title>module1_v1: layer stack and fabrication route</title>
+  <rect width="814" height="418" fill="#ffffff"/>
+  <text x="50" y="24" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="14.5" fill="#1b2026" text-anchor="start" font-weight="bold">Layer stack and how each layer is made</text>
+  <text x="50" y="41" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.5" fill="#5a636d" text-anchor="start">chip/module1_v1.json   ·   exploded, thickness to scale   ·   3 layers, 6.3 mm total</text>
+  <line x1="388" y1="110" x2="428" y2="70" stroke="#d6dbe1" stroke-width="1"/>
+  <polygon points="50,74 84,56 384,56 350,74" fill="#e3eaf2" stroke="#8d9bab" stroke-width="1.1"/>
+  <polygon points="350,74 384,56 384,146 350,164" fill="#8d9bab" stroke="#8d9bab" stroke-width="1.1" opacity="0.5"/>
+  <rect x="50" y="74" width="300" height="90" fill="#e3eaf2" stroke="#8d9bab" stroke-width="1.1"/>
+  <text x="440" y="70" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1b2026" text-anchor="start" font-weight="bold">lid</text>
+  <text x="440" y="84" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">acrylic   ·   3 mm</text>
+  <rect x="440" y="92" width="100" height="16" fill="#ffffff" stroke="#c0392b" stroke-width="1.1" rx="8"/>
+  <text x="490" y="103.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">laser</text>
+  <text x="550" y="103.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">cut to outline, ports drilled through</text>
+  <line x1="388" y1="186" x2="428" y2="138" stroke="#d6dbe1" stroke-width="1"/>
+  <polygon points="50,190 84,172 384,172 350,190" fill="#e3eaf2" stroke="#8d9bab" stroke-width="1.1"/>
+  <polygon points="350,190 384,172 384,182 350,200" fill="#8d9bab" stroke="#8d9bab" stroke-width="1.1" opacity="0.5"/>
+  <rect x="50" y="190" width="300" height="10" fill="#e3eaf2" stroke="#8d9bab" stroke-width="1.1"/>
+  <rect x="108" y="191" width="46" height="8" fill="#ffffff" stroke="#8d9bab" stroke-width="0.8"/>
+  <rect x="192" y="191" width="46" height="8" fill="#ffffff" stroke="#8d9bab" stroke-width="0.8"/>
+  <rect x="276" y="191" width="46" height="8" fill="#ffffff" stroke="#8d9bab" stroke-width="0.8"/>
+  <text x="440" y="138" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1b2026" text-anchor="start" font-weight="bold">spacer</text>
+  <text x="440" y="152" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">acrylic   ·   0.3 mm</text>
+  <rect x="440" y="160" width="100" height="16" fill="#ffffff" stroke="#c0392b" stroke-width="1.1" rx="8"/>
+  <text x="490" y="171.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">laser</text>
+  <text x="550" y="171.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">cut right through: chamber cavities + channels</text>
+  <line x1="388" y1="262" x2="428" y2="206" stroke="#d6dbe1" stroke-width="1"/>
+  <polygon points="50,226 84,208 384,208 350,226" fill="#e3eaf2" stroke="#8d9bab" stroke-width="1.1"/>
+  <polygon points="350,226 384,208 384,298 350,316" fill="#8d9bab" stroke="#8d9bab" stroke-width="1.1" opacity="0.5"/>
+  <rect x="50" y="226" width="300" height="90" fill="#e3eaf2" stroke="#8d9bab" stroke-width="1.1"/>
+  <text x="440" y="206" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1b2026" text-anchor="start" font-weight="bold">base</text>
+  <text x="440" y="220" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">acrylic   ·   3 mm</text>
+  <rect x="440" y="228" width="100" height="16" fill="#ffffff" stroke="#6e7781" stroke-width="1.1" rx="8"/>
+  <text x="490" y="239.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#6e7781" text-anchor="middle" font-weight="bold">stock</text>
+  <text x="550" y="239.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">stock sheet, cut to outline only</text>
+  <line x1="50" y1="344" x2="774" y2="344" stroke="#eaeef2" stroke-width="1"/>
+  <text x="50" y="362" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">The chamber height IS the spacer: 0.3 mm. That is why a chamber is a rectangle in a flat sheet rather than a milled pocket.</text>
+  <text x="50" y="377" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">One process: every feature on this chip is within reach of the laser cutter. See the feature figure.</text>
+  <text x="50" y="392" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#8b949e" text-anchor="start">Process floors are vendor typicals, not measured: cad/fabrication.json still has laser_kerf_um = null.</text>
+</svg>

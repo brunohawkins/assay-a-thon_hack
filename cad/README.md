@@ -17,12 +17,15 @@ digital twin uses.
    spec says `exchange_1` is.
 5. Binary or ASCII STL both work.
 6. **One chip owns the flat folder; every other chip gets a subfolder.** Part files are
-   named by bare ID and IDs repeat across chips — both real chips have an `inlet_1` —
-   so `cad/exports/inlet_1.stl` can only mean one of them. `twin/main.js` loads
+   named by bare ID and IDs repeat across chips (`inlet_1` is not unique), so
+   `cad/exports/inlet_1.stl` can only mean one chip. `twin/main.js` loads
    `cad/exports/` flat, so that namespace belongs to the chip the twin shows, and
    `cad/make_train_cad.py` writes any other chip to `cad/exports/<chip_id>/`.
    `chip.loadStls()` already takes a base path, so pointing the twin at a subfolder is
-   a one-line change whenever someone wants the second chip in it.
+   a one-line change whenever someone wants the second chip in it. `module1_v1` is in
+   `cad/exports/module1_v1/`.
+7. **`module1_v1` is laser-cut only.** It has no feature under 0.3 mm, so it needs no
+   photolithography, cast layer, PDMS or glass, and no second fabrication route.
 
 If your CAD can export **GLB with named parts**, put that in `cad/exports/` as well
 (e.g. `chip_v1.glb`), with each part named by its ID. The twin doesn't load GLB yet,
@@ -89,7 +92,7 @@ circuit. Neither shows up in a JSON spec and neither is checked by
 `tools/check_chip_spec.py`. It exits non-zero if it finds one, and always prints the
 tightest clearance between unconnected features.
 
-This found four real short circuits in the three-lane chip on its first run.
+This found four real short circuits in an earlier chip on its first run.
 
 ## What goes in this folder
 

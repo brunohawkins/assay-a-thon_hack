@@ -198,10 +198,6 @@
           "type": "boolean",
           "default": false,
           "description": "true if the channel is an open groove with no lid. Default false (closed channel). Flow estimates for open channels are approximate."
-        },
-        "capsule_passable": {
-          "type": "boolean",
-          "description": "Optional, same meaning as ports[].capsule_passable. false for a channel deliberately too small to pass capsules or cells, such as a microgroove barrier that passes only soluble factors, vesicles and axons. Such a channel is not checked against capsule diameter."
         }
       }
     },

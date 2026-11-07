@@ -168,7 +168,6 @@ fields**: they're what `tools/check_chip_spec.py` checks the real-scale design a
 | `chambers[].height_um`, `.sealed` | Internal height in µm; sealed against evaporation. |
 | `chambers[].retention` | `{type: mesh/pillars/weir, opening_um, source: bought/fabricated}`: what holds the capsules. |
 | `ports[].role`, `.capsule_passable`, `.width_um` | The sheet's `outlets[]`: which ports capsules can pass (a waste line below a mesh can't), and the opening width. |
-| `channels[].capsule_passable` | Same meaning, on a channel. Set `false` for a channel deliberately too small to pass capsules or cells, such as a microgroove barrier that passes only soluble factors, vesicles and axons. Those channels are not checked against capsule diameter. |
 
 **`contracts/parameters.json`** holds every number from the sheet with its units,
 source keys (CapSeq, SPC-NAR, 10x, inDrops, TIP-seq) and an `assumption` flag for

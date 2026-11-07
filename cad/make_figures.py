@@ -9,6 +9,8 @@ Writes, into cad/figures/:
   <chip_id>_features.svg  every feature size against the process floors
   <chip_id>_barrier.svg   groove-barrier detail, only for chips that have one
   <chip_id>_schedule.svg  lane timing, only for chips whose protocol stages lanes
+  <chip_id>_modes.svg     one mini plan view per operating mode, only for chips that are
+                          routed by port pressure instead of valves
 
 Channel geometry is imported from make_train_cad rather than re-derived, so a drawing
 and the DXF cut path cannot disagree.
@@ -43,7 +45,7 @@ CHIP_DIR = ROOT / "chip"
 
 # Chips whose protocol deliberately staggers its lanes. The schedule figure is drawn
 # from the generator that owns the schedule, so the two cannot drift apart.
-SCHEDULE_BUILDERS = {"tri_culture_v1": "protocols/build_tri_culture.py"}
+SCHEDULE_BUILDERS = {"module1_v1": "protocols/build_module1.py"}
 
 # Process floors, for the feature figure. These are published/vendor typicals, NOT our
 # measured numbers: cad/fabrication.json still has laser_kerf_um and
@@ -315,13 +317,22 @@ def lanes_of(chip):
 
 
 def load_schedule(chip_id):
-    """The generator that owns this chip's lane schedule, or None."""
+    """The generator that owns this chip's lane schedule, or None.
+
+    Absent, unimportable or incomplete builders all give None, so the figures still
+    build while a protocol generator is being written.
+    """
     rel = SCHEDULE_BUILDERS.get(chip_id)
     if not rel or not (ROOT / rel).exists():
         return None
-    spec = importlib.util.spec_from_file_location("schedule_builder", ROOT / rel)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    try:
+        spec = importlib.util.spec_from_file_location("schedule_builder", ROOT / rel)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+    except Exception:
+        return None
+    if not all(hasattr(mod, a) for a in ("LANES", "MATURE_DAY", "INTERACT_DAYS")):
+        return None
     return mod
 
 
@@ -331,7 +342,12 @@ def lane_names(chip, sched):
         return {}
     out = {}
     for name, entry in sched.LANES.items():
-        out[str(entry[0]).split("_")[0]] = name
+        # A lane entry is a dict keyed by 'chamber', or an older positional tuple whose
+        # first item is the chamber id. Accept either rather than tying the figure to
+        # one generator's shape.
+        chamber = entry.get("chamber") if isinstance(entry, dict) else entry[0]
+        if chamber:
+            out[str(chamber).split("_")[0]] = name
     return out
 
 
@@ -981,6 +997,240 @@ def fig_schedule(chip, sched):
     return svg
 
 
+# --- figure: operating modes ----------------------------------------------------------
+
+MODE_SCALE = 3.2         # px per mm, the mini plan views
+MIXED_C = "#3d4650"      # a channel that carries more than one medium
+MEDIUM_C = {"p_in": "#2f6fb0", "p_g_in": "#468a4a", "p_a_in": "#bf7b2f"}
+
+
+def _flow_directions(chip, state):
+    """Which way each channel flows, from the port states alone.
+
+    The channel graph of a pressure-routed chip is a tree. Cut one channel and the tree
+    falls into two sides: fluid runs across the cut from side A to side B when side A
+    holds a pressurised port and side B holds a vented one. A pressurised port facing
+    only blocked ports pushes against a dead end, so it moves nothing.
+    Returns {channel id: (from node, to node, [source ports])} for flowing channels.
+    """
+    adj: dict[str, list[tuple[str, str]]] = {}
+    for ch in chip["channels"]:
+        adj.setdefault(ch["from"], []).append((ch["to"], ch["id"]))
+        adj.setdefault(ch["to"], []).append((ch["from"], ch["id"]))
+
+    def side(start, cut):
+        seen, todo = {start}, [start]
+        while todo:
+            for nxt, cid in adj.get(todo.pop(), []):
+                if cid != cut and nxt not in seen:
+                    seen.add(nxt)
+                    todo.append(nxt)
+        return seen
+
+    def count(nodes, kind):
+        return [p for p in nodes if state.get(p, ("B", None))[0] == kind]
+
+    out = {}
+    for ch in chip["channels"]:
+        a, b = side(ch["from"], ch["id"]), side(ch["to"], ch["id"])
+        fwd = count(a, "P") and count(b, "V")
+        back = count(b, "P") and count(a, "V")
+        if fwd and not back:
+            out[ch["id"]] = (ch["from"], ch["to"], count(a, "P"))
+        elif back and not fwd:
+            out[ch["id"]] = (ch["to"], ch["from"], count(b, "P"))
+    return out
+
+
+def _arrow(svg, p0, p1, colour, size=10.0, at=0.5):
+    """A filled arrowhead on p0 -> p1, centred a fraction `at` of the way along it."""
+    dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+    length = math.hypot(dx, dy)
+    if length < 1e-6:
+        return
+    ux, uy = dx / length, dy / length
+    cx, cy = p0[0] + dx * at, p0[1] + dy * at
+    tip = (cx + ux * size * 0.6, cy + uy * size * 0.6)
+    bx, by = cx - ux * size * 0.6, cy - uy * size * 0.6
+    svg.poly([tip, (bx - uy * size * 0.55, by + ux * size * 0.55),
+              (bx + uy * size * 0.55, by - ux * size * 0.55)], colour, PAPER, 0.8)
+
+
+def fig_modes(chip):
+    """One mini plan view per operating mode. None unless the chip is routed by ports."""
+    # DESIGN INTENT, not a simulation. For every operating mode this table says what each
+    # port is doing: "P" pressurised (pushes fluid in, cannot be flowed out of), "V" vented
+    # (open, the drain) or "B" blocked (capped, no flow either way), plus what a
+    # pressurised port is carrying. Every flow arrow below is derived from it by
+    # _flow_directions(); change the table and the figure follows. A port a mode does not
+    # mention is blocked.
+    PORT_STATE = {
+        "p_in":    {"seed": ("P", "cells"), "grow": ("P", "medium N"),
+                    "n": ("P", "N medium"), "g": ("V", None), "a": ("V", None)},
+        "p_g_in":  {"grow": ("P", "medium G"), "g": ("P", "G medium")},
+        "p_a_in":  {"grow": ("P", "medium A"), "a": ("P", "A medium")},
+        "p_mid":   {"grow": ("V", None)},
+        "p_g_out": {"seed": ("V", None), "n": ("V", None), "a": ("V", None)},
+        "p_a_out": {"seed": ("V", None), "n": ("V", None), "g": ("V", None)},
+    }
+    MODES = [
+        ("seed", "SEED", "FALLBACK ONLY. Cells enter p_in and cross n_cx toward g_cx and a_cx, but most\nsettle long before they arrive, so each chamber is normally seeded through its own inlet."),
+        ("grow", "SEPARATE GROWTH",
+         "Three media in, one drain at p_mid. The weeks-long differentiation mode."),
+        ("n", "INTERACT  N → G + A", "N medium leaves n_cx, reaches the junction and splits to g_cx and a_cx."),
+        ("g", "INTERACT  G → N + A", "G medium leaves g_cx, reaches the junction and splits to n_cx and a_cx."),
+        ("a", "INTERACT  A → N + G", "A medium leaves a_cx, reaches the junction and splits to n_cx and g_cx."),
+    ]
+    ids = {p["id"] for p in chip["ports"]}
+    if not set(PORT_STATE) <= ids or not {"n_cx", "g_cx", "a_cx"} <= {c["id"] for c in chip["chambers"]}:
+        return None
+
+    fx, fy = chip["footprint"]["x"], chip["footprint"]["y"]
+    S = MODE_SCALE
+    bw, bh = fx * S, fy * S
+    pad_x, gap_x = 40.0, 44.0
+    head, gap_y = 54.0, 30.0
+    cell_h = head + bh + gap_y
+    w = pad_x * 2 + bw * 2 + gap_x
+    top = 84.0
+    h = top + cell_h * 3 + 70
+    svg = Svg(w, h, f"{chip['id']}: operating modes")
+
+    svg.text(pad_x, 24, "Operating modes: the chip has no valves, so the ports do the routing",
+             14.5, INK, weight="bold")
+    svg.text(pad_x, 41, f"chip/{chip['id']}.json   ·   one plan view per mode   ·   a "
+                        f"driven port is a source and a capped port is a true block, so the vented port is "
+                        f"the drain", 9.5, INK2)
+    svg.text(w - pad_x, 24, "generated by", 8, INK3, "end")
+    svg.text(w - pad_x, 36, "cad/make_figures.py", 8, INK3, "end", mono=True)
+    svg.text(w - pad_x, 48, "do not edit by hand", 8, INK3, "end")
+
+    segs = segments_of(chip)
+    chambers = chip["chambers"]
+    ports = {p["id"]: p for p in chip["ports"]}
+    # (dx, dy, anchor) for the id label, in px from the port centre.
+    label_at = {"p_in": (0, -22, "middle"), "p_g_in": (0, -22, "middle"),
+                "p_a_in": (0, 22, "middle"), "p_mid": (14, -2, "start"),
+                "p_g_out": (0, 22, "middle"), "p_a_out": (0, 22, "middle")}
+    lineage = {"n_cx": "neurons", "g_cx": "glia", "a_cx": "astrocytes"}
+    R = 6.5
+
+    def port_glyph(x, y, kind, colour):
+        if kind == "P":
+            svg.circle(x, y, R, colour, INK, 1.4)
+        elif kind == "V":
+            svg.circle(x, y, R, PAPER, INK, 2.0)
+        else:
+            svg.circle(x, y, R, "#e6eaef", INK3, 1.2)
+            svg.line(x - 3.2, y - 3.2, x + 3.2, y + 3.2, INK3, 1.5)
+            svg.line(x - 3.2, y + 3.2, x + 3.2, y - 3.2, INK3, 1.5)
+
+    for k, (mode, title, caption) in enumerate(MODES):
+        col, row = k % 2, k // 2
+        x0 = pad_x + col * (bw + gap_x)
+        y0 = top + row * cell_h
+        v = View(chip, S, x0, y0 + head)
+        state = {pid: PORT_STATE[pid].get(mode, ("B", None)) for pid in PORT_STATE}
+        flows = _flow_directions(chip, state)
+
+        svg.circle(x0 + 8, y0 + 6, 8, INK, "none")
+        svg.text(x0 + 8, y0 + 9.4, str(k + 1), 9, PAPER, "middle", "bold")
+        svg.text(x0 + 24, y0 + 10, title, 11.5, INK, weight="bold")
+        svg.text(x0 + 24, y0 + 25, caption, 8.5, INK2)
+        groups = {kind: [p for p in PORT_STATE if state[p][0] == kind] for kind in "PVB"}
+        summary = "  |  ".join(f"{word}: {', '.join(groups[kind])}" for kind, word in
+                            (("P", "pressurised"), ("V", "vented"), ("B", "blocked"))
+                            if groups[kind])
+        svg.text(x0 + 24, y0 + 38, summary, 7.5, INK3, mono=True)
+
+        svg.rect(v.x(0), v.y(fy), bw, bh, BOARD_F, BOARD_S, 1.2, rx=4)
+
+        arrows = []
+        for ch, p0, p1, _ in segs:
+            a, b = v.p(p0), v.p(p1)
+            mid = [v.p(c) for c in quad(p0, p1, max(ch["width_mm"], 5.0 / S))]
+            flow = flows.get(ch["id"])
+            svg.poly(mid, CHAN_F, CHAN_S, 0.8)
+            if flow is None:
+                continue
+            src, dst, sources = flow
+            colour = MEDIUM_C.get(sources[0], MIXED_C) if len(sources) == 1 else MIXED_C
+            svg.poly(mid, colour, "none", op=0.30)
+            if src != ch["from"]:
+                a, b = b, a
+            arrows.append((a, b, colour))
+
+        for c in chambers:
+            sx, sy = c["size"][0], c["size"][1]
+            fill, stroke = TYPES.get(c.get("type"), TYPE_FALLBACK)
+            svg.rect(v.x(c["center"][0] - sx / 2), v.y(c["center"][1] + sy / 2),
+                     v.d(sx), v.d(sy), fill, stroke, 1.3, rx=2.5)
+            cx, cy = v.x(c["center"][0]), v.y(c["center"][1])
+            svg.text(cx, cy - 1, c["id"], 9, stroke, "middle", "bold", mono=True)
+            svg.text(cx, cy + 10, lineage.get(c["id"], ""), 8, INK2, "middle")
+
+        for a, b, colour in arrows:
+            length = math.hypot(b[0] - a[0], b[1] - a[1])
+            count = max(1, int(length // 48))
+            for i in range(count):
+                _arrow(svg, a, b, colour, at=(i + 0.5) / count)
+
+        for pid, port in ports.items():
+            kind, medium = state[pid]
+            px, py = v.x(port["position"][0]), v.y(port["position"][1])
+            colour = MEDIUM_C.get(pid, INK)
+            port_glyph(px, py, kind, colour)
+            dx, dy, anchor = label_at.get(pid, (0, 22, "middle"))
+            ink = {"P": colour if pid in MEDIUM_C else INK, "V": INK, "B": INK3}[kind]
+            word = medium if kind == "P" else ("vent" if kind == "V" else "blocked")
+            svg.text(px + dx, py + dy, pid, 8, ink, anchor, "bold", mono=True)
+            svg.text(px + dx, py + dy + 9.5, word, 7.5, ink, anchor,
+                     "bold" if kind != "B" else "normal")
+
+    # --- legend, in the sixth cell -----------------------------------------------------
+    lx = pad_x + (bw + gap_x)
+    ly = top + cell_h * 2 + 8
+    svg.text(lx, ly + 2, "HOW TO READ IT", 10, INK, weight="bold")
+    svg.line(lx, ly + 10, lx + bw, ly + 10, GRID, 1.0)
+    y = ly + 34
+    port_glyph(lx + 10, y, "P", MEDIUM_C["p_in"])
+    svg.text(lx + 28, y - 2, "pressurised", 9, INK, weight="bold")
+    svg.text(lx + 28, y + 10, "pushes its medium in. Fluid cannot leave through it, so it blocks.",
+             8.5, INK2)
+    y += 36
+    port_glyph(lx + 10, y, "V", MEDIUM_C["p_in"])
+    svg.text(lx + 28, y - 2, "vented", 9, INK, weight="bold")
+    svg.text(lx + 28, y + 10, "open to the air. Flow goes here: it is the drain.", 8.5, INK2)
+    y += 36
+    port_glyph(lx + 10, y, "B", MEDIUM_C["p_in"])
+    svg.text(lx + 28, y - 2, "blocked", 9, INK, weight="bold")
+    svg.text(lx + 28, y + 10, "capped. Nothing moves in or out.", 8.5, INK2)
+    y += 36
+    _arrow(svg, (lx + 2, y), (lx + 18, y), MEDIUM_C["p_in"], 11.0)
+    svg.text(lx + 28, y - 2, "arrow", 9, INK, weight="bold")
+    svg.text(lx + 28, y + 10, "flow direction in this mode. Colour is the port that feeds it;",
+             8.5, INK2)
+    svg.text(lx + 28, y + 21, "dark grey is a channel carrying more than one medium.", 8.5, INK2)
+    x = lx + 28
+    for pid, name in (("p_in", "p_in"), ("p_g_in", "p_g_in"), ("p_a_in", "p_a_in")):
+        svg.rect(x, y + 28, 10, 8, MEDIUM_C[pid], "none", rx=1.5)
+        svg.text(x + 14, y + 35.5, name, 8, MEDIUM_C[pid], weight="bold", mono=True)
+        x += 78
+    svg.rect(x, y + 28, 10, 8, MIXED_C, "none", rx=1.5)
+    svg.text(x + 14, y + 35.5, "mixed", 8, MIXED_C, weight="bold", mono=True)
+
+    row = top + cell_h * 3 + 22
+    svg.line(pad_x, row - 14, w - pad_x, row - 14, GRID, 1.0)
+    svg.text(pad_x, row, "Every mode is a different pressure map on the same board; nothing on "
+                         "it moves. Arrows are derived from the port states, not simulated.",
+             8.5, INK2)
+    svg.text(pad_x, row + 14, "Channels are drawn wider than the 0.8 mm they are, so the "
+                              "arrows fit. The port table is in fig_modes() in cad/make_figures.py.",
+             8.5, INK3)
+    svg.h = row + 34
+    return svg
+
+
 # --- main -----------------------------------------------------------------------------
 
 def main() -> int:
@@ -1003,7 +1253,12 @@ def main() -> int:
         written = [layout.save(FIGURES / f"{chip['id']}_layout.svg"),
                    fig_stack(chip).save(FIGURES / f"{chip['id']}_stack.svg"),
                    fig_features(chip).save(FIGURES / f"{chip['id']}_features.svg")]
-        for fig, suffix in ((fig_barrier(chip), "barrier"), (fig_schedule(chip, sched), "schedule")):
+        try:
+            schedule = fig_schedule(chip, sched)
+        except (KeyError, ValueError, TypeError, IndexError):
+            schedule = None      # a builder whose LANES has a different shape: skip the figure
+        for fig, suffix in ((fig_barrier(chip), "barrier"), (schedule, "schedule"),
+                            (fig_modes(chip), "modes")):
             if fig is not None:
                 written.append(fig.save(FIGURES / f"{chip['id']}_{suffix}.svg"))
 

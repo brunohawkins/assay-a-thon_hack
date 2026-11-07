@@ -10,6 +10,8 @@ The format is explained, with examples, in [`contracts/README.md`](../contracts/
 | Path | What |
 |---|---|
 | `placeholder_chip_spec.json` | Placeholder chip: inlet → exchange chamber → 4 split chambers → pool → outlet on a 75 × 25 mm slide. Everyone builds against this until the real spec lands. |
+| `ipsc_to_mgl_chip_v1.json` | **Real.** The iPSC-to-microglia train, laser-cut. |
+| `module1_v1.json` | **Real.** Module 1: three culture chambers (neurons, glia, astrocytes) in a Y on 140 × 75 mm, routed by which port is driven, vented or capped — driven by syringe pumps, not pressure. No valves, no barriers; every feature ≥ 0.3 mm, so it is laser-cut only: no photolithography, cast layer, PDMS or glass. |
 | `nl_to_spec/` | The NL → spec code. A stub for now that returns the placeholder. See its README. |
 
 ## Replacing the placeholder
