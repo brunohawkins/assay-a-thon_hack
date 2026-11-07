@@ -1,31 +1,38 @@
-"""Fusion 360 script: build a real, printable chip from a chip spec (chip/*.json).
+"""Fusion 360 script: build the positive embossing mould for chip specs (chip/*.json).
+
+Our process (cad/fabrication.json): resin 3D print a TOOL, hot-emboss it into a COC/COP
+sheet, then seal the open channels with film or a lid with drilled ports. This script
+builds that tool, nothing else.
 
 Run it in Fusion: Utilities > Add-Ins > Scripts and Add-Ins (Shift+S) > + > pick this
 folder > Run. It first offers to build every module chip listed in
 protocols/pipeline_mvp.json, in one row in pipeline order (components 01_..., 02_...);
 answer No to pick spec files yourself instead (it opens in the repo's chip/ folder; Ctrl+A
-picks them all). It lays the chips out side by side, optionally saves STLs to
-chip/fusion/stl/ (at the chip's own origin), and builds, per spec, one component named after
-the chip id:
+picks them all). It optionally saves one STL per mould to chip/fusion/stl/<id>_mould.stl
+(at the mould's own origin, mm), ready for the printer.
 
-  <id>_chip   the printed part: base + fluidic layer as one block, with every chamber,
-              channel and port well cut DOWN from its top face. Print it open, seal with
-              film or the lid (contracts/blocks.json: "print open and seal with film").
-  <id>_lid    the cover, with the tubing holes through it at the port positions.
+Per spec, one component with one body, <id>_mould:
+  a flat MOULD_BASE_MM plate, the spec's footprint (30 x 20 mm for every module), with
+  every chamber, channel and port pad RAISED by its depth: a positive mould, like Ayrton's
+  cad/exports/hello_world_plate.stl. Mirrored in x by default (MIRROR_MOULD): an embossed
+  copy is the mirror image of its tool, so the mirrored tool gives a chip that matches the
+  spec seen from the port side.
 
 Geometry comes only from the spec, in mm with the spec's origin (bottom-left corner of the
-footprint, z up):
-  chambers  boxes at center/size, cut as deep as height_um (or size z); shape "cylinder"
-            gives a round chamber
+footprint, z up), before mirroring:
+  chambers  boxes at center/size, as tall as height_um (or size z); shape "cylinder"
+            gives a round one
   channels  straight runs of width_mm x depth_mm along `path` when given; otherwise the
             same automatic route the twin and display model use (cad/export_display_model.py)
-  ports     round holes of width_um (default 1.6 mm, press-fit 1/16" tubing): through the
-            lid, and a well in the chip as deep as its deepest feature
+  ports     round pads of width_um (default 1.6 mm, press-fit 1/16" tubing), as tall as
+            the tallest feature: they emboss the well under each drilled tubing hole
 
 Not built (on purpose; the spec has no shape for them): retention meshes (a bought insert),
-valves and `features`. The script lists what it skipped.
+valves and `features`. Parts the spec only gives as a box (e.g. a serpentine block) come
+out as a solid block. No draft angles or fillets. The script lists what it skipped.
 
 The geometry is planned by plan() in plain Python, so it can be checked without Fusion:
+    python -I chip/fusion/chip_from_spec/chip_from_spec.py --pipeline
     python -I chip/fusion/chip_from_spec/chip_from_spec.py chip/spc_demo_v1.json
 """
 
@@ -35,9 +42,16 @@ import os
 import sys
 
 DEFAULT_PORT_MM = 1.6     # spc_demo_v1: press-fit 1.6 mm hole for 1/16 inch tubing
-OVERCUT_MM = 0.01         # cutters poke this far above the cut face, so no zero-thickness skins
+FUSE_MM = 0.01            # raised features start this far inside the plate, so they fuse cleanly
+MOULD_BASE_MM = 2.0       # mould plate thickness: stiff enough for the press (Ayrton's MVP used 0.5)
+MIRROR_MOULD = True       # embossing mirrors the tool, so mirror the tool to get the spec's layout
 HERE = os.path.dirname(os.path.abspath(__file__)) if "__file__" in globals() else os.getcwd()
 CHIP_DIR = os.path.normpath(os.path.join(HERE, "..", ".."))
+REPO_DIR = os.path.normpath(os.path.join(CHIP_DIR, ".."))
+PIPELINE = os.path.join(REPO_DIR, "protocols", "pipeline_mvp.json")
+STL_DIR = os.path.join(HERE, "..", "stl")       # chip/fusion/stl/<id>_mould.stl (git-ignored)
+GRID_COLS = 4
+GRID_GAP_MM = 10.0
 
 
 # --- geometry plan: plain Python, no Fusion ------------------------------------------------
@@ -74,73 +88,76 @@ def _route(a, b, chambers, ports):
     return path if ch == a else path[::-1]
 
 
-def plan(spec):
-    """Everything to build, in mm. Returns a dict of plain numbers and lists."""
-    layers = spec["layers"]
-    if len(layers) < 2:
-        raise ValueError("need at least a base and a lid layer")
-    lid_t = layers[-1]["thickness_mm"]
-    chip_t = sum(l["thickness_mm"] for l in layers[:-1])   # base + every fluidic layer, printed as one
-    top = chip_t                                            # cuts start at the top face of the chip
+def plan(spec, mirror=MIRROR_MOULD):
+    """The mould for one spec, in mm: the raised features (mirrored when `mirror`), what was
+    skipped, and anything to check. Plain numbers and lists only."""
     fx, fy = spec["footprint"]["x"], spec["footprint"]["y"]
     chambers = {c["id"]: c for c in spec["chambers"]}
     ports = {p["id"]: p for p in spec["ports"]}
-    cuts, skipped = [], []
-
-    def depth_of_chamber(c):
-        return c["height_um"] / 1000 if c.get("height_um") else c["size"][2]
+    feats, skipped = [], []
 
     for c in spec["chambers"]:
         cx, cy = c["center"][:2]
         sx, sy = c["size"][:2]
-        d = depth_of_chamber(c)
+        h = c["height_um"] / 1000 if c.get("height_um") else c["size"][2]
         if c.get("shape") == "cylinder":
-            cuts.append({"kind": "cyl", "id": c["id"], "x": cx, "y": cy, "r": sx / 2, "depth": d})
+            feats.append({"kind": "cyl", "id": c["id"], "x": cx, "y": cy, "r": sx / 2, "height": h})
         else:
-            cuts.append({"kind": "box", "id": c["id"], "x": cx, "y": cy, "len": sx, "wid": sy,
-                         "dir": (1.0, 0.0), "depth": d})
+            feats.append({"kind": "box", "id": c["id"], "x": cx, "y": cy, "len": sx, "wid": sy,
+                          "dir": (1.0, 0.0), "height": h})
         if c.get("retention") or c.get("mesh_pore_um"):
             skipped.append(f"{c['id']}: retention/mesh not modelled (bought insert)")
 
     for ch in spec["channels"]:
         path = [tuple(p[:2]) for p in ch["path"]] if ch.get("path") else _route(ch["from"], ch["to"], chambers, ports)
-        w, d = ch["width_mm"], ch["depth_mm"]
+        w, h = ch["width_mm"], ch["depth_mm"]
         for (x0, y0), (x1, y1) in zip(path[:-1], path[1:]):
             L = math.hypot(x1 - x0, y1 - y0)
             if L < 1e-9:
                 continue
             # extend each run by half a width at both ends so corners and joints close up
-            cuts.append({"kind": "box", "id": ch["id"], "x": (x0 + x1) / 2, "y": (y0 + y1) / 2,
-                         "len": L + w, "wid": w, "dir": ((x1 - x0) / L, (y1 - y0) / L), "depth": d})
+            feats.append({"kind": "box", "id": ch["id"], "x": (x0 + x1) / 2, "y": (y0 + y1) / 2,
+                          "len": L + w, "wid": w, "dir": ((x1 - x0) / L, (y1 - y0) / L), "height": h})
 
-    deepest = max([c["depth"] for c in cuts] or [top - layers[0]["thickness_mm"]])
-    holes = []
+    tallest = max([f["height"] for f in feats] or [0.3])
     for p in spec["ports"]:
         r = (p.get("width_um") or DEFAULT_PORT_MM * 1000) / 2000
         x, y = p["position"][:2]
-        holes.append({"id": p["id"], "x": x, "y": y, "r": r})
-        cuts.append({"kind": "cyl", "id": p["id"], "x": x, "y": y, "r": r, "depth": deepest})
+        feats.append({"kind": "cyl", "id": p["id"], "x": x, "y": y, "r": r, "height": tallest})
 
     for key in ("valves", "features"):
         for v in spec.get(key, []):
             skipped.append(f"{v['id']}: {key[:-1]} not modelled")
 
     problems = []
-    for c in cuts:
-        if c["depth"] >= top:
-            problems.append(f"{c['id']}: {c['depth']} mm deep cuts through the {top} mm chip")
-        reach = c["r"] if c["kind"] == "cyl" else (abs(c["dir"][0]) * c["len"] + abs(c["dir"][1]) * c["wid"]) / 2
-        reach_y = c["r"] if c["kind"] == "cyl" else (abs(c["dir"][1]) * c["len"] + abs(c["dir"][0]) * c["wid"]) / 2
-        if c["x"] - reach < -1e-6 or c["x"] + reach > fx + 1e-6 or c["y"] - reach_y < -1e-6 or c["y"] + reach_y > fy + 1e-6:
-            problems.append(f"{c['id']}: runs off the {fx} x {fy} mm footprint")
-    return {"id": spec["id"], "fx": fx, "fy": fy, "chip_t": chip_t, "lid_t": lid_t, "top": top,
-            "cuts": cuts, "holes": holes, "skipped": skipped, "problems": problems}
+    for f in feats:
+        rx = f["r"] if f["kind"] == "cyl" else (abs(f["dir"][0]) * f["len"] + abs(f["dir"][1]) * f["wid"]) / 2
+        ry = f["r"] if f["kind"] == "cyl" else (abs(f["dir"][1]) * f["len"] + abs(f["dir"][0]) * f["wid"]) / 2
+        if f["x"] - rx < -1e-6 or f["x"] + rx > fx + 1e-6 or f["y"] - ry < -1e-6 or f["y"] + ry > fy + 1e-6:
+            problems.append(f"{f['id']}: runs off the {fx} x {fy} mm footprint")
+
+    if mirror:                                      # x -> fx - x; box directions flip in x
+        for f in feats:
+            f["x"] = fx - f["x"]
+            if f["kind"] == "box":
+                f["dir"] = (-f["dir"][0], f["dir"][1])
+    return {"id": spec["id"], "fx": fx, "fy": fy, "mirrored": mirror, "features": feats,
+            "ports": len(spec["ports"]), "tallest": tallest, "skipped": skipped, "problems": problems}
+
+
+def pipeline_specs():
+    """The module chips of the current pipeline, in pipeline order: [(module name, spec path)]."""
+    with open(PIPELINE, encoding="utf-8") as f:
+        pipe = json.load(f)
+    return [(m.get("name", m["chip"]), os.path.join(REPO_DIR, os.path.normpath(m["chip"])))
+            for m in pipe.get("modules", []) if m.get("chip")]
 
 
 # --- Fusion -----------------------------------------------------------------------------------
 
 def _build(p, design, stl_dir=None, offset_mm=(0.0, 0.0), name=None):
-    """Build one chip as its own component. Exports STLs (chip origin) before moving it to offset_mm."""
+    """Build one mould as its own component. Exports the STL (mould origin) before moving it
+    to offset_mm. Returns the STL paths written."""
     import adsk.core
     import adsk.fusion
     tbm = adsk.fusion.TemporaryBRepManager.get()
@@ -156,26 +173,14 @@ def _build(p, design, stl_dir=None, offset_mm=(0.0, 0.0), name=None):
     def cyl(x, y, z0, z1, r):
         return tbm.createCylinderOrCone(P(x, y, z0), r * cm, P(x, y, z1), r * cm)
 
-    diff = adsk.fusion.BooleanTypes.DifferenceBooleanType
     union = adsk.fusion.BooleanTypes.UnionBooleanType
-    top = p["top"]
-
-    chip = box(p["fx"] / 2, p["fy"] / 2, 0, p["chip_t"], p["fx"], p["fy"])
-    tool = None
-    for c in p["cuts"]:
-        z0, z1 = top - c["depth"], top + OVERCUT_MM
-        b = cyl(c["x"], c["y"], z0, z1, c["r"]) if c["kind"] == "cyl" else \
-            box(c["x"], c["y"], z0, z1, c["len"], c["wid"], c["dir"])
-        if tool is None:
-            tool = b
-        else:
-            tbm.booleanOperation(tool, b, union)
-    if tool is not None:
-        tbm.booleanOperation(chip, tool, diff)
-
-    lid = box(p["fx"] / 2, p["fy"] / 2, top, top + p["lid_t"], p["fx"], p["fy"])
-    for h in p["holes"]:
-        tbm.booleanOperation(lid, cyl(h["x"], h["y"], top - OVERCUT_MM, top + p["lid_t"] + OVERCUT_MM, h["r"]), diff)
+    mb = MOULD_BASE_MM
+    plate = box(p["fx"] / 2, p["fy"] / 2, 0, mb, p["fx"], p["fy"])
+    for f in p["features"]:                         # features stand UP from the plate by their height
+        z0, z1 = mb - FUSE_MM, mb + f["height"]
+        b = cyl(f["x"], f["y"], z0, z1, f["r"]) if f["kind"] == "cyl" else \
+            box(f["x"], f["y"], z0, z1, f["len"], f["wid"], f["dir"])
+        tbm.booleanOperation(plate, b, union)
 
     occ = design.rootComponent.occurrences.addNewComponent(adsk.core.Matrix3D.create())
     comp = occ.component
@@ -183,26 +188,24 @@ def _build(p, design, stl_dir=None, offset_mm=(0.0, 0.0), name=None):
     if design.designType == adsk.fusion.DesignTypes.ParametricDesignType:
         base = comp.features.baseFeatures.add()
         base.startEdit()
-        bodies = [comp.bRepBodies.add(chip, base), comp.bRepBodies.add(lid, base)]
+        comp.bRepBodies.add(plate, base)
         base.finishEdit()
-        bodies = [comp.bRepBodies.item(i) for i in range(comp.bRepBodies.count)]
+        body = comp.bRepBodies.item(0)
     else:
-        bodies = [comp.bRepBodies.add(chip), comp.bRepBodies.add(lid)]
-    for body, name in zip(bodies, (p["id"] + "_chip", p["id"] + "_lid")):
-        body.name = name
+        body = comp.bRepBodies.add(plate)
+    body.name = p["id"] + "_mould"
 
     written = []
     if stl_dir:
         os.makedirs(stl_dir, exist_ok=True)
         em = design.exportManager
-        for body in bodies:
-            path = os.path.join(stl_dir, body.name + ".stl")
-            opts = em.createSTLExportOptions(body, path)
-            opts.meshRefinement = adsk.fusion.MeshRefinementSettings.MeshRefinementHigh
-            em.execute(opts)
-            written.append(path)
+        path = os.path.join(stl_dir, body.name + ".stl")
+        opts = em.createSTLExportOptions(body, path)
+        opts.meshRefinement = adsk.fusion.MeshRefinementSettings.MeshRefinementHigh
+        em.execute(opts)
+        written.append(path)
 
-    if offset_mm != (0.0, 0.0):                    # spread the chips out so they don't overlap
+    if offset_mm != (0.0, 0.0):                    # spread the moulds out so they don't overlap
         m = adsk.core.Matrix3D.create()
         m.translation = adsk.core.Vector3D.create(offset_mm[0] * cm, offset_mm[1] * cm, 0)
         try:
@@ -217,26 +220,12 @@ def _build(p, design, stl_dir=None, offset_mm=(0.0, 0.0), name=None):
     return written
 
 
-GRID_COLS = 4
-GRID_GAP_MM = 10.0
-STL_DIR = os.path.join(HERE, "..", "stl")       # chip/fusion/stl/<id>_chip.stl, <id>_lid.stl
-REPO_DIR = os.path.normpath(os.path.join(CHIP_DIR, ".."))
-PIPELINE = os.path.join(REPO_DIR, "protocols", "pipeline_mvp.json")
-
-
-def pipeline_specs():
-    """The module chips of the current pipeline, in pipeline order: [(module name, spec path)]."""
-    with open(PIPELINE, encoding="utf-8") as f:
-        pipe = json.load(f)
-    return [(m.get("name", m["chip"]), os.path.join(REPO_DIR, os.path.normpath(m["chip"])))
-            for m in pipe.get("modules", []) if m.get("chip")]
-
-
 def run(context=None):
     import adsk.core
     import adsk.fusion
     app = adsk.core.Application.get()
     ui = app.userInterface
+    title = "Positive mould from spec"
     try:
         design = adsk.fusion.Design.cast(app.activeProduct)
         if design is None:
@@ -246,10 +235,11 @@ def run(context=None):
         ans = adsk.core.DialogResults.DialogNo
         if mods:
             ans = ui.messageBox(
-                f"Build all {len(mods)} modules of protocols/pipeline_mvp.json, in one row in pipeline order?\n\n"
+                f"Build the embossing moulds for all {len(mods)} modules of protocols/pipeline_mvp.json, "
+                "in one row in pipeline order?\n\n"
                 + "\n".join(f"  {i + 1}. {n}" for i, (n, _) in enumerate(mods))
                 + "\n\nYes = all modules     No = pick spec files myself",
-                "chip_from_spec", adsk.core.MessageBoxButtonTypes.YesNoCancelButtonType)
+                title, adsk.core.MessageBoxButtonTypes.YesNoCancelButtonType)
         if ans == adsk.core.DialogResults.DialogCancel:
             return
         all_modules = ans == adsk.core.DialogResults.DialogYes
@@ -264,8 +254,8 @@ def run(context=None):
             if dlg.showOpen() != adsk.core.DialogResults.DialogOK:
                 return
             files = list(dlg.filenames)
-        ans = ui.messageBox(f"Also save STLs (chip + lid per spec) to\n{os.path.normpath(STL_DIR)} ?",
-                            "chip_from_spec", adsk.core.MessageBoxButtonTypes.YesNoButtonType)
+        ans = ui.messageBox(f"Also save one STL per mould to\n{os.path.normpath(STL_DIR)} ?",
+                            title, adsk.core.MessageBoxButtonTypes.YesNoButtonType)
         stl_dir = os.path.normpath(STL_DIR) if ans == adsk.core.DialogResults.DialogYes else None
 
         plans, report = [], []
@@ -289,7 +279,8 @@ def run(context=None):
             name = f"{i + 1:02d}_{p['id']}" if all_modules else None
             try:
                 n_stl += len(_build(p, design, stl_dir, off, name))
-                line = f"OK   {p['id']}: {p['fx']} x {p['fy']} mm, {len(p['cuts'])} cuts, {len(p['holes'])} ports"
+                line = (f"OK   {p['id']}_mould: {p['fx']} x {p['fy']} mm, {MOULD_BASE_MM:g} mm plate, "
+                        f"features up to {p['tallest']:g} mm, {p['ports']} port pads")
                 if p["problems"]:
                     line += f", {len(p['problems'])} to CHECK (e.g. {p['problems'][0]})"
                 if p["skipped"]:
@@ -299,9 +290,11 @@ def run(context=None):
                 report.append(f"FAIL {p['id']}: {e}")
             adsk.doEvents()
         app.activeViewport.fit()
+        report.append("\nMirrored in x, so the embossed chip matches the spec." if MIRROR_MOULD
+                      else "\nNOT mirrored: the embossed chip will be the mirror image of the spec.")
         if stl_dir:
-            report.append(f"\n{n_stl} STL files in {stl_dir}")
-        ui.messageBox("\n".join(report) or "nothing built")
+            report.append(f"{n_stl} STL files in {stl_dir}")
+        ui.messageBox("\n".join(report) or "nothing built", title)
     except Exception:
         import traceback
         ui.messageBox("chip_from_spec failed:\n" + traceback.format_exc())
@@ -314,8 +307,9 @@ if __name__ == "__main__" and "adsk" not in sys.modules:
     for path in args:
         with open(path, encoding="utf-8") as f:
             p = plan(json.load(f))
-        print(f"{p['id']}: {p['fx']} x {p['fy']} mm, chip {p['chip_t']} + lid {p['lid_t']} mm, "
-              f"{len(p['cuts'])} cuts, {len(p['holes'])} ports, "
+        print(f"{p['id']}_mould: {p['fx']} x {p['fy']} mm, {MOULD_BASE_MM:g} mm plate, "
+              f"{len(p['features'])} raised features up to {p['tallest']:g} mm, {p['ports']} port pads, "
+              f"{'mirrored' if p['mirrored'] else 'not mirrored'}, "
               f"{len(p['problems'])} problems, {len(p['skipped'])} skipped")
         for line in p["problems"]:
             print("  CHECK", line)

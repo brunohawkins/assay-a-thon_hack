@@ -3,7 +3,7 @@
   "type": "script",
   "author": "SzonjaS",
   "description": {
-    "": "Build a printable chip (cut chip body + lid with port holes) from a chip spec JSON in chip/."
+    "": "Build the positive hot-embossing mould (3D-print this) from chip spec JSONs in chip/."
   },
   "supportedOS": "windows|mac",
   "editEnabled": true
