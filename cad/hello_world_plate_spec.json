@@ -1,23 +1,23 @@
 {
   "id": "hello_world_plate",
   "name": "Hello world plate",
-  "description": "Two open-top wells joined by one open-top channel; Ayrton's first 3D print. GENERATED from cad/hello_world_dims.json by cad/hello_world_spec.py; edit the dims, not this file.",
-  "placeholder": true,
+  "description": "Hello world MVP: two open-top wells joined by one open-top channel, from Ayrton's positive mould (cad/exports/hello_world_plate.stl). GENERATED from cad/hello_world_dims.json by cad/hello_world_spec.py; edit the dims, not this file.",
+  "placeholder": false,
   "units": "mm",
   "footprint": {
-    "x": 30,
-    "y": 12
+    "x": 15,
+    "y": 10
   },
   "layers": [
     {
-      "id": "floor",
-      "material": "pla",
-      "thickness_mm": 2
+      "id": "mould_base",
+      "material": "unknown",
+      "thickness_mm": 0.5
     },
     {
-      "id": "body",
-      "material": "pla",
-      "thickness_mm": 5
+      "id": "relief",
+      "material": "unknown",
+      "thickness_mm": 0.2
     }
   ],
   "chambers": [
@@ -25,34 +25,34 @@
       "id": "well_1",
       "type": "well",
       "center": [
-        6.0,
-        6.0,
-        4.5
+        4.233,
+        5.0,
+        0.6
       ],
       "size": [
-        8,
-        8,
-        5
+        1.0,
+        1.0,
+        0.2
       ],
       "mesh_pore_um": null,
-      "volume_ul": 251.3,
+      "volume_ul": 0.1571,
       "open_top": true
     },
     {
       "id": "well_2",
       "type": "well",
       "center": [
-        24.0,
-        6.0,
-        4.5
+        10.233,
+        5.0,
+        0.6
       ],
       "size": [
-        8,
-        8,
-        5
+        1.0,
+        1.0,
+        0.2
       ],
       "mesh_pore_um": null,
-      "volume_ul": 251.3,
+      "volume_ul": 0.1571,
       "open_top": true
     }
   ],
@@ -61,8 +61,8 @@
       "id": "channel_1",
       "from": "well_1",
       "to": "well_2",
-      "width_mm": 1,
-      "depth_mm": 1,
+      "width_mm": 0.5,
+      "depth_mm": 0.2,
       "open_top": true
     }
   ],
