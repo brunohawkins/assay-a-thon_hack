@@ -1,0 +1,204 @@
+{
+  "protocol_id": "placeholder_scrnaseq",
+  "protocol_name": "Placeholder scRNA-seq",
+  "chip_id": "placeholder_chip_v1",
+  "chip_spec": "chip/placeholder_chip_spec.json",
+  "operator": "planner",
+  "created_at": "2026-11-07T11:07:16Z",
+  "placeholder": true,
+  "total_duration_s": 2040.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 60.0,
+      "command": "load",
+      "args": {
+        "target": "exchange_1",
+        "volume_ul": 100
+      },
+      "narration": "Load the capsule suspension into the exchange chamber; the mesh floor holds the capsules in place.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 60.0,
+      "duration_s": 180.0,
+      "command": "exchange",
+      "args": {
+        "target": "exchange_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 100,
+        "washes": 3,
+        "flow_ul_min": 100
+      },
+      "narration": "Wash the capsules three times with wash buffer to clear the loading liquid.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 240.0,
+      "duration_s": 300.0,
+      "command": "exchange",
+      "args": {
+        "target": "exchange_1",
+        "reagent": "lysis_buffer",
+        "volume_ul": 100,
+        "washes": 1,
+        "flow_ul_min": 100
+      },
+      "narration": "Swap in lysis buffer to open the cells, keeping the capsules on the mesh.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 540.0,
+      "duration_s": 180.0,
+      "command": "exchange",
+      "args": {
+        "target": "exchange_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 100,
+        "washes": 3,
+        "flow_ul_min": 100
+      },
+      "narration": "Wash out the lysis buffer three times.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 720.0,
+      "duration_s": 60.0,
+      "command": "exchange",
+      "args": {
+        "target": "exchange_1",
+        "reagent": "rt_mix",
+        "volume_ul": 100,
+        "washes": 1,
+        "flow_ul_min": 100
+      },
+      "narration": "Fill the chamber with RT mix.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 780.0,
+      "duration_s": 600.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "exchange_1",
+        "temp_c": 40,
+        "duration_s": 600
+      },
+      "narration": "Hold the exchange chamber warm while the RT mix works.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 1380.0,
+      "duration_s": 60.0,
+      "command": "split",
+      "args": {
+        "source": "exchange_1",
+        "targets": [
+          "split_1",
+          "split_2",
+          "split_3",
+          "split_4"
+        ]
+      },
+      "narration": "Split the capsules evenly into the four split chambers.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 1440.0,
+      "duration_s": 60.0,
+      "command": "exchange",
+      "args": {
+        "target": "split_1",
+        "reagent": "reagent_a",
+        "volume_ul": 50,
+        "washes": 1,
+        "flow_ul_min": 50
+      },
+      "narration": "Give split chamber 1 its own reagent, A.",
+      "protocol_step": 8
+    },
+    {
+      "t_s": 1500.0,
+      "duration_s": 60.0,
+      "command": "exchange",
+      "args": {
+        "target": "split_2",
+        "reagent": "reagent_b",
+        "volume_ul": 50,
+        "washes": 1,
+        "flow_ul_min": 50
+      },
+      "narration": "Give split chamber 2 reagent B.",
+      "protocol_step": 9
+    },
+    {
+      "t_s": 1560.0,
+      "duration_s": 60.0,
+      "command": "exchange",
+      "args": {
+        "target": "split_3",
+        "reagent": "reagent_c",
+        "volume_ul": 50,
+        "washes": 1,
+        "flow_ul_min": 50
+      },
+      "narration": "Give split chamber 3 reagent C.",
+      "protocol_step": 10
+    },
+    {
+      "t_s": 1620.0,
+      "duration_s": 60.0,
+      "command": "exchange",
+      "args": {
+        "target": "split_4",
+        "reagent": "reagent_d",
+        "volume_ul": 50,
+        "washes": 1,
+        "flow_ul_min": 50
+      },
+      "narration": "Give split chamber 4 reagent D.",
+      "protocol_step": 11
+    },
+    {
+      "t_s": 1680.0,
+      "duration_s": 60.0,
+      "command": "pool",
+      "args": {
+        "sources": [
+          "split_1",
+          "split_2",
+          "split_3",
+          "split_4"
+        ],
+        "target": "pool_1"
+      },
+      "narration": "Pool the capsules from all four split chambers back into one chamber.",
+      "protocol_step": 12
+    },
+    {
+      "t_s": 1740.0,
+      "duration_s": 180.0,
+      "command": "exchange",
+      "args": {
+        "target": "pool_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 100,
+        "washes": 3,
+        "flow_ul_min": 100
+      },
+      "narration": "Wash the pooled capsules three times.",
+      "protocol_step": 13
+    },
+    {
+      "t_s": 1920.0,
+      "duration_s": 120.0,
+      "command": "release",
+      "args": {
+        "target": "pool_1",
+        "reagent": "release_buffer"
+      },
+      "narration": "Release the library from the capsules and send it to the outlet for collection.",
+      "protocol_step": 14
+    }
+  ]
+}

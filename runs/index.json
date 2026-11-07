@@ -1,0 +1,38 @@
+{
+  "generated_by": "operator/run.py",
+  "runs": [
+    {
+      "file": "placeholder_culture_then_scrnaseq__placeholder_chip_v1.json",
+      "protocol_id": "placeholder_culture_then_scrnaseq",
+      "protocol_name": "Placeholder culture, then scRNA-seq",
+      "chip_id": "placeholder_chip_v1",
+      "chip_spec": "chip/placeholder_chip_spec.json",
+      "operator": "planner",
+      "events": 15,
+      "total_duration_s": 17460.0,
+      "placeholder": true
+    },
+    {
+      "file": "placeholder_scdnaseq__placeholder_chip_v1.json",
+      "protocol_id": "placeholder_scdnaseq",
+      "protocol_name": "Placeholder scDNA-seq",
+      "chip_id": "placeholder_chip_v1",
+      "chip_spec": "chip/placeholder_chip_spec.json",
+      "operator": "planner",
+      "events": 15,
+      "total_duration_s": 2700.0,
+      "placeholder": true
+    },
+    {
+      "file": "placeholder_scrnaseq__placeholder_chip_v1.json",
+      "protocol_id": "placeholder_scrnaseq",
+      "protocol_name": "Placeholder scRNA-seq",
+      "chip_id": "placeholder_chip_v1",
+      "chip_spec": "chip/placeholder_chip_spec.json",
+      "operator": "planner",
+      "events": 14,
+      "total_duration_s": 2040.0,
+      "placeholder": true
+    }
+  ]
+}
