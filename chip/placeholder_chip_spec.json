@@ -1,0 +1,37 @@
+{
+  "id": "placeholder_chip_v1",
+  "name": "Placeholder capsule processor v1",
+  "description": "Generic layout for development: inlet, one exchange chamber with a mesh floor, a four-way split, a pool chamber and an outlet, left to right on a 75 x 25 mm slide. All numbers are placeholders.",
+  "placeholder": true,
+  "units": "mm",
+  "footprint": { "x": 75, "y": 25 },
+  "layers": [
+    { "id": "base", "material": "acrylic", "thickness_mm": 2 },
+    { "id": "fluidic", "material": "acrylic", "thickness_mm": 3 },
+    { "id": "lid", "material": "acrylic", "thickness_mm": 2 }
+  ],
+  "chambers": [
+    { "id": "exchange_1", "type": "exchange", "center": [17, 12.5, 3.5], "size": [10, 8, 2], "mesh_pore_um": 20, "volume_ul": 160 },
+    { "id": "split_1", "type": "split", "center": [36, 4, 3.5], "size": [7, 4, 2], "mesh_pore_um": 20, "volume_ul": 56 },
+    { "id": "split_2", "type": "split", "center": [36, 9.5, 3.5], "size": [7, 4, 2], "mesh_pore_um": 20, "volume_ul": 56 },
+    { "id": "split_3", "type": "split", "center": [36, 15.5, 3.5], "size": [7, 4, 2], "mesh_pore_um": 20, "volume_ul": 56 },
+    { "id": "split_4", "type": "split", "center": [36, 21, 3.5], "size": [7, 4, 2], "mesh_pore_um": 20, "volume_ul": 56 },
+    { "id": "pool_1", "type": "pool", "center": [55, 12.5, 3.5], "size": [8, 8, 2], "mesh_pore_um": 20, "volume_ul": 128 }
+  ],
+  "channels": [
+    { "id": "ch_1", "from": "inlet_1", "to": "exchange_1", "width_mm": 0.5, "depth_mm": 0.5 },
+    { "id": "ch_2", "from": "exchange_1", "to": "split_1", "width_mm": 0.5, "depth_mm": 0.5 },
+    { "id": "ch_3", "from": "exchange_1", "to": "split_2", "width_mm": 0.5, "depth_mm": 0.5 },
+    { "id": "ch_4", "from": "exchange_1", "to": "split_3", "width_mm": 0.5, "depth_mm": 0.5 },
+    { "id": "ch_5", "from": "exchange_1", "to": "split_4", "width_mm": 0.5, "depth_mm": 0.5 },
+    { "id": "ch_6", "from": "split_1", "to": "pool_1", "width_mm": 0.5, "depth_mm": 0.5 },
+    { "id": "ch_7", "from": "split_2", "to": "pool_1", "width_mm": 0.5, "depth_mm": 0.5 },
+    { "id": "ch_8", "from": "split_3", "to": "pool_1", "width_mm": 0.5, "depth_mm": 0.5 },
+    { "id": "ch_9", "from": "split_4", "to": "pool_1", "width_mm": 0.5, "depth_mm": 0.5 },
+    { "id": "ch_10", "from": "pool_1", "to": "outlet_1", "width_mm": 0.5, "depth_mm": 0.5 }
+  ],
+  "ports": [
+    { "id": "inlet_1", "type": "inlet", "position": [4, 12.5, 7] },
+    { "id": "outlet_1", "type": "outlet", "position": [70, 12.5, 7] }
+  ]
+}

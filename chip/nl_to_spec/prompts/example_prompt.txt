@@ -1,0 +1,4 @@
+Design a capsule processor on a 75 x 25 mm slide for a single-cell assay.
+It needs one inlet, one exchange chamber with a mesh floor that holds the capsules while liquids are swapped,
+a four-way split into four chambers, a pool chamber that brings the capsules back together,
+and an outlet where the product is collected. Laser-cut acrylic layers, no moving parts on the chip.
