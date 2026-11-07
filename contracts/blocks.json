@@ -5,7 +5,8 @@
     "max_y_mm": 20,
     "max_depth_mm": 0.3,
     "layers": 1,
-    "note": "Resin 3D printing plus hot embossing, one fluidic layer, 30 x 20 mm build area."
+    "note": "Resin 3D printing plus hot embossing, one fluidic layer, 30 x 20 mm build area.",
+    "_two_scales": "TWO envelopes. chip/ is built to the DEMO one (30 x 20 mm), which is what we can print today. target_envelope (200 x 300 mm) is the agreed maximum for the real device. Scale-free rules carry over unchanged; the rest are listed under target_envelope."
   },
   "fabrication_floors": {
     "min_open_channel_mm": 0.2,
@@ -97,5 +98,58 @@
     ],
     "not_viable": "pillar_array and pillar_funnel_trap cannot retain by size exclusion at a 200 um throat. Stagnation-point traps need active feedback and were published for 1-15 um beads.",
     "_cells_caveat": "This weir retains CAPSULES (70 um). It does NOT retain a bare cell of 10-15 um. Any chip that washes cells rather than capsules needs a different answer: see protocols/retention_audit.md."
+  },
+  "target_envelope": {
+    "x_mm": 127.76,
+    "y_mm": 85.48,
+    "depth_mm": 0.3,
+    "layers": 1,
+    "area_mm2": 10921,
+    "area_ratio_vs_demo": 18,
+    "_decision": "Design target is the ANSI/SLAS 1-2004 microplate footprint, 127.76 x 85.48 mm. Three lanes at 1,200 mm2 need 3,600 mm2, which is 33% of it, so the area we actually require fits with room for the PCR dock and the extraction region. 200 x 300 mm stays recorded as the absolute ceiling, but nothing in the design needs it.",
+    "_why_not_600": [
+      "Yield did not need it: 1e5 cells is about 1,200 mm2, a 35 x 35 mm lane.",
+      "Concentration does not improve with area. An adherent chamber holds about 277 cells/uL whatever its size, because that is density divided by height, so a flow-through extract is roughly 36x too dilute at ANY board size. The fix is trap-and-elute, not area.",
+      "Risk concentrates in a monolith: at 90% per-lane weir yield, 3 lanes work 73% of the time and 36 lanes 2.3%. Parallel chips lose a lane, not a board.",
+      "600 mm does not fit a CO2 incubator shelf (about 450-500 mm), which weeks-long culture needs.",
+      "Embossing 600 x 600 mm needs roughly 70 tonnes and a non-desktop press."
+    ],
+    "what_it_buys": "60,000 mm2, 100x the demo. Three lanes at 1,200 mm2 each is 3,600 mm2, about 6% of the board, so culture area stops being the limit and there is room for the PCR dock, the extraction region and spare lanes.",
+    "design_rules_at_this_scale": [
+      "KEEP CHAMBER LENGTH CONSTANT and replicate chambers. Residence time is NOT scale-free: at fixed shear the velocity is fixed, so a longer lane has proportionally longer residence time.",
+      "Extraction happens AFTER concentration, never in the culture chamber. Size the extract by cells/1e4 microlitres, not by chamber area.",
+      "Support the lid with a pillar_array at about 5-10 mm pitch, or a 0.3 mm chamber spanning hundreds of mm collapses under bonding and operating pressure.",
+      "The 6-port limit is a demo constraint and lifts here: ports can sit on an area grid, so lanes get dedicated feeds, drains and sampling lines instead of sharing off-chip selectors.",
+      "The 98 C index PCR stays a small zoned dock. Heating the whole board would expand it by millimetres and cook the culture."
+    ],
+    "scale_free": [
+      "wall shear at fixed flow per unit width",
+      "capsule size",
+      "comb pitch for the quench",
+      "evaporation fraction through the lid"
+    ],
+    "not_scale_free": [
+      "residence time",
+      "fill time",
+      "fluid volume",
+      "z tolerance across the part",
+      "flow distribution across a wide weir"
+    ],
+    "standard": "ANSI/SLAS 1-2004 microplate footprint",
+    "max_allowed_x_mm": 290,
+    "max_allowed_y_mm": 190,
+    "_why_sbs": [
+      "No mainstream cell-culture microfluidic device is larger. Mimetas OrganoPlate puts 40 three-lane chips on ONE SBS plate; Emulate runs 12 chips per array. The field repeats small units inside a standard outline rather than making one big chip.",
+      "It unlocks off-the-shelf hardware: plate handlers and stackers, readers, imagers, liquid handlers on the 9 mm ANSI/SLAS 4-2004 pitch, incubator shelves and robot grippers. That matters for the stated goal of running with no human intervention.",
+      "It fits every desktop resin printer, so prototyping stays cheap. A 200 x 300 mm part fits NONE of them - the largest desktop build is about 353 x 196 mm - and would force CNC plus a large press.",
+      "It is inside the hot-embossing comfort zone (rigid platens are fine to about 200 mm; 300 mm is the hard edge)."
+    ],
+    "_caveat": "ANSI/SLAS fixes the outline and well positions, NOT well-bottom height, so SBS size alone does not guarantee a plate reader or imager will focus on the chip. Check working distance.",
+    "_ceiling": "290 x 190 mm is the agreed MAXIMUM chip size (55,100 mm2, 92x the demo). It was chosen so BOTH prototyping routes stay standard: it fits the largest desktop resin build (Formlabs Form 4L, 353 x 196 mm) AND a 296 mm square hot-embossing platen (Collin P300S class, 296 mm, 300 kN - the part needs only 55-165 kN). 300 x 190 was considered and dropped because it misses the 296 mm platen by 4 mm and would force a 500 mm press. NOTE round wafer tools (EVG 540/750, 300 mm) take a rectangle by its DIAGONAL, and this part's is 347 mm, so they are out regardless; use a square-platen press. Nothing in the current design needs this size: three lanes require 3,600 mm2, 33% of an SBS plate.",
+    "fabrication_routes_at_ceiling": {
+      "resin_prototype": "Formlabs Form 4L, 353 x 196 mm build. Fits with 63 x 6 mm margin.",
+      "embossing": "296 mm square platen (Collin P300S class). Fits with 6 x 106 mm margin.",
+      "not_usable": "300 mm ROUND wafer tools: a 290 x 190 rectangle has a 346 mm diagonal."
+    }
   }
 }

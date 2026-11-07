@@ -1,7 +1,7 @@
 {
   "id": "module6_v1",
-  "name": "Module 6: omics capture (metabolite flow-through, RNA stays in the capsules)",
-  "description": "Omics capture chip, metabolome plus transcriptome from the same capsules. 30 x 20 mm, ONE fluidic layer at ONE etch depth of 0.3 mm, resin print + hot emboss, geometry only from contracts/blocks.json (trap_chamber, flow_distributor, flow_manifold). Three separate lanes (neurons, glia, astrocytes) that never share a wetted path on the chip: each lane is one inlet, one 3 x 14 x 0.3 mm trap chamber and one outlet, with a depth weir on the outlet edge (gap 25 um, crest 275 um). WHAT IT DOES AND DOES NOT DO. The capsule shell is a nucleic-acid filter, not a protein sieve, so proteins mostly pass through it: the flow-through is NOT a proteome and nothing here claims it is. Mild lysis (native protein) and cold-solvent quench (valid metabolomics) are mutually exclusive on one sample, so this chip does the workable split: flush the held capsules in place with cold acidic organic solvent, collect that flow-through per lane for metabolomics, and the RNA stays in the capsules, which go on to module 4. PORT ALLOCATION (6 of 6). in_n, in_g, in_a, out_n, out_g, out_a. Three lanes x (in + out) already uses all six, so solvent and lane feeds share the inlets: each inlet sits behind its OWN off-chip four-position selector valve (capsule feed for that lane, cold solvent, neutralising wash, hand-off line to module 4), and each outlet behind its own two-way valve (collection vial for that lane, or waste). Nothing that has touched a lane is ever routed to another lane's valve, vial or line. Only clean reagent reservoirs (solvent, neutralising wash) are shared, upstream of the valves, each through a one-way check valve so liquid cannot back up into them. Capsules leave by backflush: out_x is pressurised, in_x drains to the module 4 line, because the weir only passes capsules backwards. CARRY-OVER RISK. Cross-lane: the only shared wetted parts are the clean reagent reservoirs and their header; lane liquid reaches them only if a check valve fails or a valve is switched under reverse pressure. Within a lane: the valve bore, the stub to the port and the on-chip lines hold liquid from the previous step. Flushing 5 wetted lane volumes (70.145 uL here, wetted volume 14.029 uL = chamber 12.6 uL + lines 1.429 uL) through a dead volume no larger than one wetted lane volume leaves at most exp(-5) = 0.7% of the old liquid, assuming ideal mixing. A dead-end bore does not mix ideally, so this is a design bound to be measured with a dye test, not a measured number. The residue that does remain is mostly capsule-suspension medium, which adds extracellular metabolites to that lane's extract. It cannot move another lane's cells, because no path leads there. Untested: the bonded wall between lanes holding under solvent pressure. CAPACITY. Each lane holds about 44,901 capsules of 70 um at 0.64 packing (12.6 uL chamber), 134,703 for the chip. At the sizing sheet's mean occupancy that is about 3,456 cells per lane. Metabolomics needs about 30,000 cells at the bottom of its usable range, so ONE LANE IS ABOUT 9x SHORT. Even three lanes of the largest chamber this envelope allows (about 163,568 capsules, 12,590 cells each) fall below it. The chip only works for metabolomics if the capsules are enriched for occupied ones before loading, or if several loads are pooled into one extract off chip. If the capsules are still swollen to 140 um the count drops about 8-fold. QUENCH SPEED (honest limit). Metabolite pools turn over in about 1 s and diffusion across 0.3 mm takes about 90 s, so the solvent has to arrive by flow. At the shear ceiling the superficial velocity is about 53 um/s whatever the geometry (tau = 6 mu Q / (w h^2)), so the solvent front needs about 20 s to sweep the pore volume of the bed. That is about 20 times slower than the 1 s pool turnover: the quench is in place but NOT fast enough to freeze the metabolome, and the metabolite data from this chip should be treated as unvalidated until the shear ceiling is relaxed for capsule-protected cells or the quench is shown to hold. Cold organic solvent is also more viscous than the 0.8e-3 Pa s used here, so its real shear is higher than computed. Weir equalisation: for the same width the 25 um gap has about 115x the resistance of the open chamber (thin-slit scaling, crest 0.2 mm thick), so the weir sets how the flow spreads across the width. The z tolerance on a 25 um gap in a 300 um layer is the biggest unknown (contracts/blocks.json): run a coupon before committing. Open question for the pipeline: module 4 expects capsules that have already been lysed and reverse-transcribed in module 3, which this hand-off skips.",
+  "name": "Module 6: bulk omics from adherent cells (metabolome + proteome from one extraction)",
+  "description": "Bulk-omics chip: metabolome AND proteome from ONE cold acidified organic extraction of ADHERENT cells, in place on the chamber floor, before any encapsulation. 30 x 20 mm, ONE fluidic layer at ONE etch depth of 0.3 mm, resin print + hot emboss, geometry only from contracts/blocks.json (culture_chamber, centipede_channel). Three lanes (neurons, glia, astrocytes) that never share a wetted path: each lane is one culture field (1.2 x 8 x 0.3 mm, 2.88 uL), one inlet comb, one outlet comb, one inlet port and one outlet port. WHY ADHERENT CELLS AND NOT CAPSULES. A 70 um GelMA capsule at 5% w/v holds about 9 ng of gelatin against about 0.2-0.3 ng of protein in the cell inside it, so capsule gelatin outweighs the cell's protein roughly 30-45x and GelMA is itself protein: proteomics on capsules would measure the capsule. Native cytosolic protein could also leak out through the shell before the solvent denatures it (unmeasured). Extracting from adherent cells has no gelatin background, is published practice (direct cold solvent on adherent cells beat scrape-in-buffer 7x, Dettmer 2011 doi 10.1007/s00216-010-4425-x; a brief rinse then cold methanol minimises leakage, Kapoore 2017 doi 10.1039/C7AN00207F; one extraction giving proteins and metabolites, SIMPLEX, Coman 2016 doi 10.1074/mcp.M115.053702; supernatant for metabolites then the pellet digested for protein, Sapcariu 2014 doi 10.1016/j.mex.2014.07.002; a quick rinse roughly doubles detected features, Lorenz 2011 doi 10.1021/ac103313x) and it removes the retention problem, because a 25 um weir gap cannot be printed at the 200 um in-plane floor. The TRANSCRIPTOME ARM IS UNAFFECTED: it stays on capsules through module 4. This chip is the bulk arm only. FLOW, PER LANE. Seed and culture the adherent cells in the field (cell-adhesion coat on the field floor only, masked off the combs, so stray cells do not stay in the comb: untested). Brief ice-cold volatile-buffer rinse (mandatory). Stop-flow cold acidified organic quench in place, chloroform-free acetonitrile/methanol/water, cells lysed where they sit. Collect FRACTION 1 = METABOLOME out of the outlet; small peptides under about 10 kDa do not precipitate and land in this fraction, not the protein one. Resolubilise the precipitated protein left on the chamber floor with a denaturing solubilisation buffer. Collect FRACTION 2 = PROTEOME out of the SAME outlet at a later time. The protein is denatured by design: native complexes and enzyme activity are lost; bottom-up identification and quantification are not. Chloroform is OUT (it attacks PMMA and swells COC, risky for our materials). Fraction 1 is neutralised the moment it is collected (the vial is pre-charged off chip), because acid plus organic is only safe for RNA and acid-labile metabolites briefly. COMBS (the quench-speed fix). The old 20 s figure came from sweeping solvent along the long axis. Here the field is fed and drained through INTERDIGITATED COMBS along its two long edges, each a centipede_channel (a spine with short side branches): an inlet comb on the left edge (spine 0.8 mm wide, 13 teeth of 0.2 x 1.5 mm at 0.6 mm pitch) and an outlet comb on the right edge with 13 teeth offset by half a pitch (0.3 mm), so teeth alternate along the 8 mm edge. Teeth are 0.2 mm wide with 0.4 mm ribs, meeting the 0.4 mm wall floor exactly. The inlet port sits at the top end of the left spine and the outlet port at the bottom end of the right spine (Z layout), so every tooth pair sees about the same total path. Flow then crosses the field's SHORT dimension, 1.2 mm, not its 8 mm length, so displacement time no longer depends on chamber length. Per unit flow, sweeping the long axis would need about 44x the pressure (path squared) and 6.7x the floor shear. A resistor-network model of this lane (Hele-Shaw field plus rectangular-duct teeth and spines, mu = 2.5 mPa s for the cold quench solvent) gives 1.37e+10 Pa s/m3, tooth flows from 0.61 to 2.02 of the mean (uneven; a wider spine evens it but adds extract volume), and wetted volume 11.444 uL per lane (field 2.88, each comb 3.28, plus 1 uL stub at each port: 0.5 uL hole through the lid plus an assumed 0.5 uL off-chip valve stub). The quench floods 2 wetted volumes (22.888 uL) in about 1 s (1373.3 uL/min): that is 314 Pa across the lane plus about 3.7 kPa across 100 mm of 0.5 mm bore line, total well under 10 kPa. Solvent first reaches the field after about 0.19 s (comb and stub volume), the field is flooded after about 0.38 s and the slowest tooth region after about 0.61 s; with wall-layer replacement and lysis the effective quench is about 0.5-1 s. Shell diffusion is not involved (cells are bare). Do NOT freeze-quench with the Peltier: at 2-10 K/s it takes 6-30 s, slower than the flood. The Peltier only holds the collected extract cold, which improves ADP/ATP recovery by about 40-45% (doi 10.1007/s00216-019-02018-3). Note this displacement estimate is for an open slot with cells on the floor; tables for a packed capsule bed (14 mm 6.8 s, 7 mm 1.7 s, 3 mm 0.3 s at 10 kPa) do not apply, and what limits the flood here is delivering the volume (flow), not pressure. QUENCH SPEED, HONEST LIMIT. With a quench of about 1 s you lose only the fastest roughly 10-15% of a panel: ATP/ADP, phosphocreatine, NAD(P)H, PEP/3PG and acyl-CoAs. Amino acids, TCA acids and lipids are safe. That holds ONLY if the rinse is short: held to the culture shear ceiling the rinse takes about 12 min in cold buffer (see SHEAR), which perturbs metabolism more than the quench saves. Until the rinse is shortened, treat ATP/ADP and glycolytic intermediates as invalid and TCA intermediates as provisional. EXTRACT VOLUME IS THE DESIGN RULE. The lever for metabolomics is extract volume, not cell count. Each fraction is collected at about 8.594 uL (1.2 x field + outlet comb + stub), so about 9,600 cells in 8.594 uL is about 1,117 cells/uL and a 2-5 uL injection is about 2,234-5,585 cell-equivalents. Keep the extract at or below about 10 uL, ideally the pore volume plus a little. Do not grow field area if the extract grows in proportion: concentration (cells/uL) then never improves, because field volume per cell is fixed by the 0.3 mm depth. Shrink spine width, teeth and stubs (the overhead) before adding area. PORT ALLOCATION (6 of 6). in_n, out_n, in_g, out_g, in_a, out_a. Each inlet sits behind its OWN off-chip selector valve (cell suspension, culture medium, cold rinse, cold quench, solubilisation buffer: five positions). Each outlet sits behind its OWN off-chip fraction collector, a three-position valve: waste, vial M (metabolome), vial P (proteome). The SECOND collection is a second fraction out of the SAME port at a different time. HOW THE TWO FRACTIONS STAY APART: the valve is at waste while rinse, quench flood, and the solvent flush run; it turns to vial M only for the extract chase; it returns to waste for the flush of 3 wetted volumes (34.332 uL) of solubilisation buffer, which clears the port hole, the stub and the lane of fraction 1; then it turns to vial P for the protein chase. Separate vials and separate valve ports mean fractions never share a vial. Nothing from one lane reaches another lane's valve, vial or line; only clean reagent reservoirs are shared upstream of the valves, each behind a check valve. CARRY-OVER RISK. Fraction 1 into fraction 2: after fraction 1 the stub holds about 1 uL of extract; the waste flush is 34 stub volumes (exp(-34) is negligible), but the lane itself keeps at most exp(-3) = 5% of the old solvent and its metabolites under ideal mixing (a laminar slot displaces better; unmeasured, to be shown with a dye test). That residue adds a little organic solvent and small metabolites to fraction 2, which bottom-up proteomics tolerates. Fraction 2 into fraction 1: none, because 2 comes later. Precipitate fines can pass into fraction 1 if the flood strips the floor film (mean floor shear in the flood is about 5 dyn/cm2, hottest tooth about 10); spin vial M and add its pellet to fraction 2. Dead-end valve ports do not mix ideally, so every bound is a design bound, not a measurement. SHEAR. The 0.01 dyn/cm2 culture ceiling applies to the steps with LIVING adherent cells: seeding, culture exchange and the cold rinse. It is held on the field with 15% headroom and the hottest tooth region (about 2.0x the mean) held to it, giving 3.78 uL/min for culture (mu 0.8 mPa s at 37 C) and 1.93 uL/min for the rinse (mu 1.57 mPa s at 4 C). It does NOT apply to the quench flood, the extract chase, the solvent flush or the protein chase, which run after the cells are killed. Rinse cost: 2 wetted volumes (22.888 uL) take 12 min at the ceiling. A rinse-specific ceiling of 0.3 dyn/cm2 (half the published detachment onset of 0.6 dyn/cm2, doi 10.1039/b820380f) would bring that to about 20 s; MJ should decide. The combs are not culture: any cell there is not counted and its shear is not held to the ceiling. YIELD. Floor area 9.6 mm2 per lane; at an ASSUMED 1,000 cells/mm2 (1e5 per cm2, a dense monolayer; sparser lineages such as neurons may give 2-3x fewer) that is about 9,600 cells per lane, 28,800 for the chip. Proteomics is comfortable at this input: 1,000 cells already gives 500-1,000 proteins (Mueller 2020 doi 10.15252/msb.20199111), so about 10x headroom. Metabolomics: the old 1e5-1e6 cell figure describes conventional 2.1 mm-column workflows. On nanoflow HILIC or CE-MS, 100 cells gave 1,620 peak pairs (doi 10.1021/acs.analchem.7b03100); roughly 1e3 cells gives 40-100 identified metabolites, 1e4 gives 100-160, 1e5 gives 200-300; AMP/ADP/ATP are seen from 500 cells by CE-MS (doi 10.1016/j.jchromb.2018.12.004). So about 1e4 cells is usable untargeted coverage of roughly 100-160 metabolites, provided the extract stays at or below about 10 uL. Medium: the field holds 2.88 uL of medium against about 0.019 uL of intracellular volume (assumed 2 pL per cell), about 150:1, or about 596:1 counting combs and stubs, so the rinse is not optional: it is what makes medium-borne metabolites (amino acids, glucose) measurable; metabolites absent from medium (nucleotides, phosphorylated glycolytic intermediates) are unaffected. UNTESTED. Whether the flood strips the precipitated protein film; whether the field-only adhesion coat keeps the combs cell-free; tooth flow uniformity (model only); whether COC tolerates the quench and solubilisation reagents over the contact time (compatibility is still TODO in contracts/materials.json); the 0.4 mm ribs between teeth (the floor, with no margin). Untargeted metabolomics at this input needs the nanoflow or CE-MS platform, not a conventional column.",
   "placeholder": false,
   "units": "mm",
   "footprint": {
@@ -25,17 +25,10 @@
       "thickness_mm": 1.0
     }
   ],
-  "capsule": {
-    "diameter_um": 70,
-    "count": 134703
-  },
-  "trap": {
-    "gap_um": 25
-  },
   "chambers": [
     {
-      "id": "cap_n",
-      "type": "exchange",
+      "id": "cx_n",
+      "type": "culture",
       "shape": "box",
       "center": [
         5.0,
@@ -43,24 +36,19 @@
         0.65
       ],
       "size": [
-        3.0,
-        14.0,
+        1.2,
+        8.0,
         0.3
       ],
       "height_um": 300.0,
       "mesh_pore_um": null,
-      "volume_ul": 12.6,
-      "retention": {
-        "type": "weir",
-        "opening_um": 25,
-        "source": "fabricated"
-      },
-      "block": "trap_chamber",
-      "note": "Neurons lane. Flow runs left to right (x), so the width w = 14 mm is the wetted width in the shear formula. Depth weir on the outlet (right) edge: crest 275 um tall in the 300 um layer leaves a 25 um gap under the lid; it retains 70 um capsules and passes liquid. Holds about 44,901 capsules of 70 um at 0.64 packing."
+      "volume_ul": 2.88,
+      "block": "culture_chamber",
+      "note": "Neurons lane culture field for ADHERENT cells, 1.2 x 8 x 0.3 mm, 2.88 uL, floor area 9.6 mm2 (about 9,600 cells at an assumed 1,000/mm2). No retention feature: the cells are attached to the floor. Fed from its left long edge by the inlet comb and drained at its right long edge by the outlet comb, so flow crosses the 1.2 mm short dimension. The quench, then the protein resolubilisation, happen here, in place."
     },
     {
-      "id": "cap_g",
-      "type": "exchange",
+      "id": "cx_g",
+      "type": "culture",
       "shape": "box",
       "center": [
         15.0,
@@ -68,24 +56,19 @@
         0.65
       ],
       "size": [
-        3.0,
-        14.0,
+        1.2,
+        8.0,
         0.3
       ],
       "height_um": 300.0,
       "mesh_pore_um": null,
-      "volume_ul": 12.6,
-      "retention": {
-        "type": "weir",
-        "opening_um": 25,
-        "source": "fabricated"
-      },
-      "block": "trap_chamber",
-      "note": "Glia lane. Flow runs left to right (x), so the width w = 14 mm is the wetted width in the shear formula. Depth weir on the outlet (right) edge: crest 275 um tall in the 300 um layer leaves a 25 um gap under the lid; it retains 70 um capsules and passes liquid. Holds about 44,901 capsules of 70 um at 0.64 packing."
+      "volume_ul": 2.88,
+      "block": "culture_chamber",
+      "note": "Glia lane culture field for ADHERENT cells, 1.2 x 8 x 0.3 mm, 2.88 uL, floor area 9.6 mm2 (about 9,600 cells at an assumed 1,000/mm2). No retention feature: the cells are attached to the floor. Fed from its left long edge by the inlet comb and drained at its right long edge by the outlet comb, so flow crosses the 1.2 mm short dimension. The quench, then the protein resolubilisation, happen here, in place."
     },
     {
-      "id": "cap_a",
-      "type": "exchange",
+      "id": "cx_a",
+      "type": "culture",
       "shape": "box",
       "center": [
         25.0,
@@ -93,85 +76,137 @@
         0.65
       ],
       "size": [
-        3.0,
-        14.0,
+        1.2,
+        8.0,
         0.3
       ],
       "height_um": 300.0,
       "mesh_pore_um": null,
-      "volume_ul": 12.6,
-      "retention": {
-        "type": "weir",
-        "opening_um": 25,
-        "source": "fabricated"
-      },
-      "block": "trap_chamber",
-      "note": "Astrocytes lane. Flow runs left to right (x), so the width w = 14 mm is the wetted width in the shear formula. Depth weir on the outlet (right) edge: crest 275 um tall in the 300 um layer leaves a 25 um gap under the lid; it retains 70 um capsules and passes liquid. Holds about 44,901 capsules of 70 um at 0.64 packing."
+      "volume_ul": 2.88,
+      "block": "culture_chamber",
+      "note": "Astrocytes lane culture field for ADHERENT cells, 1.2 x 8 x 0.3 mm, 2.88 uL, floor area 9.6 mm2 (about 9,600 cells at an assumed 1,000/mm2). No retention feature: the cells are attached to the floor. Fed from its left long edge by the inlet comb and drained at its right long edge by the outlet comb, so flow crosses the 1.2 mm short dimension. The quench, then the protein resolubilisation, happen here, in place."
     }
   ],
   "channels": [
     {
-      "id": "ch_in_n",
+      "id": "comb_in_n",
       "from": "in_n",
-      "to": "cap_n",
-      "width_mm": 0.6,
+      "to": "cx_n",
+      "width_mm": 0.8,
       "depth_mm": 0.3,
-      "carries": "capsules",
-      "block": "flow_distributor",
-      "note": "Neurons feed line: capsule suspension in, cold solvent in, neutralising wash in, and capsules out again on the hand-off. flow_distributor fans the stream across the 14 mm chamber width with matched path lengths so the weir is fed evenly."
+      "carries": "liquid",
+      "block": "centipede_channel",
+      "path": [
+        [
+          2.5,
+          14.4
+        ],
+        [
+          2.5,
+          6.0
+        ]
+      ],
+      "note": "Neurons inlet comb: a 0.8 mm spine along the left long edge from the top-end port downwards, with 13 side teeth 0.2 x 1.5 mm at 0.6 mm pitch (0.4 mm ribs) opening into the field. Carries cell suspension, medium, rinse, quench and solubilisation buffer, one at a time."
     },
     {
-      "id": "ch_out_n",
-      "from": "cap_n",
+      "id": "comb_out_n",
+      "from": "cx_n",
       "to": "out_n",
-      "width_mm": 0.6,
+      "width_mm": 0.8,
       "depth_mm": 0.3,
       "carries": "liquid",
-      "capsule_passable": false,
-      "block": "flow_manifold",
-      "note": "Neurons collection line, behind the weir: flow_manifold gathers the stream from the 14 mm weir edge into one outlet. Liquid only, never capsules while the weir holds."
+      "block": "centipede_channel",
+      "path": [
+        [
+          7.5,
+          14.0
+        ],
+        [
+          7.5,
+          5.6
+        ]
+      ],
+      "note": "Neurons outlet comb: 13 side teeth 0.2 x 1.5 mm offset half a pitch from the inlet teeth, gathering into a 0.8 mm spine that drains to the bottom-end port. Both fractions leave through it, at different times."
     },
     {
-      "id": "ch_in_g",
+      "id": "comb_in_g",
       "from": "in_g",
-      "to": "cap_g",
-      "width_mm": 0.6,
+      "to": "cx_g",
+      "width_mm": 0.8,
       "depth_mm": 0.3,
-      "carries": "capsules",
-      "block": "flow_distributor",
-      "note": "Glia feed line: capsule suspension in, cold solvent in, neutralising wash in, and capsules out again on the hand-off. flow_distributor fans the stream across the 14 mm chamber width with matched path lengths so the weir is fed evenly."
+      "carries": "liquid",
+      "block": "centipede_channel",
+      "path": [
+        [
+          12.5,
+          14.4
+        ],
+        [
+          12.5,
+          6.0
+        ]
+      ],
+      "note": "Glia inlet comb: a 0.8 mm spine along the left long edge from the top-end port downwards, with 13 side teeth 0.2 x 1.5 mm at 0.6 mm pitch (0.4 mm ribs) opening into the field. Carries cell suspension, medium, rinse, quench and solubilisation buffer, one at a time."
     },
     {
-      "id": "ch_out_g",
-      "from": "cap_g",
+      "id": "comb_out_g",
+      "from": "cx_g",
       "to": "out_g",
-      "width_mm": 0.6,
+      "width_mm": 0.8,
       "depth_mm": 0.3,
       "carries": "liquid",
-      "capsule_passable": false,
-      "block": "flow_manifold",
-      "note": "Glia collection line, behind the weir: flow_manifold gathers the stream from the 14 mm weir edge into one outlet. Liquid only, never capsules while the weir holds."
+      "block": "centipede_channel",
+      "path": [
+        [
+          17.5,
+          14.0
+        ],
+        [
+          17.5,
+          5.6
+        ]
+      ],
+      "note": "Glia outlet comb: 13 side teeth 0.2 x 1.5 mm offset half a pitch from the inlet teeth, gathering into a 0.8 mm spine that drains to the bottom-end port. Both fractions leave through it, at different times."
     },
     {
-      "id": "ch_in_a",
+      "id": "comb_in_a",
       "from": "in_a",
-      "to": "cap_a",
-      "width_mm": 0.6,
-      "depth_mm": 0.3,
-      "carries": "capsules",
-      "block": "flow_distributor",
-      "note": "Astrocytes feed line: capsule suspension in, cold solvent in, neutralising wash in, and capsules out again on the hand-off. flow_distributor fans the stream across the 14 mm chamber width with matched path lengths so the weir is fed evenly."
-    },
-    {
-      "id": "ch_out_a",
-      "from": "cap_a",
-      "to": "out_a",
-      "width_mm": 0.6,
+      "to": "cx_a",
+      "width_mm": 0.8,
       "depth_mm": 0.3,
       "carries": "liquid",
-      "capsule_passable": false,
-      "block": "flow_manifold",
-      "note": "Astrocytes collection line, behind the weir: flow_manifold gathers the stream from the 14 mm weir edge into one outlet. Liquid only, never capsules while the weir holds."
+      "block": "centipede_channel",
+      "path": [
+        [
+          22.5,
+          14.4
+        ],
+        [
+          22.5,
+          6.0
+        ]
+      ],
+      "note": "Astrocytes inlet comb: a 0.8 mm spine along the left long edge from the top-end port downwards, with 13 side teeth 0.2 x 1.5 mm at 0.6 mm pitch (0.4 mm ribs) opening into the field. Carries cell suspension, medium, rinse, quench and solubilisation buffer, one at a time."
+    },
+    {
+      "id": "comb_out_a",
+      "from": "cx_a",
+      "to": "out_a",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "carries": "liquid",
+      "block": "centipede_channel",
+      "path": [
+        [
+          27.5,
+          14.0
+        ],
+        [
+          27.5,
+          5.6
+        ]
+      ],
+      "note": "Astrocytes outlet comb: 13 side teeth 0.2 x 1.5 mm offset half a pitch from the inlet teeth, gathering into a 0.8 mm spine that drains to the bottom-end port. Both fractions leave through it, at different times."
     }
   ],
   "ports": [
@@ -179,79 +214,73 @@
       "id": "in_n",
       "type": "inlet",
       "position": [
-        1.5,
-        16.0,
+        2.5,
+        14.4,
         1.8
       ],
       "role": "load",
-      "capsule_passable": true,
       "width_um": 800,
-      "note": "Neurons inlet. Behind one off-chip selector valve with four positions: capsule feed n, cold solvent, neutralising wash, hand-off to module 4."
+      "note": "Neurons inlet. One off-chip five-position selector valve: cell suspension, culture medium, cold rinse, cold quench, solubilisation buffer."
     },
     {
       "id": "out_n",
       "type": "outlet",
       "position": [
-        8.5,
-        4.0,
+        7.5,
+        5.6,
         1.8
       ],
       "role": "release",
-      "capsule_passable": false,
       "width_um": 800,
-      "note": "Neurons outlet, one per lane. An off-chip two-way valve sends it to collection vial n during the quench flush and to waste otherwise."
+      "note": "Neurons outlet. One off-chip three-position fraction collector: waste, vial M (metabolome, pre-charged with neutraliser), vial P (proteome). Both fractions leave through this one port at different times."
     },
     {
       "id": "in_g",
       "type": "inlet",
       "position": [
-        11.5,
-        16.0,
+        12.5,
+        14.4,
         1.8
       ],
       "role": "load",
-      "capsule_passable": true,
       "width_um": 800,
-      "note": "Glia inlet. Behind one off-chip selector valve with four positions: capsule feed g, cold solvent, neutralising wash, hand-off to module 4."
+      "note": "Glia inlet. One off-chip five-position selector valve: cell suspension, culture medium, cold rinse, cold quench, solubilisation buffer."
     },
     {
       "id": "out_g",
       "type": "outlet",
       "position": [
-        18.5,
-        4.0,
+        17.5,
+        5.6,
         1.8
       ],
       "role": "release",
-      "capsule_passable": false,
       "width_um": 800,
-      "note": "Glia outlet, one per lane. An off-chip two-way valve sends it to collection vial g during the quench flush and to waste otherwise."
+      "note": "Glia outlet. One off-chip three-position fraction collector: waste, vial M (metabolome, pre-charged with neutraliser), vial P (proteome). Both fractions leave through this one port at different times."
     },
     {
       "id": "in_a",
       "type": "inlet",
       "position": [
-        21.5,
-        16.0,
+        22.5,
+        14.4,
         1.8
       ],
       "role": "load",
-      "capsule_passable": true,
       "width_um": 800,
-      "note": "Astrocytes inlet. Behind one off-chip selector valve with four positions: capsule feed a, cold solvent, neutralising wash, hand-off to module 4."
+      "note": "Astrocytes inlet. One off-chip five-position selector valve: cell suspension, culture medium, cold rinse, cold quench, solubilisation buffer."
     },
     {
       "id": "out_a",
       "type": "outlet",
       "position": [
-        28.5,
-        4.0,
+        27.5,
+        5.6,
         1.8
       ],
       "role": "release",
-      "capsule_passable": false,
       "width_um": 800,
-      "note": "Astrocytes outlet, one per lane. An off-chip two-way valve sends it to collection vial a during the quench flush and to waste otherwise."
+      "note": "Astrocytes outlet. One off-chip three-position fraction collector: waste, vial M (metabolome, pre-charged with neutraliser), vial P (proteome). Both fractions leave through this one port at different times."
     }
   ]
 }
