@@ -129,7 +129,8 @@ class Controller:
                   explanation=explanation)
         if verdict.status == "blocked":
             return {"status": "blocked", "reasons": verdict.reasons}
-        outcome = self._run(plan, step_no, explanation or self.steps[step_no].get("note", ""), verdict)
+        outcome = self._run(plan, step_no, self.steps[step_no].get("note", ""), verdict,
+                            explanation=explanation or self.rationale(plan))
         if outcome["status"] == "done":
             self.step_results[step_no] = self._step_result(step_no)
         return outcome
@@ -156,8 +157,8 @@ class Controller:
         self._log("safety", f"{verdict.status}: recovery back-flush", safety=verdict.to_dict(), explanation=explanation)
         if verdict.status == "blocked":
             return {"status": "blocked", "reasons": verdict.reasons}
-        outcome = self._run(plan, self.current_step, explanation or "Back-flush to lift the capsules and clear the mesh.",
-                            verdict, recovery=True)
+        outcome = self._run(plan, self.current_step, "Recovery: back-flush to lift the capsules and clear the mesh.",
+                            verdict, recovery=True, explanation=explanation or self.rationale(plan))
         self.recoveries += 1
         for a in self.active_alerts:
             if a["name"] == "pressure_high":
@@ -207,9 +208,22 @@ class Controller:
         t = self.adapter.true_state()
         return ChipState.from_dict(t) if t else None
 
-    def _run(self, plan: dict, step_no: int, narration: str, verdict, recovery: bool = False) -> dict:
+    def rationale(self, plan: dict) -> str:
+        """Why the optimizer chose this plan, in one sentence."""
+        p, n = plan["predicted"], len(plan["candidates"])
+        rej = sum(1 for r in plan["candidates"] if r["status"] == "rejected")
+        bits = [f"{p['time_s']:.0f} s"]
+        if p.get("final_pct") is not None:
+            bits.append(f"{p['final_pct']:.1f}% exchanged")
+        if p.get("peak_kpa"):
+            bits.append(f"peak {p['peak_kpa']:.2f} kPa")
+        return (f"Fastest safe option of {n} simulated ({rej} rejected): {self._describe(plan['command'], plan['args'])}, "
+                f"predicted {', '.join(bits)}.")
+
+    def _run(self, plan: dict, step_no: int, narration: str, verdict, recovery: bool = False, explanation: str = "") -> dict:
         command, args = plan["command"], dict(plan["args"])
         target = args.get("target")
+        self._explanation = explanation or narration
         seg = self._new_segment(command, args, step_no, narration, verdict, recovery, plan)
         replans = 0
         if command in ("exchange", "load", "release"):
@@ -244,6 +258,7 @@ class Controller:
                         remaining = per_wash * int(args.get("washes", 1))
                         slice_v = per_wash / self.slices_per_wash
                         done_in_wash = 0.0
+                        self._explanation = "Re-planned after a model update: " + self.rationale(plan)
                         seg = self._new_segment(command, args, step_no, narration + " (re-planned)", verdict, recovery, plan)
             if args.get("soak_s"):
                 for _ in range(2):
@@ -265,6 +280,7 @@ class Controller:
     def _new_segment(self, command, args, step_no, narration, verdict, recovery, plan) -> dict:
         return {"t_s": round(self.believed.clock_s, 3), "command": command, "plan_args": dict(args),
                 "protocol_step": step_no, "narration": narration, "operator": self.operator,
+                "explanation": getattr(self, "_explanation", narration),
                 "safety": verdict.to_dict(), "recovery": recovery, "slices": [], "model_updates": [], "alerts": [],
                 "volume_done": 0.0, "plan_step": plan.get("step")}
 
@@ -283,7 +299,7 @@ class Controller:
             args["duration_s"] = a["duration_s"]
         event = {"t_s": seg["t_s"], "duration_s": round(self.believed.clock_s - seg["t_s"], 3), "command": command,
                  "args": args, "narration": seg["narration"], "protocol_step": seg["protocol_step"],
-                 "operator": seg["operator"], "explanation": seg["narration"], "safety": seg["safety"],
+                 "operator": seg["operator"], "explanation": seg["explanation"], "safety": seg["safety"],
                  "recovery": seg["recovery"], "plan_args": seg["plan_args"], "slices": seg["slices"],
                  "model_updates": seg["model_updates"], "alerts": seg["alerts"]}
         self.events.append(event)

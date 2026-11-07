@@ -63,7 +63,7 @@ def run_planner(ctl) -> None:
                 break
         step = ctl.steps[n]
         ctl.plan_step(n, f"Plan step {n} ({step['operation']}): pick the fastest safe settings that meet its goal.")
-        outcome = ctl.execute_plan(n, step.get("note", ""))
+        outcome = ctl.execute_plan(n)
         tries = 0
         while outcome["status"] != "done" and ctl.status == "running":
             tries += 1
@@ -79,13 +79,13 @@ def run_planner(ctl) -> None:
                 ctl.back_flush(step["target"], "Pressure is near the escape limit, so back-flush to lift the capsules "
                                                "and clear the mesh before continuing.")
                 ctl.plan_step(n, "Re-plan the rest of the step with the refitted mesh resistance.")
-                outcome = ctl.execute_plan(n, step.get("note", "") + " (after recovery)")
+                outcome = ctl.execute_plan(n)
             elif name == "sensor_disagreement":
                 sensor = alert["evidence"].get("sensor", "pressure_kpa")
                 ctl.distrust_sensor(sensor, f"The {sensor} sensor disagrees with the model; ignore it and fall back "
                                             f"to the model for that quantity.")
                 ctl.plan_step(n, "Re-plan the rest of the step without the distrusted sensor.")
-                outcome = ctl.execute_plan(n, step.get("note", "") + " (sensor distrusted)")
+                outcome = ctl.execute_plan(n)
             elif name == "reagent_low":
                 ctl.pause_for_human(f"{alert['message']}; refill the reservoir")
             elif name == "capsule_count_drop":

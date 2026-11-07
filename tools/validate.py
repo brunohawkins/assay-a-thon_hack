@@ -204,6 +204,13 @@ def check_run(path: Path, run: dict, protocols: dict[str, tuple[Path, dict]],
         if (proto[1].get("placeholder") or chip_entry[1].get("placeholder")) and not run.get("placeholder"):
             report.error(f"{where}: made from placeholder files, so it must say \"placeholder\": true")
 
+    if run.get("simulated_hardware") and not run.get("scenario"):
+        report.error(f"{where}: simulated run without its scenario")
+    if run.get("report") and not (ROOT / run["report"]).is_file():
+        report.error(f"{where}: report '{run['report']}' does not exist (regenerate with operator/run.py)")
+    if run.get("transcript") and not (ROOT / run["transcript"]).is_file():
+        report.error(f"{where}: transcript '{run['transcript']}' does not exist")
+
     step_numbers = {s.get("step") for s in proto[1]["steps"]} if proto else set()
     chambers = commands.chamber_ids(chip_entry[1]) if chip_entry else None
     last_t = -1.0
