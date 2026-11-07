@@ -4,13 +4,13 @@
 // in each chamber) before every event. Rendering any moment = draw the state
 // before the current event, then animate that event at its progress. That makes
 // seeking, stepping and switching runs instant and glitch-free.
+//
+// Capsules are instanced meshes, so a real-scale chip can show all 10,000 of them.
 import * as THREE from 'three';
 import { ORDER } from './chip.js';
 
 export const LIBRARY_COLOR = '#ff5fd2';
 const CARRIER = 'carrier';
-const CAPSULES_PER_LOAD = 24;
-const CAPSULE_R = 0.55;
 
 // ------------------------------------------------------------------ colours
 
@@ -48,7 +48,7 @@ export function playDuration(ev) {
   const lg = Math.log10(1 + (ev.duration_s ?? 0));
   switch (ev.command) {
     case 'load': return 3.2;
-    case 'exchange': return 1.0 + 1.5 * (ev.args.washes ?? 1) + 0.25 * lg;
+    case 'exchange': return ev.args.direction === 'backflush' ? 3.6 : 1.0 + 1.5 * (ev.args.washes ?? 1) + 0.25 * lg;
     case 'hold_temp': return 2.2 + 0.6 * lg;
     case 'split':
     case 'pool': return 3.6;
@@ -74,6 +74,8 @@ class Polyline {
     }
     this.length = this.cum[this.cum.length - 1];
   }
+  get start() { return this.points[0]; }
+  get end() { return this.points[this.points.length - 1]; }
   at(t, out = new THREE.Vector3()) {
     if (this.length === 0) return out.copy(this.points[0]);
     const d = clamp01(t) * this.length;
@@ -105,15 +107,19 @@ function applyEvent(prev, ev, chip) {
   const inChamber = (id) => s.capsules.filter((c) => c.alive && c.chamber === id);
   switch (ev.command) {
     case 'load':
-      for (let i = 0; i < CAPSULES_PER_LOAD; i++) s.capsules.push({ id: s.nextId++, chamber: a.target, alive: true });
+      for (let i = 0; i < chip.capsuleCount; i++) {
+        s.capsules.push({ id: s.nextId++, chamber: a.target, alive: true, suspended: false });
+      }
       s.fluid[a.target] = { reagent: CARRIER, level: 0.55 };
       break;
     case 'exchange':
       s.fluid[a.target] = { reagent: a.reagent, level: 0.8 };
+      // Back-flush lifts capsules off the mesh; a normal wash settles them back onto it.
+      inChamber(a.target).forEach((c) => { c.suspended = a.direction === 'backflush'; });
       break;
     case 'split': {
       const from = s.fluid[a.source];
-      inChamber(a.source).forEach((c, i) => { c.chamber = a.targets[i % a.targets.length]; });
+      inChamber(a.source).forEach((c, i) => { c.chamber = a.targets[i % a.targets.length]; c.suspended = false; });
       for (const t of a.targets) s.fluid[t] = { reagent: from?.reagent ?? CARRIER, level: 0.6 };
       delete s.fluid[a.source];
       break;
@@ -121,7 +127,7 @@ function applyEvent(prev, ev, chip) {
     case 'pool': {
       const first = a.sources.map((id) => s.fluid[id]).find(Boolean);
       for (const src of a.sources) {
-        inChamber(src).forEach((c) => { c.chamber = a.target; });
+        inChamber(src).forEach((c) => { c.chamber = a.target; c.suspended = false; });
         delete s.fluid[src];
       }
       s.fluid[a.target] = { reagent: first?.reagent ?? CARRIER, level: 0.7 };
@@ -130,8 +136,9 @@ function applyEvent(prev, ev, chip) {
     case 'release': {
       inChamber(a.target).forEach((c) => { c.alive = false; });
       s.fluid[a.target] = { reagent: a.reagent, level: 0.35 };
-      const out = chip.nearestPort('outlet', a.target);
-      if (out) s.library[out] = true;
+      const recovery = capsuleOutlet(chip, a.target);
+      const out = recovery ?? chip.findPort(a.target, { type: 'outlet' });
+      if (out && !recovery) s.library[out] = true;
       break;
     }
     default:
@@ -140,8 +147,16 @@ function applyEvent(prev, ev, chip) {
   return s;
 }
 
-// Resting spot for each capsule: a jittered grid on the chamber's mesh floor.
+// An outlet the spec says capsules can pass (e.g. a release outlet), or null.
+function capsuleOutlet(chip, chamberId) {
+  const id = chip.findPort(chamberId, { type: 'outlet', capsules: true });
+  return id && chip.parts.get(id).capsulePassable === true ? id : null;
+}
+
+// Resting spot for each capsule: a jittered grid on the chamber's mesh floor, or a
+// random spot in the chamber volume while suspended (after a back-flush).
 function assignHomes(state, chip) {
+  const r = chip.capsuleRadius;
   const homes = new Map();
   const byChamber = new Map();
   for (const c of state.capsules) {
@@ -152,25 +167,39 @@ function assignHomes(state, chip) {
   for (const [cid, caps] of byChamber) {
     const ch = chip.chamber(cid);
     if (!ch) continue;
-    const n = caps.length;
+    const margin = Math.min(0.3, Math.min(ch.size.x, ch.size.y) * 0.02);
+    const usableX = Math.max(ch.size.x - 2 * r - margin, 0.01);
+    const usableY = Math.max(ch.size.y - 2 * r - margin, 0.01);
+    const settled = caps.filter((c) => !c.suspended);
+    const n = settled.length;
     const cols = Math.max(1, Math.round(Math.sqrt((n * ch.size.x) / ch.size.y)));
-    const rows = Math.ceil(n / cols);
-    const usableX = Math.max(ch.size.x - 2 * CAPSULE_R - 0.3, 0.1);
-    const usableY = Math.max(ch.size.y - 2 * CAPSULE_R - 0.3, 0.1);
-    caps.forEach((c, i) => {
+    const rows = Math.max(1, Math.ceil(n / cols));
+    settled.forEach((c, i) => {
       const col = i % cols;
       const row = Math.floor(i / cols);
       const jx = (rand(c.id * 2 + 1) - 0.5) * 0.35 * (usableX / cols);
-      const jy = (rand(c.id * 2 + 2) - 0.5) * 0.35 * (usableY / Math.max(rows, 1));
+      const jy = (rand(c.id * 2 + 2) - 0.5) * 0.35 * (usableY / rows);
       homes.set(c.id, {
         chamber: cid,
         pos: new THREE.Vector3(
           ch.center.x - usableX / 2 + ((col + 0.5) / cols) * usableX + jx,
           ch.center.y - usableY / 2 + ((row + 0.5) / rows) * usableY + jy,
-          ch.floorZ + CAPSULE_R + 0.06,
+          ch.floorZ + r * 1.05,
         ),
       });
     });
+    const headroom = Math.max(ch.size.z - 2.1 * r, 0);
+    for (const c of caps.filter((x) => x.suspended)) {
+      homes.set(c.id, {
+        chamber: cid,
+        suspended: true,
+        pos: new THREE.Vector3(
+          ch.center.x - usableX / 2 + rand(c.id * 3 + 7) * usableX,
+          ch.center.y - usableY / 2 + rand(c.id * 3 + 8) * usableY,
+          ch.floorZ + r * 1.05 + (0.35 + 0.65 * rand(c.id * 3 + 9)) * headroom,
+        ),
+      });
+    }
   }
   return homes;
 }
@@ -182,9 +211,11 @@ function rand(seed) {
 
 // ------------------------------------------------------------------ player
 
-const shellGeometry = new THREE.SphereGeometry(CAPSULE_R, 20, 14);
-const coreGeometry = new THREE.SphereGeometry(CAPSULE_R * 0.42, 12, 10);
-const blobGeometry = new THREE.SphereGeometry(0.55, 16, 12);
+const _m = new THREE.Matrix4();
+const _q = new THREE.Quaternion();
+const _s = new THREE.Vector3();
+const _p = new THREE.Vector3();
+const _a = new THREE.Vector3();
 
 export class Player {
   constructor(ctx, handlers = {}) {
@@ -200,18 +231,18 @@ export class Player {
     this.fade = 1;
     this.fadeTarget = 1;
     this.currentIndex = -1;
-    this.capsules = new Map();
+    this.cap = null; // instanced capsule meshes
     this.blobs = [];
-    this._tmp = new THREE.Vector3();
+    this.paths = new Map();
     ctx.onFrame((dt) => this.update(dt));
   }
 
   setChip(chip) {
-    for (const cap of this.capsules.values()) cap.group.removeFromParent();
+    this.#disposeCapsules();
     for (const b of this.blobs) b.removeFromParent();
-    this.capsules.clear();
     this.blobs = [];
     this.chip = chip;
+    const blobGeometry = new THREE.SphereGeometry(0.55 * chip.u, 16, 12);
     for (let i = 0; i < 3; i++) {
       const blob = new THREE.Mesh(
         blobGeometry,
@@ -227,6 +258,7 @@ export class Player {
   load(run, { autoplay = false } = {}) {
     this.run = run;
     this.events = run.events;
+    this.paths.clear();
     // Timeline: when each event starts, in playback seconds at 1x.
     this.starts = [];
     let t = 0;
@@ -323,29 +355,81 @@ export class Player {
     return i;
   }
 
-  #ensureCapsules(n) {
-    for (let id = this.capsules.size; id < n; id++) {
-      const shellMat = new THREE.MeshPhysicalMaterial({
-        color: 0xdff3ff, transparent: true, opacity: 0.5, roughness: 0.1, clearcoat: 1, depthWrite: false,
-      });
-      const coreMat = new THREE.MeshStandardMaterial({
-        color: 0xffb38a, emissive: 0x7a3010, emissiveIntensity: 0.35, roughness: 0.5, transparent: true,
-      });
-      const group = new THREE.Group();
-      const shell = new THREE.Mesh(shellGeometry, shellMat);
-      shell.renderOrder = ORDER.capsule;
-      const core = new THREE.Mesh(coreGeometry, coreMat);
-      group.add(core, shell);
-      group.visible = false;
-      this.chip.group.add(group);
-      this.capsules.set(id, { group, shellMat, coreMat });
+  // ---------------------------------------------------------------- capsules
+
+  #disposeCapsules() {
+    if (!this.cap) return;
+    for (const m of [this.cap.shell, this.cap.core]) {
+      if (!m) continue;
+      m.removeFromParent();
+      m.geometry.dispose();
+      m.material.dispose();
     }
+    this.cap = null;
+  }
+
+  #ensureCapsules(n) {
+    if (this.cap && this.cap.capacity >= n) return;
+    this.#disposeCapsules();
+    const r = this.chip.capsuleRadius;
+    const many = n > 400;
+    const capacity = Math.max(n, 1);
+    const shellMat = many
+      ? new THREE.MeshStandardMaterial({ color: 0xf1e4cf, emissive: 0x3a2a18, roughness: 0.45, transparent: true, opacity: 0.95 })
+      : new THREE.MeshPhysicalMaterial({ color: 0xdff3ff, transparent: true, opacity: 0.5, roughness: 0.1, clearcoat: 1, depthWrite: false });
+    const shell = new THREE.InstancedMesh(many ? new THREE.IcosahedronGeometry(r, 1) : new THREE.SphereGeometry(r, 20, 14), shellMat, capacity);
+    shell.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    shell.frustumCulled = false;
+    shell.renderOrder = ORDER.capsule;
+    this.chip.group.add(shell);
+    let core = null;
+    if (!many) {
+      const coreMat = new THREE.MeshStandardMaterial({ color: 0xffb38a, emissive: 0x7a3010, emissiveIntensity: 0.35, roughness: 0.5, transparent: true });
+      core = new THREE.InstancedMesh(new THREE.SphereGeometry(r * 0.42, 12, 10), coreMat, capacity);
+      core.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      core.frustumCulled = false;
+      this.chip.group.add(core);
+    }
+    this.cap = {
+      shell, core, capacity, shellOpacity: shellMat.opacity,
+      pos: new Float32Array(capacity * 3), scale: new Float32Array(capacity),
+    };
+  }
+
+  #setCap(id, v, scale = 1) {
+    const c = this.cap;
+    c.pos[id * 3] = v.x;
+    c.pos[id * 3 + 1] = v.y;
+    c.pos[id * 3 + 2] = v.z;
+    c.scale[id] = scale;
+  }
+
+  #flushCapsules() {
+    const c = this.cap;
+    if (!c) return;
+    for (let id = 0; id < c.capacity; id++) {
+      _p.set(c.pos[id * 3], c.pos[id * 3 + 1], c.pos[id * 3 + 2]);
+      _m.compose(_p, _q, _s.setScalar(c.scale[id] || 1e-6));
+      c.shell.setMatrixAt(id, _m);
+      c.core?.setMatrixAt(id, _m);
+    }
+    c.shell.instanceMatrix.needsUpdate = true;
+    if (c.core) c.core.instanceMatrix.needsUpdate = true;
+    c.shell.material.opacity = c.shellOpacity * this.fade;
+    if (c.core) c.core.material.opacity = this.fade;
+    c.shell.visible = this.fade > 0.001;
+    if (c.core) c.core.visible = this.fade > 0.001;
+  }
+
+  #path(key, build) {
+    if (!this.paths.has(key)) this.paths.set(key, new Polyline(build()));
+    return this.paths.get(key);
   }
 
   // ---------------------------------------------------------------- drawing
 
   render() {
-    if (!this.run || !this.chip) return;
+    if (!this.run || !this.chip || !this.cap) return;
     const n = this.events.length;
     const done = n === 0 || this.t >= this.total - 1e-6;
     const i = done ? n : this.#indexAt(this.t);
@@ -353,6 +437,7 @@ export class Player {
 
     this.#drawState(i);
     if (!done) this.#animate(i, p);
+    this.#flushCapsules();
 
     const shown = done ? n - 1 : i;
     if (shown !== this.currentIndex) {
@@ -367,14 +452,10 @@ export class Player {
   #drawState(i) {
     const state = this.states[i];
     const homes = this.homes[i];
-    const f = this.fade;
-    for (const [id, cap] of this.capsules) {
+    for (let id = 0; id < this.cap.capacity; id++) {
       const home = homes.get(id);
-      cap.group.visible = Boolean(home) && f > 0.001;
-      if (home) cap.group.position.copy(home.pos);
-      cap.group.scale.setScalar(1);
-      cap.shellMat.opacity = 0.5 * f;
-      cap.coreMat.opacity = f;
+      if (home) this.#setCap(id, home.pos, 1);
+      else this.cap.scale[id] = 0;
     }
     for (const part of this.chip.parts.values()) {
       if (part.kind === 'chamber') {
@@ -386,8 +467,9 @@ export class Player {
         part.material.emissiveIntensity = 0.08;
       } else {
         const lib = Boolean(state.library[part.id]);
-        part.glow.visible = lib && f > 0.001;
-        part.glowMaterial.opacity = 0.35 * f;
+        part.glow.visible = lib && this.fade > 0.001;
+        part.glowMaterial.color.set(LIBRARY_COLOR);
+        part.glowMaterial.opacity = 0.35 * this.fade;
       }
     }
     for (const ch of this.chip.channels) {
@@ -401,7 +483,7 @@ export class Player {
   #setFluid(part, reagent, level, color = null) {
     const lv = clamp01(level);
     part.fluid.visible = lv > 0.005 && this.fade > 0.001;
-    part.fluid.scale.z = Math.max(lv * part.size.z * 0.96, 0.001);
+    part.fluid.scale.z = Math.max(lv * part.size.z * 0.96, 0.0001);
     const c = color ?? reagentColor(reagent);
     part.fluidMaterial.color.copy(c);
     part.fluidMaterial.emissive.copy(c);
@@ -416,6 +498,25 @@ export class Player {
     }
   }
 
+  // Capsules that stay in the same chamber but move (settling, lifting) glide there.
+  #settle(i, p, wobble = 0) {
+    const before = this.homes[i];
+    const after = this.homes[i + 1];
+    const e = ease(p);
+    const r = this.chip.capsuleRadius;
+    for (const [id, b] of before) {
+      const a = after.get(id);
+      if (!a || a.chamber !== b.chamber || a.pos.equals(b.pos)) continue;
+      _a.copy(b.pos).lerp(a.pos, e);
+      if (wobble) {
+        const w = wobble * r * Math.sin(Math.PI * e);
+        _a.x += Math.sin(p * 9 + id) * w;
+        _a.y += Math.cos(p * 7 + id * 1.3) * w;
+      }
+      this.#setCap(id, _a, 1);
+    }
+  }
+
   #animate(i, p) {
     const ev = this.events[i];
     const a = ev.args;
@@ -426,11 +527,12 @@ export class Player {
     switch (ev.command) {
       case 'load': {
         const part = chip.chamber(a.target);
-        const inlet = chip.nearestPort('inlet', a.target);
-        const path = inlet
+        const inlet = chip.findPort(a.target, { type: 'inlet', capsules: true }) ?? chip.findPort(a.target, { type: 'inlet' });
+        const path = this.#path(`load|${i}`, () => (inlet
           ? [chip.parts.get(inlet).spawn.clone(), ...chip.pathPoints(inlet, a.target)]
-          : [part.center.clone().setZ(chip.top + 9), part.center.clone()];
-        this.#moveCapsules(i, p, () => path);
+          : [part.center.clone().setZ(chip.top + chip.spawnHeight), part.center.clone()]));
+        this.#settle(i, p);
+        this.#arrive(i, p, path);
         const fl = before.fluid[a.target];
         this.#setFluid(part, CARRIER, THREE.MathUtils.lerp(fl?.level ?? 0, after.fluid[a.target].level, ease(span(p, 0.1, 0.8))));
         if (inlet) this.#pulseChannels(chip.channelsBetween(inlet, a.target), reagentColor(CARRIER), envelope(p));
@@ -438,30 +540,43 @@ export class Player {
       }
       case 'exchange': {
         const part = chip.chamber(a.target);
+        const newColor = reagentColor(a.reagent);
+        const old = before.fluid[a.target];
+        if (a.direction === 'backflush') {
+          // Liquid comes up through the mesh from below and lifts the capsules.
+          const level = THREE.MathUtils.lerp((old?.level ?? 0) * 0.3, after.fluid[a.target].level, ease(span(p, 0, 0.55)));
+          const color = old ? reagentColor(old.reagent).clone().lerp(newColor, ease(span(p, 0, 0.5))) : newColor;
+          this.#setFluid(part, a.reagent, level, color);
+          this.#settle(i, span(p, 0.12, 0.9), 1.6);
+          const bf = chip.findPort(a.target, { type: 'inlet', role: 'backflush' }) ?? chip.findPort(a.target, { type: 'inlet', capsules: false });
+          if (bf) this.#pulseChannels(chip.channelsBetween(bf, a.target), newColor, envelope(span(p, 0, 0.7), 0.2));
+          break;
+        }
         const washes = Math.max(1, a.washes ?? 1);
         const cycle = Math.min(Math.floor(p * washes), washes - 1);
         const cp = p * washes - cycle;
         const last = cycle === washes - 1;
-        const old = before.fluid[a.target];
         let level;
         if (cp < 0.4) level = THREE.MathUtils.lerp(cycle === 0 ? (old?.level ?? 0) * 0.5 : 0.08, 1, ease(cp / 0.4));
         else if (cp < 0.6) level = 1;
         else level = THREE.MathUtils.lerp(1, last ? after.fluid[a.target].level : 0.08, ease((cp - 0.6) / 0.4));
-        const newColor = reagentColor(a.reagent);
-        const color = cycle === 0 && old
-          ? reagentColor(old.reagent).clone().lerp(newColor, ease(cp / 0.4))
-          : newColor;
+        const color = cycle === 0 && old ? reagentColor(old.reagent).clone().lerp(newColor, ease(cp / 0.4)) : newColor;
         this.#setFluid(part, a.reagent, level, color);
+        this.#settle(i, p);
         // Capsules sway in the flow but stay on the mesh.
-        for (const [id, home] of this.homes[i]) {
-          if (home.chamber !== a.target) continue;
-          const cap = this.capsules.get(id);
-          const sway = Math.sin(p * washes * Math.PI * 4 + id) * 0.12 * (level > 0.3 ? 1 : 0.3);
-          cap.group.position.set(home.pos.x + sway, home.pos.y, home.pos.z + Math.abs(sway) * 0.6);
+        const r = chip.capsuleRadius;
+        for (const [id, home] of this.homes[i + 1]) {
+          if (home.chamber !== a.target || home.suspended) continue;
+          const sway = Math.sin(p * washes * Math.PI * 4 + id) * 0.2 * r * (level > 0.3 ? 1 : 0.3);
+          if (this.homes[i].get(id)?.suspended) continue; // already gliding down
+          _a.set(home.pos.x + sway, home.pos.y, home.pos.z + Math.abs(sway) * 0.3);
+          this.#setCap(id, _a, 1);
         }
-        const inlet = chip.nearestPort('inlet', a.target);
+        const inlet = chip.findPort(a.target, { type: 'inlet', capsules: true }) ?? chip.findPort(a.target, { type: 'inlet' });
         const feed = inlet ? chip.channelsBetween(inlet, a.target) : [];
         this.#pulseChannels(feed, newColor, cp < 0.45 ? Math.sin((cp / 0.45) * Math.PI) : 0);
+        const waste = chip.findPort(a.target, { type: 'outlet', role: 'waste' }) ?? chip.findPort(a.target, { type: 'outlet', capsules: false });
+        if (waste) this.#pulseChannels(chip.channelsBetween(a.target, waste), color, cp > 0.6 ? Math.sin(((cp - 0.6) / 0.4) * Math.PI) : 0);
         break;
       }
       case 'hold_temp': {
@@ -481,8 +596,7 @@ export class Player {
       }
       case 'split':
       case 'pool': {
-        this.#moveCapsules(i, p, (from, to) => chip.pathPoints(from, to));
-        // Liquid drains from where capsules leave and fills where they arrive.
+        this.#travel(i, p);
         const sources = ev.command === 'split' ? [a.source] : a.sources;
         const targets = ev.command === 'split' ? a.targets : [a.target];
         for (const s of sources) {
@@ -502,16 +616,26 @@ export class Player {
       }
       case 'release': {
         const part = chip.chamber(a.target);
+        const old = before.fluid[a.target];
+        const recovery = capsuleOutlet(chip, a.target);
+        if (recovery) {
+          // The washed capsules themselves leave through the release outlet.
+          const port = chip.parts.get(recovery);
+          const path = this.#path(`rel|${i}`, () => [...chip.pathPoints(a.target, recovery), port.spawn.clone()]);
+          this.#leave(i, p, path);
+          this.#setFluid(part, a.reagent, THREE.MathUtils.lerp(Math.max(old?.level ?? 0, 0.8), after.fluid[a.target].level, ease(span(p, 0.4, 1))),
+            reagentColor(a.reagent));
+          this.#pulseChannels(chip.channelsBetween(a.target, recovery), reagentColor(a.reagent), envelope(p, 0.2));
+          port.glow.visible = true;
+          port.glowMaterial.color.copy(reagentColor(a.reagent));
+          port.glowMaterial.opacity = 0.3 * envelope(span(p, 0.3, 1), 0.3) * this.fade;
+          break;
+        }
         const fade = 1 - ease(span(p, 0.05, 0.5));
         for (const [id, home] of this.homes[i]) {
           if (home.chamber !== a.target) continue;
-          const cap = this.capsules.get(id);
-          cap.group.scale.setScalar(0.4 + 0.6 * fade);
-          cap.shellMat.opacity = 0.5 * fade * this.fade;
-          cap.coreMat.opacity = fade * this.fade;
-          cap.group.visible = fade > 0.01;
+          this.#setCap(id, home.pos, Math.max(fade, 0) * (0.4 + 0.6 * fade));
         }
-        const old = before.fluid[a.target];
         const lib = new THREE.Color().setStyle(LIBRARY_COLOR, THREE.SRGBColorSpace);
         const fluidColor = (old ? reagentColor(old.reagent).clone() : reagentColor(a.reagent).clone())
           .lerp(reagentColor(a.reagent), ease(span(p, 0, 0.3)))
@@ -519,9 +643,9 @@ export class Player {
         this.#setFluid(part, a.reagent,
           THREE.MathUtils.lerp(Math.max(old?.level ?? 0, 0.8), after.fluid[a.target].level, ease(span(p, 0.5, 1))), fluidColor);
         // The library flows out to the outlet.
-        const outlet = chip.nearestPort('outlet', a.target);
+        const outlet = chip.findPort(a.target, { type: 'outlet' });
         if (outlet) {
-          const path = new Polyline([...chip.pathPoints(a.target, outlet), chip.parts.get(outlet).spawn.clone().setZ(chip.top + 0.6)]);
+          const path = this.#path(`lib|${i}`, () => [...chip.pathPoints(a.target, outlet), chip.parts.get(outlet).center.clone()]);
           this.blobs.forEach((blob, k) => {
             const lp = span(p, 0.3 + k * 0.08, 0.85 + k * 0.05);
             blob.visible = lp > 0 && lp < 1;
@@ -531,6 +655,7 @@ export class Player {
           this.#pulseChannels(chip.channelsBetween(a.target, outlet), lib, envelope(span(p, 0.25, 1), 0.2));
           const port = chip.parts.get(outlet);
           port.glow.visible = true;
+          port.glowMaterial.color.set(LIBRARY_COLOR);
           port.glowMaterial.opacity = 0.35 * ease(span(p, 0.75, 1)) * this.fade;
         }
         break;
@@ -540,26 +665,56 @@ export class Player {
     }
   }
 
-  // Animate every capsule whose chamber changes during event i along a path.
-  #moveCapsules(i, p, pathFor) {
+  // New capsules (load) stream down `path` and fan out to their homes.
+  #arrive(i, p, path) {
     const homesBefore = this.homes[i];
-    const homesAfter = this.homes[i + 1];
     const movers = [];
-    for (const [id, after] of homesAfter) {
+    for (const [id, home] of this.homes[i + 1]) if (!homesBefore.has(id)) movers.push([id, home]);
+    const m = movers.length;
+    movers.forEach(([id, home], k) => {
+      const delay = m > 1 ? (0.45 * k) / (m - 1) : 0;
+      const local = span(p, delay, delay + 0.5);
+      if (local <= 0) { this.cap.scale[id] = 0; return; }
+      const e = ease(local);
+      path.at(e, _a);
+      _a.addScaledVector(_p.copy(home.pos).sub(path.end), e * e);
+      this.#setCap(id, _a, 1);
+    });
+  }
+
+  // Capsules that change chamber (split, pool) travel along the channels.
+  #travel(i, p) {
+    const homesBefore = this.homes[i];
+    const movers = [];
+    for (const [id, after] of this.homes[i + 1]) {
       const before = homesBefore.get(id);
-      if (!before || before.chamber !== after.chamber) movers.push({ id, before, after });
+      if (before && before.chamber !== after.chamber) movers.push([id, before, after]);
     }
     const m = movers.length;
-    movers.forEach(({ id, before, after }, k) => {
-      const cap = this.capsules.get(id);
+    movers.forEach(([id, before, after], k) => {
+      const path = this.#path(`mv|${before.chamber}|${after.chamber}`, () => this.chip.pathPoints(before.chamber, after.chamber));
       const delay = m > 1 ? (0.4 * k) / (m - 1) : 0;
-      const local = span(p, delay, delay + 0.55);
-      const pts = before
-        ? [before.pos.clone(), ...pathFor(before.chamber, after.chamber), after.pos.clone()]
-        : [...pathFor(null, after.chamber), after.pos.clone()];
-      const line = new Polyline(pts);
-      cap.group.visible = (Boolean(before) || local > 0) && this.fade > 0.001;
-      line.at(ease(local), cap.group.position);
+      const e = ease(span(p, delay, delay + 0.55));
+      path.at(e, _a);
+      _a.addScaledVector(_p.copy(before.pos).sub(path.start), 1 - e);
+      _a.addScaledVector(_p.copy(after.pos).sub(path.end), e);
+      this.#setCap(id, _a, 1);
+    });
+  }
+
+  // Capsules leaving the chip (release through a capsule outlet).
+  #leave(i, p, path) {
+    const leaving = [];
+    for (const [id, before] of this.homes[i]) if (!this.homes[i + 1].has(id)) leaving.push([id, before]);
+    const m = leaving.length;
+    leaving.forEach(([id, before], k) => {
+      const delay = m > 1 ? (0.45 * k) / (m - 1) : 0;
+      const local = span(p, delay, delay + 0.5);
+      if (local >= 1) { this.cap.scale[id] = 0; return; }
+      const e = ease(local);
+      path.at(e, _a);
+      _a.addScaledVector(_p.copy(before.pos).sub(path.start), 1 - e);
+      this.#setCap(id, _a, 1);
     });
   }
 }

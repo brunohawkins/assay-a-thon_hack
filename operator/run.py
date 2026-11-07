@@ -2,7 +2,7 @@
 
     python operator/run.py --protocol protocols/placeholder_scrnaseq.json --chip chip/placeholder_chip_spec.json
     python operator/run.py --protocol protocols/placeholder_scrnaseq.json --chip chip/placeholder_chip_spec.json --llm
-    python operator/run.py --all                 # every protocols/*.json on the chip (default: placeholder chip)
+    python operator/run.py --all                 # every run again on its own chip; new protocols on the placeholder chip
     python operator/run.py --reindex             # only rebuild runs/index.json
 
 Writes runs/<protocol_id>__<chip_id>.json (llm runs: ...__llm.json) and rebuilds
@@ -18,6 +18,7 @@ from pathlib import Path
 
 import planner
 import schema_io
+import sizing
 
 ROOT = schema_io.ROOT
 DEFAULT_CHIP = ROOT / "chip" / "placeholder_chip_spec.json"
@@ -51,6 +52,7 @@ def generate(protocol_path: Path, chip_path: Path, use_llm: bool = False, runs_d
 
     out = planner.run_path(protocol["id"], chip["id"], operator, runs_dir)
     header = planner.run_header(protocol, chip, chip_path, operator, model)
+    header["sizing"] = sizing.chip_sizing(chip)
     run = adapter.write(out, header)
     print(f"wrote {planner.repo_relative(out)}  ({len(run['events'])} events, "
           f"{run['total_duration_s']:.0f} s of protocol time, operator={operator})")
@@ -86,12 +88,35 @@ def rebuild_index(runs_dir: Path = planner.RUNS_DIR) -> Path:
     return out
 
 
+def all_pairs(chip: Path | None) -> list[tuple[Path, Path]]:
+    """(protocol, chip) pairs for --all. With --chip: every protocol on that chip.
+    Without: every existing run again on its own chip, plus protocols that have no run
+    yet on the default chip."""
+    protocols = sorted((ROOT / "protocols").glob("*.json"))
+    if chip is not None:
+        return [(p, chip) for p in protocols]
+    by_id = {schema_io.load_json(p).get("id"): p for p in protocols}
+    pairs, covered = [], set()
+    for run_path in sorted(planner.RUNS_DIR.glob("*.json")):
+        if run_path.name == INDEX_NAME:
+            continue
+        run = schema_io.load_json(run_path)
+        if run.get("operator") != "planner" or run.get("protocol_id") not in by_id or not run.get("chip_spec"):
+            continue
+        pair = (by_id[run["protocol_id"]], ROOT / run["chip_spec"])
+        if pair not in pairs:
+            pairs.append(pair)
+        covered.add(run["protocol_id"])
+    pairs += [(p, DEFAULT_CHIP) for pid, p in by_id.items() if pid not in covered]
+    return pairs
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Turn a protocol + chip spec into a run file for the twin.")
     parser.add_argument("--protocol", type=Path, help="protocol JSON, e.g. protocols/placeholder_scrnaseq.json")
     parser.add_argument("--chip", type=Path, default=None, help=f"chip spec JSON (default for --all: {planner.repo_relative(DEFAULT_CHIP)})")
     parser.add_argument("--llm", action="store_true", help="let Claude operate (needs ANTHROPIC_API_KEY; falls back to the planner)")
-    parser.add_argument("--all", action="store_true", help="generate runs for every protocols/*.json")
+    parser.add_argument("--all", action="store_true", help="regenerate every run on its own chip (or every protocol on --chip)")
     parser.add_argument("--reindex", action="store_true", help="only rebuild runs/index.json")
     args = parser.parse_args(argv)
 
@@ -100,9 +125,12 @@ def main(argv: list[str] | None = None) -> int:
             rebuild_index()
             return 0
         if args.all:
-            chip = args.chip or DEFAULT_CHIP
-            for protocol_path in sorted((ROOT / "protocols").glob("*.json")):
-                generate(protocol_path, chip, args.llm)
+            for protocol_path, chip_path in all_pairs(args.chip):
+                try:
+                    generate(protocol_path, chip_path, args.llm)
+                except planner.PlanError as e:
+                    print(f"skipped {planner.repo_relative(protocol_path)} on {planner.repo_relative(chip_path)}: "
+                          f"{str(e).splitlines()[0]}")
         elif args.protocol and args.chip:
             generate(args.protocol, args.chip, args.llm)
         else:

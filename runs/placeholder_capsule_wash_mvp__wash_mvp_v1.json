@@ -4,8 +4,34 @@
   "chip_id": "wash_mvp_v1",
   "chip_spec": "cad/wash_mvp_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T12:22:23Z",
+  "created_at": "2026-11-07T12:25:58Z",
   "placeholder": true,
+  "sizing": {
+    "capsule_count": 10000,
+    "capsule_count_note": "from chip spec",
+    "capsule_diameter_um": 70.0,
+    "cells_expected": 769.7,
+    "trap_chambers": [
+      "trap_1"
+    ],
+    "monolayer_area_mm2_needed": 49.0,
+    "trap_area_mm2": 49.0,
+    "packed_volume_ul_needed": 2.806,
+    "trap_volume_ul": 7.35,
+    "channel_width_um": [
+      140.0,
+      140.0
+    ],
+    "channel_width_um_recommended": [
+      105.0,
+      140.0
+    ],
+    "trap_gap_um_recommended": [
+      21.0,
+      28.0
+    ],
+    "swollen_diameter_um": 140.0
+  },
   "total_duration_s": 360.0,
   "events": [
     {

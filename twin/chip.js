@@ -1,6 +1,7 @@
 // Builds the chip from chip_spec.json. Everything inside `chip.group` uses chip
 // coordinates: millimetres, origin at the bottom-left corner of the footprint,
 // x right, y up the slide, z up out of the slide (same as the CAD exports).
+// Real scale: capsules, channels and ports are drawn at their spec sizes.
 import * as THREE from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
@@ -11,8 +12,10 @@ const TYPE_COLORS = {
   split: 0xa78bfa,
   pool: 0x60a5fa,
   outlet: 0xf9a8d4,
+  well: 0xfcd34d,
 };
 const PORT_COLORS = { inlet: 0x7dd3fc, outlet: 0xff5fd2 };
+const ROLE_COLORS = { waste: 0xfb923c, backflush: 0x34d399, release: 0xff5fd2, load: 0x7dd3fc, reagent: 0x7dd3fc };
 
 // Draw order for see-through parts (lower draws first).
 export const ORDER = { capsule: 2, fluid: 3, channel: 4, chamber: 5, glow: 6, layer: 10, edges: 11 };
@@ -24,9 +27,15 @@ export class Chip {
     this.footprint = spec.footprint;
     this.height = spec.layers.reduce((z, l) => z + l.thickness_mm, 0);
     this.top = this.height;
+    this.u = spec.footprint.y / 25; // size unit: 1 for a 75 x 25 mm slide
     this.fluidZ = spec.chambers.length
       ? spec.chambers.reduce((z, c) => z + c.center[2], 0) / spec.chambers.length
       : this.height / 2;
+    // Capsules: real size when the spec says so; a visible default otherwise.
+    this.capsuleRadius = spec.capsule?.diameter_um ? spec.capsule.diameter_um / 2000 : 0.55;
+    this.capsuleCount = Math.min(Math.round(spec.capsule?.count ?? 24), 12000);
+    this.realCapsules = Boolean(spec.capsule?.diameter_um);
+    this.spawnHeight = Math.max(1.2, spec.footprint.y * 0.36);
 
     this.group = new THREE.Group();
     this.group.name = `chip:${spec.id}`;
@@ -104,16 +113,18 @@ export class Chip {
     this.group.add(edges);
 
     const floorZ = center.z - size.z / 2;
+    const hasMesh = c.retention?.type === 'mesh' || Boolean(c.mesh_pore_um);
 
     // Mesh floor that holds the capsules.
-    if (c.mesh_pore_um) {
+    if (hasMesh || c.retention) {
       const tex = meshTexture();
-      tex.repeat.set(size.x / 0.7, size.y / 0.7);
+      const cell = 0.7 * this.u;
+      tex.repeat.set(size.x / cell, size.y / cell);
       const floor = new THREE.Mesh(
         new THREE.PlaneGeometry(size.x * 0.98, size.y * 0.98),
         new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.55, depthWrite: false, color }),
       );
-      floor.position.set(center.x, center.y, floorZ + 0.03);
+      floor.position.set(center.x, center.y, floorZ + Math.min(0.03, size.z * 0.05));
       floor.renderOrder = ORDER.fluid - 1;
       this.group.add(floor);
     }
@@ -132,13 +143,14 @@ export class Chip {
       depthWrite: false,
     });
     const fluid = new THREE.Mesh(fluidGeom, fluidMaterial);
-    fluid.position.set(center.x, center.y, floorZ + 0.02);
+    fluid.position.set(center.x, center.y, floorZ + Math.min(0.02, size.z * 0.03));
     fluid.scale.set(size.x * 0.96, size.y * 0.96, 0.001);
     fluid.visible = false;
     fluid.renderOrder = ORDER.fluid;
     this.group.add(fluid);
 
     // Warm/cool glow for hold_temp.
+    const pad = 1.6 * this.u;
     const glowMaterial = new THREE.MeshBasicMaterial({
       color: 0xffffff,
       transparent: true,
@@ -146,19 +158,19 @@ export class Chip {
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-    const glow = new THREE.Mesh(new THREE.BoxGeometry(size.x + 1.6, size.y + 1.6, size.z + 1.2), glowMaterial);
+    const glow = new THREE.Mesh(new THREE.BoxGeometry(size.x + pad, size.y + pad, size.z + pad * 0.75), glowMaterial);
     glow.position.copy(center);
     glow.visible = false;
     glow.renderOrder = ORDER.glow;
     this.group.add(glow);
 
     const label = makeLabel(c.id, 'part-label', [0, 0.5]);
-    label.position.set(center.x + size.x / 2 + 0.6, center.y, this.top + 0.3);
+    label.position.set(center.x + size.x / 2 + 0.6 * this.u, center.y, this.top + 0.3 * this.u);
     this.group.add(label);
     this.labels.push(label);
 
     const tempLabel = makeLabel('', 'temp-label');
-    tempLabel.position.set(center.x, center.y, this.top + 3.5);
+    tempLabel.position.set(center.x, center.y, this.top + 3.5 * this.u);
     tempLabel.visible = false;
     this.group.add(tempLabel);
 
@@ -171,6 +183,8 @@ export class Chip {
       center,
       size,
       floorZ,
+      heightZ: (c.height_um ? c.height_um / 1000 : size.z),
+      hasMesh,
       box,
       edges,
       material,
@@ -184,12 +198,17 @@ export class Chip {
   }
 
   #buildPort(p) {
-    const color = PORT_COLORS[p.type] ?? 0x9ca3af;
-    const [x, y] = p.position;
-    const z0 = this.fluidZ - 0.6;
-    const z1 = this.top + 0.5;
+    const color = ROLE_COLORS[p.role] ?? PORT_COLORS[p.type] ?? 0x9ca3af;
+    const [x, y, pz] = p.position;
+    const r = p.width_um ? p.width_um / 2000 : 1.1;
+    const bottom = pz < this.top / 2;
+    // Top ports: a tube from the fluid layer up through the lid. Bottom ports: a tube
+    // from under the chip up to the drain plane below the chambers.
+    const minFloor = Math.min(...this.spec.chambers.map((c) => c.center[2] - c.size[2] / 2));
+    const z0 = bottom ? pz - 0.3 * this.u : this.fluidZ - 0.6 * this.u;
+    const z1 = bottom ? minFloor : this.top + 0.5 * this.u;
     const tube = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.1, 1.1, z1 - z0, 32, 1, true).rotateX(Math.PI / 2),
+      new THREE.CylinderGeometry(r, r, Math.max(z1 - z0, 0.01), 32, 1, true).rotateX(Math.PI / 2),
       new THREE.MeshPhysicalMaterial({
         color,
         emissive: color,
@@ -205,9 +224,10 @@ export class Chip {
     tube.renderOrder = ORDER.chamber;
     this.group.add(tube);
 
+    const ringZ = bottom ? z0 : z1;
     const ringMaterial = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.5, roughness: 0.3 });
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.2, 12, 40), ringMaterial);
-    ring.position.set(x, y, z1);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(r * 1.23, r * 0.18, 12, 40), ringMaterial);
+    ring.position.set(x, y, ringZ);
     this.group.add(ring);
 
     const glowMaterial = new THREE.MeshBasicMaterial({
@@ -217,14 +237,14 @@ export class Chip {
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
-    const glow = new THREE.Mesh(new THREE.SphereGeometry(2.6, 24, 16), glowMaterial);
-    glow.position.set(x, y, z1);
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(r * 2.4, 24, 16), glowMaterial);
+    glow.position.set(x, y, ringZ);
     glow.visible = false;
     glow.renderOrder = ORDER.glow;
     this.group.add(glow);
 
-    const label = makeLabel(p.id, 'part-label', [0.5, 1]);
-    label.position.set(x, y + 1.6, z1 + 1.2);
+    const label = makeLabel(p.role ? `${p.id} · ${p.role}` : p.id, 'part-label', bottom ? [0.5, 0] : [0.5, 1]);
+    label.position.set(x, y + (bottom ? -1.6 : 1.6) * this.u, bottom ? z0 : z1 + 0.7 * this.u);
     this.group.add(label);
     this.labels.push(label);
 
@@ -232,10 +252,13 @@ export class Chip {
       kind: 'port',
       id: p.id,
       type: p.type,
+      role: p.role ?? null,
+      capsulePassable: p.capsule_passable,
+      bottom,
       spec: p,
       color,
-      center: new THREE.Vector3(x, y, this.fluidZ),
-      spawn: new THREE.Vector3(x, y, this.top + 9),
+      center: new THREE.Vector3(x, y, bottom ? pz : this.top),
+      spawn: new THREE.Vector3(x, y, bottom ? pz - this.spawnHeight : this.top + this.spawnHeight),
       box: tube,
       ring,
       ringMaterial,
@@ -248,7 +271,7 @@ export class Chip {
     const from = this.parts.get(ch.from);
     const to = this.parts.get(ch.to);
     if (!from || !to) return;
-    const points = routeChannel(from, to, this.fluidZ);
+    const points = routeChannel(from, to, ch, this);
     const material = new THREE.MeshStandardMaterial({
       color: 0x93c5fd,
       emissive: 0x3b82f6,
@@ -259,8 +282,8 @@ export class Chip {
       depthWrite: false,
     });
     const group = new THREE.Group();
-    const w = Math.max(ch.width_mm, 0.35);
-    const d = Math.max(ch.depth_mm, 0.35);
+    const w = ch.width_mm;
+    const d = ch.depth_mm;
     for (let i = 0; i < points.length - 1; i++) {
       const a = points[i];
       const b = points[i + 1];
@@ -306,15 +329,27 @@ export class Chip {
     return pts;
   }
 
-  // The nearest port of a type ('inlet' | 'outlet') connected to a chamber.
-  nearestPort(type, chamberId) {
+  // The nearest port connected to a chamber, filtered by type ('inlet' | 'outlet'),
+  // role ('waste', 'backflush', ...) and/or whether capsules can pass it.
+  findPort(chamberId, { type, role, capsules } = {}) {
     let best = null;
     for (const part of this.parts.values()) {
-      if (part.kind !== 'port' || part.type !== type) continue;
-      const r = type === 'inlet' ? this.route(part.id, chamberId) : this.route(chamberId, part.id);
+      if (part.kind !== 'port') continue;
+      if (type && part.type !== type) continue;
+      if (role && part.role !== role) continue;
+      if (capsules === true && part.capsulePassable === false) continue;
+      if (capsules === false && part.capsulePassable !== false) continue;
+      // A plain lookup never picks a line capsules can't use (waste, back-flush).
+      if (!role && capsules === undefined && part.capsulePassable === false) continue;
+      const r = part.type === 'inlet' ? this.route(part.id, chamberId) : this.route(chamberId, part.id);
       if (r.length && (!best || r.length < best.len)) best = { id: part.id, len: r.length };
     }
     return best?.id ?? null;
+  }
+
+  // Kept for older callers: nearest port of a type that capsules/product can use.
+  nearestPort(type, chamberId) {
+    return this.findPort(chamberId, { type });
   }
 
   channelsBetween(fromId, toId) {
@@ -409,19 +444,56 @@ function bfs(channels, fromId, toId, directed) {
   return null;
 }
 
-// Channel centreline: leave the source on the side facing the target, then a
-// right-angle route (horizontal, vertical, horizontal) like a real manifold.
-function routeChannel(from, to, z) {
-  const a = from.center;
-  const b = to.center;
-  const dir = Math.sign(b.x - a.x) || 1;
-  const ax = from.kind === 'chamber' ? a.x + dir * (from.size.x / 2) : a.x;
-  const bx = to.kind === 'chamber' ? b.x - dir * (to.size.x / 2) : b.x;
-  const p0 = new THREE.Vector3(ax, a.y, z);
-  const p3 = new THREE.Vector3(bx, b.y, z);
-  if (Math.abs(a.y - b.y) < 0.01) return [p0, p3];
-  const mid = (ax + bx) / 2;
-  return [p0, new THREE.Vector3(mid, a.y, z), new THREE.Vector3(mid, b.y, z), p3];
+// Channel centreline (same rule as cad/export_display_model.py):
+//  - chamber to chamber: right-angle route between facing edges, in the fluid plane
+//  - port over or under a chamber: straight up/down through the lid or floor
+//  - other ports: leave the chamber through the edge facing the port; ports under the
+//    chip run in a drain plane just below the chamber floor (under the mesh)
+function routeChannel(from, to, spec, chip) {
+  if (from.kind === 'chamber' && to.kind === 'chamber') {
+    const z = chip.fluidZ;
+    const a = from.center;
+    const b = to.center;
+    const dir = Math.sign(b.x - a.x) || 1;
+    const p0 = new THREE.Vector3(a.x + dir * (from.size.x / 2), a.y, z);
+    const p3 = new THREE.Vector3(b.x - dir * (to.size.x / 2), b.y, z);
+    if (Math.abs(a.y - b.y) < 0.01) return [p0, p3];
+    const mid = (p0.x + p3.x) / 2;
+    return [p0, new THREE.Vector3(mid, a.y, z), new THREE.Vector3(mid, b.y, z), p3];
+  }
+  if (from.kind === 'port' && to.kind === 'port') return [from.center.clone(), to.center.clone()];
+  const ch = from.kind === 'chamber' ? from : to;
+  const port = ch === from ? to : from;
+  const pts = portChamberRoute(ch, port, spec);
+  return ch === from ? pts : pts.reverse();
+}
+
+function portChamberRoute(ch, port, spec) {
+  const { x: cx, y: cy } = ch.center;
+  const hx = ch.size.x / 2;
+  const hy = ch.size.y / 2;
+  const [px, py, pz] = port.spec.position;
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const zc = port.bottom ? ch.floorZ - spec.depth_mm / 2 - 0.002 : ch.center.z;
+  if (Math.abs(px - cx) <= hx && Math.abs(py - cy) <= hy) {
+    return port.bottom ? [V(px, py, ch.floorZ), V(px, py, pz)] : [V(px, py, ch.center.z + ch.size.z / 2), V(px, py, pz)];
+  }
+  const alongX = Math.abs(px - cx) / hx >= Math.abs(py - cy) / hy;
+  const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+  const ex = alongX ? cx + Math.sign(px - cx) * hx : clamp(px, cx - hx, cx + hx);
+  const ey = alongX ? clamp(py, cy - hy, cy + hy) : cy + Math.sign(py - cy) * hy;
+  const pts = [];
+  if (port.bottom) {
+    // start under the floor, partway in from the edge, so the drain sits below the mesh
+    pts.push(V(ex + (cx - ex) * 0.4, ey + (cy - ey) * 0.4, zc));
+  }
+  pts.push(V(ex, ey, zc));
+  const midX = alongX ? px : ex;
+  const midY = alongX ? ey : py;
+  if (Math.abs(midX - px) > 1e-6 || Math.abs(midY - py) > 1e-6) pts.push(V(midX, midY, zc));
+  pts.push(V(px, py, zc));
+  if (port.bottom) pts.push(V(px, py, pz));
+  return pts;
 }
 
 // anchor: which point of the label sits on its 3D position ([0, 0.5] = left middle).

@@ -49,8 +49,8 @@ If `git pull` reports a conflict in a file you don't own, stop and ask its owner
 Regenerate the runs so the twin shows your change:
 
 ```bash
-python operator/run.py --all                                  # all protocols, placeholder chip
-python operator/run.py --all --chip chip/<your_spec>.json     # or against your chip
+python operator/run.py --all                                  # every run again, on its own chip
+python operator/run.py --all --chip chip/<your_spec>.json     # or every protocol on your chip
 ```
 
 Commit the updated files in `runs/` too.

@@ -22,6 +22,10 @@
       "description": "true when the protocol or chip spec it was made from is a placeholder."
     },
     "total_duration_s": { "type": "number", "minimum": 0 },
+    "sizing": {
+      "type": "object",
+      "description": "Optional. operator/sizing.py chip_sizing() for this chip (capsule count, trap area and volume needed vs available, channel widths). Shown in the twin's sizing panel."
+    },
     "events": {
       "type": "array",
       "items": { "$ref": "#/$defs/event" }

@@ -36,6 +36,9 @@ export function createUI(actions) {
     toast: $('toast'),
     error: $('error'),
     errorText: $('error-text'),
+    views: [...document.querySelectorAll('[data-view]')],
+    sizing: $('sizing'),
+    sizingBody: $('sizing-body'),
   };
   let segments = [];
   let total = 1;
@@ -50,6 +53,10 @@ export function createUI(actions) {
     el.labels.setAttribute('aria-pressed', String(on));
     actions.onLabels(on);
   });
+  el.views.forEach((b) => b.addEventListener('click', () => {
+    if (b.disabled || b.getAttribute('aria-pressed') === 'true') return;
+    actions.onView(b.dataset.view);
+  }));
   el.timeline.addEventListener('click', (e) => {
     const r = el.timeline.getBoundingClientRect();
     actions.onSeek(((e.clientX - r.left) / r.width) * total);
@@ -136,6 +143,49 @@ export function createUI(actions) {
     },
 
     labelsOn() { return el.labels.getAttribute('aria-pressed') === 'true'; },
+
+    setView(mode) {
+      el.views.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === mode)));
+    },
+
+    // Enable the "Display model" view only when one exists for this chip.
+    setDisplayAvailable(manifest, chipId) {
+      const btn = el.views.find((b) => b.dataset.view === 'display');
+      btn.disabled = !manifest;
+      btn.title = manifest
+        ? `Printed display model, ${manifest.display_scale}× scale (${manifest.overall_mm.join(' × ')} mm)`
+        : `No display model for ${chipId} yet: python cad/export_display_model.py <chip spec>`;
+    },
+
+    setSizing(s) {
+      el.sizing.hidden = !s;
+      if (!s) return;
+      const num = (v, d = 1) => Number(v).toLocaleString(undefined, { maximumFractionDigits: d });
+      const rows = [];
+      const add = (k, v, warn = false) => rows.push([k, v, warn]);
+      add('Capsules', s.capsule_count != null ? num(s.capsule_count, 0) : `— (${s.capsule_count_note})`);
+      add('Cells expected', `~${num(s.cells_expected, 0)}`);
+      add('Capsule size', `${num(s.capsule_diameter_um)} µm (swollen ${num(s.swollen_diameter_um)} µm)`);
+      add('Trap area', `${num(s.trap_area_mm2, 2)} mm² (monolayer needs ${num(s.monolayer_area_mm2_needed, 2)})`,
+        s.trap_area_mm2 < s.monolayer_area_mm2_needed - 1e-6);
+      add('Trap volume', `${num(s.trap_volume_ul, 2)} µL (packed capsules ${num(s.packed_volume_ul_needed, 2)})`,
+        s.trap_volume_ul < s.packed_volume_ul_needed);
+      if (s.channel_width_um) {
+        const [lo, hi] = s.channel_width_um;
+        const [rlo, rhi] = s.channel_width_um_recommended;
+        add('Channel widths', `${num(lo)}${hi !== lo ? `–${num(hi)}` : ''} µm (capsule channels ${num(rlo)}–${num(rhi)})`, lo < rlo);
+      }
+      add('Trap gap', `${num(s.trap_gap_um_recommended[0])}–${num(s.trap_gap_um_recommended[1])} µm recommended`);
+      if (s.barcode_collision_fraction != null) add('Barcode collisions', `${(s.barcode_collision_fraction * 100).toFixed(1)}%`, s.barcode_collision_fraction > 0.05);
+      el.sizingBody.replaceChildren(...rows.flatMap(([k, v, warn]) => {
+        const dt = document.createElement('dt');
+        dt.textContent = k;
+        const dd = document.createElement('dd');
+        dd.textContent = v;
+        if (warn) dd.classList.add('warn');
+        return [dt, dd];
+      }));
+    },
 
     toast(msg) {
       el.toast.textContent = msg;

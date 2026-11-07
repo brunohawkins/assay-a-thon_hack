@@ -88,12 +88,45 @@ export function createScene(container) {
     const dir = new THREE.Vector3(-0.06, 0.6, 0.86).normalize();
     const halfX = (footprint.x / 2) * 1.12;
     // Apparent height: the tilted footprint plus room above it for capsules arriving.
-    const halfV = ((footprint.y * dir.y + 22 * Math.hypot(dir.x, dir.z)) / 2) * 1.1;
-    const dist = Math.max((halfX * fullH) / (t * freeW), (halfV * fullH) / (t * freeH), 40);
-    controls.maxDistance = Math.max(260, dist * 1.8); // don't let the zoom limit undo the fit
-    controls.target.set(0, 3, 0);
+    const halfV = ((footprint.y * dir.y + 0.88 * footprint.y * Math.hypot(dir.x, dir.z)) / 2) * 1.1;
+    const dist = Math.max((halfX * fullH) / (t * freeW), (halfV * fullH) / (t * freeH), 1);
+    // Zoom limits and clip planes scale with the chip, so a 20 mm chip can be
+    // inspected down to single 70 um capsules and a 200 mm display model still fits.
+    controls.maxDistance = dist * 3;
+    controls.minDistance = dist * 0.02;
+    camera.near = Math.max(0.002, dist * 0.001);
+    camera.far = dist * 40;
+    camera.updateProjectionMatrix();
+    controls.target.set(0, footprint.targetY ?? footprint.y * 0.12, 0);
     camera.position.copy(dir.multiplyScalar(dist)).add(controls.target);
     controls.update();
+  }
+
+  // Scale bar: a round length that spans ~70-170 px at the orbit target.
+  const NICE = [0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500];
+  const bar = { el: null, line: null, label: null, mode: 'real', scale: 1, lastText: '' };
+  const _v1 = new THREE.Vector3();
+  const _v2 = new THREE.Vector3();
+  const _right = new THREE.Vector3();
+  const fmtLen = (mm) => (mm < 1 ? `${Math.round(mm * 1000)} µm` : `${+mm.toFixed(2)} mm`);
+  function updateScaleBar() {
+    if (!bar.el) return;
+    const w = container.clientWidth || window.innerWidth;
+    _right.setFromMatrixColumn(camera.matrixWorld, 0);
+    _v1.copy(controls.target).project(camera);
+    _v2.copy(controls.target).addScaledVector(_right, 1).project(camera);
+    const pxPerUnit = (Math.abs(_v2.x - _v1.x) * w) / 2;
+    if (!isFinite(pxPerUnit) || pxPerUnit <= 0) return;
+    let len = NICE[0];
+    for (const v of NICE) if (v * pxPerUnit <= 170) len = v;
+    bar.line.style.width = `${Math.round(len * pxPerUnit)}px`;
+    const text = bar.mode === 'display'
+      ? `${fmtLen(len)} on the model = ${fmtLen(len / bar.scale)} real`
+      : `${fmtLen(len)} (real scale)`;
+    if (text !== bar.lastText) {
+      bar.label.textContent = text;
+      bar.lastText = text;
+    }
   }
 
   function resize() {
@@ -116,6 +149,7 @@ export function createScene(container) {
     controls.update();
     renderer.render(scene, camera);
     labelRenderer.render(scene, camera);
+    updateScaleBar();
   });
 
   return {
@@ -129,6 +163,20 @@ export function createScene(container) {
       footprint = fp;
       userMoved = false;
       fit();
+    },
+    attachScaleBar(el) {
+      bar.el = el;
+      bar.line = el.querySelector('.bar');
+      bar.label = el.querySelector('.text');
+    },
+    // 'real': world units are real mm. 'display': world units are mm on the printed model.
+    setScaleMode(mode, scale = 1) {
+      bar.mode = mode;
+      bar.scale = scale;
+      bar.lastText = '';
+    },
+    setLabelsHidden(hidden) {
+      labelRenderer.domElement.classList.toggle('hidden', hidden);
     },
   };
 }

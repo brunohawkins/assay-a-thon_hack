@@ -59,7 +59,8 @@ source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt     # just jsonschema
 
 python tools/validate.py            # 1. check every file against the contracts
-python operator/run.py --all        # 2. generate runs for every protocol
+python tools/check_chip_spec.py     #    and every chip design against the capsule rules
+python operator/run.py --all        # 2. regenerate every run
 python -m http.server 8000          # 3. serve the repo root...
 # ...and open http://localhost:8000/twin/
 ```
@@ -67,6 +68,13 @@ python -m http.server 8000          # 3. serve the repo root...
 In the twin: pick a protocol, then Play/Pause (Space), Step (→), speed 1x/5x/20x
 (keys 1/2/3), click the timeline to jump, IDs (L) to toggle part labels, drag to orbit.
 Switching protocol replays on the same chip. `#run=<file>` in the URL opens a specific run.
+**Real scale / Display model** switches between the working chip (true sizes, down to
+70 µm capsules) and the printed show piece; the scale bar works in both. The **Chip
+sizing** panel shows what the sizing calculator says the chip needs next to what it has.
+
+Other tools: `python operator/sizing.py mvp cells:100000` (chip sizing, port of Szonja's
+sheet), `python cad/export_display_model.py cad/wash_mvp_spec.json` (printable display model),
+`python -m unittest discover -s tests` (tests).
 
 The twin only reads run files, so a recorded run always works offline. That's the
 demo fallback: if the live LLM run misbehaves, play the committed run.
@@ -96,6 +104,8 @@ operator/           planner, LLM operator, adapters, run.py (Bruno)
 runs/               generated run files + index.json (the twin reads these)
 twin/               three.js digital twin, no build step (Bruno)
 tools/validate.py   validates everything and checks IDs line up (also runs in CI)
+tools/check_chip_spec.py  real-scale design checks: trap gaps, channel widths, heights, temperatures
+tests/              unit tests (sizing calculator, design checks)
 ```
 
 Rules: Python 3.10+ with the standard library plus `jsonschema` only. The twin is

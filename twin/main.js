@@ -4,6 +4,7 @@ import { createScene } from './scene.js';
 import { Chip } from './chip.js';
 import { Player } from './player.js';
 import { createUI } from './ui.js';
+import { findDisplayModel, buildDisplayModel } from './display.js';
 
 const ROOT = '../'; // serve the repo root: python -m http.server, then open /twin/
 
@@ -12,6 +13,9 @@ let chip = null;
 let chipPath = null;
 let runs = [];
 let busy = false;
+let view = 'real';
+let displayManifest = null;
+let displayGroup = null;
 
 const ui = createUI({
   onSelectRun: (file) => selectRun(file),
@@ -20,6 +24,7 @@ const ui = createUI({
   onSpeed: (x) => player.setSpeed(x),
   onSeek: (t) => player.seek(t),
   onLabels: (on) => chip?.setLabelsVisible(on),
+  onView: (mode) => setView(mode),
 });
 
 const player = new Player(ctx, {
@@ -28,8 +33,18 @@ const player = new Player(ctx, {
   onPlayState: (on) => ui.setPlaying(on),
 });
 
+ctx.attachScaleBar(document.getElementById('scalebar'));
+
 // For debugging in the browser console, and for the headless smoke test.
-window.__twin = { player, get chip() { return chip; }, ready: false };
+window.__twin = {
+  player,
+  ctx,
+  get chip() { return chip; },
+  get view() { return view; },
+  get displayManifest() { return displayManifest; },
+  get displayGroup() { return displayGroup; },
+  ready: false,
+};
 
 async function fetchJson(path) {
   const res = await fetch(ROOT + path, { cache: 'no-store' });
@@ -40,6 +55,11 @@ async function fetchJson(path) {
 async function ensureChip(path) {
   if (chip && chipPath === path) return;
   const spec = await fetchJson(path);
+  await setView('real');
+  if (displayGroup) {
+    displayGroup.traverse((o) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
+    displayGroup = null;
+  }
   if (chip) {
     ctx.scene.remove(chip.group);
     chip.dispose();
@@ -53,6 +73,34 @@ async function ensureChip(path) {
   chip.loadStls(`${ROOT}cad/exports/`).then((ids) => {
     if (ids.length) ui.toast(`Using CAD for ${ids.join(', ')}`);
   });
+  displayManifest = await findDisplayModel(spec.id, ROOT);
+  ui.setDisplayAvailable(displayManifest, spec.id);
+}
+
+// Real scale: the working chip, in real mm. Display model: the printed show piece.
+async function setView(mode) {
+  if (mode === view) return;
+  if (mode === 'display') {
+    if (!displayManifest) return;
+    if (!displayGroup) displayGroup = await buildDisplayModel(displayManifest, ROOT);
+    chip.group.visible = false;
+    ctx.scene.add(displayGroup);
+    ctx.setLabelsHidden(true);
+    const [x, y, z] = displayManifest.overall_mm;
+    ctx.frameChip({ x, y, targetY: z * 0.4 });
+    ctx.setScaleMode('display', displayManifest.display_scale);
+    ui.toast(`Display model: ${displayManifest.display_scale}× the real chip. Print ${displayManifest.print_file}`);
+  } else {
+    if (displayGroup) ctx.scene.remove(displayGroup);
+    if (chip) {
+      chip.group.visible = true;
+      ctx.frameChip(chip.footprint);
+    }
+    ctx.setLabelsHidden(false);
+    ctx.setScaleMode('real');
+  }
+  view = mode;
+  ui.setView(mode);
 }
 
 async function selectRun(file) {
@@ -69,6 +117,7 @@ async function selectRun(file) {
     await ensureChip(path);
     player.load(run, { autoplay });
     ui.setRun(run, player.timeline());
+    ui.setSizing(run.sizing ?? null);
     player.refresh(); // re-send the current event now the timeline exists
     history.replaceState(null, '', `#run=${encodeURIComponent(entry.file)}`);
   } finally {

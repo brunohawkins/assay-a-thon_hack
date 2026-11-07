@@ -16,7 +16,7 @@ How parts are shown, so the model reads from across a room:
     lattice with a coarse pitch, so it reads as a mesh from a distance
   - channels: raised ribs along the channel path, at the channel's scaled width and depth
   - ports: hollow tubes; tall for ports on top, short for ports under the mesh
-  - label plate in front: "Display model - <scale>x scale"
+  - label plate in front, with raised lettering "Display model – <scale>× scale" (label_text.stl)
 
 Standard library only. The real working dimensions stay in the chip spec and the twin.
 """
@@ -245,9 +245,11 @@ def build_parts(chip: dict, scale: float) -> list[dict]:
     label = f"Display model – {scale:g}× scale"
     px = min(1.6, (fx - 12) / (len(label) * 6))
     text_w = len(label) * 6 * px
-    tris = box(0, -LABEL_DEPTH, 0, fx, 0, LABEL_THICK)
-    tris += text_boxes(label, (fx - text_w) / 2, -LABEL_DEPTH + (LABEL_DEPTH - 7 * px) / 2, LABEL_THICK, px, LABEL_TEXT_HEIGHT)
-    parts.append({"id": "label", "kind": "label", "tris": tris, "text": label})
+    parts.append({"id": "label", "kind": "label", "tris": box(0, -LABEL_DEPTH, 0, fx, 0, LABEL_THICK), "text": label})
+    # Raised lettering as its own part, so it can be printed (and shown) in a second colour.
+    parts.append({"id": "label_text", "kind": "label_text",
+                  "tris": text_boxes(label, (fx - text_w) / 2, -LABEL_DEPTH + (LABEL_DEPTH - 7 * px) / 2,
+                                     LABEL_THICK, px, LABEL_TEXT_HEIGHT)})
     return parts
 
 

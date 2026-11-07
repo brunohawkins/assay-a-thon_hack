@@ -29,6 +29,10 @@
       <span>Protocol</span>
       <select id="run-select"></select>
     </label>
+    <div class="views" role="group" aria-label="View">
+      <button data-view="real" aria-pressed="true" title="The chip at its real, working dimensions">Real scale</button>
+      <button data-view="display" aria-pressed="false" disabled>Display model</button>
+    </div>
     <div class="badges">
       <span id="operator-badge" class="badge">planner</span>
       <span id="placeholder-badge" class="badge warn" hidden>placeholder data</span>
@@ -43,7 +47,13 @@
     <p id="narration">Loading the run…</p>
     <dl id="details"></dl>
     <p id="run-meta" class="meta"></p>
+    <details id="sizing" class="sizing" open hidden>
+      <summary>Chip sizing</summary>
+      <dl id="sizing-body"></dl>
+    </details>
   </aside>
+
+  <div id="scalebar" class="scalebar" aria-label="Scale bar"><div class="bar"></div><div class="text"></div></div>
 
   <footer class="controls panel">
     <div class="buttons">

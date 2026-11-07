@@ -184,6 +184,46 @@ def warnings(r: dict) -> list[str]:
     return w
 
 
+# --- sizing for a chip spec (the twin's sizing panel) -----------------------------------
+
+
+def chip_sizing(chip: dict) -> dict:
+    """What the calculator says this chip needs, next to what the chip has."""
+    caps = chip.get("capsule", {})
+    bc = chip.get("barcoding", {})
+    inputs = {}
+    for src, dst in (("diameter_um", "capsule_diameter_um"), ("swell_factor", "swell_factor"), ("count", "capsule_count")):
+        if src in caps:
+            inputs[dst] = caps[src]
+    for src, dst in (("chambers_per_round", "split_chambers_per_round"), ("rounds", "barcoding_rounds"),
+                     ("sublibraries", "sublibraries")):
+        if src in bc:
+            inputs[dst] = bc[src]
+    r = compute(inputs)
+    chambers = chip.get("chambers", [])
+    traps = [c for c in chambers if c.get("retention") or c.get("mesh_pore_um")] or \
+            [c for c in chambers if c.get("type") == "exchange"]
+    widths = [ch["width_mm"] * 1000 for ch in chip.get("channels", [])]
+    out = {
+        "capsule_count": caps.get("count"),
+        "capsule_count_note": "from chip spec" if "count" in caps else f"not in chip spec; sheet default {DEFAULTS['capsule_count']:,.0f} used",
+        "capsule_diameter_um": r["inputs"]["capsule_diameter_um"],
+        "cells_expected": round(r["cells"], 1),
+        "trap_chambers": [c["id"] for c in traps],
+        "monolayer_area_mm2_needed": round(r["monolayer_area_cm2"] * 100, 3),
+        "trap_area_mm2": round(sum(c["size"][0] * c["size"][1] for c in traps), 3),
+        "packed_volume_ul_needed": round(r["packed_volume_ul"], 3),
+        "trap_volume_ul": round(sum(c["volume_ul"] for c in traps), 3),
+        "channel_width_um": [round(min(widths), 1), round(max(widths), 1)] if widths else None,
+        "channel_width_um_recommended": [r["channel_width_low_um"], r["channel_width_high_um"]],
+        "trap_gap_um_recommended": [r["trap_gap_low_um"], r["trap_gap_high_um"]],
+        "swollen_diameter_um": r["swollen_diameter_um"],
+    }
+    if bc:
+        out["barcode_collision_fraction"] = round(r["barcode_collision_fraction"], 4)
+    return out
+
+
 # --- scenarios and printing ------------------------------------------------------------
 
 
