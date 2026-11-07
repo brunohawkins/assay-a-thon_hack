@@ -223,13 +223,25 @@
       "required": ["id", "type", "center", "size", "volume_ul"],
       "properties": {
         "id": { "$ref": "#/$defs/snake_id", "description": "Join key. STL files are named <id>.stl." },
-        "type": { "enum": ["inlet", "exchange", "split", "pool", "outlet", "well", "culture", "junction", "bubble_trap", "filter"] },
+        "type": { "enum": ["inlet", "exchange", "split", "pool", "outlet", "well", "culture", "junction", "bubble_trap", "filter", "mixer", "cell_wash", "qc_window"] },
         "shape": {
           "enum": ["box", "cylinder"],
           "default": "box",
           "description": "box (default): size is [x, y, z]. cylinder: a round chamber, size is [diameter, diameter, depth]."
         },
         "note": { "type": "string" },
+        "mixer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "channel_width_mm"],
+          "description": "For type mixer: serpentine (a long folded channel, e.g. after a T-junction) or wide_short (a wide, short channel for viscous fluids).",
+          "properties": {
+            "kind": { "enum": ["serpentine", "wide_short"] },
+            "channel_width_mm": { "type": "number", "exclusiveMinimum": 0 },
+            "turns": { "type": "integer", "minimum": 1 },
+            "length_mm": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
         "filter": {
           "type": "object",
           "additionalProperties": false,

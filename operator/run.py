@@ -109,6 +109,8 @@ def closed_loop(scenario_path: Path, protocol_path: Path | None, chip_path: Path
     problems = planner.check_inputs(protocol, chip)
     if problems:
         raise planner.PlanError("\n".join(problems))
+    if (chip.get("module") or {}).get("id") == "m1b":
+        return cellprep_run(protocol, chip, chip_path, scenario, scenario_path)
     params, _ = safety._contracts()
     reagents = sorted({s["reagent"] for s in protocol["steps"] if s.get("reagent")} | {"capsule_suspension"})
     adapter = make_adapter(adapter_kind, chip, params, scenario, reagents)
@@ -169,6 +171,28 @@ def closed_loop(scenario_path: Path, protocol_path: Path | None, chip_path: Path
     return out
 
 
+def cellprep_run(protocol: dict, chip: dict, chip_path: Path, scenario: dict, scenario_path: Path) -> Path:
+    """Module 1b: the cell-prep operator (simulated counter, operator-set dilution, safety gate)."""
+    import cellprep
+
+    run = cellprep.run(protocol, chip, chip_path, scenario, scenario_path)
+    stem = f"{protocol['id']}__{chip['id']}__{scenario['name']}"
+    out = planner.RUNS_DIR / f"{stem}.json"
+    report_path = planner.RUNS_DIR / f"{stem}_report.md"
+    run["report"] = planner.repo_relative(report_path)
+    errors = schema_io.schema_errors("run", run)
+    if errors:
+        raise ValueError("run does not match run.schema.json: " + "; ".join(
+            f"{schema_io.path_str(e)}: {schema_io.describe(e)}" for e in errors[:5]))
+    schema_io.write_json(out, run)
+    report_path.write_text(cellprep.render_report(run), encoding="utf-8")
+    s = run["summary"]
+    print(f"wrote {planner.repo_relative(out)} + report  [cell prep, simulated counter]  status {run['status']}, "
+          f"dilution {s['dilution']:g}x, {s['mean_cells_per_capsule']} cells per capsule, safety "
+          f"{(s.get('verdict') or {}).get('result')}")
+    return out
+
+
 # --- index and --all ------------------------------------------------------------------
 
 
@@ -220,7 +244,7 @@ def rebuild_index(runs_dir: Path = planner.RUNS_DIR) -> Path:
 def all_runs(chip: Path | None) -> tuple[list[tuple[Path, Path]], list[Path]]:
     """For --all: (simple (protocol, chip) pairs, scenario files). With --chip: every
     protocol on that chip. Without: every existing planner run again."""
-    protocols = sorted((ROOT / "protocols").glob("*.json"))
+    protocols = [p for p in sorted((ROOT / "protocols").glob("*.json")) if not schema_io.is_pipeline(schema_io.load_json(p))]
     if chip is not None:
         return [(p, chip) for p in protocols], []
     by_id = {schema_io.load_json(p).get("id"): p for p in protocols}

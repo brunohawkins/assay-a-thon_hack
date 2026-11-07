@@ -95,6 +95,8 @@ def check_inputs(protocol: dict, chip: dict) -> list[str]:
         for target in commands.step_targets(step):
             if target not in known:
                 problems.append(f"step {step['step']}: target '{target}' not in chip {chip['id']}")
+        if step.get("source") and step["source"] not in known:
+            problems.append(f"step {step['step']}: source '{step['source']}' not in chip {chip['id']}")
     return problems
 
 
@@ -178,6 +180,19 @@ def step_to_command(step: dict, chip: dict) -> tuple[str, dict]:
                                "oil_flow_ul_h": f["oil"], "capsules": step["capsules"]}
     if op == "cure":
         return "cure", {"target": target, "wavelength_nm": step["wavelength_nm"], "duration_s": step["duration_s"]}
+    if op == "mix":
+        args = {"target": target, "reagent": step["reagent"]}
+        if step.get("volume_ul"):
+            args["volume_ul"] = step["volume_ul"]
+        if step.get("flow_ul_min"):
+            args["flow_ul_min"] = step["flow_ul_min"]
+        if isinstance(step.get("dilution"), (int, float)):
+            args["dilution"] = step["dilution"]   # "auto" is set by the cell-prep operator (operator/cellprep.py)
+        return "mix", args
+    if op == "transfer":
+        return "transfer", {"source": step["source"], "target": target}
+    if op == "count":
+        return "count", {"target": target}
     raise PlanError(f"step {n}: unknown operation {op!r}")
 
 

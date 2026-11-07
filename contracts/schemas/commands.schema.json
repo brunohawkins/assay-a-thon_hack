@@ -6,7 +6,7 @@
   "type": "object",
   "required": ["command", "args"],
   "properties": {
-    "command": { "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "valve", "culture", "collect", "harvest", "encapsulate", "cure"] },
+    "command": { "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "valve", "culture", "collect", "harvest", "encapsulate", "cure", "mix", "transfer", "count"] },
     "args": { "type": "object" }
   },
   "allOf": [
@@ -57,6 +57,18 @@
     {
       "if": { "properties": { "command": { "const": "cure" } }, "required": ["command"] },
       "then": { "properties": { "args": { "$ref": "#/$defs/cure" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "mix" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/mix" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "transfer" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/transfer" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "count" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/count" } } }
     }
   ],
   "$defs": {
@@ -222,6 +234,39 @@
         "wavelength_nm": { "type": "number", "exclusiveMinimum": 0 },
         "duration_s": { "type": "number", "exclusiveMinimum": 0 }
       }
+    },
+    "mix": {
+      "title": "mix(target, reagent, volume_ul, dilution)",
+      "description": "Mix a reagent into the cell stream in a mixer chamber (quench in a serpentine; resuspension in a wide, short mixer). dilution: final volume / cell-stream volume.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "reagent"],
+      "properties": {
+        "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" },
+        "reagent": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" },
+        "volume_ul": { "type": "number", "exclusiveMinimum": 0, "description": "Reagent volume." },
+        "flow_ul_min": { "type": "number", "exclusiveMinimum": 0 },
+        "dilution": { "type": "number", "minimum": 1 }
+      }
+    },
+    "transfer": {
+      "title": "transfer(source, target)",
+      "description": "Move the cells from one stage to the next (or out through an outlet port), through any filter or window in between.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "target"],
+      "properties": {
+        "source": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" },
+        "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Chamber or outlet port." }
+      }
+    },
+    "count": {
+      "title": "count(target)",
+      "description": "Read the cell concentration and viability at a QC window (a simulated counter for now).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target"],
+      "properties": { "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" } }
     }
   }
 }

@@ -12,6 +12,9 @@
     harvest(targets[], reagent)                              cells out through each outlet
     encapsulate(target, core/shell/oil_flow_ul_h, capsules)  Module 2: make capsules at a nozzle
     cure(target, wavelength_nm, duration_s)                  Module 2: light-cure capsule shells
+    mix(target, reagent, volume_ul, dilution)                Module 1b: quench / resuspend in a mixer
+    transfer(source, target)                                 Module 1b: cells to the next stage or out
+    count(target)                                            Module 1b: cell count + viability at a QC window
 
 Each function returns a command dict {"command": ..., "args": {...}} after checking it
 against contracts/schemas/commands.schema.json, and against a chip spec when one is
@@ -26,7 +29,7 @@ from typing import Any
 import schema_io
 
 COMMAND_NAMES = ("load", "exchange", "hold_temp", "split", "pool", "release",
-                 "valve", "culture", "collect", "harvest", "encapsulate", "cure")
+                 "valve", "culture", "collect", "harvest", "encapsulate", "cure", "mix", "transfer", "count")
 
 # Which args hold chamber ids, per command. Used for chip checks and by the twin.
 ID_ARGS = {
@@ -41,6 +44,9 @@ ID_ARGS = {
     "harvest": ("targets",),
     "encapsulate": ("target",),
     "cure": ("target",),
+    "mix": ("target",),
+    "transfer": ("source",),       # its target may be a chamber or an outlet port (checked below)
+    "count": ("target",),
 }
 # Args that hold valve ids.
 VALVE_ARGS = {"valve": ("valves",)}
@@ -156,6 +162,8 @@ def validate(command: str, args: dict, chip: dict | None = None) -> dict:
             if cid not in chambers:
                 hint = " (that is a port; commands act on chambers)" if cid in port_ids(chip) else ""
                 raise CommandError(f"{command}: '{cid}' is not a chamber in chip {chip.get('id')}{hint}")
+        if command == "transfer" and args["target"] not in chambers | port_ids(chip):
+            raise CommandError(f"transfer: '{args['target']}' is not a chamber or port in chip {chip.get('id')}")
         if args.get("waste") and args["waste"] not in port_ids(chip):
             raise CommandError(f"{command}: waste '{args['waste']}' is not a port in chip {chip.get('id')}")
         valves = valve_ids(chip)

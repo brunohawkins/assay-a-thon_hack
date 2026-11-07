@@ -1,0 +1,159 @@
+{
+  "protocol_id": "m1b_cellprep",
+  "protocol_name": "Module 1b: cell prep",
+  "chip_id": "m1b_cellprep_v1",
+  "chip_spec": "cad/m1b_cellprep_spec.json",
+  "operator": "planner",
+  "created_at": "2026-11-07T15:13:10Z",
+  "placeholder": true,
+  "total_duration_s": 990.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 180.0,
+      "command": "load",
+      "args": {
+        "target": "m1b_merge_1",
+        "volume_ul": 60
+      },
+      "narration": "Cells from m1_out_1/2/3 arrive at m1b_cells_in_1/2/3 and merge. They were labelled per chamber in Module 1, so they can share one line.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 180.0,
+      "duration_s": 180.0,
+      "command": "mix",
+      "args": {
+        "target": "m1b_mix_1",
+        "reagent": "quench_medium",
+        "volume_ul": 60,
+        "flow_ul_min": 20
+      },
+      "narration": "Quench: medium joins the cells at the T-junction and the serpentine mixes it in, neutralising the detach reagent.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 360.0,
+      "duration_s": 300.0,
+      "command": "exchange",
+      "args": {
+        "target": "m1b_cellwash_1",
+        "reagent": "cell_wash_buffer",
+        "volume_ul": 50,
+        "washes": 2,
+        "flow_ul_min": 20,
+        "waste": "m1b_waste_1"
+      },
+      "narration": "Wash the cells into clean buffer; the old liquid goes to waste. (Method TBC: DLD array, spiral channel or density cushion.)",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 660.0,
+      "duration_s": 120.0,
+      "command": "transfer",
+      "args": {
+        "source": "m1b_cellwash_1",
+        "target": "m1b_qc_window_1"
+      },
+      "narration": "Through the 30 um pillar filter to the QC window: clumps stay behind, single cells go on.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 780.0,
+      "duration_s": 30.0,
+      "command": "count",
+      "args": {
+        "target": "m1b_qc_window_1"
+      },
+      "narration": "Count: the QC window reads the cell concentration and viability.",
+      "protocol_step": 5,
+      "measured": {
+        "cells_per_ul": 4048,
+        "viability": 0.933
+      }
+    },
+    {
+      "t_s": 810.0,
+      "duration_s": 120.0,
+      "command": "mix",
+      "args": {
+        "target": "m1b_resuspend_1",
+        "reagent": "dextran_buffer",
+        "flow_ul_min": 20,
+        "dilution": 2.08,
+        "volume_ul": 54.0
+      },
+      "narration": "Resuspend in dextran buffer at the dilution that gives about 0.1 cells per capsule in Module 2; the operator sets it from the count.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 930.0,
+      "duration_s": 60.0,
+      "command": "transfer",
+      "args": {
+        "source": "m1b_resuspend_1",
+        "target": "m1b_to_module2_1"
+      },
+      "narration": "Cells out to Module 2's core inlet, once the safety checker approves them.",
+      "protocol_step": 7
+    }
+  ],
+  "log": [
+    {
+      "t_s": 810.0,
+      "kind": "measurement",
+      "step": 5,
+      "message": "simulated counter at m1b_qc_window_1: 4,048 cells/uL, 93.3% viable"
+    },
+    {
+      "t_s": 810.0,
+      "kind": "decision",
+      "step": 6,
+      "message": "m1b_resuspend_1 dilution set to 2.08x: counted 4,048 cells/uL at 93% viability; Module 2 makes 1,948,836 capsules/h from 100 uL/h of core stream, so 0.1 cells per capsule needs ~1,949 cells/uL: diluting 2.08x with dextran buffer"
+    },
+    {
+      "t_s": 930.0,
+      "kind": "safety",
+      "step": 7,
+      "message": "cells to Module 2: approved: 1,946 cells/uL -> 0.100 cells per capsule at Module 2's flows (target 0.1); viability 93%"
+    }
+  ],
+  "simulated_hardware": true,
+  "adapter": "simulated_counter",
+  "loop": "closed",
+  "status": "done",
+  "scenario": {
+    "name": "m1b_cellprep_demo",
+    "protocol": "protocols/m1b_cellprep.json",
+    "chip": "cad/m1b_cellprep_spec.json",
+    "module2_chip": "cad/m2_encapsulation_spec.json",
+    "seed": 7,
+    "sample_volume_ul": 50,
+    "counter": {
+      "cells_per_ul": 4100,
+      "viability": 0.93,
+      "cv": 0.05
+    },
+    "file": "scenarios/m1b_cellprep_demo.json",
+    "description": "Healthy but concentrated cells: the operator dilutes them at m1b_resuspend_1 to ~0.1 cells per capsule and the safety checker lets them through to Module 2."
+  },
+  "summary": {
+    "status": "done",
+    "counted": {
+      "cells_per_ul": 4048,
+      "viability": 0.933
+    },
+    "dilution": 2.08,
+    "final_cells_per_ul": 1946,
+    "mean_cells_per_capsule": 0.0999,
+    "target_mean": 0.1,
+    "target_cells_per_ul": 1949,
+    "verdict": {
+      "result": "approved",
+      "reasons": [
+        "1,946 cells/uL -> 0.100 cells per capsule at Module 2's flows (target 0.1); viability 93%"
+      ]
+    }
+  },
+  "report": "runs/m1b_cellprep__m1b_cellprep_v1__m1b_cellprep_demo_report.md"
+}

@@ -11,6 +11,8 @@ Checks
     valves sit on real channels with a control port, module chips use their prefix on every id
   - runs: protocol, chip and every chamber id exist; events in time order; index.json up to date
   - cad/exports/*.stl whose name isn't a chamber, port, channel or chip id (warning)
+  - pipelines (protocols/*.json with "kind": "pipeline"): files exist, module ids match the
+    chips, hand-off ports exist and go from an outlet to an inlet, after_step exists
 
 Exit code 0 when there are no errors (warnings are fine), 1 otherwise.
 """
@@ -82,6 +84,8 @@ def load_folder(pattern: str, kind: str, report: Report,
         if not isinstance(data, dict):
             report.error(f"{rel(path)}: expected a JSON object at the top level")
             continue
+        if kind == "protocol" and schema_io.is_pipeline(data):
+            continue  # checked by check_pipelines
         for err in schema_io.schema_errors(kind, data):
             where = locate(kind, data, err)
             report.error(f"{rel(path)}{' ' + where if where else ''}: {schema_io.describe(err)}")
@@ -323,7 +327,7 @@ def check_scenarios(report: Report) -> int:
         except ValueError as e:
             report.error(f"{rel(path)}: {e}")
             continue
-        for key in ("protocol", "chip"):
+        for key in ("protocol", "chip", "module2_chip"):
             if key in scn and not (ROOT / scn[key]).is_file():
                 report.error(f"{rel(path)}: {key} '{scn[key]}' does not exist")
         for name in scn.get("sensors", {}):
@@ -335,6 +339,57 @@ def check_scenarios(report: Report) -> int:
             if f.get("type") == "sensor_fault" and f.get("sensor") not in known_sensors:
                 report.error(f"{rel(path)}: sensor_fault on unknown sensor '{f.get('sensor')}'")
     return len(paths)
+
+
+def check_pipelines(report: Report) -> int:
+    found = schema_io.pipelines()
+    for path, pipe in found:
+        where = rel(path)
+        errs = schema_io.schema_errors("pipeline", pipe)
+        for err in errs:
+            report.error(f"{where} {schema_io.path_str(err)}: {schema_io.describe(err)}")
+        if errs:
+            continue
+        mods: dict[str, tuple[dict, dict]] = {}
+        for m in pipe["modules"]:
+            files = {k: ROOT / m[k] for k in ("chip", "protocol", "scenario") if m.get(k)}
+            missing = [f"{k} '{m[k]}'" for k, f in files.items() if not f.is_file()]
+            if missing:
+                report.error(f"{where}: module {m['module']}: {', '.join(missing)} does not exist")
+                continue
+            chip, proto = schema_io.load_json(files["chip"]), schema_io.load_json(files["protocol"])
+            if (chip.get("module") or {}).get("id") != m["module"]:
+                report.error(f"{where}: module {m['module']} uses {m['chip']}, which is module "
+                             f"{(chip.get('module') or {}).get('id')}")
+            for inst in m.get("instances", []):
+                try:
+                    planner.run_params_for(chip, inst["run_parameters"])
+                except planner.PlanError as e:
+                    report.error(f"{where}: module {m['module']} instance '{inst['name']}': {e}")
+            mods[m["module"]] = (chip, proto)
+        roadmap = {r["id"] for r in pipe.get("roadmap", [])}
+        for h in pipe["handoffs"]:
+            for side, want in (("from", "outlet"), ("to", "inlet")):
+                end = h[side]
+                if "roadmap" in end:
+                    if end["roadmap"] not in roadmap:
+                        report.error(f"{where}: hand-off '{h['id']}' {side} roadmap '{end['roadmap']}' is not in roadmap")
+                    continue
+                if end.get("module") not in mods:
+                    report.error(f"{where}: hand-off '{h['id']}' {side} module '{end.get('module')}' is not in modules")
+                    continue
+                ports = {p["id"]: p for p in mods[end["module"]][0].get("ports", [])}
+                port = ports.get(end.get("port"))
+                if port is None:
+                    report.error(f"{where}: hand-off '{h['id']}' {side} port '{end.get('port')}' is not in {end['module']}'s chip")
+                elif port["type"] != want:
+                    report.error(f"{where}: hand-off '{h['id']}' {side} '{port['id']}' is an {port['type']}, not an {want}")
+            src = h["from"].get("module")
+            if "after_step" in h and src in mods:
+                steps = {s.get("step") for s in mods[src][1].get("steps", [])}
+                if h["after_step"] not in steps:
+                    report.error(f"{where}: hand-off '{h['id']}' after_step {h['after_step']} is not a step of {src}'s protocol")
+    return len(found)
 
 
 def check_cad(chips: dict[str, tuple[Path, dict]], report: Report) -> int:
@@ -403,6 +458,7 @@ def main() -> int:
     check_index(run_files, report)
     check_contract_data(report)
     n_scn = check_scenarios(report)
+    n_pipe = check_pipelines(report)
     n_stl = check_cad(chips, report)
 
     print("capsule-processor contract check")
@@ -411,6 +467,7 @@ def main() -> int:
     print(f"  runs/         {len(run_files)} file(s)")
     print(f"  cad/exports/  {n_stl} STL file(s)")
     print(f"  scenarios/    {n_scn} file(s)")
+    print(f"  pipelines     {n_pipe} file(s) (protocols/ with kind: pipeline)")
     print()
     for line in report.errors:
         print(f"ERROR  {line}")

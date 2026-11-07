@@ -13,9 +13,10 @@ Errors (exit code 1):
   - capsule-carrying channel, or capsule-passable outlet, narrower than 1.5 x capsule diameter
     (a channel's "carries" picks the rule: capsules/droplets 1.5 x capsule diameter; cells the
     cell-outlet minimum, dissociation.outlet_min_width_um; liquid, oil, signals none)
-  - chamber lower than the swollen capsule diameter where culture happens
+  - chamber lower than the swollen capsule diameter where culture happens (capsule chips; Modules 1 and 1b hold cells, not capsules)
   - cell filter gap not smaller than the encapsulation nozzle (cell_filter.gap_um, and every
-    filter chamber whose purpose is cells)
+    filter chamber whose purpose is cells), including the nozzle of a chip DOWNSTREAM across
+    a pipeline hand-off (Module 1b's filter vs Module 2's nozzle); a pass prints an OK line
   - thermal zone (or protocol hold_temp) above the chip material's max working temperature
 Warnings:
   - fabricated feature smaller than the fabrication minimum in cad/fabrication.json
@@ -51,6 +52,7 @@ class Findings:
         self.errors: list[str] = []
         self.warnings: list[str] = []
         self.todo: list[str] = []      # fabrication / compatibility TODO warnings
+        self.ok: list[str] = []        # rules worth confirming out loud (e.g. across chips)
 
     def error(self, msg: str) -> None:
         self.errors.append(msg)
@@ -112,7 +114,29 @@ def paired_protocols(chip: dict, extra: list[Path]) -> list[tuple[Path, dict]]:
     return out
 
 
-def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, materials: dict, fab: dict) -> Findings:
+def downstream_nozzles(chip: dict) -> list[tuple[float, str, str]]:
+    """Encapsulation nozzles fed by this chip through pipeline hand-offs: [(nozzle_um, chip_id, handoff_id)]."""
+    out = []
+    my_ports = {p["id"] for p in chip.get("ports", [])}
+    for _, pipe in schema_io.pipelines():
+        chips = {}
+        for m in pipe.get("modules", []):
+            try:
+                chips[m["module"]] = schema_io.load_json(ROOT / m["chip"])
+            except (ValueError, FileNotFoundError, KeyError):
+                continue
+        for h in pipe.get("handoffs", []):
+            src, dst = h.get("from", {}), h.get("to", {})
+            down = chips.get(dst.get("module"))
+            if src.get("port") in my_ports and chips.get(src.get("module"), {}).get("id") == chip.get("id") and down:
+                nozzle = (down.get("encapsulation") or {}).get("nozzle_um")
+                if nozzle:
+                    out.append((nozzle, down["id"], h["id"]))
+    return out
+
+
+def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, materials: dict, fab: dict,
+          downstream: list[tuple[float, str, str]] | None = None) -> Findings:
     f = Findings()
     caps = chip.get("capsule", {})
     d = caps.get("diameter_um", param(params, "capsule.diameter_um"))
@@ -172,7 +196,8 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
             if hit:
                 for t in commands.step_targets(s):
                     culture.setdefault(t, f"{rel(path)} step {s['step']} ({hit})")
-    for cid, why in culture.items():
+    holds_capsules = "capsule" in chip or not chip.get("module")   # module chips say so; older chips are all capsule chips
+    for cid, why in culture.items() if holds_capsules else []:
         c = chambers.get(cid)
         if not c:
             continue
@@ -186,11 +211,19 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
     gap = chip.get("cell_filter", {}).get("gap_um")
     if gap is not None and gap >= nozzle:
         f.error(f"cell_filter.gap_um {gap:g} >= encapsulation nozzle {nozzle:g} um: clumps can reach the nozzle")
-    for c in chambers.values():
-        flt = c.get("filter") or {}
-        if flt.get("purpose") == "cells" and flt["gap_um"] >= nozzle:
-            f.error(f"filter '{c['id']}' gap {flt['gap_um']:g} um >= encapsulation nozzle {nozzle:g} um: cell clumps "
+    cell_filters = [(c["id"], c["filter"]["gap_um"]) for c in chambers.values() if (c.get("filter") or {}).get("purpose") == "cells"]
+    for fid, fgap in cell_filters:
+        if fgap >= nozzle:
+            f.error(f"filter '{fid}' gap {fgap:g} um >= encapsulation nozzle {nozzle:g} um: cell clumps "
                     f"that pass it can block the nozzle")
+    for d_nozzle, d_chip, handoff in downstream or []:
+        for fid, fgap in cell_filters or ([("cell_filter", gap)] if gap is not None else []):
+            if fgap >= d_nozzle:
+                f.error(f"filter '{fid}' gap {fgap:g} um >= the {d_nozzle:g} um nozzle of {d_chip} downstream "
+                        f"(hand-off {handoff}): cell clumps that pass it can block that nozzle")
+            else:
+                f.ok.append(f"filter '{fid}' gap {fgap:g} um < the {d_nozzle:g} um nozzle of {d_chip} downstream "
+                            f"(hand-off {handoff})")
 
     # --- temperature vs material --------------------------------------------------------
     mats, unknown = resolve_materials(chip, materials)
@@ -326,9 +359,11 @@ def main(argv: list[str] | None = None) -> int:
             total_errors += 1
             continue
         protocols = paired_protocols(chip, args.protocol)
-        f = check(chip, protocols, params, materials, fab)
+        f = check(chip, protocols, params, materials, fab, downstream_nozzles(chip))
         names = ", ".join(p.stem for p, _ in protocols) or "none"
         print(f"{rel(path)}  (chip {chip['id']}; protocols: {names})")
+        for o in f.ok:
+            print(f"  OK     {o}")
         for e in f.errors:
             print(f"  ERROR  {e}")
         for w in f.warnings:

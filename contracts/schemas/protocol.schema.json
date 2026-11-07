@@ -55,8 +55,8 @@
           "description": "Step number, 1, 2, 3... in order."
         },
         "operation": {
-          "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "valve", "culture", "collect", "harvest", "encapsulate", "cure"],
-          "description": "A chip operation. valve: open or close valves (targets = valve ids). culture: keep chambers in culture with batch medium exchanges and stop-flow between them. collect: take supernatant out through each chamber's outlet. harvest: send the cells out through each chamber's outlet. encapsulate: make capsules at a nozzle. cure: light-cure the capsules in a trap."
+          "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "valve", "culture", "collect", "harvest", "encapsulate", "cure", "mix", "transfer", "count"],
+          "description": "A chip operation. valve: open or close valves (targets = valve ids). culture: keep chambers in culture with batch medium exchanges and stop-flow between them. collect: take supernatant out through each chamber's outlet. harvest: send the cells out through each chamber's outlet. encapsulate: make capsules at a nozzle. cure: light-cure the capsules in a trap. mix: mix a reagent into the cell stream in a mixer (optionally diluting it). transfer: move the cells from source to target (a chamber or an outlet port), through whatever lies between. count: read the cell count and viability at a QC window."
         },
         "target": {
           "$ref": "#/$defs/snake_id",
@@ -97,6 +97,11 @@
         },
         "capsules": { "type": "integer", "minimum": 1, "description": "encapsulate only: how many capsules to make." },
         "wavelength_nm": { "type": "number", "exclusiveMinimum": 0, "description": "cure only." },
+        "source": { "$ref": "#/$defs/snake_id", "description": "transfer only: where the cells start." },
+        "dilution": {
+          "anyOf": [{ "type": "number", "minimum": 1 }, { "const": "auto" }],
+          "description": "mix only: dilution factor, or 'auto' to let the operator set it from the last count (Module 1b)."
+        },
         "variant": {
           "$ref": "#/$defs/snake_id",
           "description": "Optional. Run this step only when the run's variant (a chip run parameter) has this value, e.g. interaction."
@@ -188,6 +193,14 @@
         {
           "if": { "properties": { "operation": { "const": "encapsulate" } }, "required": ["operation"] },
           "then": { "required": ["flows_ul_h", "capsules"] }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "transfer" } }, "required": ["operation"] },
+          "then": { "required": ["source", "target"] }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "mix" } }, "required": ["operation"] },
+          "then": { "properties": { "reagent": { "type": "string" } } }
         },
         {
           "if": { "properties": { "operation": { "const": "cure" } }, "required": ["operation"] },

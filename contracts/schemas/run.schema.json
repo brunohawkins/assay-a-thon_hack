@@ -97,7 +97,8 @@
           "items": { "type": "object", "required": ["t_s", "predicted", "measured"] }
         },
         "model_updates": { "type": "array", "items": { "type": "object", "required": ["param", "old", "new"] } },
-        "alerts": { "type": "array", "items": { "type": "object", "required": ["name", "severity"] } }
+        "alerts": { "type": "array", "items": { "type": "object", "required": ["name", "severity"] } },
+        "measured": { "type": "object", "description": "Readings taken during this command (e.g. Module 1b's counter: cells_per_ul, viability)." }
       },
       "unevaluatedProperties": false
     }

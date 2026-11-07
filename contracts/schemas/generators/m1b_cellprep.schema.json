@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/generators/m1b_cellprep.schema.json",
+  "title": "Module 1b cell prep: generator parameters",
+  "description": "Parameters of cad/generators/m1b_cellprep.py. Module 1b is DESIGNED (stage positions fixed by the design brief) and SIMULATED: not printed this weekend. Lengths in mm unless the name says _um.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "channel_width_mm": { "type": "number", "default": 0.2, "exclusiveMinimum": 0, "description": "Cell line between the stages.", "x-source": "sheet (cell channels >= ~100 um)" },
+    "channel_depth_mm": { "type": "number", "default": 0.1, "exclusiveMinimum": 0, "description": "Channel depth.", "x-source": "Assumption" },
+    "mixer_width_mm": { "type": "number", "default": 0.15, "minimum": 0.1, "description": "Quench serpentine channel width (>= 0.1 mm, sized for cells).", "x-source": "sheet (serpentine >= ~100 um)" },
+    "mixer_turns": { "type": "integer", "default": 10, "minimum": 2, "description": "Serpentine turns between x 10 and 22.", "x-source": "Assumption" },
+    "cellwash_depth_mm": { "type": "number", "default": 0.5, "exclusiveMinimum": 0, "description": "Cell-wash block depth (method TBC).", "x-source": "Assumption" },
+    "filter_gap_um": { "type": "number", "default": 30, "exclusiveMinimum": 0, "description": "Cell filter pillar gap; must be smaller than the Module 2 nozzle (checked across the hand-off).", "x-source": "10x, inDrops, TIP-seq (sheet B20)" },
+    "resuspend_width_mm": { "type": "number", "default": 1.5, "exclusiveMinimum": 0, "description": "Wide, short resuspension mixer (viscous dextran: low pressure drop).", "x-source": "sheet (wider, shorter channels for dextran)" },
+    "footprint_x_mm": { "type": "number", "default": 75, "exclusiveMinimum": 0, "description": "Chip width.", "x-source": "design brief" },
+    "footprint_y_mm": { "type": "number", "default": 25, "exclusiveMinimum": 0, "description": "Chip depth.", "x-source": "design brief" }
+  }
+}

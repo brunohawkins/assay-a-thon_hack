@@ -34,6 +34,8 @@
     "dissociation.time_min": {"value": null, "min": 5, "max": 15, "units": "min", "source": ["10x", "inDrops"], "assumption": false},
     "dissociation.outlet_min_width_um": {"value": 50, "units": "um", "source": ["10x", "inDrops"], "assumption": false, "note": "Outlet wide enough for detached cells and small clumps"},
     "qc.viability_min": {"value": 0.9, "units": "fraction", "source": ["10x"], "assumption": false, "note": "Target >90% viable before encapsulation"},
+    "cellprep.mean_cells_tolerance": {"value": 0.25, "units": "fraction of capsule.mean_cells_target", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: Module 1b accepts a mean of 0.1 +/- 25% cells per capsule (0.075-0.125) before handing cells to Module 2"},
+    "cellprep.max_dilution": {"value": 10, "units": "x", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: the most m1b_resuspend_1 can dilute in one pass"},
     "encapsulation.nozzle_um": {"value": 40, "units": "um", "source": ["SPC-NAR"], "assumption": false, "note": "40 x 40 um flow-focusing nozzle (existing kit)"},
     "encapsulation.gelma_flow_ul_h": {"value": 250, "units": "uL/h", "source": ["SPC-NAR"], "assumption": false},
     "encapsulation.cell_flow_ul_h": {"value": 100, "units": "uL/h", "source": ["SPC-NAR"], "assumption": false, "note": "Cells in 15% w/v dextran 500 kDa"},
