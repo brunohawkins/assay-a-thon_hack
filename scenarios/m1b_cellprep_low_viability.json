@@ -1,0 +1,11 @@
+{
+  "_about": "Scenario for operator/run.py --scenario (Module 1b). SIMULATED HARDWARE: the counter at m1b_qc_window_1 is simulated.",
+  "name": "m1b_cellprep_low_viability",
+  "description": "Too many dead cells: viability under 90%. Dilution can't fix that, so the safety checker blocks the hand-off to Module 2.",
+  "protocol": "protocols/m1b_cellprep.json",
+  "chip": "cad/m1b_cellprep_spec.json",
+  "module2_chip": "cad/m2_encapsulation_spec.json",
+  "seed": 7,
+  "sample_volume_ul": 50,
+  "counter": { "cells_per_ul": 3600, "viability": 0.84, "cv": 0.05 }
+}

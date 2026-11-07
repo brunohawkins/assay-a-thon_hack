@@ -2,11 +2,119 @@
   "generated_by": "operator/run.py",
   "runs": [
     {
-      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1.json",
-      "protocol_id": "placeholder_capsule_wash_mvp",
-      "protocol_name": "Placeholder capsule wash (MVP)",
-      "chip_id": "wash_mvp_v1",
-      "chip_spec": "cad/wash_mvp_spec.json",
+      "file": "m1_culture__m1_culture_v1__control.json",
+      "protocol_id": "m1_culture",
+      "protocol_name": "Module 1: culture",
+      "chip_id": "m1_culture_v1",
+      "chip_spec": "cad/m1_culture_spec.json",
+      "operator": "planner",
+      "events": 15,
+      "total_duration_s": 1473440.0,
+      "placeholder": true,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null,
+      "variant": "control",
+      "module": "m1"
+    },
+    {
+      "file": "m1_culture__m1_culture_v1__interaction.json",
+      "protocol_id": "m1_culture",
+      "protocol_name": "Module 1: culture",
+      "chip_id": "m1_culture_v1",
+      "chip_spec": "cad/m1_culture_spec.json",
+      "operator": "planner",
+      "events": 17,
+      "total_duration_s": 1473460.0,
+      "placeholder": true,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null,
+      "variant": "interaction",
+      "module": "m1"
+    },
+    {
+      "file": "m1b_cellprep__m1b_cellprep_v1__m1b_cellprep_demo.json",
+      "protocol_id": "m1b_cellprep",
+      "protocol_name": "Module 1b: cell prep",
+      "chip_id": "m1b_cellprep_v1",
+      "chip_spec": "cad/m1b_cellprep_spec.json",
+      "operator": "planner",
+      "events": 7,
+      "total_duration_s": 990.0,
+      "placeholder": true,
+      "simulated_hardware": true,
+      "scenario": "m1b_cellprep_demo",
+      "loop": "closed",
+      "faults": [],
+      "status": "done",
+      "variant": null,
+      "module": "m1b"
+    },
+    {
+      "file": "m1b_cellprep__m1b_cellprep_v1__m1b_cellprep_low_viability.json",
+      "protocol_id": "m1b_cellprep",
+      "protocol_name": "Module 1b: cell prep",
+      "chip_id": "m1b_cellprep_v1",
+      "chip_spec": "cad/m1b_cellprep_spec.json",
+      "operator": "planner",
+      "events": 6,
+      "total_duration_s": 930.0,
+      "placeholder": true,
+      "simulated_hardware": true,
+      "scenario": "m1b_cellprep_low_viability",
+      "loop": "closed",
+      "faults": [],
+      "status": "stopped",
+      "variant": null,
+      "module": "m1b"
+    },
+    {
+      "file": "m1b_cellprep__m1b_cellprep_v1__m1b_cellprep_too_dilute.json",
+      "protocol_id": "m1b_cellprep",
+      "protocol_name": "Module 1b: cell prep",
+      "chip_id": "m1b_cellprep_v1",
+      "chip_spec": "cad/m1b_cellprep_spec.json",
+      "operator": "planner",
+      "events": 6,
+      "total_duration_s": 930.0,
+      "placeholder": true,
+      "simulated_hardware": true,
+      "scenario": "m1b_cellprep_too_dilute",
+      "loop": "closed",
+      "faults": [],
+      "status": "stopped",
+      "variant": null,
+      "module": "m1b"
+    },
+    {
+      "file": "m2_encapsulation__m2_encapsulation_v1.json",
+      "protocol_id": "m2_encapsulation",
+      "protocol_name": "Module 2: encapsulation",
+      "chip_id": "m2_encapsulation_v1",
+      "chip_spec": "cad/m2_encapsulation_spec.json",
+      "operator": "planner",
+      "events": 10,
+      "total_duration_s": 1538.5,
+      "placeholder": true,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null,
+      "variant": null,
+      "module": "m2"
+    },
+    {
+      "file": "m3_wash__m3_wash_v1.json",
+      "protocol_id": "m3_wash",
+      "protocol_name": "Module 3: capsule wash",
+      "chip_id": "m3_wash_v1",
+      "chip_spec": "cad/m3_wash_spec.json",
       "operator": "planner",
       "events": 4,
       "total_duration_s": 360.0,
@@ -15,93 +123,105 @@
       "scenario": null,
       "loop": null,
       "faults": [],
-      "status": null
+      "status": null,
+      "variant": null,
+      "module": "m3"
     },
     {
-      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_clog.json",
-      "protocol_id": "placeholder_capsule_wash_mvp",
-      "protocol_name": "Placeholder capsule wash (MVP)",
-      "chip_id": "wash_mvp_v1",
-      "chip_spec": "cad/wash_mvp_spec.json",
+      "file": "m3_wash__m3_wash_v1__m3_wash_clog.json",
+      "protocol_id": "m3_wash",
+      "protocol_name": "Module 3: capsule wash",
+      "chip_id": "m3_wash_v1",
+      "chip_spec": "cad/m3_wash_spec.json",
       "operator": "planner",
       "events": 8,
       "total_duration_s": 283.2,
       "placeholder": true,
       "simulated_hardware": true,
-      "scenario": "wash_mvp_clog",
+      "scenario": "m3_wash_clog",
       "loop": "closed",
       "faults": [
         "clog"
       ],
-      "status": "done"
+      "status": "done",
+      "variant": null,
+      "module": "m3"
     },
     {
-      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_clog_open_loop.json",
-      "protocol_id": "placeholder_capsule_wash_mvp",
-      "protocol_name": "Placeholder capsule wash (MVP)",
-      "chip_id": "wash_mvp_v1",
-      "chip_spec": "cad/wash_mvp_spec.json",
+      "file": "m3_wash__m3_wash_v1__m3_wash_clog_open_loop.json",
+      "protocol_id": "m3_wash",
+      "protocol_name": "Module 3: capsule wash",
+      "chip_id": "m3_wash_v1",
+      "chip_spec": "cad/m3_wash_spec.json",
       "operator": "planner",
       "events": 4,
       "total_duration_s": 286.4,
       "placeholder": true,
       "simulated_hardware": true,
-      "scenario": "wash_mvp_clog_open_loop",
+      "scenario": "m3_wash_clog_open_loop",
       "loop": "open",
       "faults": [
         "clog"
       ],
-      "status": "done"
+      "status": "done",
+      "variant": null,
+      "module": "m3"
     },
     {
-      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_closed_loop.json",
-      "protocol_id": "placeholder_capsule_wash_mvp",
-      "protocol_name": "Placeholder capsule wash (MVP)",
-      "chip_id": "wash_mvp_v1",
-      "chip_spec": "cad/wash_mvp_spec.json",
+      "file": "m3_wash__m3_wash_v1__m3_wash_closed_loop.json",
+      "protocol_id": "m3_wash",
+      "protocol_name": "Module 3: capsule wash",
+      "chip_id": "m3_wash_v1",
+      "chip_spec": "cad/m3_wash_spec.json",
       "operator": "planner",
       "events": 5,
       "total_duration_s": 281.15,
       "placeholder": true,
       "simulated_hardware": true,
-      "scenario": "wash_mvp_closed_loop",
+      "scenario": "m3_wash_closed_loop",
       "loop": "closed",
       "faults": [],
-      "status": "done"
+      "status": "done",
+      "variant": null,
+      "module": "m3"
     },
     {
-      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_open_loop.json",
-      "protocol_id": "placeholder_capsule_wash_mvp",
-      "protocol_name": "Placeholder capsule wash (MVP)",
-      "chip_id": "wash_mvp_v1",
-      "chip_spec": "cad/wash_mvp_spec.json",
+      "file": "m3_wash__m3_wash_v1__m3_wash_open_loop.json",
+      "protocol_id": "m3_wash",
+      "protocol_name": "Module 3: capsule wash",
+      "chip_id": "m3_wash_v1",
+      "chip_spec": "cad/m3_wash_spec.json",
       "operator": "planner",
       "events": 4,
       "total_duration_s": 286.4,
       "placeholder": true,
       "simulated_hardware": true,
-      "scenario": "wash_mvp_open_loop",
+      "scenario": "m3_wash_open_loop",
       "loop": "open",
       "faults": [],
-      "status": "done"
+      "status": "done",
+      "variant": null,
+      "module": "m3"
     },
     {
-      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_sensor_fault.json",
-      "protocol_id": "placeholder_capsule_wash_mvp",
-      "protocol_name": "Placeholder capsule wash (MVP)",
-      "chip_id": "wash_mvp_v1",
-      "chip_spec": "cad/wash_mvp_spec.json",
+      "file": "m3_wash__m3_wash_v1__m3_wash_sensor_fault.json",
+      "protocol_id": "m3_wash",
+      "protocol_name": "Module 3: capsule wash",
+      "chip_id": "m3_wash_v1",
+      "chip_spec": "cad/m3_wash_spec.json",
       "operator": "planner",
       "events": 6,
       "total_duration_s": 283.4,
       "placeholder": true,
       "simulated_hardware": true,
-      "scenario": "wash_mvp_sensor_fault",
+      "scenario": "m3_wash_sensor_fault",
       "loop": "closed",
       "faults": [
         "sensor_fault"
       ],
-      "status": "done"
+      "status": "done",
+      "variant": null,
+      "module": "m3"
     },
     {
       "file": "placeholder_culture_then_scrnaseq__placeholder_chip_v1.json",
@@ -117,7 +237,9 @@
       "scenario": null,
       "loop": null,
       "faults": [],
-      "status": null
+      "status": null,
+      "variant": null,
+      "module": null
     },
     {
       "file": "placeholder_scdnaseq__placeholder_chip_v1.json",
@@ -133,7 +255,9 @@
       "scenario": null,
       "loop": null,
       "faults": [],
-      "status": null
+      "status": null,
+      "variant": null,
+      "module": null
     },
     {
       "file": "placeholder_scrnaseq__placeholder_chip_v1.json",
@@ -149,7 +273,9 @@
       "scenario": null,
       "loop": null,
       "faults": [],
-      "status": null
+      "status": null,
+      "variant": null,
+      "module": null
     },
     {
       "file": "module4_v1__module4_v1.json",
@@ -165,7 +291,9 @@
       "scenario": null,
       "loop": null,
       "faults": [],
-      "status": null
+      "status": null,
+      "variant": null,
+      "module": null
     },
     {
       "file": "module5_v1__module5_v1.json",
@@ -181,7 +309,9 @@
       "scenario": null,
       "loop": null,
       "faults": [],
-      "status": null
+      "status": null,
+      "variant": null,
+      "module": null
     },
     {
       "file": "module1_v1__module1_v1.json",
@@ -197,7 +327,9 @@
       "scenario": null,
       "loop": null,
       "faults": [],
-      "status": null
+      "status": null,
+      "variant": null,
+      "module": null
     },
     {
       "file": "ipsc_to_mgl_v1__ipsc_to_mgl_chip_v1.json",
@@ -213,7 +345,9 @@
       "scenario": null,
       "loop": null,
       "faults": [],
-      "status": null
+      "status": null,
+      "variant": null,
+      "module": null
     }
   ]
 }

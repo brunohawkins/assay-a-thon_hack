@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/pipeline.schema.json",
+  "title": "Pipeline",
+  "description": "Chains module protocols into one workflow: which chip and protocol each module uses, its instances (run parameters), and the hand-offs between them (which outlet feeds which inlet). Lives in protocols/ next to the protocols it chains; told apart by \"kind\": \"pipeline\".",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "id", "name", "placeholder", "modules", "handoffs"],
+  "properties": {
+    "kind": { "const": "pipeline" },
+    "id": { "$ref": "#/$defs/snake_id" },
+    "name": { "type": "string" },
+    "placeholder": { "type": "boolean" },
+    "description": { "type": "string" },
+    "modules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["module", "chip", "protocol"],
+        "properties": {
+          "module": { "type": "string", "pattern": "^m[0-9]+[a-z]?$", "description": "Module id: must match the chip spec's module.id." },
+          "chip": { "type": "string", "description": "Chip spec path, e.g. cad/m1_culture_spec.json." },
+          "protocol": { "type": "string", "description": "Protocol path." },
+          "scenario": { "type": "string", "description": "Optional scenario path (Module 1b's simulated counter)." },
+          "instances": {
+            "type": "array",
+            "description": "Several copies of the same chip, each with its own run parameters (Module 1: control and interaction).",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "run_parameters"],
+              "properties": { "name": { "$ref": "#/$defs/snake_id" }, "run_parameters": { "type": "object" } }
+            }
+          },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "handoffs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "from", "to", "carries"],
+        "properties": {
+          "id": { "$ref": "#/$defs/snake_id" },
+          "from": { "$ref": "#/$defs/end" },
+          "to": { "$ref": "#/$defs/end" },
+          "carries": { "enum": ["cells", "capsules", "library"] },
+          "after_step": { "type": "integer", "minimum": 1, "description": "Step of the upstream module's protocol after which the hand-off happens." },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "roadmap": {
+      "type": "array",
+      "description": "Later stages, not built yet (the twin draws them as roadmap boxes).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name"],
+        "properties": { "id": { "$ref": "#/$defs/snake_id" }, "name": { "type": "string" }, "note": { "type": "string" } }
+      }
+    }
+  },
+  "$defs": {
+    "snake_id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" },
+    "end": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "module": { "type": "string", "pattern": "^m[0-9]+[a-z]?$" },
+        "port": { "$ref": "#/$defs/snake_id" },
+        "instances": { "type": "array", "items": { "$ref": "#/$defs/snake_id" } },
+        "roadmap": { "$ref": "#/$defs/snake_id", "description": "A roadmap stage instead of a module port." }
+      }
+    }
+  }
+}

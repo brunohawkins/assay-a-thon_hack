@@ -6,10 +6,29 @@ const COMMAND_COLORS = {
   split: '#a78bfa',
   pool: '#60a5fa',
   release: LIBRARY_COLOR,
+  valve: '#f87171',
+  collect: '#fde68a',
+  harvest: LIBRARY_COLOR,
+  encapsulate: '#2dd4bf',
+  cure: '#a78bfa',
+  transfer: '#fda4af',
+  count: '#f0abfc',
+  pl_m1: '#c4b5fd', pl_m1_out: '#fda4af', pl_m1b: '#86efac', pl_m1b_out: '#fda4af',
+  pl_m2: '#2dd4bf', pl_m2_out: '#5eead4', pl_m3: '#7dd3fc', pl_roadmap: '#64748b',
 };
+const MODULE_NAMES = { pipeline: 'Pipeline', m1: 'Module 1 · Culture', m1b: 'Module 1b · Cell prep', m2: 'Module 2 · Encapsulation', m3: 'Module 3 · Capsule wash', other: 'Other runs' };
+
+// "core_flow_ul_h" -> ["core flow", "µL/h"]
+const UNIT_SUFFIXES = [['_per_ul', 'per µL'], ['_ul_h', 'µL/h'], ['_ul_min', 'µL/min'], ['_ul', 'µL'], ['_um', 'µm'], ['_mm', 'mm'], ['_nm', 'nm'],
+  ['_deg', '°'], ['_temp_c', '°C'], ['_c', '°C'], ['_min_low', 'min (low)'], ['_min_high', 'min (high)'], ['_s', 's']];
+function paramLabel(key) {
+  for (const [suf, unit] of UNIT_SUFFIXES) if (key.endsWith(suf)) return [key.slice(0, -suf.length).replaceAll('_', ' '), unit];
+  return [key.replaceAll('_', ' '), ''];
+}
 
 export function commandColor(ev) {
-  if (ev.command === 'exchange') return reagentCss(ev.args.reagent);
+  if (ev.command === 'exchange' || ev.command === 'mix') return reagentCss(ev.args.reagent);
+  if (ev.command === 'culture') return reagentCss(ev.args.reagents?.[0]);
   if (ev.command === 'hold_temp') return tempCss(ev.args.temp_c);
   return COMMAND_COLORS[ev.command] ?? '#9ca3af';
 }
@@ -39,6 +58,12 @@ export function createUI(actions) {
     views: [...document.querySelectorAll('[data-view]')],
     sizing: $('sizing'),
     sizingBody: $('sizing-body'),
+    params: $('params'),
+    paramsBody: $('params-body'),
+    paramsMeta: $('params-meta'),
+    tabs: [...document.querySelectorAll('[data-module]')],
+    printBadge: $('print-badge'),
+    draftBadge: $('draft-badge'),
   };
   let segments = [];
   let total = 1;
@@ -53,6 +78,9 @@ export function createUI(actions) {
     el.labels.setAttribute('aria-pressed', String(on));
     actions.onLabels(on);
   });
+  el.tabs.forEach((b) => b.addEventListener('click', () => {
+    if (b.getAttribute('aria-pressed') !== 'true') actions.onModule?.(b.dataset.module);
+  }));
   el.views.forEach((b) => b.addEventListener('click', () => {
     if (b.disabled || b.getAttribute('aria-pressed') === 'true') return;
     actions.onView(b.dataset.view);
@@ -84,9 +112,10 @@ export function createUI(actions) {
         ...runs.map((r) => {
           const o = document.createElement('option');
           o.value = r.file;
-          const scn = r.scenario ? ` — ${r.scenario.replace(/^wash_mvp_/, '').replace(/_/g, ' ')}` : '';
+          const scn = r.scenario ? ` — ${r.scenario.replace(/^m3_wash_|^m1b_cellprep_/, '').replace(/_/g, ' ')}` : '';
+          const variant = r.variant ? ` — ${r.variant} chip` : '';
           const op = r.operator === 'llm' ? ' · LLM operator' : r.operator === 'scripted' ? ' · scripted replay' : '';
-          o.textContent = `${r.protocol_name}${scn}${op}`;
+          o.textContent = `${r.protocol_name}${variant}${scn}${op}`;
           return o;
         }),
       );
@@ -109,7 +138,9 @@ export function createUI(actions) {
       el.placeholder.hidden = !run.placeholder;
       el.operator.textContent = run.operator === 'llm' ? `LLM operator${run.model ? ` · ${run.model}` : ''}` : 'planner';
       el.operator.dataset.kind = run.operator;
-      el.runMeta.textContent = `${run.protocol_id} on ${run.chip_id} · ${events.length} commands · ${formatDuration(run.total_duration_s)} of protocol time`;
+      el.runMeta.textContent = run.kind === 'pipeline'
+        ? `pipeline_mvp · ${events.length} phases · ${formatDuration(run.total_duration_s)} of protocol time`
+        : `${run.protocol_id} on ${run.chip_id}${run.run_parameters?.variant ? ` (${run.run_parameters.variant})` : ''} · ${events.length} commands · ${formatDuration(run.total_duration_s)} of protocol time`;
     },
 
     setEvent(i, ev) {
@@ -147,6 +178,35 @@ export function createUI(actions) {
     labelsOn() { return el.labels.getAttribute('aria-pressed') === 'true'; },
 
     selectRun(file) { el.select.value = file; },
+
+    setTab(module) {
+      el.tabs.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.module === module)));
+      document.body.dataset.module = module;
+    },
+
+    // Badges and the parameters panel from the chip spec's module and generator blocks.
+    setChipInfo(spec) {
+      const m = spec?.module;
+      el.printBadge.hidden = !m;
+      el.draftBadge.hidden = m?.status !== 'draft';
+      if (m) {
+        el.printBadge.textContent = m.printed === false ? 'Designed · simulated · not printed this weekend' : 'Printed';
+        el.printBadge.className = `badge ${m.printed === false ? 'sim-only' : 'printed'}`;
+      }
+      const gen = spec?.generator;
+      el.params.hidden = !gen;
+      if (!gen) return;
+      el.paramsMeta.textContent = `${MODULE_NAMES[m?.id] ?? spec.id}${m?.status === 'draft' ? ' (draft design)' : ''} · generated by ${gen.script}`;
+      el.paramsBody.replaceChildren(...Object.entries(gen.params).flatMap(([k, v]) => {
+        const [name, unit] = paramLabel(k);
+        const dt = document.createElement('dt');
+        dt.textContent = name;
+        dt.title = k;
+        const dd = document.createElement('dd');
+        dd.textContent = typeof v === 'boolean' ? (v ? 'yes' : 'no') : `${typeof v === 'number' ? v.toLocaleString(undefined, { maximumFractionDigits: 3 }) : v}${unit ? ` ${unit}` : ''}`;
+        return [dt, dd];
+      }));
+    },
 
     setView(mode) {
       el.views.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === mode)));
@@ -226,7 +286,17 @@ function details(ev) {
   if (a.sources) add('From', a.sources.join(', '));
   if (a.target) add(a.source || a.sources ? 'To' : 'Chamber', a.target);
   if (a.targets) add('To', a.targets.join(', '));
+  if (a.valves) add('Valves', `${a.valves.map((v) => v.replace(/^m\d+[a-z]?_valve_/, '')).join(', ')} → ${a.state}`);
   if (a.reagent) add('Reagent', a.reagent.replaceAll('_', ' '), reagentCss(a.reagent));
+  if (a.reagents) add('Media', a.reagents.map((r) => r.replaceAll('_', ' ')).join(', '), reagentCss(a.reagents[0]));
+  if (a.factors) add('Factors', a.factors.map((r) => r.replaceAll('_', ' ')).join(', '));
+  if (a.exchange_interval_s) add('Medium change', `every ${formatDuration(a.exchange_interval_s)} (stop-flow between)`);
+  if (a.core_flow_ul_h != null) add('Flows', `core ${a.core_flow_ul_h} · shell ${a.shell_flow_ul_h} · oil ${a.oil_flow_ul_h} µL/h`);
+  if (a.capsules != null) add('Capsules', Number(a.capsules).toLocaleString());
+  if (a.wavelength_nm != null) add('Light', `${a.wavelength_nm} nm`);
+  if (a.dilution != null) add('Dilution', `${a.dilution}× (set by the operator from the count)`);
+  if (a.waste) add('Drains to', a.waste);
+  if (ev.measured?.cells_per_ul != null) add('Counted', `${ev.measured.cells_per_ul.toLocaleString()} cells/µL · ${(ev.measured.viability * 100).toFixed(1)}% viable`);
   if (a.volume_ul != null) add('Volume', `${a.volume_ul} µL${a.washes ? ` × ${a.washes}` : ''}`);
   if (a.flow_ul_min != null) add('Flow', `${a.flow_ul_min} µL/min`);
   if (a.temp_c != null) add('Temp', `${a.temp_c} °C`, tempCss(a.temp_c));
@@ -236,6 +306,7 @@ function details(ev) {
 
 function formatClock(s) {
   s = Math.max(0, Math.round(s || 0));
+  if (s >= 86400) return `${Math.floor(s / 86400)} d ${String(Math.floor((s % 86400) / 3600)).padStart(2, '0')} h`;
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
   const sec = s % 60;

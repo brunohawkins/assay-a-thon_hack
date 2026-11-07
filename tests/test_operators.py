@@ -17,8 +17,8 @@ from controller import Controller  # noqa: E402
 from faults import Monitor, build_faults  # noqa: E402
 from operators import run_planner, run_scripted, transcript_from  # noqa: E402
 
-CHIP = schema_io.load_json(ROOT / "cad" / "wash_mvp_spec.json")
-PROTO = schema_io.load_json(ROOT / "protocols" / "placeholder_capsule_wash_mvp.json")
+CHIP = schema_io.load_json(ROOT / "cad" / "m3_wash_spec.json")
+PROTO = schema_io.load_json(ROOT / "protocols" / "m3_wash.json")
 PARAMS, _ = safety._contracts()
 CLOSED = {"pressure_kpa": True, "outlet_absorbance": True}
 

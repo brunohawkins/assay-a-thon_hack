@@ -1,0 +1,739 @@
+{
+  "chip_id": "m2_encapsulation_v1",
+  "chip_spec": "cad/m2_encapsulation_spec.json",
+  "display_scale": 10.0,
+  "units": "mm",
+  "note": "Display model: real chip geometry x display_scale. Not a working chip. The lid layer is left out.",
+  "print_file": "m2_encapsulation_v1_display_print.stl",
+  "overall_mm": [
+    750.0,
+    268.0,
+    21.5
+  ],
+  "min_mm": [
+    0,
+    -18.0,
+    0
+  ],
+  "real_footprint_mm": [
+    75,
+    25
+  ],
+  "label": "Display model – 10× scale",
+  "parts": [
+    {
+      "id": "m2_base",
+      "kind": "base",
+      "file": "m2_base.stl",
+      "bbox_mm": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          750.0,
+          250.0,
+          10.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_yjunction_1",
+      "kind": "chamber",
+      "file": "m2_yjunction_1.stl",
+      "bbox_mm": [
+        [
+          129.36,
+          122.4,
+          10.0
+        ],
+        [
+          134.56,
+          127.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_nozzle_1",
+      "kind": "chamber",
+      "file": "m2_nozzle_1.stl",
+      "bbox_mm": [
+        [
+          140.16,
+          123.2,
+          10.0
+        ],
+        [
+          143.76,
+          126.8,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_oil_split_1",
+      "kind": "chamber",
+      "file": "m2_oil_split_1.stl",
+      "bbox_mm": [
+        [
+          37.4,
+          122.4,
+          10.0
+        ],
+        [
+          42.6,
+          127.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_filter_core_1",
+      "kind": "chamber",
+      "file": "m2_filter_core_1.stl",
+      "bbox_mm": [
+        [
+          56.4,
+          149.4,
+          10.0
+        ],
+        [
+          73.6,
+          160.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_filter_shell_1",
+      "kind": "chamber",
+      "file": "m2_filter_shell_1.stl",
+      "bbox_mm": [
+        [
+          56.4,
+          89.4,
+          10.0
+        ],
+        [
+          73.6,
+          100.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_filter_oil_1",
+      "kind": "chamber",
+      "file": "m2_filter_oil_1.stl",
+      "bbox_mm": [
+        [
+          18.9,
+          119.4,
+          10.0
+        ],
+        [
+          36.1,
+          130.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_trap_1",
+      "kind": "chamber",
+      "file": "m2_trap_1.stl",
+      "bbox_mm": [
+        [
+          588.4,
+          88.4,
+          10.0
+        ],
+        [
+          661.6,
+          161.6,
+          11.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_agg_filter_1",
+      "kind": "chamber",
+      "file": "m2_agg_filter_1.stl",
+      "bbox_mm": [
+        [
+          671.4,
+          119.4,
+          10.0
+        ],
+        [
+          688.6,
+          130.6,
+          11.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_core_in",
+      "kind": "channel",
+      "file": "m2_ch_core_in.stl",
+      "bbox_mm": [
+        [
+          49.5,
+          154.5,
+          10.0
+        ],
+        [
+          58.5,
+          155.5,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_core",
+      "kind": "channel",
+      "file": "m2_ch_core.stl",
+      "bbox_mm": [
+        [
+          71.5,
+          124.5,
+          10.0
+        ],
+        [
+          132.46,
+          155.5,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_shell_in",
+      "kind": "channel",
+      "file": "m2_ch_shell_in.stl",
+      "bbox_mm": [
+        [
+          49.5,
+          94.5,
+          10.0
+        ],
+        [
+          58.5,
+          95.5,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_shell",
+      "kind": "channel",
+      "file": "m2_ch_shell.stl",
+      "bbox_mm": [
+        [
+          71.5,
+          94.5,
+          10.0
+        ],
+        [
+          132.46,
+          125.5,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_oil_in",
+      "kind": "channel",
+      "file": "m2_ch_oil_in.stl",
+      "bbox_mm": [
+        [
+          14.5,
+          124.5,
+          10.0
+        ],
+        [
+          21.0,
+          125.5,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_oil_feed",
+      "kind": "channel",
+      "file": "m2_ch_oil_feed.stl",
+      "bbox_mm": [
+        [
+          34.0,
+          124.5,
+          10.0
+        ],
+        [
+          40.5,
+          125.5,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_oil_1",
+      "kind": "channel",
+      "file": "m2_ch_oil_1.stl",
+      "bbox_mm": [
+        [
+          39.5,
+          124.5,
+          10.0
+        ],
+        [
+          142.46,
+          200.5,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_oil_2",
+      "kind": "channel",
+      "file": "m2_ch_oil_2.stl",
+      "bbox_mm": [
+        [
+          39.5,
+          49.5,
+          10.0
+        ],
+        [
+          142.46,
+          125.5,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_coflow_1",
+      "kind": "channel",
+      "file": "m2_ch_coflow_1.stl",
+      "bbox_mm": [
+        [
+          131.46,
+          124.5,
+          10.0
+        ],
+        [
+          142.46,
+          125.5,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_separation_1",
+      "kind": "channel",
+      "file": "m2_ch_separation_1.stl",
+      "bbox_mm": [
+        [
+          141.26,
+          124.3,
+          10.0
+        ],
+        [
+          292.66,
+          125.7,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_breaker",
+      "kind": "channel",
+      "file": "m2_ch_breaker.stl",
+      "bbox_mm": [
+        [
+          599.0,
+          159.0,
+          10.0
+        ],
+        [
+          601.0,
+          181.0,
+          11.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_buffer",
+      "kind": "channel",
+      "file": "m2_ch_buffer.stl",
+      "bbox_mm": [
+        [
+          624.0,
+          159.0,
+          10.0
+        ],
+        [
+          626.0,
+          181.0,
+          11.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_pi",
+      "kind": "channel",
+      "file": "m2_ch_pi.stl",
+      "bbox_mm": [
+        [
+          649.0,
+          159.0,
+          10.0
+        ],
+        [
+          651.0,
+          181.0,
+          11.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_backflush",
+      "kind": "channel",
+      "file": "m2_ch_backflush.stl",
+      "bbox_mm": [
+        [
+          569.0,
+          124.0,
+          10.0
+        ],
+        [
+          591.0,
+          126.0,
+          11.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_oil_waste",
+      "kind": "channel",
+      "file": "m2_ch_oil_waste.stl",
+      "bbox_mm": [
+        [
+          609.0,
+          69.0,
+          10.0
+        ],
+        [
+          611.0,
+          91.0,
+          11.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_waste",
+      "kind": "channel",
+      "file": "m2_ch_waste.stl",
+      "bbox_mm": [
+        [
+          639.0,
+          69.0,
+          10.0
+        ],
+        [
+          641.0,
+          91.0,
+          11.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_release",
+      "kind": "channel",
+      "file": "m2_ch_release.stl",
+      "bbox_mm": [
+        [
+          659.0,
+          124.0,
+          10.0
+        ],
+        [
+          674.0,
+          126.0,
+          11.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_ch_capsule_out",
+      "kind": "channel",
+      "file": "m2_ch_capsule_out.stl",
+      "bbox_mm": [
+        [
+          686.0,
+          124.0,
+          10.0
+        ],
+        [
+          701.0,
+          126.0,
+          11.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_core_in_1",
+      "kind": "port_top",
+      "file": "m2_core_in_1.stl",
+      "bbox_mm": [
+        [
+          46.3,
+          151.3,
+          10.0
+        ],
+        [
+          53.7,
+          158.7,
+          21.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_shell_in_1",
+      "kind": "port_top",
+      "file": "m2_shell_in_1.stl",
+      "bbox_mm": [
+        [
+          46.3,
+          91.3,
+          10.0
+        ],
+        [
+          53.7,
+          98.7,
+          21.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_oil_in_1",
+      "kind": "port_top",
+      "file": "m2_oil_in_1.stl",
+      "bbox_mm": [
+        [
+          11.3,
+          121.3,
+          10.0
+        ],
+        [
+          18.7,
+          128.7,
+          21.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_emulsion_out_1",
+      "kind": "port_top",
+      "file": "m2_emulsion_out_1.stl",
+      "bbox_mm": [
+        [
+          288.26,
+          121.3,
+          10.0
+        ],
+        [
+          295.66,
+          128.7,
+          21.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_emulsion_in_1",
+      "kind": "port_top",
+      "file": "m2_emulsion_in_1.stl",
+      "bbox_mm": [
+        [
+          621.3,
+          121.3,
+          10.0
+        ],
+        [
+          628.7,
+          128.7,
+          21.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_breaker_in_1",
+      "kind": "port_top",
+      "file": "m2_breaker_in_1.stl",
+      "bbox_mm": [
+        [
+          596.3,
+          176.3,
+          10.0
+        ],
+        [
+          603.7,
+          183.7,
+          21.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_buffer_in_1",
+      "kind": "port_top",
+      "file": "m2_buffer_in_1.stl",
+      "bbox_mm": [
+        [
+          621.3,
+          176.3,
+          10.0
+        ],
+        [
+          628.7,
+          183.7,
+          21.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_pi_in_1",
+      "kind": "port_top",
+      "file": "m2_pi_in_1.stl",
+      "bbox_mm": [
+        [
+          646.3,
+          176.3,
+          10.0
+        ],
+        [
+          653.7,
+          183.7,
+          21.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_backflush_1",
+      "kind": "port_bottom",
+      "file": "m2_backflush_1.stl",
+      "bbox_mm": [
+        [
+          566.3,
+          121.3,
+          10.0
+        ],
+        [
+          573.7,
+          128.7,
+          12.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_oil_waste_1",
+      "kind": "port_bottom",
+      "file": "m2_oil_waste_1.stl",
+      "bbox_mm": [
+        [
+          606.3,
+          66.3,
+          10.0
+        ],
+        [
+          613.7,
+          73.7,
+          12.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_waste_1",
+      "kind": "port_bottom",
+      "file": "m2_waste_1.stl",
+      "bbox_mm": [
+        [
+          636.3,
+          66.3,
+          10.0
+        ],
+        [
+          643.7,
+          73.7,
+          12.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_capsule_out_1",
+      "kind": "port_top",
+      "file": "m2_capsule_out_1.stl",
+      "bbox_mm": [
+        [
+          696.3,
+          121.3,
+          10.0
+        ],
+        [
+          703.7,
+          128.7,
+          21.5
+        ]
+      ]
+    },
+    {
+      "id": "m2_curing_window_1",
+      "kind": "feature",
+      "file": "m2_curing_window_1.stl",
+      "bbox_mm": [
+        [
+          585.0,
+          85.0,
+          10.0
+        ],
+        [
+          665.0,
+          165.0,
+          10.6
+        ]
+      ]
+    },
+    {
+      "id": "m2_label",
+      "kind": "label",
+      "file": "m2_label.stl",
+      "bbox_mm": [
+        [
+          0,
+          -18.0,
+          0
+        ],
+        [
+          750.0,
+          0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "id": "m2_label_text",
+      "kind": "label_text",
+      "file": "m2_label_text.stl",
+      "bbox_mm": [
+        [
+          255.0,
+          -14.6,
+          3.0
+        ],
+        [
+          493.4,
+          -3.4,
+          4.2
+        ]
+      ]
+    }
+  ]
+}

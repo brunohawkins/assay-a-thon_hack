@@ -49,6 +49,49 @@ Rules:
 
 The placeholder chip uses: `inlet_1`, `exchange_1`, `split_1` … `split_4`, `pool_1`, `outlet_1`.
 
+### MVP modules: one prefix per module
+
+The MVP is three chips plus an automated cell-prep bridge. **Every id on a module chip
+starts with its module prefix**: part ids, STL names, spec files, protocol files.
+
+| Module | Prefix | Chip spec | Protocol | Status |
+|---|---|---|---|---|
+| 1. Culture | `m1_` | `cad/m1_culture_spec.json` | `protocols/m1_culture.json` | designed, printed |
+| 1b. Cell prep (bridge) | `m1b_` | `cad/m1b_cellprep_spec.json` | `protocols/m1b_cellprep.json` | designed, simulated, not printed this weekend |
+| 2. Encapsulation | `m2_` | `cad/m2_encapsulation_spec.json` | `protocols/m2_encapsulation.json` | parametric draft, printed |
+| 3. Capsule wash | `m3_` | `cad/m3_wash_spec.json` | `protocols/m3_wash.json` | parametric draft, printed |
+
+`protocols/pipeline_mvp.json` chains them with hand-off events (which outlet feeds which
+inlet). A module chip says which module it is in its `module` block, and a generated spec
+records the script and parameter values that made it in its `generator` block.
+
+### How to design Module 2 or 3
+
+The generators are the design tool: **don't hand-edit `cad/m*_spec.json`.**
+
+1. **Change parameters.** Every parameter, its default and where the default comes from is
+   in `contracts/schemas/generators/m2_encapsulation.schema.json` (or `m3_wash.schema.json`).
+   `--help` lists them too. The ones you'll touch most:
+   - Module 2: `--nozzle-width-um`, `--core-flow-ul-h` / `--shell-flow-ul-h` / `--oil-flow-ul-h`,
+     `--y-junction-angle-deg`, `--coflow-length-mm`, `--separation-length-mm`, `--capsule-count`,
+     `--inlet-filters`, `--cell-filter-gap-um`, `--footprint-x-mm`.
+   - Module 3: `--capsule-count`, `--capsule-diameter-um`, `--swollen-diameter-um`,
+     `--mesh-opening-um`, `--chamber-height-um`, `--channel-width-factor`, `--inlets`, `--backflush`.
+2. **Run one command:**
+   ```bash
+   python cad/generators/m2_encapsulation.py --nozzle-width-um 50 --oil-flow-ul-h 800
+   python cad/generators/m3_wash.py --capsule-count 25000 --inlets 2
+   ```
+   It writes the spec (and the module's protocol), runs `tools/check_chip_spec.py`, prints the
+   sizing summary, exports the display-model STLs to `cad/display/<chip_id>/` and regenerates
+   the module's runs. A design that breaks a hard rule (e.g. a mesh >= 0.4 x capsule diameter)
+   is refused with the reason; anything the checker flags is printed. `--out path.json` tries a
+   design without touching the repo's files.
+3. **Look at the twin** (`python -m http.server 8000`, then `http://localhost:8000/twin/`): the
+   module's view shows the new chip and its parameters panel shows the values used.
+
+The natural-language tool calls the same generators: `chip/nl_to_spec/generators.py`.
+
 ## `placeholder: true`
 
 Every file has a `"placeholder"` field. Set it to `true` while the file holds fake
@@ -77,8 +120,8 @@ numbers, and to `false` only when it holds the real thing. The twin shows a
 | Field | Meaning |
 |---|---|
 | `step` | 1, 2, 3 … in order |
-| `operation` | one of `load`, `exchange`, `hold_temp`, `split`, `pool`, `release` |
-| `target` | the chamber ID the step acts on (see below for split and pool) |
+| `operation` | one of `load`, `exchange`, `hold_temp`, `split`, `pool`, `release`, `valve`, `culture`, `collect`, `harvest`, `encapsulate`, `cure`, `mix`, `transfer`, `count` |
+| `target` | the chamber ID the step acts on (see below for split and pool). Or give `targets`, a list, to act on several at once (an `exchange` with `targets` runs once per target; `reagents` gives one reagent per target) |
 | `reagent` | generic reagent name, or `null` |
 | `volume_ul` | µL, or `null` |
 | `duration_s` | seconds the step takes (always a number) |
@@ -97,6 +140,22 @@ numbers, and to `false` only when it holds the real thing. The twin shows a
 | `split` | capsules leave `target` and are shared between the split chambers it connects to | nothing extra |
 | `pool` | capsules from every chamber connected into `target` come together in `target` | nothing extra |
 | `release` | the product leaves the capsules in `target` and flows to the outlet | `reagent` |
+| `valve` | open or close the valves listed in `targets` | `targets`, `valve_state` (`open`/`closed`) |
+| `culture` | the chambers in `targets` stay in culture: every `exchange_interval_s` a batch of fresh medium (`volume_ul` at `flow_ul_min`) flows through each, then the flow stops until the next change | `targets`, `reagents` (one medium per target), `exchange_interval_s`, `duration_s`, `temp_c`; optional `factors` (one per target, through each lane's factor port) |
+| `collect` | supernatant leaves each chamber in `targets` through its outlet; the cells stay | `targets`, `volume_ul` |
+| `harvest` | the cells leave each chamber in `targets` through its outlet | `targets`, `reagent` |
+| `encapsulate` | core and shell streams co-flow into the nozzle `target`; oil pinches off droplets that become core-shell capsules | `flows_ul_h` (`{core, shell, oil}`), `capsules` |
+| `cure` | light-cures the capsules in `target` through a curing window | `wavelength_nm`, `duration_s` > 0 |
+| `mix` | a reagent is mixed into the cell stream in the mixer `target`, optionally diluting it | `reagent`; optional `dilution` (a number, or `"auto"`: the Module 1b operator sets it from the last count) |
+| `transfer` | the cells move from `source` to `target` (a chamber or an outlet port), through any filter or window between | `source`, `target` |
+| `count` | the QC window `target` reads the cell concentration and viability | nothing extra |
+
+An `exchange` can name the port it drains to with `"waste"` (e.g. Module 2's dedicated oil
+waste). `hold_temp` can target an off-chip stage (Module 2's cold delay, `m2_cold_delay_1`).
+
+A step with `"variant": "interaction"` runs only when the run's `variant` is `interaction`
+(Module 1 is one chip spec run twice, as `control` and `interaction`; see `run_parameters`).
+Skipped steps are logged in the run file.
 
 **Worked example:** step 2 of `placeholder_scrnaseq.json`:
 
@@ -168,6 +227,18 @@ fields**: they're what `tools/check_chip_spec.py` checks the real-scale design a
 | `chambers[].height_um`, `.sealed` | Internal height in µm; sealed against evaporation. |
 | `chambers[].retention` | `{type: mesh/pillars/weir, opening_um, source: bought/fabricated}`: what holds the capsules. |
 | `ports[].role`, `.capsule_passable`, `.width_um` | The sheet's `outlets[]`: which ports capsules can pass (a waste line below a mesh can't), and the opening width. |
+| `module`, `generator` | Which MVP module the chip is (`{id: m1, name, status: designed/draft, printed}`), and the script + parameter values that generated it. |
+| `run_parameters` | Named run parameters, e.g. `{"variant": {"values": ["control", "interaction"], "default": "control"}}`: one spec, several instances. |
+| `chambers[].shape` | `box` (default) or `cylinder` (round chamber: `size` is `[diameter, diameter, depth]`). Types also include `culture`, `junction` (where channels meet), `bubble_trap`. |
+| `channels[].carries` | `capsules`, `droplets`, `cells`, `liquid`, `oil` or `signals`: picks the design rule (capsules: ≥ 1.5 × diameter; cells: ≥ 50 µm). |
+| `channels[].path` | Centreline waypoints `[[x, y], …]`; without it, channels are routed automatically. Channels with paths are checked for crossings. |
+| `channels[].capsule_passable`, `.fabricable` | `capsule_passable: false` (MJ's proposal): deliberately too small for capsules or cells, e.g. microgrooves. `fabricable: false`: drawn, but too small to make here. |
+| `valves[]` | `{id, type: normally_closed/normally_open, kind: branch/pair/isolation, channel, position, control_port, connects}`. A `pair` valve can't be opened in a `control` run. Control ports are `ports` with `type: control`. |
+| `chambers[].mixer` | For `type: mixer`: `{kind: serpentine/wide_short, channel_width_mm, turns, length_mm}`. Types `cell_wash` (method TBC) and `qc_window` are Module 1b's other stages. |
+| `chambers[].filter` | For `type: filter`: `{type: pillars/mesh, gap_um, purpose: cells/particles/capsule_aggregates}`. A filter whose purpose is `cells` must have a gap **smaller** than the encapsulation nozzle. |
+| `encapsulation` | `{nozzle_um, nozzle_depth_um, nozzle, core_flow_ul_h, shell_flow_ul_h, oil_flow_ul_h, core_inlet}`: Module 1b uses these flows to set the cell concentration. |
+| `stages[]` | Steps that happen off the chip between two of its ports: `{id, type: cold_delay, from_port, to_port, location: off_chip, temp_c, time_min, volume_ul, note}`. |
+| `features[]` | Parts that aren't chambers, channels or ports: `{id, type: gas_window/heat_zone/cold_zone/curing_window/optical_window, center, size, covers, temp_c, wavelength_nm}`. |
 
 **`contracts/parameters.json`** holds every number from the sheet with its units,
 source keys (CapSeq, SPC-NAR, 10x, inDrops, TIP-seq) and an `assumption` flag for
@@ -175,10 +246,19 @@ rules of thumb that aren't from a paper. The sources table is in the same file.
 **`contracts/materials.json`** lists chip materials (PMMA, printed resin) with their
 max working temperature and a chemical-compatibility map, which is still all `TODO`.
 
+### Pipelines: `protocols/pipeline_mvp.json`
+
+A pipeline chains the module protocols (`"kind": "pipeline"`, schema `schemas/pipeline.schema.json`):
+`modules` lists each module's chip, protocol and instances (Module 1: `control` and `interaction`),
+and `handoffs` say which outlet feeds which inlet (`m1_out_n` -> `m1b_cells_in_n`,
+`m1b_to_module2_1` -> `m2_core_in_1`, `m2_capsule_out_1` -> `m3_inlet_1`). `tools/validate.py`
+checks every port exists and runs outlet -> inlet; `tools/check_chip_spec.py` follows the
+hand-offs to check Module 1b's cell filter against Module 2's nozzle.
+
 ## 3. commands: the chip's instruction set
 
-The operator (planner or AI) turns each protocol step into one of exactly six commands.
-This is everything the chip can do:
+The operator (planner or AI) turns each protocol step into commands.
+This is everything the chips can do:
 
 | Command | Arguments |
 |---|---|
@@ -188,10 +268,19 @@ This is everything the chip can do:
 | `split` | `source`, `targets` (a list) |
 | `pool` | `sources` (a list), `target` |
 | `release` | `target`, `reagent` |
+| `valve` | `valves` (a list), `state` (`open`/`closed`) |
+| `culture` | `targets`, `reagents`, `duration_s`, `exchange_interval_s`, `volume_ul`, `flow_ul_min`, `temp_c`, optional `factors` |
+| `collect` | `targets`, `volume_ul` |
+| `harvest` | `targets`, `reagent` |
+| `encapsulate` | `target` (nozzle), `core_flow_ul_h`, `shell_flow_ul_h`, `oil_flow_ul_h`, `capsules` |
+| `cure` | `target`, `wavelength_nm`, `duration_s` |
+| `mix` | `target`, `reagent`, optional `volume_ul`, `flow_ul_min`, `dilution` |
+| `transfer` | `source`, `target` (chamber or outlet port) |
+| `count` | `target` (a QC window) |
 
 Example: `{"command": "split", "args": {"source": "exchange_1", "targets": ["split_1", "split_2", "split_3", "split_4"]}}`
 
-Adding a seventh command means changing `schemas/commands.schema.json`, the operator and the
+Adding a command means changing `schemas/commands.schema.json`, the operator and the
 twin together. Talk to Bruno first.
 
 ## 4. run.json: what the twin plays

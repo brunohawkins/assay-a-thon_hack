@@ -1,0 +1,44 @@
+{
+  "kind": "pipeline",
+  "id": "pipeline_mvp",
+  "name": "MVP pipeline: culture -> cell prep -> encapsulation -> capsule wash",
+  "placeholder": true,
+  "description": "Module 1 (two copies of one chip: control and interaction) grows and labels three cell types; Module 1b (automated, simulated) quenches, washes, filters, counts and resuspends them at the concentration Module 2 needs; Module 2 encapsulates them; Module 3 washes the capsules. Library prep and sequencing are roadmap.",
+  "modules": [
+    { "module": "m1", "chip": "cad/m1_culture_spec.json", "protocol": "protocols/m1_culture.json",
+      "instances": [ { "name": "control", "run_parameters": { "variant": "control" } },
+                     { "name": "interaction", "run_parameters": { "variant": "interaction" } } ],
+      "note": "Designed, printed. One spec, printed twice." },
+    { "module": "m1b", "chip": "cad/m1b_cellprep_spec.json", "protocol": "protocols/m1b_cellprep.json",
+      "scenario": "scenarios/m1b_cellprep_demo.json",
+      "note": "Designed, simulated, not printed this weekend. Replaces the bench step." },
+    { "module": "m2", "chip": "cad/m2_encapsulation_spec.json", "protocol": "protocols/m2_encapsulation.json",
+      "note": "Parametric draft, printed." },
+    { "module": "m3", "chip": "cad/m3_wash_spec.json", "protocol": "protocols/m3_wash.json",
+      "note": "Parametric draft, printed." }
+  ],
+  "handoffs": [
+    { "id": "m1_lane_1_to_m1b", "from": { "module": "m1", "port": "m1_out_1", "instances": ["control", "interaction"] },
+      "to": { "module": "m1b", "port": "m1b_cells_in_1" }, "carries": "cells", "after_step": 13,
+      "note": "Labelled neurons from both Module 1 chips; the per-chamber labels keep them apart downstream." },
+    { "id": "m1_lane_2_to_m1b", "from": { "module": "m1", "port": "m1_out_2", "instances": ["control", "interaction"] },
+      "to": { "module": "m1b", "port": "m1b_cells_in_2" }, "carries": "cells", "after_step": 13,
+      "note": "Labelled astrocytes." },
+    { "id": "m1_lane_3_to_m1b", "from": { "module": "m1", "port": "m1_out_3", "instances": ["control", "interaction"] },
+      "to": { "module": "m1b", "port": "m1b_cells_in_3" }, "carries": "cells", "after_step": 13,
+      "note": "Labelled microglia." },
+    { "id": "m1b_to_m2", "from": { "module": "m1b", "port": "m1b_to_module2_1" },
+      "to": { "module": "m2", "port": "m2_core_in_1" }, "carries": "cells", "after_step": 7,
+      "note": "Cells in dextran buffer at ~0.1 cells per capsule, once the safety checker approves them." },
+    { "id": "m2_to_m3", "from": { "module": "m2", "port": "m2_capsule_out_1" },
+      "to": { "module": "m3", "port": "m3_inlet_1" }, "carries": "capsules", "after_step": 10,
+      "note": "Cured capsules through the 100 um aggregate filter." },
+    { "id": "m3_to_library", "from": { "module": "m3", "port": "m3_release_1" },
+      "to": { "roadmap": "library_prep" }, "carries": "capsules", "after_step": 4,
+      "note": "Washed capsules, ready for the next chemistry." }
+  ],
+  "roadmap": [
+    { "id": "library_prep", "name": "Library prep", "note": "Roadmap: in-capsule reactions and barcoding (see the earlier placeholder split-and-pool chip)." },
+    { "id": "sequencing", "name": "Sequencing", "note": "Roadmap." }
+  ]
+}

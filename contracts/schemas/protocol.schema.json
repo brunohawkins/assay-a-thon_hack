@@ -44,9 +44,10 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "step", "operation", "target", "reagent", "volume_ul",
+        "step", "operation", "reagent", "volume_ul",
         "duration_s", "temp_c", "washes", "flow_ul_min", "note"
       ],
+      "anyOf": [{ "required": ["target"] }, { "required": ["targets"] }],
       "properties": {
         "step": {
           "type": "integer",
@@ -54,12 +55,56 @@
           "description": "Step number, 1, 2, 3... in order."
         },
         "operation": {
-          "enum": ["load", "exchange", "hold_temp", "split", "pool", "release"],
-          "description": "One of the six chip operations."
+          "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "valve", "culture", "collect", "harvest", "encapsulate", "cure", "mix", "transfer", "count"],
+          "description": "A chip operation. valve: open or close valves (targets = valve ids). culture: keep chambers in culture with batch medium exchanges and stop-flow between them. collect: take supernatant out through each chamber's outlet. harvest: send the cells out through each chamber's outlet. encapsulate: make capsules at a nozzle. cure: light-cure the capsules in a trap. mix: mix a reagent into the cell stream in a mixer (optionally diluting it). transfer: move the cells from source to target (a chamber or an outlet port), through whatever lies between. count: read the cell count and viability at a QC window."
         },
         "target": {
           "$ref": "#/$defs/snake_id",
-          "description": "Chamber or port id from the chip spec. For split: the chamber the capsules leave. For pool: the chamber they arrive in."
+          "description": "Chamber or port id from the chip spec. For split: the chamber the capsules leave. For pool: the chamber they arrive in. Give target or targets."
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/snake_id" },
+          "description": "Several chambers (or valves, for operation valve) at once. An exchange with targets runs once per target."
+        },
+        "reagents": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/snake_id" },
+          "description": "One reagent per entry in targets (e.g. a different medium per culture chamber)."
+        },
+        "factors": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/snake_id" },
+          "description": "culture only: one factor reagent per target, added through each lane's factor port."
+        },
+        "valve_state": { "enum": ["open", "closed"], "description": "valve only: the state to set." },
+        "exchange_interval_s": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "culture only: time between batch medium exchanges (stop-flow in between)."
+        },
+        "waste": { "$ref": "#/$defs/snake_id", "description": "exchange only: the outlet port the liquid drains to (e.g. a dedicated oil waste). Default: the chamber's waste outlet." },
+        "flows_ul_h": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["core", "shell", "oil"],
+          "properties": { "core": { "type": "number", "exclusiveMinimum": 0 }, "shell": { "type": "number", "exclusiveMinimum": 0 }, "oil": { "type": "number", "exclusiveMinimum": 0 } },
+          "description": "encapsulate only: core, shell and oil flows in uL/h."
+        },
+        "capsules": { "type": "integer", "minimum": 1, "description": "encapsulate only: how many capsules to make." },
+        "wavelength_nm": { "type": "number", "exclusiveMinimum": 0, "description": "cure only." },
+        "source": { "$ref": "#/$defs/snake_id", "description": "transfer only: where the cells start." },
+        "dilution": {
+          "anyOf": [{ "type": "number", "minimum": 1 }, { "const": "auto" }],
+          "description": "mix only: dilution factor, or 'auto' to let the operator set it from the last count (Module 1b)."
+        },
+        "variant": {
+          "$ref": "#/$defs/snake_id",
+          "description": "Optional. Run this step only when the run's variant (a chip run parameter) has this value, e.g. interaction."
         },
         "reagent": {
           "anyOf": [{ "$ref": "#/$defs/snake_id" }, { "type": "null" }],
@@ -129,6 +174,37 @@
         {
           "if": { "properties": { "operation": { "const": "release" } }, "required": ["operation"] },
           "then": { "properties": { "reagent": { "type": "string" } } }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "valve" } }, "required": ["operation"] },
+          "then": { "required": ["targets", "valve_state"] }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "culture" } }, "required": ["operation"] },
+          "then": {
+            "required": ["targets", "reagents", "exchange_interval_s"],
+            "properties": { "volume_ul": { "type": "number" }, "flow_ul_min": { "type": "number" }, "duration_s": { "exclusiveMinimum": 0 } }
+          }
+        },
+        {
+          "if": { "properties": { "operation": { "enum": ["collect", "harvest"] } }, "required": ["operation"] },
+          "then": { "required": ["targets"] }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "encapsulate" } }, "required": ["operation"] },
+          "then": { "required": ["flows_ul_h", "capsules"] }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "transfer" } }, "required": ["operation"] },
+          "then": { "required": ["source", "target"] }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "mix" } }, "required": ["operation"] },
+          "then": { "properties": { "reagent": { "type": "string" } } }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "cure" } }, "required": ["operation"] },
+          "then": { "required": ["wavelength_nm"], "properties": { "duration_s": { "exclusiveMinimum": 0 } } }
         }
       ]
     }

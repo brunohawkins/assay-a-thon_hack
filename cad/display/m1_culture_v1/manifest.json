@@ -1,0 +1,943 @@
+{
+  "chip_id": "m1_culture_v1",
+  "chip_spec": "cad/m1_culture_spec.json",
+  "display_scale": 10.0,
+  "units": "mm",
+  "note": "Display model: real chip geometry x display_scale. Not a working chip. The lid layer is left out.",
+  "print_file": "m1_culture_v1_display_print.stl",
+  "overall_mm": [
+    750.0,
+    268.0,
+    25.0
+  ],
+  "min_mm": [
+    0,
+    -18.0,
+    0
+  ],
+  "real_footprint_mm": [
+    75,
+    25
+  ],
+  "label": "Display model – 10× scale",
+  "parts": [
+    {
+      "id": "m1_base",
+      "kind": "base",
+      "file": "m1_base.stl",
+      "bbox_mm": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          750.0,
+          250.0,
+          10.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ipsc_1",
+      "kind": "chamber",
+      "file": "m1_ipsc_1.stl",
+      "bbox_mm": [
+        [
+          48.4,
+          93.4,
+          10.0
+        ],
+        [
+          111.6,
+          156.6,
+          15.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_split_1",
+      "kind": "chamber",
+      "file": "m1_split_1.stl",
+      "bbox_mm": [
+        [
+          136.4,
+          121.4,
+          10.0
+        ],
+        [
+          143.6,
+          128.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_neuron_1",
+      "kind": "chamber",
+      "file": "m1_neuron_1.stl",
+      "bbox_mm": [
+        [
+          353.4,
+          163.4,
+          10.0
+        ],
+        [
+          406.6,
+          216.6,
+          15.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_join_1",
+      "kind": "chamber",
+      "file": "m1_join_1.stl",
+      "bbox_mm": [
+        [
+          206.4,
+          186.4,
+          10.0
+        ],
+        [
+          213.6,
+          193.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_bt_1",
+      "kind": "chamber",
+      "file": "m1_bt_1.stl",
+      "bbox_mm": [
+        [
+          368.4,
+          218.4,
+          10.0
+        ],
+        [
+          391.6,
+          241.6,
+          15.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_astrocyte_1",
+      "kind": "chamber",
+      "file": "m1_astrocyte_1.stl",
+      "bbox_mm": [
+        [
+          473.4,
+          98.4,
+          10.0
+        ],
+        [
+          526.6,
+          151.6,
+          15.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_join_2",
+      "kind": "chamber",
+      "file": "m1_join_2.stl",
+      "bbox_mm": [
+        [
+          206.4,
+          121.4,
+          10.0
+        ],
+        [
+          213.6,
+          128.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_bt_2",
+      "kind": "chamber",
+      "file": "m1_bt_2.stl",
+      "bbox_mm": [
+        [
+          488.4,
+          158.4,
+          10.0
+        ],
+        [
+          511.6,
+          181.6,
+          15.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_microglia_1",
+      "kind": "chamber",
+      "file": "m1_microglia_1.stl",
+      "bbox_mm": [
+        [
+          353.4,
+          33.4,
+          10.0
+        ],
+        [
+          406.6,
+          86.6,
+          15.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_join_3",
+      "kind": "chamber",
+      "file": "m1_join_3.stl",
+      "bbox_mm": [
+        [
+          206.4,
+          56.4,
+          10.0
+        ],
+        [
+          213.6,
+          63.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_bt_3",
+      "kind": "chamber",
+      "file": "m1_bt_3.stl",
+      "bbox_mm": [
+        [
+          368.4,
+          8.4,
+          10.0
+        ],
+        [
+          391.6,
+          31.6,
+          15.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_ipsc",
+      "kind": "channel",
+      "file": "m1_ch_ipsc.stl",
+      "bbox_mm": [
+        [
+          109.0,
+          124.0,
+          10.0
+        ],
+        [
+          141.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_seed_1",
+      "kind": "channel",
+      "file": "m1_ch_seed_1.stl",
+      "bbox_mm": [
+        [
+          139.0,
+          124.0,
+          10.0
+        ],
+        [
+          211.0,
+          191.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_feed_1",
+      "kind": "channel",
+      "file": "m1_ch_feed_1.stl",
+      "bbox_mm": [
+        [
+          209.0,
+          189.0,
+          10.0
+        ],
+        [
+          356.0,
+          191.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_medium_1",
+      "kind": "channel",
+      "file": "m1_ch_medium_1.stl",
+      "bbox_mm": [
+        [
+          379.0,
+          214.0,
+          10.0
+        ],
+        [
+          381.0,
+          221.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_out_1",
+      "kind": "channel",
+      "file": "m1_ch_out_1.stl",
+      "bbox_mm": [
+        [
+          404.0,
+          189.0,
+          10.0
+        ],
+        [
+          711.0,
+          191.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_seed_2",
+      "kind": "channel",
+      "file": "m1_ch_seed_2.stl",
+      "bbox_mm": [
+        [
+          139.0,
+          124.0,
+          10.0
+        ],
+        [
+          211.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_feed_2",
+      "kind": "channel",
+      "file": "m1_ch_feed_2.stl",
+      "bbox_mm": [
+        [
+          209.0,
+          124.0,
+          10.0
+        ],
+        [
+          476.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_medium_2",
+      "kind": "channel",
+      "file": "m1_ch_medium_2.stl",
+      "bbox_mm": [
+        [
+          499.0,
+          149.0,
+          10.0
+        ],
+        [
+          501.0,
+          161.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_out_2",
+      "kind": "channel",
+      "file": "m1_ch_out_2.stl",
+      "bbox_mm": [
+        [
+          524.0,
+          124.0,
+          10.0
+        ],
+        [
+          711.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_seed_3",
+      "kind": "channel",
+      "file": "m1_ch_seed_3.stl",
+      "bbox_mm": [
+        [
+          139.0,
+          59.0,
+          10.0
+        ],
+        [
+          211.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_feed_3",
+      "kind": "channel",
+      "file": "m1_ch_feed_3.stl",
+      "bbox_mm": [
+        [
+          209.0,
+          59.0,
+          10.0
+        ],
+        [
+          356.0,
+          61.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_medium_3",
+      "kind": "channel",
+      "file": "m1_ch_medium_3.stl",
+      "bbox_mm": [
+        [
+          379.0,
+          29.0,
+          10.0
+        ],
+        [
+          381.0,
+          36.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ch_out_3",
+      "kind": "channel",
+      "file": "m1_ch_out_3.stl",
+      "bbox_mm": [
+        [
+          404.0,
+          59.0,
+          10.0
+        ],
+        [
+          711.0,
+          61.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_sig_1",
+      "kind": "channel",
+      "file": "m1_sig_1.stl",
+      "bbox_mm": [
+        [
+          379.5,
+          84.5,
+          10.0
+        ],
+        [
+          380.5,
+          165.5,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_sig_2",
+      "kind": "channel",
+      "file": "m1_sig_2.stl",
+      "bbox_mm": [
+        [
+          401.48,
+          136.41,
+          10.0
+        ],
+        [
+          478.52,
+          178.59,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_sig_3",
+      "kind": "channel",
+      "file": "m1_sig_3.stl",
+      "bbox_mm": [
+        [
+          401.48,
+          71.41,
+          10.0
+        ],
+        [
+          478.52,
+          113.59,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ipsc_in_1",
+      "kind": "port_top",
+      "file": "m1_ipsc_in_1.stl",
+      "bbox_mm": [
+        [
+          76.3,
+          121.3,
+          10.0
+        ],
+        [
+          83.7,
+          128.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_factor_1",
+      "kind": "port_top",
+      "file": "m1_factor_1.stl",
+      "bbox_mm": [
+        [
+          206.3,
+          186.3,
+          10.0
+        ],
+        [
+          213.7,
+          193.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_medium_in_1",
+      "kind": "port_top",
+      "file": "m1_medium_in_1.stl",
+      "bbox_mm": [
+        [
+          376.3,
+          226.3,
+          10.0
+        ],
+        [
+          383.7,
+          233.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_out_1",
+      "kind": "port_top",
+      "file": "m1_out_1.stl",
+      "bbox_mm": [
+        [
+          706.3,
+          186.3,
+          10.0
+        ],
+        [
+          713.7,
+          193.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ctrl_1",
+      "kind": "port_top",
+      "file": "m1_ctrl_1.stl",
+      "bbox_mm": [
+        [
+          166.3,
+          231.3,
+          10.0
+        ],
+        [
+          173.7,
+          238.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_factor_2",
+      "kind": "port_top",
+      "file": "m1_factor_2.stl",
+      "bbox_mm": [
+        [
+          206.3,
+          121.3,
+          10.0
+        ],
+        [
+          213.7,
+          128.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_medium_in_2",
+      "kind": "port_top",
+      "file": "m1_medium_in_2.stl",
+      "bbox_mm": [
+        [
+          496.3,
+          166.3,
+          10.0
+        ],
+        [
+          503.7,
+          173.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_out_2",
+      "kind": "port_top",
+      "file": "m1_out_2.stl",
+      "bbox_mm": [
+        [
+          706.3,
+          121.3,
+          10.0
+        ],
+        [
+          713.7,
+          128.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ctrl_2",
+      "kind": "port_top",
+      "file": "m1_ctrl_2.stl",
+      "bbox_mm": [
+        [
+          236.3,
+          11.3,
+          10.0
+        ],
+        [
+          243.7,
+          18.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_factor_3",
+      "kind": "port_top",
+      "file": "m1_factor_3.stl",
+      "bbox_mm": [
+        [
+          206.3,
+          56.3,
+          10.0
+        ],
+        [
+          213.7,
+          63.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_medium_in_3",
+      "kind": "port_top",
+      "file": "m1_medium_in_3.stl",
+      "bbox_mm": [
+        [
+          376.3,
+          16.3,
+          10.0
+        ],
+        [
+          383.7,
+          23.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_out_3",
+      "kind": "port_top",
+      "file": "m1_out_3.stl",
+      "bbox_mm": [
+        [
+          706.3,
+          56.3,
+          10.0
+        ],
+        [
+          713.7,
+          63.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ctrl_3",
+      "kind": "port_top",
+      "file": "m1_ctrl_3.stl",
+      "bbox_mm": [
+        [
+          166.3,
+          11.3,
+          10.0
+        ],
+        [
+          173.7,
+          18.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ctrl_4",
+      "kind": "port_top",
+      "file": "m1_ctrl_4.stl",
+      "bbox_mm": [
+        [
+          306.3,
+          11.3,
+          10.0
+        ],
+        [
+          313.7,
+          18.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ctrl_5",
+      "kind": "port_top",
+      "file": "m1_ctrl_5.stl",
+      "bbox_mm": [
+        [
+          436.3,
+          231.3,
+          10.0
+        ],
+        [
+          443.7,
+          238.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_ctrl_6",
+      "kind": "port_top",
+      "file": "m1_ctrl_6.stl",
+      "bbox_mm": [
+        [
+          436.3,
+          11.3,
+          10.0
+        ],
+        [
+          443.7,
+          18.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_valve_branch_1",
+      "kind": "valve",
+      "file": "m1_valve_branch_1.stl",
+      "bbox_mm": [
+        [
+          164.0,
+          184.0,
+          10.0
+        ],
+        [
+          176.0,
+          196.0,
+          13.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_valve_branch_2",
+      "kind": "valve",
+      "file": "m1_valve_branch_2.stl",
+      "bbox_mm": [
+        [
+          164.0,
+          119.0,
+          10.0
+        ],
+        [
+          176.0,
+          131.0,
+          13.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_valve_branch_3",
+      "kind": "valve",
+      "file": "m1_valve_branch_3.stl",
+      "bbox_mm": [
+        [
+          164.0,
+          54.0,
+          10.0
+        ],
+        [
+          176.0,
+          66.0,
+          13.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_valve_pair_1",
+      "kind": "valve",
+      "file": "m1_valve_pair_1.stl",
+      "bbox_mm": [
+        [
+          374.0,
+          140.0,
+          10.0
+        ],
+        [
+          386.0,
+          152.0,
+          13.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_valve_pair_2",
+      "kind": "valve",
+      "file": "m1_valve_pair_2.stl",
+      "bbox_mm": [
+        [
+          434.0,
+          151.5,
+          10.0
+        ],
+        [
+          446.0,
+          163.5,
+          13.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_valve_pair_3",
+      "kind": "valve",
+      "file": "m1_valve_pair_3.stl",
+      "bbox_mm": [
+        [
+          434.0,
+          86.5,
+          10.0
+        ],
+        [
+          446.0,
+          98.5,
+          13.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_gas_window_1",
+      "kind": "feature",
+      "file": "m1_gas_window_1.stl",
+      "bbox_mm": [
+        [
+          335.0,
+          15.0,
+          10.0
+        ],
+        [
+          545.0,
+          235.0,
+          10.6
+        ]
+      ]
+    },
+    {
+      "id": "m1_heat_zone_1",
+      "kind": "feature",
+      "file": "m1_heat_zone_1.stl",
+      "bbox_mm": [
+        [
+          30.0,
+          5.0,
+          10.0
+        ],
+        [
+          550.0,
+          245.0,
+          10.6
+        ]
+      ]
+    },
+    {
+      "id": "m1_label",
+      "kind": "label",
+      "file": "m1_label.stl",
+      "bbox_mm": [
+        [
+          0,
+          -18.0,
+          0
+        ],
+        [
+          750.0,
+          0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "id": "m1_label_text",
+      "kind": "label_text",
+      "file": "m1_label_text.stl",
+      "bbox_mm": [
+        [
+          255.0,
+          -14.6,
+          3.0
+        ],
+        [
+          493.4,
+          -3.4,
+          4.2
+        ]
+      ]
+    }
+  ]
+}

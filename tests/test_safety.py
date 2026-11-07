@@ -1,4 +1,4 @@
-"""Each rule in operator/safety.py, on the wash MVP chip."""
+"""Each rule in operator/safety.py, on the Module 3 wash chip (and Module 1 for valves)."""
 
 import sys
 import unittest
@@ -11,19 +11,19 @@ import safety  # noqa: E402
 import schema_io  # noqa: E402
 from state import ChipState  # noqa: E402
 
-CHIP = schema_io.load_json(ROOT / "cad" / "wash_mvp_spec.json")
+CHIP = schema_io.load_json(ROOT / "cad" / "m3_wash_spec.json")
 PARAMS = schema_io.load_json(ROOT / "contracts" / "parameters.json")
 
 
 def state(on_mesh=10000, suspended=0, **reservoirs):
     s = ChipState.from_chip_spec(CHIP, PARAMS, reservoirs_ul={"wash_buffer": 1000, "resuspension_buffer": 1000,
                                                              "capsule_suspension": 1000, **reservoirs})
-    s.chambers["trap_1"].capsules_on_mesh = on_mesh
-    s.chambers["trap_1"].capsules_suspended = suspended
+    s.chambers["m3_trap_1"].capsules_on_mesh = on_mesh
+    s.chambers["m3_trap_1"].capsules_suspended = suspended
     return s
 
 
-WASH = {"target": "trap_1", "reagent": "wash_buffer", "volume_ul": 20, "washes": 2, "flow_ul_min": 40}
+WASH = {"target": "m3_trap_1", "reagent": "wash_buffer", "volume_ul": 20, "washes": 2, "flow_ul_min": 40}
 
 
 class Rules(unittest.TestCase):
@@ -61,7 +61,7 @@ class Rules(unittest.TestCase):
     def test_collection_overflow_is_blocked(self):
         s = state(on_mesh=0, suspended=10000)
         s.collection_ul = s.collection_capacity_ul - 5
-        r = safety.check("release", {"target": "trap_1", "reagent": "resuspension_buffer", "volume_ul": 30}, s, CHIP)
+        r = safety.check("release", {"target": "m3_trap_1", "reagent": "resuspension_buffer", "volume_ul": 30}, s, CHIP)
         self.assertIn("collection would overflow", r.reasons[0])
 
     def test_dry_reservoir_is_blocked_and_low_one_warns(self):
@@ -69,17 +69,17 @@ class Rules(unittest.TestCase):
         self.assertEqual(safety.check("exchange", WASH, state(wash_buffer=42), CHIP).status, "warning")
 
     def test_temperature_above_material_limit_is_blocked(self):
-        r = safety.check("hold_temp", {"target": "trap_1", "temp_c": 98, "duration_s": 60}, state(), CHIP)
+        r = safety.check("hold_temp", {"target": "m3_trap_1", "temp_c": 98, "duration_s": 60}, state(), CHIP)
         self.assertEqual(r.status, "blocked")
         self.assertIn("max working temperature", r.reasons[0])
-        ok = safety.check("hold_temp", {"target": "trap_1", "temp_c": 37, "duration_s": 60}, state(), CHIP)
+        ok = safety.check("hold_temp", {"target": "m3_trap_1", "temp_c": 37, "duration_s": 60}, state(), CHIP)
         self.assertEqual(ok.status, "approved")
 
     def test_release_with_capsules_on_mesh_needs_backflush(self):
-        r = safety.check("release", {"target": "trap_1", "reagent": "resuspension_buffer", "volume_ul": 30}, state(), CHIP)
+        r = safety.check("release", {"target": "m3_trap_1", "reagent": "resuspension_buffer", "volume_ul": 30}, state(), CHIP)
         self.assertEqual(r.status, "blocked")
         self.assertIn("back-flush first", r.reasons[0])
-        ok = safety.check("release", {"target": "trap_1", "reagent": "resuspension_buffer", "volume_ul": 30},
+        ok = safety.check("release", {"target": "m3_trap_1", "reagent": "resuspension_buffer", "volume_ul": 30},
                           state(on_mesh=0, suspended=10000), CHIP)
         self.assertEqual(ok.status, "approved")
 
