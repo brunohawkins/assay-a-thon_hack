@@ -137,6 +137,10 @@ class Controller:
     def back_flush(self, chamber: str, explanation: str = "", reagent: str | None = None) -> dict:
         """Lift capsules off the mesh (recovery from a pressure alert, or a protocol step)."""
         self.record_call("back_flush", {"chamber": chamber}, explanation)
+        # Mid-wash recovery uses the wash's own buffer, so the exchange carries on where it was.
+        cur = self.steps.get(self.current_step) or {}
+        if not reagent and cur.get("operation") == "exchange" and cur.get("reagent"):
+            reagent = cur["reagent"]
         reagent = reagent or next((s["reagent"] for s in self.protocol["steps"]
                                    if s.get("direction") == "backflush" and s.get("reagent")), None) \
             or next((s["reagent"] for s in self.protocol["steps"] if s["operation"] == "exchange"), "wash_buffer")

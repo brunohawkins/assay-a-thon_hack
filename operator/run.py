@@ -32,21 +32,8 @@ def generate(protocol_path: Path, chip_path: Path, use_llm: bool = False, runs_d
     operator, model = "planner", None
     adapter = None
     if use_llm:
-        import llm_operator
-
-        api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-        if not api_key:
-            print("ANTHROPIC_API_KEY is not set: falling back to the deterministic planner.")
-        else:
-            problems = planner.check_inputs(protocol, chip)
-            if problems:
-                raise planner.PlanError("\n".join(problems))
-            try:
-                print(f"Asking {llm_operator.MODEL} to operate the chip...")
-                adapter = llm_operator.run_llm(protocol, chip, api_key=api_key)
-                operator, model = "llm", llm_operator.MODEL
-            except llm_operator.LLMError as e:
-                print(f"LLM operator failed ({e}): falling back to the deterministic planner.")
+        print("The LLM operator drives the closed-loop controller: give a scenario (--scenario). "
+              "Falling back to the deterministic planner for this simple run.")
     if adapter is None:
         adapter = planner.plan(protocol, chip)
 
