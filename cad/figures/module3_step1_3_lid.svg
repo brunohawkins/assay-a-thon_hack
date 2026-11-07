@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="74.8mm" height="44.3mm" viewBox="0 0 74.8 44.3">
+<title>module3_step1_3 lid (port holes)</title>
+<!-- Drawn from chip/modules/module3_step1_3.json (Step 3 #1-3: load, lysis, wash). Units mm, 1:1, origin bottom-left (SVG y = 44.3 - y). Regenerate rather than edit by hand. -->
+<rect id="board_outline" x="0" y="0" width="74.8" height="44.3" fill="none" stroke="#ff0000" stroke-width="0.05"/>
+<circle id="wash_buffer" cx="3" cy="13.15" r="0.25" fill="none" stroke="#ff0000" stroke-width="0.05"/>
+<circle id="capsule_in" cx="3" cy="22.15" r="0.25" fill="none" stroke="#ff0000" stroke-width="0.05"/>
+<circle id="lysis_buffer" cx="3" cy="31.15" r="0.25" fill="none" stroke="#ff0000" stroke-width="0.05"/>
+<circle id="to_split_tree" cx="11.5" cy="41.3" r="0.25" fill="none" stroke="#ff0000" stroke-width="0.05"/>
+<circle id="waste" cx="69.8" cy="16.15" r="0.25" fill="none" stroke="#ff0000" stroke-width="0.05"/>
+<circle id="lysis_waste" cx="69.8" cy="28.15" r="0.25" fill="none" stroke="#ff0000" stroke-width="0.05"/>
+</svg>

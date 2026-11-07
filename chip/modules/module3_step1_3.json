@@ -1,0 +1,332 @@
+{
+  "meta": {
+    "name": "Step 3, substeps 1–3: load, lysis, wash (main capsule trap)",
+    "spec_version": "0.1",
+    "covers": [
+      "Step 3 #1 Load",
+      "Step 3 #2 Lysis",
+      "Step 3 #3 Wash"
+    ],
+    "inputs_from": "chip_geometry_requirements.xlsx (Sizing Calculator, Step 3 rows 1–3), 7 Nov 2026",
+    "id_convention": "same ids as barcoding_geometry.json (main_trap, capsule_in, lysis_buffer, wash_buffer, waste)",
+    "sources": {
+      "CapSeq": "https://doi.org/10.1126/science.ady7227",
+      "SPC-NAR": "https://www.biorxiv.org/content/10.1101/2022.09.24.509327",
+      "SPC patent example 9": "https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11958947"
+    }
+  },
+  "design_inputs": {
+    "capsule_diameter_um": 70,
+    "capsule_count": 650000,
+    "target_cells": 50000,
+    "packing_fraction": 0.64,
+    "stack_layers": 4,
+    "wash_volume_rule": "5 packed capsule volumes per wash",
+    "trap_gap_factor": [
+      0.3,
+      0.4
+    ],
+    "channel_width_factor": [
+      1.5,
+      2.0
+    ]
+  },
+  "geometry": {
+    "main_trap": {
+      "id": "main_trap",
+      "shape": "square, wide and flat",
+      "width_mm": 28.3,
+      "length_mm": 28.3,
+      "height_um": 350,
+      "footprint_mm2": 800.9,
+      "chamber_volume_ul": 280.3,
+      "capacity_capsules": 650000,
+      "packed_capsule_volume_ul": 182.4,
+      "fill_fraction": 0.65,
+      "stack_layers": 4,
+      "retention": {
+        "type": "pillar row or mesh at the outlet side",
+        "gap_um": 25,
+        "allowed_range_um": [
+          21,
+          28
+        ],
+        "note": "keeps 70 µm capsules, passes buffer, lysate and debris"
+      },
+      "flow_distribution": "inlet and outlet manifolds across the full width so buffer sweeps the whole bed",
+      "thermal_zone": {
+        "id": "main_trap_zone",
+        "temp_c_range": [
+          4,
+          37
+        ],
+        "note": "bench washes run at 4 °C; 37 °C is needed later for hairpin ligation"
+      },
+      "material_note": "must tolerate 4 M guanidinium thiocyanate"
+    },
+    "capsule_filter": {
+      "id": "capsule_prefilter",
+      "gap_um": 100,
+      "position": "on capsule_in, upstream of the trap",
+      "purpose": "removes capsule aggregates (SPC-NAR)"
+    },
+    "channels": {
+      "capsule_channel": {
+        "width_um": 140,
+        "depth_um": 150,
+        "allowed_width_um": [
+          105,
+          140
+        ]
+      },
+      "reagent_channel": {
+        "width_um": 140,
+        "depth_um": 150,
+        "note": "assumption: same as capsule channels for simple fab"
+      }
+    }
+  },
+  "inlets": [
+    {
+      "id": "capsule_in",
+      "role": "capsules from encapsulation, after crosslinking and washes",
+      "capsule_passable": true,
+      "source": "SPC-NAR"
+    },
+    {
+      "id": "lysis_buffer",
+      "role": "mild lysis, or 4 M GITC for fragile cells",
+      "chemically_resistant": true,
+      "source": "CapSeq"
+    },
+    {
+      "id": "wash_buffer",
+      "role": "washes and back-flush",
+      "composition": "PBS + Pluronic F-68 (assumption from SPC washes; CapSeq buffer not yet pulled)"
+    }
+  ],
+  "outlets": [
+    {
+      "id": "waste",
+      "role": "wash waste, through the retention gap",
+      "capsule_passable": false,
+      "volume_ul_steps_1_3": 2736.0
+    },
+    {
+      "id": "lysis_waste",
+      "role": "dedicated lysis waste, through the retention gap",
+      "capsule_passable": false,
+      "chemically_resistant": true,
+      "volume_ul_steps_1_3": 1824.0,
+      "safety": "GITC waste must never meet bleach (releases toxic gas)"
+    },
+    {
+      "id": "to_split_tree",
+      "role": "capsule outlet to the barcoding split tree (step 3 #4)",
+      "capsule_passable": true,
+      "state_during_steps_1_3": "closed"
+    }
+  ],
+  "valves": [
+    {
+      "id": "v_capsule_in",
+      "controls": "capsule_in"
+    },
+    {
+      "id": "v_lysis_buffer",
+      "controls": "lysis_buffer"
+    },
+    {
+      "id": "v_wash_buffer",
+      "controls": "wash_buffer"
+    },
+    {
+      "id": "v_waste",
+      "controls": "waste"
+    },
+    {
+      "id": "v_lysis_waste",
+      "controls": "lysis_waste"
+    },
+    {
+      "id": "v_backflush",
+      "controls": "wash_buffer routed to the outlet side of the retention gap"
+    },
+    {
+      "id": "v_to_split_tree",
+      "controls": "to_split_tree"
+    }
+  ],
+  "workflow": [
+    {
+      "step": 1,
+      "substep": "1 Load",
+      "operation": "prime trap with wash buffer",
+      "inlet": "wash_buffer",
+      "valves_open": [
+        "v_wash_buffer",
+        "v_waste"
+      ],
+      "volume_ul": 561
+    },
+    {
+      "step": 2,
+      "substep": "1 Load",
+      "operation": "load capsules through the 100 µm pre-filter; retention gap holds them",
+      "inlet": "capsule_in",
+      "valves_open": [
+        "v_capsule_in",
+        "v_waste"
+      ],
+      "capsules": 650000,
+      "check": "all capsules retained; none in waste"
+    },
+    {
+      "step": 3,
+      "substep": "1 Load",
+      "operation": "let the bed settle into ~4 layers",
+      "valves_open": [],
+      "time_min": 2,
+      "note": "assumption"
+    },
+    {
+      "step": 4,
+      "substep": "2 Lysis",
+      "operation": "lysis exchange 1",
+      "inlet": "lysis_buffer",
+      "valves_open": [
+        "v_lysis_buffer",
+        "v_lysis_waste"
+      ],
+      "volume_ul": 912,
+      "flow_ul_min": 100,
+      "time_min": 9.1,
+      "temp_c": "room temperature",
+      "source": "SPC patent example 9; CapSeq"
+    },
+    {
+      "step": 5,
+      "substep": "2 Lysis",
+      "operation": "incubate",
+      "valves_open": [],
+      "time_min": 1,
+      "source": "SPC patent example 9"
+    },
+    {
+      "step": 6,
+      "substep": "2 Lysis",
+      "operation": "lysis exchange 2",
+      "inlet": "lysis_buffer",
+      "valves_open": [
+        "v_lysis_buffer",
+        "v_lysis_waste"
+      ],
+      "volume_ul": 912,
+      "flow_ul_min": 100,
+      "time_min": 9.1
+    },
+    {
+      "step": 7,
+      "substep": "2 Lysis",
+      "operation": "incubate",
+      "valves_open": [],
+      "time_min": 1,
+      "note": "RNA >300 bp stays in capsules (CapSeq)"
+    },
+    {
+      "step": 8,
+      "substep": "3 Wash",
+      "operation": "wash 1 of 3",
+      "inlet": "wash_buffer",
+      "valves_open": [
+        "v_wash_buffer",
+        "v_waste"
+      ],
+      "volume_ul": 912,
+      "flow_ul_min": 100,
+      "time_min": 9.1,
+      "note": "replaces 2000 g, 2 min, 4 °C spin"
+    },
+    {
+      "step": 9,
+      "substep": "3 Wash",
+      "operation": "wash 2 of 3",
+      "inlet": "wash_buffer",
+      "valves_open": [
+        "v_wash_buffer",
+        "v_waste"
+      ],
+      "volume_ul": 912,
+      "flow_ul_min": 100,
+      "time_min": 9.1
+    },
+    {
+      "step": 10,
+      "substep": "3 Wash",
+      "operation": "wash 3 of 3",
+      "inlet": "wash_buffer",
+      "valves_open": [
+        "v_wash_buffer",
+        "v_waste"
+      ],
+      "volume_ul": 912,
+      "flow_ul_min": 100,
+      "time_min": 9.1
+    },
+    {
+      "step": 11,
+      "substep": "3 Wash",
+      "operation": "back-flush to resuspend the bed",
+      "inlet": "wash_buffer",
+      "valves_open": [
+        "v_backflush"
+      ],
+      "volume_ul": 140,
+      "note": "hand-off: capsules resuspended for the first split (step 3 #4)"
+    }
+  ],
+  "checks": [
+    {
+      "id": "retention_gap_below_capsule",
+      "pass": true,
+      "detail": "25 µm gap vs 70 µm capsules"
+    },
+    {
+      "id": "gap_in_workbook_range",
+      "pass": true,
+      "detail": "25 µm within 21–28 µm"
+    },
+    {
+      "id": "channels_pass_capsules",
+      "pass": true,
+      "detail": "140 × 150 µm channels vs 70 µm capsules"
+    },
+    {
+      "id": "chamber_holds_capsules",
+      "pass": true,
+      "detail": "280 µL chamber vs 182 µL packed capsules"
+    },
+    {
+      "id": "height_fits_layers",
+      "pass": true,
+      "detail": "350 µm height vs 4×70 µm layers"
+    },
+    {
+      "id": "lysis_waste_separate",
+      "pass": true,
+      "detail": "GITC goes to lysis_waste, not the general waste"
+    }
+  ],
+  "assumptions": [
+    "perfusion flow 100 µL/min for lysis and washes; chosen to keep shear low on the capsule bed, not from a paper",
+    "lysis = 2 exchanges with 1 min incubation each, from the SPC patent scRNA-seq example; CapSeq timing not yet pulled",
+    "wash volumes follow the workbook rule of 5 packed capsule volumes per wash, 3 washes",
+    "whether washes must stay at 4 °C on chip is open; room temperature would remove the need for cooling",
+    "4 stacked capsule layers still let reagents reach every capsule within minutes"
+  ],
+  "timing_min_total_excluding_load": 49.5,
+  "interfaces": {
+    "upstream": "encapsulation module capsule outlet (Step 1 #15, 100 µm pre-filter)",
+    "downstream": "barcoding split tree into well_01…well_16 (barcoding_geometry.json)"
+  }
+}
