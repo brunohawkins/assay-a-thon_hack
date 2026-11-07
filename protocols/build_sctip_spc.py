@@ -75,6 +75,11 @@ LAMBDA_BARCODE = 3.0     # mean barcode molecules per droplet; see note in build
 TARGET_CAPSULES = 50000
 
 CH = {c["id"]: c for c in json.loads(CHIP.read_text())["chambers"]}
+# Cells ride in the core stream only, which is half the droplet, so the concentration
+# the nozzle needs falls as the CUBE of capsule diameter. A figure quoted for a 70 um
+# capsule gives 42% multiplets here instead of 1.8%. build_cell_prep.py --report has
+# the table; this is the number that module has to hand over.
+CELLS_PER_UL = round(LAMBDA_CELL / (CAPSULE_NL * 0.5) * 1e3)
 # Packed volume of the whole batch: capsule volume x count, over random close packing.
 PACKED_UL = round(TARGET_CAPSULES * CAPSULE_NL / 1e3 / 0.64, 1)
 
@@ -114,7 +119,10 @@ def build() -> dict:
         "permeabilised, antibody-bound and transposase-bound in a tube before they reach "
         "the chip: those are bulk steps that gain nothing from being on a chip. They are "
         "permeabilised, NOT fixed and NOT live, which is what the published chromatin "
-        "method needs and which removes the fixation conflict entirely.",
+        f"method needs and which removes the fixation conflict entirely. Deliver them at "
+        f"about {CELLS_PER_UL} cells/uL: that figure is specific to a "
+        f"{CAPSULE_UM:g} um capsule and falls as the cube of diameter, so a number "
+        f"quoted for a smaller capsule would give mostly multiplets.",
         300, reagent="cell_suspension", volume_ul=130, flow_ul_min=FLOW_A["core"])
     add("exchange", "filt_shell",
         "Prime the shell line. The guard filter has 100 um gaps and exists only to stop "
@@ -251,7 +259,8 @@ def report() -> None:
     for k in ("shell", "core", "oil"):
         b = {"shell": "caps", "core": "mix", "oil": "oil"}[k]
         print(f"{k:<10}{FLOW_A[k]:>12.1f}{FLOW_B[b]:>12.1f}")
-    print(f"\nloading, mean cells per capsule = {LAMBDA_CELL:g}")
+    print(f"\nloading, mean cells per capsule = {LAMBDA_CELL:g} "
+          f"at {CELLS_PER_UL} cells/uL into the core stream")
     for k in (0, 1, 2):
         print(f"  exactly {k} cell(s): {poisson(LAMBDA_CELL, k) * 100:5.1f}%")
     occupied = 1 - poisson(LAMBDA_CELL, 0)

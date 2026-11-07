@@ -20,6 +20,24 @@
       "module": null
     },
     {
+      "file": "cell_prep_v1__cell_prep_v1.json",
+      "protocol_id": "cell_prep_v1",
+      "protocol_name": "Cell detachment, neutralisation and QC",
+      "chip_id": "cell_prep_v1",
+      "chip_spec": "chip/cell_prep_v1.json",
+      "operator": "planner",
+      "events": 7,
+      "total_duration_s": 1707.0,
+      "placeholder": false,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null,
+      "variant": null,
+      "module": null
+    },
+    {
       "file": "m1_culture__m1_culture_v1__control.json",
       "protocol_id": "m1_culture",
       "protocol_name": "Module 1: culture",

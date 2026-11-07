@@ -15,7 +15,7 @@
       "temp_c": null,
       "washes": null,
       "flow_ul_min": 1.5,
-      "note": "Load the prepared cell suspension. Cells arrive live from culture and are permeabilised, antibody-bound and transposase-bound in a tube before they reach the chip: those are bulk steps that gain nothing from being on a chip. They are permeabilised, NOT fixed and NOT live, which is what the published chromatin method needs and which removes the fixation conflict entirely."
+      "note": "Load the prepared cell suspension. Cells arrive live from culture and are permeabilised, antibody-bound and transposase-bound in a tube before they reach the chip: those are bulk steps that gain nothing from being on a chip. They are permeabilised, NOT fixed and NOT live, which is what the published chromatin method needs and which removes the fixation conflict entirely. Deliver them at about 310 cells/uL: that figure is specific to a 135 um capsule and falls as the cube of diameter, so a number quoted for a smaller capsule would give mostly multiplets."
     },
     {
       "step": 2,
