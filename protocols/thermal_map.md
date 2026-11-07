@@ -11,7 +11,7 @@ thermal system per chip.
 
 | | |
 |---|---|
-| True thermocycling | Indexing PCR only, ~8–14 cycles of 98 / 60 / 72 °C |
+| True thermocycling | Indexing PCR only, a standard indexing PCR cycle count at 98 / 60 / 72 °C |
 | Needs cooling below ambient | GelMA gelation (4 °C), emulsion break, enzyme/library storage |
 | Runs in a plain 37 °C incubator | Dissociation, all culture, interaction window, optional IVT |
 | Lethal to cells, so cannot share a chip with culture | Everything from RT onward (42–98 °C) |
@@ -20,18 +20,18 @@ thermal system per chip.
 
 | # | Step | °C | Duration | Mode | Hardware |
 |---|---|---|---|---|---|
-| 1a | Trypsin dissociation | 37 | 3–10 min | hold | incubator |
+| 1a | Dissociation reagent | 37 | 3–10 min | hold | incubator |
 | 1b | Wash, filter, viability | RT / 4 | min | hold | ice optional |
 | 2a | GelMA droplet generation | ~37–40 | run | hold | heated syringe + inlet |
 | 2b | **GelMA gelation** | **4** | 15–30 min | hold | **Peltier / fridge / ice** |
 | 2c | Emulsion break, washes | 4 → RT | min | hold | cold block |
 | 2d | 405 nm LAP crosslink | RT | s–min | hold | none |
 | C | **Culture + interaction + harvest** | **37, 5% CO₂** | days–weeks | hold | **incubator** |
-| 3a | Lysis | RT | 5–30 min | hold | none |
+| 3a | Lysis | RT | per protocol | hold | none |
 | 3b | Washes | RT / 4 | min | hold | none |
 | 3c | Reverse transcription | 42–50 | 10–90 min | hold ⚠️ | dry block |
-| **15** | **Indexing PCR (BC4)** | **98 / 60 / 72** | ~1 h | **THERMOCYCLED, 8–14×, 2–4 °C/s** | **thermocycler or Peltier** |
-| **16a** | Collagenase release | 37 | 30 min–h | hold | incubator/block |
+| **15** | **Indexing PCR (BC4)** | **98 / 60 / 72** | ~1 h | **THERMOCYCLED, standard indexing cycle count, 2–4 °C/s** | **thermocycler or Peltier** |
+| **16a** | Matrix-digesting enzyme release | 37 | 30 min–h | hold | incubator/block |
 | 16b | Heat-kill (only if a thermostable enzyme is used) | ~95 | 5–10 min | hold (single) | block |
 | 16c | SPRI cleanup | RT | ~15 min | hold | none |
 | **17** | QC, storage | 4 / −20 | — | — | fridge/freezer |
@@ -40,10 +40,11 @@ thermal system per chip.
 uses a *stepped* RT ramp rather than a flat hold. If CapSeq copies it, that step counts as
 cycled too. Worth confirming before anyone builds a heater for it.
 
-Note 16a: **proteinase K does not open these capsules** — published work has them stay intact
-and keep their DNA through an overnight digest. Collagenase cuts the gelatin backbone between
-crosslinks until the network dissolves, and it works at 37 °C, so step 16 needs no heat at all
-beyond an incubator. EDTA inhibits it, so it must be absent.
+Note 16a: **a broad-spectrum protease does not open these capsules** — published work has them
+stay intact and keep their DNA through an overnight digest. A matrix-digesting enzyme cuts the
+gelatin backbone between crosslinks until the network dissolves, and it works at 37 °C, so step
+16 needs no heat at all beyond an incubator. A divalent-cation chelator inhibits that enzyme, so
+it must be absent from the incoming buffer.
 
 Note 16b: the 95 °C heat-kill is a **single hold**, not cycling, and is avoidable with a
 thermolabile enzyme.

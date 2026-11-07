@@ -264,7 +264,17 @@ button.primary[aria-pressed="true"] .icon {
 
 /* ---------------------------------------------------------------- control loop */
 
+/* The hardware badge reads run.simulated_hardware and has three states, because the flag is
+   absent from most run files and neither answer may be assumed. */
 .badge.sim { color: #fca5a5; border-color: rgba(248, 113, 113, 0.5); font-weight: 600; letter-spacing: 0.04em; }
+.badge.sim-real { color: #86efac; border-color: rgba(134, 239, 172, 0.5); font-weight: 600; letter-spacing: 0.04em; }
+.badge.sim-unknown {
+  color: var(--muted);
+  border-color: var(--panel-border);
+  border-style: dashed;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
 .views.loop[hidden] { display: none; }
 
 .control {
@@ -466,7 +476,8 @@ button.primary[aria-pressed="true"] .icon {
 body[data-module="pipeline"] .picker,
 body[data-module="pipeline"] .views:not(.tabs),
 body[data-module="pipeline"] #print-badge,
-body[data-module="pipeline"] #draft-badge { display: none; }
+body[data-module="pipeline"] #draft-badge,
+body[data-module="pipeline"] #cad-badge { display: none; }
 body[data-module="pipeline"] .narration,
 body[data-module="pipeline"] .scalebar,
 body[data-module="pipeline"] .control,

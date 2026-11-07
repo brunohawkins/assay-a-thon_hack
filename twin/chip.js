@@ -1,10 +1,11 @@
 // Builds the chip from chip_spec.json. Everything inside `chip.group` uses chip
 // coordinates: millimetres, origin at the bottom-left corner of the footprint,
-// x right, y up the slide, z up out of the slide (same as the CAD exports).
+// x right, y up the chip, z up out of the chip (same as the CAD exports).
 // Real scale: capsules, channels and ports are drawn at their spec sizes.
 import * as THREE from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { contracts } from './contracts.js';
 
 const TYPE_COLORS = {
   inlet: 0x7dd3fc,
@@ -27,7 +28,6 @@ const ROLE_COLORS = {
   cells: 0xfda4af, medium: 0x67e8f9, factor: 0xfde047, harvest: 0xff5fd2, control: 0x94a3b8, oil: 0xfbbf24, transfer: 0xff5fd2,
 };
 const FEATURE_COLORS = { gas_window: 0x7dd3fc, heat_zone: 0xfb923c, cold_zone: 0x60a5fa, curing_window: 0xa78bfa, optical_window: 0xf0abfc };
-export const VALVE_COLORS = { open: 0x4ade80, closed: 0xf87171 };
 
 // Draw order for see-through parts (lower draws first).
 export const ORDER = { capsule: 2, fluid: 3, channel: 4, chamber: 5, glow: 6, layer: 10, edges: 11 };
@@ -39,7 +39,10 @@ export class Chip {
     this.footprint = spec.footprint;
     this.height = spec.layers.reduce((z, l) => z + l.thickness_mm, 0);
     this.top = this.height;
-    this.u = spec.footprint.y / 25; // size unit: 1 for a 75 x 25 mm slide
+    // Size unit for labels, glows and textures: 1 for a chip that fills the demo envelope
+    // (contracts/blocks.json, 30 x 20 mm). It used to divide by 25 for a 75 x 25 mm slide,
+    // which no chip here is, so every chip came out at a flat 0.8 and the unit tracked nothing.
+    this.u = spec.footprint.y / contracts().envelopeY;
     this.module = spec.module ?? null;
     this.fluidZ = spec.chambers.length
       ? spec.chambers.reduce((z, c) => z + c.center[2], 0) / spec.chambers.length
@@ -62,15 +65,19 @@ export class Chip {
     this.parts = new Map(); // id -> chamber or port record
     this.channels = [];
     this.labels = [];
-    this.valves = new Map();
     this.features = new Map();
     this.stages = new Map();
+    // On-chip valves were dropped from the design (they need a second layer) and no chip
+    // declares any, so the twin no longer draws them. If one ever does, say so instead of
+    // inventing a control layer to hang it in.
+    this.undrawn = (spec.valves ?? []).length
+      ? [`${spec.valves.length} on-chip valve${spec.valves.length > 1 ? 's' : ''} (${spec.valves.map((v) => v.id).join(', ')}) are not drawn: on-chip valves were removed from the design, which is one fluidic layer`]
+      : [];
 
     this.#buildLayers();
     for (const c of spec.chambers) this.#buildChamber(c);
     for (const p of spec.ports) this.#buildPort(p);
     for (const ch of spec.channels) this.#buildChannel(ch);
-    for (const v of spec.valves ?? []) this.#buildValve(v);
     for (const f of spec.features ?? []) this.#buildFeature(f);
     for (const st of spec.stages ?? []) this.#buildStage(st);
   }
@@ -391,27 +398,6 @@ export class Chip {
     return pts;
   }
 
-  #buildValve(v) {
-    const [x, y, z] = v.position;
-    const r = 0.42 * this.u;
-    const material = new THREE.MeshStandardMaterial({ color: VALVE_COLORS.closed, emissive: VALVE_COLORS.closed, emissiveIntensity: 0.6, roughness: 0.35 });
-    const disc = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.12 * this.u, 32).rotateX(Math.PI / 2), material);
-    disc.position.set(x, y, z + 0.08 * this.u);
-    disc.renderOrder = ORDER.glow;
-    this.group.add(disc);
-    // Control line, in the control layer: from the control port to the valve.
-    const port = this.spec.ports.find((p) => p.id === v.control_port);
-    let line = null;
-    if (port) {
-      const lz = this.top - 0.15 * this.u;
-      const geom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(port.position[0], port.position[1], lz), new THREE.Vector3(x, y, lz)]);
-      line = new THREE.Line(geom, new THREE.LineDashedMaterial({ color: 0x94a3b8, dashSize: 0.5 * this.u, gapSize: 0.35 * this.u, transparent: true, opacity: 0.45 }));
-      line.computeLineDistances();
-      this.group.add(line);
-    }
-    this.valves.set(v.id, { id: v.id, spec: v, kind: v.kind, disc, material, line, normal: v.type === 'normally_open' ? 'open' : 'closed' });
-  }
-
   #buildFeature(f) {
     const color = FEATURE_COLORS[f.type] ?? 0x9ca3af;
     const [cx, cy, cz] = f.center;
@@ -521,11 +507,6 @@ export class Chip {
     return best?.id ?? null;
   }
 
-  // Kept for older callers: nearest port of a type that capsules/product can use.
-  nearestPort(type, chamberId) {
-    return this.findPort(chamberId, { type });
-  }
-
   channelsBetween(fromId, toId) {
     return this.route(fromId, toId).map((s) => s.channel);
   }
@@ -536,45 +517,107 @@ export class Chip {
     for (const l of this.labels) l.visible = on;
   }
 
-  // Swap in cad/exports/<id>.stl for any chamber or port that has one.
-  // Uses the directory listing from `python -m http.server`; anything missing
-  // silently keeps the box.
-  async loadStls(baseUrl) {
-    let html = '';
-    try {
-      const res = await fetch(baseUrl, { cache: 'no-store' });
-      if (!res.ok) return [];
-      html = await res.text();
-    } catch {
-      return [];
+  // Where this chip's STLs live. cad/make_train_cad.py gives the FLAT cad/exports/ folder to
+  // exactly ONE chip and writes every other chip into cad/exports/<chip_id>/; both record
+  // their owner in a hidden .chip_id. Part ids repeat across chips (inlet_1 and outlet_1 are
+  // on ipsc_to_mgl_chip_v1 AND placeholder_chip_v1; in_oil on sctip_spc_v1 and spc_demo_v1;
+  // out_waste on module5_v1 and sctip_spc_v1), so loading the flat folder for every chip
+  // showed another chip's parts at another chip's coordinates and called it a success.
+  // The owner file decides, and nothing is guessed.
+  static async stlSource(chipId, root) {
+    const text = async (url) => {
+      try {
+        const res = await fetch(`${root}${url}`, { cache: 'no-store' });
+        return res.ok ? await res.text() : null;
+      } catch {
+        return null;
+      }
+    };
+    const stls = (html) => [...html.matchAll(/href="([^"?#]+\.stl)"/gi)].map((m) => decodeURIComponent(m[1]).split('/').pop().replace(/\.stl$/i, ''));
+    // The listing from `python -m http.server` says which subfolders exist, so the owner's own
+    // chip never asks for a folder that is not there (display.js reads cad/display/ the same way).
+    const top = await text('cad/exports/');
+    const hasOwnFolder = top === null || top.includes(`href="${encodeURIComponent(chipId)}/"`) || top.includes(`href="${chipId}/"`);
+    if (hasOwnFolder) {
+      const own = `cad/exports/${chipId}/`;
+      const marker = await text(`${own}.chip_id`);
+      if (marker?.trim() === chipId) {
+        const listing = await text(own);
+        return { dir: own, owner: chipId, names: listing === null ? null : stls(listing) };
+      }
     }
-    const names = [...html.matchAll(/href="([^"?#]+\.stl)"/gi)].map((m) => decodeURIComponent(m[1]).split('/').pop());
+    const flatOwner = (await text('cad/exports/.chip_id'))?.trim() ?? null;
+    if (flatOwner === chipId) {
+      return { dir: 'cad/exports/', owner: chipId, names: top === null ? null : stls(top) };
+    }
+    return { dir: null, owner: flatOwner, names: null,
+      why: `No cad/exports/${chipId}/ folder claims ${chipId}`
+        + (flatOwner ? `, and the flat cad/exports/ folder belongs to ${flatOwner}` : '')
+        + `, so every part is a box from the spec. Run python cad/make_train_cad.py --chip chip/${chipId}.json.` };
+  }
+
+  // What make_train_cad.py writes for a part, in chip coordinates: a chamber is its own box;
+  // a port is a bore-square hole down through the lid from its position.
+  #expectedBox(part) {
+    if (part.kind === 'chamber') return { center: part.center.clone(), size: part.size.clone() };
+    const bore = contracts().portHoleMm;
+    const lid = Number(this.spec.layers.at(-1)?.thickness_mm) || 0;
+    const [x, y, z] = part.spec.position;
+    return { center: new THREE.Vector3(x, y, z - lid / 2), size: new THREE.Vector3(bore, bore, lid) };
+  }
+
+  // Swap in <dir>/<part id>.stl for any chamber or port that has one, from the directory that
+  // belongs to THIS chip. Every file is checked against the box the spec says it should be:
+  // an STL at the wrong coordinates is another chip's part and is refused, not displayed.
+  // Returns a report; main.js shows it, so a miss is never silent.
+  async loadStls({ dir, names = null } = {}, root = '') {
+    const report = { dir, loaded: [], missing: [], mismatched: [], failed: [], listed: Boolean(names) };
+    const want = [...this.parts.keys()];
+    if (!dir) {
+      report.missing = want;
+      return report;
+    }
+    const base = `${root}${dir}`;
+    // `names` is the directory listing from `python -m http.server`, which tells us what exists
+    // without 404s. Without one (a static host), ask for each part by name instead.
+    const ids = names ?? want;
+    report.unrelated = names ? ids.filter((id) => !this.parts.has(id)) : [];
     const loader = new STLLoader();
-    const loaded = [];
-    await Promise.all(
-      names.map(async (name) => {
-        const id = name.replace(/\.stl$/i, '');
-        const part = this.parts.get(id);
-        if (!part) return;
-        try {
-          const geom = await loader.loadAsync(baseUrl + encodeURIComponent(name));
-          geom.computeVertexNormals();
-          const mat = (part.material ?? part.box.material).clone();
-          mat.opacity = Math.max(mat.opacity, 0.3);
-          const mesh = new THREE.Mesh(geom, mat);
-          mesh.renderOrder = ORDER.chamber;
-          mesh.name = `stl:${id}`;
-          this.group.add(mesh); // STL is already in chip coordinates
-          part.box.visible = false;
-          if (part.edges) part.edges.visible = false;
-          part.stl = mesh;
-          loaded.push(id);
-        } catch (err) {
-          console.warn(`Could not load ${name}; keeping the box.`, err);
-        }
-      }),
-    );
-    return loaded;
+    await Promise.all(want.map(async (id) => {
+      const part = this.parts.get(id);
+      if (!ids.includes(id)) { report.missing.push(id); return; }
+      let geom;
+      try {
+        geom = await loader.loadAsync(`${base}${encodeURIComponent(id)}.stl`);
+      } catch {
+        report.failed.push(id);
+        return;
+      }
+      geom.computeBoundingBox();
+      const got = geom.boundingBox;
+      const expect = this.#expectedBox(part);
+      const center = got.getCenter(new THREE.Vector3());
+      const size = got.getSize(new THREE.Vector3());
+      const tol = Math.max(0.05, 0.02 * Math.max(size.x, size.y, size.z));
+      if (center.distanceTo(expect.center) > tol || size.distanceTo(expect.size) > tol) {
+        report.mismatched.push({ id, at: center.toArray().map((v) => +v.toFixed(3)),
+          expected: expect.center.toArray().map((v) => +v.toFixed(3)) });
+        geom.dispose();
+        return;
+      }
+      geom.computeVertexNormals();
+      const mat = (part.material ?? part.box.material).clone();
+      mat.opacity = Math.max(mat.opacity, 0.3);
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.renderOrder = ORDER.chamber;
+      mesh.name = `stl:${id}`;
+      this.group.add(mesh); // STL is already in chip coordinates
+      part.box.visible = false;
+      if (part.edges) part.edges.visible = false;
+      part.stl = mesh;
+      report.loaded.push(id);
+    }));
+    return report;
   }
 
   dispose() {

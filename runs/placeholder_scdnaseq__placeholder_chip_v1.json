@@ -4,7 +4,7 @@
   "chip_id": "placeholder_chip_v1",
   "chip_spec": "chip/placeholder_chip_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T12:25:59Z",
+  "created_at": "2026-11-07T19:04:07Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": null,
@@ -20,12 +20,12 @@
       "pool_1"
     ],
     "monolayer_area_mm2_needed": 490.0,
-    "trap_area_mm2": 256,
+    "trap_area_mm2": 38.801,
     "packed_volume_ul_needed": 28.062,
-    "trap_volume_ul": 512,
+    "trap_volume_ul": 11.641,
     "channel_width_um": [
-      500.0,
-      500.0
+      200.0,
+      200.0
     ],
     "channel_width_um_recommended": [
       105.0,
@@ -45,9 +45,9 @@
       "command": "load",
       "args": {
         "target": "exchange_1",
-        "volume_ul": 100
+        "volume_ul": 3.6
       },
-      "narration": "Load the capsule suspension into the exchange chamber.",
+      "narration": "Load the capsule suspension into the exchange chamber. One chamber volume: a load FILLS the chamber, so the chamber's own volume (3.638 uL) is the only sensible number. This step used to say 100 uL, 27x what the chamber holds.",
       "protocol_step": 1
     },
     {
@@ -57,11 +57,11 @@
       "args": {
         "target": "exchange_1",
         "reagent": "wash_buffer",
-        "volume_ul": 100,
+        "volume_ul": 8.4,
         "washes": 2,
-        "flow_ul_min": 100
+        "flow_ul_min": 50
       },
-      "narration": "Wash the capsules twice with wash buffer.",
+      "narration": "Wash the capsules twice with wash buffer. SWEEP: 2.3 chamber volumes per wash, 4.6 in total, which is what the 99% exchange goal needs.",
       "protocol_step": 2
     },
     {
@@ -71,11 +71,11 @@
       "args": {
         "target": "exchange_1",
         "reagent": "lysis_buffer",
-        "volume_ul": 100,
+        "volume_ul": 3.6,
         "washes": 1,
-        "flow_ul_min": 100
+        "flow_ul_min": 50
       },
-      "narration": "Swap in lysis buffer to open the cells.",
+      "narration": "Swap in lysis buffer to open the cells. FILL: one chamber volume to put the reagent in.",
       "protocol_step": 3
     },
     {
@@ -85,11 +85,11 @@
       "args": {
         "target": "exchange_1",
         "reagent": "digest_mix",
-        "volume_ul": 100,
+        "volume_ul": 3.6,
         "washes": 1,
-        "flow_ul_min": 100
+        "flow_ul_min": 50
       },
-      "narration": "Exchange into the digest mix.",
+      "narration": "Exchange into the digest mix. FILL: one chamber volume.",
       "protocol_step": 4
     },
     {
@@ -123,11 +123,11 @@
       "args": {
         "target": "exchange_1",
         "reagent": "amp_mix",
-        "volume_ul": 100,
+        "volume_ul": 3.6,
         "washes": 1,
-        "flow_ul_min": 100
+        "flow_ul_min": 50
       },
-      "narration": "Fill the chamber with amplification mix.",
+      "narration": "Fill the chamber with amplification mix. FILL: one chamber volume.",
       "protocol_step": 7
     },
     {
@@ -153,11 +153,11 @@
       "args": {
         "target": "split_1",
         "reagent": "reagent_e",
-        "volume_ul": 50,
+        "volume_ul": 1.3,
         "washes": 1,
         "flow_ul_min": 50
       },
-      "narration": "Give split chamber 1 reagent E.",
+      "narration": "Give split chamber 1 reagent E. FILL: one split-chamber volume (1.273 uL), not one exchange-chamber volume.",
       "protocol_step": 9
     },
     {
@@ -167,11 +167,11 @@
       "args": {
         "target": "split_2",
         "reagent": "reagent_f",
-        "volume_ul": 50,
+        "volume_ul": 1.3,
         "washes": 1,
         "flow_ul_min": 50
       },
-      "narration": "Give split chamber 2 reagent F.",
+      "narration": "Give split chamber 2 reagent F. FILL: one split-chamber volume.",
       "protocol_step": 10
     },
     {
@@ -181,11 +181,11 @@
       "args": {
         "target": "split_3",
         "reagent": "reagent_g",
-        "volume_ul": 50,
+        "volume_ul": 1.3,
         "washes": 1,
         "flow_ul_min": 50
       },
-      "narration": "Give split chamber 3 reagent G.",
+      "narration": "Give split chamber 3 reagent G. FILL: one split-chamber volume.",
       "protocol_step": 11
     },
     {
@@ -195,11 +195,11 @@
       "args": {
         "target": "split_4",
         "reagent": "reagent_h",
-        "volume_ul": 50,
+        "volume_ul": 1.3,
         "washes": 1,
         "flow_ul_min": 50
       },
-      "narration": "Give split chamber 4 reagent H.",
+      "narration": "Give split chamber 4 reagent H. FILL: one split-chamber volume.",
       "protocol_step": 12
     },
     {
@@ -225,11 +225,11 @@
       "args": {
         "target": "pool_1",
         "reagent": "wash_buffer",
-        "volume_ul": 100,
+        "volume_ul": 6.7,
         "washes": 2,
-        "flow_ul_min": 100
+        "flow_ul_min": 50
       },
-      "narration": "Wash the pooled capsules twice.",
+      "narration": "Wash the pooled capsules twice. SWEEP: 2.3 pool-chamber volumes (2.911 uL each) per wash, 4.6 in total.",
       "protocol_step": 14
     },
     {
@@ -240,7 +240,7 @@
         "target": "pool_1",
         "reagent": "release_buffer"
       },
-      "narration": "Release the library and send it to the outlet.",
+      "narration": "Release the library and send it to the outlet. 3.9 pool-chamber volumes, which is what the 98% release goal needs.",
       "protocol_step": 15
     }
   ]

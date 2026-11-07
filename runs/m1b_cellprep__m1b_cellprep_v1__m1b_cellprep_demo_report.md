@@ -4,7 +4,7 @@
 
 - Scenario: `m1b_cellprep_demo`: Healthy but concentrated cells: the operator dilutes them at m1b_resuspend_1 to ~0.1 cells per capsule and the safety checker lets them through to Module 2.
 - Status: **done**
-- Created: 2026-11-07T17:47:46Z
+- Created: 2026-11-07T19:16:22Z
 
 ## Outcome
 

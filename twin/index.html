@@ -27,7 +27,7 @@
     </div>
     <nav id="module-tabs" class="views tabs" aria-label="View">
       <button data-module="pipeline" aria-pressed="false" title="All current modules, left to right, with status and hand-offs">Pipeline</button>
-      <button data-module="m1v1" aria-pressed="false" title="Module 1 v1: MJ's final culture chip, being laser-cut for Sunday's dye demo. Flow twin.">1 Culture</button>
+      <button data-module="m1v1" aria-pressed="false" title="Module 1 v1: MJ's final culture chip, made by resin print + hot emboss for Sunday's dye demo. Flow twin.">1 Culture</button>
       <button data-module="m2" aria-pressed="false" title="Module 2: encapsulation (draft – being redesigned by MJ)">2 Encapsulation</button>
       <button data-module="m3v1" aria-pressed="false" title="Module 3: load, lysis, wash (Szonja; translated into the chip-spec format)">3 Lysis + wash</button>
       <button data-module="m4" aria-pressed="false" title="Module 4: sublibrary split + index PCR (MJ)">4 Index PCR</button>
@@ -48,7 +48,8 @@
       <button data-loop="closed" aria-pressed="false">Closed loop</button>
     </div>
     <div class="badges">
-      <span class="badge sim" title="No physical pump, valves or sensors: closed-loop runs use a virtual chip">SIMULATED HARDWARE</span>
+      <span id="hardware-badge" class="badge sim-unknown">HARDWARE NOT RECORDED</span>
+      <span id="cad-badge" class="badge" hidden></span>
       <span id="operator-badge" class="badge">planner</span>
       <span id="print-badge" class="badge printed" hidden>Printed</span>
       <span id="draft-badge" class="badge draft" hidden>Draft design</span>

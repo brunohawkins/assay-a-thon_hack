@@ -28,9 +28,9 @@ PCR needs 98 °C.
 | Material | Verdict |
 |---|---|
 | PMMA (Tg ~105 °C) | Deforms. Out |
-| COP 1060R (Tg ~100 °C) | Deforms. Out |
+| COP, low-Tg grades (Tg ~100 °C) | Deforms. Out |
 | Printed resin | Out twice: general-purpose resin softens near 73 °C, and every SLA resin tested inhibited PCR |
-| **COC, Tg ≥ 130 °C** (5013/6013 or 1420R) | **Hot-embossed, thermally bonded** |
+| **A cyclic-olefin (co)polymer grade with Tg ≥ 130 °C** | **Hot-embossed, thermally bonded** |
 
 Module 5 uses the same COC for DNA-handling reasons, though it only needs 37 °C.
 
@@ -41,7 +41,8 @@ Capsules sediment into a bed. The Zweifach-Fung effect sends particles down the
 higher-flow daughter, worse as particle nears channel size (140 µm in 300 µm = 0.47).
 
 Instead an **off-chip rotary valve** fills the four chambers one at a time, interleaved
-palindromic order (ABCD DCBA, 8–16 cycles). Expected **CV 3–8%**.
+palindromic order (ABCD DCBA, repeated for a standard indexing cycle count). Expected
+**CV 3–8%**.
 
 - Run the chip **vertical**, flow **downward**: capsules settle along the flow axis.
 - Stir the feed syringe.
@@ -65,9 +66,9 @@ vent. This keeps the four indices from mixing.
 
 | Agent | Effect |
 |---|---|
-| Proteinase K | **Does not open these capsules.** Published work: intact, DNA kept, after overnight digest |
-| Collagenase | Digests gelatin backbone between crosslinks until the network dissolves |
-| EDTA | Inhibits collagenase. **Must be absent** |
+| Broad-spectrum protease | **Does not open these capsules.** Published work: intact, DNA kept, after overnight digest |
+| Matrix-digesting enzyme | Digests gelatin backbone between crosslinks until the network dissolves |
+| Divalent-cation chelator | Inhibits the matrix-digesting enzyme. **Must be absent** |
 
 Bulk GelMA is fully digested in 5–8 h at 37 °C. A 70 µm capsule should be far faster.
 So module 5 needs **only 37 °C**.
@@ -90,7 +91,7 @@ There is no bead trap. Beads are ~1 µm, the smallest feature 200 µm. Retention
 
 | | Order |
 |---|---|
-| Team protocol sheet | index PCR (15), then release (16) |
+| Project protocol sheet | index PCR (15), then release (16) |
 | Published practice | release **first**, then PCR |
 
 Why: fragments under 300 bp leak out of the shell and can prime neighbouring capsules.
@@ -106,8 +107,8 @@ before anything is fabricated.**
   the lower-risk MVP.
 - **SPRI size selection.**
 - **All QC.** On-chip absorbance is impossible: at 0.5 mm path, 1 ng/µL DNA gives A260
-  ≈ 0.001. Use Qubit, TapeStation, qPCR: about 3 µL of a 5–10 µL output. **QC costs a
-  third of the product.**
+  ≈ 0.001. Use a fluorometric quantifier, a fragment analyser and a quantitative
+  amplification assay: about 3 µL of a 5–10 µL output. **QC costs a third of the product.**
 
 ## 9. Honest limits
 

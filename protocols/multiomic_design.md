@@ -36,8 +36,8 @@ The transcriptome arm is unaffected.
 | Omic | Module | Sample | Chemistry | Destructive? |
 |---|---|---|---|---|
 | Secretome + exometabolome | Per lane, culture | Repeated supernatant draws, many timepoints | Collect, store cold | No |
-| Transcriptome | Module 4 | Capsules, single-cell | Existing capsule workflow | Yes (endpoint) |
-| Metabolome + proteome | Module 6 | Adherent cells, one endpoint | Cold chloroform-free solvent quench, two fractions from one extraction | Yes |
+| Transcriptome | Module 3 (RT in its capsule trap), then stage 4b (barcoding), then Modules 4–5 | Capsules, **single-cell** | Existing capsule workflow. Single-cell because each capsule gets its own clonal barcode, amplified inside its own oil droplet in stage 4b ([sctip_spc_design.md](sctip_spc_design.md)); the lane label and the four sublibrary indices only demultiplex | Yes (endpoint) |
+| Metabolome + proteome | Module 6 | Adherent cells, one endpoint | Cold organic solvent quench free of chlorinated solvents, two fractions from one extraction | Yes |
 
 **The secretome arm answers the interaction question.** What crosses between lanes is extracellular by definition. The transcriptome is the response.
 
@@ -58,7 +58,7 @@ Precedent: 10.15252/embj.2020105693, 10.1002/glia.70079, 10.1038/srep33285.
 | Yield | Proteomics is comfortable: 1,000 cells give 500–1,000 proteins (10.15252/msb.20199111). Untargeted metabolomics wants 1e5–1e6 cells. Chip scale supports **targeted central-carbon metabolism only** |
 | Quench speed | Adequate for amino acids, TCA intermediates and lipids. **Not** for ATP/ADP or glycolytic intermediates, which turn over in about 1 s |
 | Residual medium | About 150:1 by volume against intracellular volume. The rinse is mandatory. It costs a few seconds of perturbed metabolism |
-| Chloroform | Excluded: it attacks PMMA. The quench must be chloroform-free |
+| Chlorinated solvents | Excluded: they attack PMMA. The quench must avoid them |
 | RNA | Acid plus organic is only briefly safe. Neutralise the eluate immediately |
 | Endpoints | One per chip for the destructive arm. Repeated sampling only for the secretome |
 | Evidence | Nobody has published this on GelMA capsules. Capsule-specific steps are inference |
@@ -77,7 +77,7 @@ Precedent: 10.15252/embj.2020105693, 10.1002/glia.70079, 10.1038/srep33285.
 
 1. **Secretome sampling per lane.** Cheapest, non-destructive, and answers the interaction question.
 2. **Lane-of-origin pulse label.** It makes the secretome data interpretable.
-3. **Module 6 cold-solvent quench**, chloroform-free, with the mandatory rinse. Test on a PMMA coupon first.
+3. **Module 6 cold-solvent quench**, free of chlorinated solvents, with the mandatory rinse. Test on a PMMA coupon first.
 4. **Neutralisation step** for the eluate, so RNA survives.
 5. **Targeted central-carbon panel** sized to chip yield.
 6. **Capsule-specific checks.** Treat as inference until run.

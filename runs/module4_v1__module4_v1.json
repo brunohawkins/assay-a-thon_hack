@@ -4,7 +4,7 @@
   "chip_id": "module4_v1",
   "chip_spec": "chip/module4_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T17:52:56Z",
+  "created_at": "2026-11-07T18:57:14Z",
   "placeholder": false,
   "sizing": {
     "capsule_count": null,
@@ -30,11 +30,11 @@
     ],
     "swollen_diameter_um": 140.0
   },
-  "total_duration_s": 2298.0,
+  "total_duration_s": 3350.0,
   "events": [
     {
       "t_s": 0.0,
-      "duration_s": 18.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_1",
@@ -44,8 +44,8 @@
       "protocol_step": 1
     },
     {
-      "t_s": 18.0,
-      "duration_s": 18.0,
+      "t_s": 20.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_2",
@@ -55,8 +55,8 @@
       "protocol_step": 2
     },
     {
-      "t_s": 36.0,
-      "duration_s": 18.0,
+      "t_s": 40.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_3",
@@ -66,8 +66,8 @@
       "protocol_step": 3
     },
     {
-      "t_s": 54.0,
-      "duration_s": 18.0,
+      "t_s": 60.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_4",
@@ -77,8 +77,8 @@
       "protocol_step": 4
     },
     {
-      "t_s": 72.0,
-      "duration_s": 18.0,
+      "t_s": 80.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_4",
@@ -88,8 +88,8 @@
       "protocol_step": 5
     },
     {
-      "t_s": 90.0,
-      "duration_s": 18.0,
+      "t_s": 100.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_3",
@@ -99,8 +99,8 @@
       "protocol_step": 6
     },
     {
-      "t_s": 108.0,
-      "duration_s": 18.0,
+      "t_s": 120.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_2",
@@ -110,8 +110,8 @@
       "protocol_step": 7
     },
     {
-      "t_s": 126.0,
-      "duration_s": 18.0,
+      "t_s": 140.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_1",
@@ -121,8 +121,8 @@
       "protocol_step": 8
     },
     {
-      "t_s": 144.0,
-      "duration_s": 18.0,
+      "t_s": 160.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_1",
@@ -132,8 +132,8 @@
       "protocol_step": 9
     },
     {
-      "t_s": 162.0,
-      "duration_s": 18.0,
+      "t_s": 180.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_2",
@@ -143,8 +143,8 @@
       "protocol_step": 10
     },
     {
-      "t_s": 180.0,
-      "duration_s": 18.0,
+      "t_s": 200.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_3",
@@ -154,8 +154,8 @@
       "protocol_step": 11
     },
     {
-      "t_s": 198.0,
-      "duration_s": 18.0,
+      "t_s": 220.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_4",
@@ -165,8 +165,8 @@
       "protocol_step": 12
     },
     {
-      "t_s": 216.0,
-      "duration_s": 18.0,
+      "t_s": 240.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_4",
@@ -176,8 +176,8 @@
       "protocol_step": 13
     },
     {
-      "t_s": 234.0,
-      "duration_s": 18.0,
+      "t_s": 260.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_3",
@@ -187,8 +187,8 @@
       "protocol_step": 14
     },
     {
-      "t_s": 252.0,
-      "duration_s": 18.0,
+      "t_s": 280.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_2",
@@ -198,8 +198,8 @@
       "protocol_step": 15
     },
     {
-      "t_s": 270.0,
-      "duration_s": 18.0,
+      "t_s": 300.0,
+      "duration_s": 20.0,
       "command": "load",
       "args": {
         "target": "sub_1",
@@ -209,119 +209,119 @@
       "protocol_step": 16
     },
     {
-      "t_s": 288.0,
-      "duration_s": 13.0,
+      "t_s": 320.0,
+      "duration_s": 15.0,
       "command": "exchange",
       "args": {
         "target": "sub_1",
         "reagent": "index_primer_1",
         "volume_ul": 0.6,
         "washes": 1,
-        "flow_ul_min": 3.92
+        "flow_ul_min": 3.44
       },
       "narration": "Step 15: one index primer into sub_1 through in_s1. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
       "protocol_step": 17
     },
     {
-      "t_s": 301.0,
-      "duration_s": 13.0,
+      "t_s": 335.0,
+      "duration_s": 15.0,
       "command": "exchange",
       "args": {
         "target": "sub_2",
         "reagent": "index_primer_2",
         "volume_ul": 0.6,
         "washes": 1,
-        "flow_ul_min": 3.92
+        "flow_ul_min": 3.44
       },
       "narration": "Step 15: one index primer into sub_2 through in_s2. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
       "protocol_step": 18
     },
     {
-      "t_s": 314.0,
-      "duration_s": 13.0,
+      "t_s": 350.0,
+      "duration_s": 15.0,
       "command": "exchange",
       "args": {
         "target": "sub_3",
         "reagent": "index_primer_3",
         "volume_ul": 0.6,
         "washes": 1,
-        "flow_ul_min": 3.92
+        "flow_ul_min": 3.44
       },
       "narration": "Step 15: one index primer into sub_3 through in_s3. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
       "protocol_step": 19
     },
     {
-      "t_s": 327.0,
-      "duration_s": 13.0,
+      "t_s": 365.0,
+      "duration_s": 15.0,
       "command": "exchange",
       "args": {
         "target": "sub_4",
         "reagent": "index_primer_4",
         "volume_ul": 0.6,
         "washes": 1,
-        "flow_ul_min": 3.92
+        "flow_ul_min": 3.44
       },
       "narration": "Step 15: one index primer into sub_4 through in_s4. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
       "protocol_step": 20
     },
     {
-      "t_s": 340.0,
-      "duration_s": 72.0,
+      "t_s": 380.0,
+      "duration_s": 90.0,
       "command": "exchange",
       "args": {
         "target": "sub_1",
         "reagent": "pcr_mix",
-        "volume_ul": 3.324,
+        "volume_ul": 3.68,
         "washes": 1,
-        "flow_ul_min": 3.92
+        "flow_ul_min": 3.44
       },
       "narration": "Step 15: PCR mix into sub_1. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
       "protocol_step": 21
     },
     {
-      "t_s": 412.0,
-      "duration_s": 72.0,
+      "t_s": 470.0,
+      "duration_s": 90.0,
       "command": "exchange",
       "args": {
         "target": "sub_2",
         "reagent": "pcr_mix",
-        "volume_ul": 3.324,
+        "volume_ul": 3.68,
         "washes": 1,
-        "flow_ul_min": 3.92
+        "flow_ul_min": 3.44
       },
       "narration": "Step 15: PCR mix into sub_2. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
       "protocol_step": 22
     },
     {
-      "t_s": 484.0,
-      "duration_s": 72.0,
+      "t_s": 560.0,
+      "duration_s": 90.0,
       "command": "exchange",
       "args": {
         "target": "sub_3",
         "reagent": "pcr_mix",
-        "volume_ul": 3.324,
+        "volume_ul": 3.68,
         "washes": 1,
-        "flow_ul_min": 3.92
+        "flow_ul_min": 3.44
       },
       "narration": "Step 15: PCR mix into sub_3. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
       "protocol_step": 23
     },
     {
-      "t_s": 556.0,
-      "duration_s": 72.0,
+      "t_s": 650.0,
+      "duration_s": 90.0,
       "command": "exchange",
       "args": {
         "target": "sub_4",
         "reagent": "pcr_mix",
-        "volume_ul": 3.324,
+        "volume_ul": 3.68,
         "washes": 1,
-        "flow_ul_min": 3.92
+        "flow_ul_min": 3.44
       },
       "narration": "Step 15: PCR mix into sub_4. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
       "protocol_step": 24
     },
     {
-      "t_s": 628.0,
+      "t_s": 740.0,
       "duration_s": 84.0,
       "command": "hold_temp",
       "args": {
@@ -333,7 +333,7 @@
       "protocol_step": 25
     },
     {
-      "t_s": 712.0,
+      "t_s": 824.0,
       "duration_s": 10.0,
       "command": "hold_temp",
       "args": {
@@ -345,7 +345,7 @@
       "protocol_step": 26
     },
     {
-      "t_s": 722.0,
+      "t_s": 834.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -357,7 +357,7 @@
       "protocol_step": 27
     },
     {
-      "t_s": 765.0,
+      "t_s": 877.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -369,7 +369,7 @@
       "protocol_step": 28
     },
     {
-      "t_s": 799.0,
+      "t_s": 911.0,
       "duration_s": 19.0,
       "command": "hold_temp",
       "args": {
@@ -381,7 +381,7 @@
       "protocol_step": 29
     },
     {
-      "t_s": 818.0,
+      "t_s": 930.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -393,7 +393,7 @@
       "protocol_step": 30
     },
     {
-      "t_s": 861.0,
+      "t_s": 973.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -405,7 +405,7 @@
       "protocol_step": 31
     },
     {
-      "t_s": 895.0,
+      "t_s": 1007.0,
       "duration_s": 19.0,
       "command": "hold_temp",
       "args": {
@@ -417,7 +417,7 @@
       "protocol_step": 32
     },
     {
-      "t_s": 914.0,
+      "t_s": 1026.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -429,7 +429,7 @@
       "protocol_step": 33
     },
     {
-      "t_s": 957.0,
+      "t_s": 1069.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -441,7 +441,7 @@
       "protocol_step": 34
     },
     {
-      "t_s": 991.0,
+      "t_s": 1103.0,
       "duration_s": 19.0,
       "command": "hold_temp",
       "args": {
@@ -453,7 +453,7 @@
       "protocol_step": 35
     },
     {
-      "t_s": 1010.0,
+      "t_s": 1122.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -465,7 +465,7 @@
       "protocol_step": 36
     },
     {
-      "t_s": 1053.0,
+      "t_s": 1165.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -477,7 +477,7 @@
       "protocol_step": 37
     },
     {
-      "t_s": 1087.0,
+      "t_s": 1199.0,
       "duration_s": 19.0,
       "command": "hold_temp",
       "args": {
@@ -489,7 +489,7 @@
       "protocol_step": 38
     },
     {
-      "t_s": 1106.0,
+      "t_s": 1218.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -501,7 +501,7 @@
       "protocol_step": 39
     },
     {
-      "t_s": 1149.0,
+      "t_s": 1261.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -513,7 +513,7 @@
       "protocol_step": 40
     },
     {
-      "t_s": 1183.0,
+      "t_s": 1295.0,
       "duration_s": 19.0,
       "command": "hold_temp",
       "args": {
@@ -525,7 +525,7 @@
       "protocol_step": 41
     },
     {
-      "t_s": 1202.0,
+      "t_s": 1314.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -537,7 +537,7 @@
       "protocol_step": 42
     },
     {
-      "t_s": 1245.0,
+      "t_s": 1357.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -549,7 +549,7 @@
       "protocol_step": 43
     },
     {
-      "t_s": 1279.0,
+      "t_s": 1391.0,
       "duration_s": 19.0,
       "command": "hold_temp",
       "args": {
@@ -561,7 +561,7 @@
       "protocol_step": 44
     },
     {
-      "t_s": 1298.0,
+      "t_s": 1410.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -573,7 +573,7 @@
       "protocol_step": 45
     },
     {
-      "t_s": 1341.0,
+      "t_s": 1453.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -585,7 +585,7 @@
       "protocol_step": 46
     },
     {
-      "t_s": 1375.0,
+      "t_s": 1487.0,
       "duration_s": 19.0,
       "command": "hold_temp",
       "args": {
@@ -597,7 +597,7 @@
       "protocol_step": 47
     },
     {
-      "t_s": 1394.0,
+      "t_s": 1506.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -609,7 +609,7 @@
       "protocol_step": 48
     },
     {
-      "t_s": 1437.0,
+      "t_s": 1549.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -621,7 +621,7 @@
       "protocol_step": 49
     },
     {
-      "t_s": 1471.0,
+      "t_s": 1583.0,
       "duration_s": 19.0,
       "command": "hold_temp",
       "args": {
@@ -633,7 +633,7 @@
       "protocol_step": 50
     },
     {
-      "t_s": 1490.0,
+      "t_s": 1602.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -645,7 +645,7 @@
       "protocol_step": 51
     },
     {
-      "t_s": 1533.0,
+      "t_s": 1645.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -657,7 +657,7 @@
       "protocol_step": 52
     },
     {
-      "t_s": 1567.0,
+      "t_s": 1679.0,
       "duration_s": 19.0,
       "command": "hold_temp",
       "args": {
@@ -669,7 +669,7 @@
       "protocol_step": 53
     },
     {
-      "t_s": 1586.0,
+      "t_s": 1698.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -681,7 +681,7 @@
       "protocol_step": 54
     },
     {
-      "t_s": 1629.0,
+      "t_s": 1741.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -693,7 +693,7 @@
       "protocol_step": 55
     },
     {
-      "t_s": 1663.0,
+      "t_s": 1775.0,
       "duration_s": 19.0,
       "command": "hold_temp",
       "args": {
@@ -705,7 +705,7 @@
       "protocol_step": 56
     },
     {
-      "t_s": 1682.0,
+      "t_s": 1794.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -717,7 +717,7 @@
       "protocol_step": 57
     },
     {
-      "t_s": 1725.0,
+      "t_s": 1837.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -729,7 +729,7 @@
       "protocol_step": 58
     },
     {
-      "t_s": 1759.0,
+      "t_s": 1871.0,
       "duration_s": 19.0,
       "command": "hold_temp",
       "args": {
@@ -741,7 +741,7 @@
       "protocol_step": 59
     },
     {
-      "t_s": 1778.0,
+      "t_s": 1890.0,
       "duration_s": 43.0,
       "command": "hold_temp",
       "args": {
@@ -753,7 +753,7 @@
       "protocol_step": 60
     },
     {
-      "t_s": 1821.0,
+      "t_s": 1933.0,
       "duration_s": 34.0,
       "command": "hold_temp",
       "args": {
@@ -765,7 +765,7 @@
       "protocol_step": 61
     },
     {
-      "t_s": 1855.0,
+      "t_s": 1967.0,
       "duration_s": 120.0,
       "command": "hold_temp",
       "args": {
@@ -777,7 +777,7 @@
       "protocol_step": 62
     },
     {
-      "t_s": 1975.0,
+      "t_s": 2087.0,
       "duration_s": 323.0,
       "command": "hold_temp",
       "args": {
@@ -787,6 +787,50 @@
       },
       "narration": "Step 15, thermocycling, cool down and hold: the whole module 4 chip, all four chambers, goes to 4 C (300 s dwell plus 22.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
       "protocol_step": 63
+    },
+    {
+      "t_s": 2410.0,
+      "duration_s": 264.0,
+      "command": "release",
+      "args": {
+        "target": "sub_1",
+        "reagent": "air_chase"
+      },
+      "narration": "Step 15b, collection 1 of 4: send sublibrary A out of sub_1 through out_sub, driven by AIR at in_s1 with out_sub vented and p_vent CAPPED. Air, not a chase liquid: the sublibrary is not diluted, and it arrives at module 5 at the volume it left at. The push bursts this chamber's capillary stop and runs ch_tap_1 -> ch_spine_12 -> ch_spine_23 -> ch_spine_34 -> ch_out (2.73 uL of channel); the other three stops are untouched and dry, so the other three sublibraries stay sealed in their chambers, and the spine only ever flows toward out_sub. The spine was dry for the whole thermal profile, so no index met another while there was anything to cross-prime. What stays behind is the wetted film, not the bore: about 0.068 uL lost to the spine, and at most 0.045 uL of this pass handed to the next (1.1% of a sublibrary). That is the cross-contamination bound; it shows up as index hopping at that rate and is measurable in the reads rather than invisible. Hold the air on for 60 s after the liquid has left to clear the route.",
+      "protocol_step": 64
+    },
+    {
+      "t_s": 2674.0,
+      "duration_s": 245.0,
+      "command": "release",
+      "args": {
+        "target": "sub_2",
+        "reagent": "air_chase"
+      },
+      "narration": "Step 15b, collection 2 of 4: send sublibrary B out of sub_2 through out_sub, driven by AIR at in_s2 with out_sub vented and p_vent CAPPED. Air, not a chase liquid: the sublibrary is not diluted, and it arrives at module 5 at the volume it left at. The push bursts this chamber's capillary stop and runs ch_tap_2 -> ch_spine_23 -> ch_spine_34 -> ch_out (1.938 uL of channel); the other three stops are untouched and dry, so the other three sublibraries stay sealed in their chambers, and the spine only ever flows toward out_sub. The spine was dry for the whole thermal profile, so no index met another while there was anything to cross-prime. What stays behind is the wetted film, not the bore: about 0.048 uL lost to the spine, and at most 0.045 uL of this pass handed to the next (1.1% of a sublibrary). That is the cross-contamination bound; it shows up as index hopping at that rate and is measurable in the reads rather than invisible. Hold the air on for 60 s after the liquid has left to clear the route.",
+      "protocol_step": 65
+    },
+    {
+      "t_s": 2919.0,
+      "duration_s": 225.0,
+      "command": "release",
+      "args": {
+        "target": "sub_3",
+        "reagent": "air_chase"
+      },
+      "narration": "Step 15b, collection 3 of 4: send sublibrary C out of sub_3 through out_sub, driven by AIR at in_s3 with out_sub vented and p_vent CAPPED. Air, not a chase liquid: the sublibrary is not diluted, and it arrives at module 5 at the volume it left at. The push bursts this chamber's capillary stop and runs ch_tap_3 -> ch_spine_34 -> ch_out (1.146 uL of channel); the other three stops are untouched and dry, so the other three sublibraries stay sealed in their chambers, and the spine only ever flows toward out_sub. The spine was dry for the whole thermal profile, so no index met another while there was anything to cross-prime. What stays behind is the wetted film, not the bore: about 0.029 uL lost to the spine, and at most 0.045 uL of this pass handed to the next (1.1% of a sublibrary). That is the cross-contamination bound; it shows up as index hopping at that rate and is measurable in the reads rather than invisible. Hold the air on for 60 s after the liquid has left to clear the route.",
+      "protocol_step": 66
+    },
+    {
+      "t_s": 3144.0,
+      "duration_s": 206.0,
+      "command": "release",
+      "args": {
+        "target": "sub_4",
+        "reagent": "air_chase"
+      },
+      "narration": "Step 15b, collection 4 of 4: send sublibrary D out of sub_4 through out_sub, driven by AIR at in_s4 with out_sub vented and p_vent CAPPED. Air, not a chase liquid: the sublibrary is not diluted, and it arrives at module 5 at the volume it left at. The push bursts this chamber's capillary stop and runs ch_tap_4 -> ch_out (0.354 uL of channel); the other three stops are untouched and dry, so the other three sublibraries stay sealed in their chambers, and the spine only ever flows toward out_sub. The spine was dry for the whole thermal profile, so no index met another while there was anything to cross-prime. What stays behind is the wetted film, not the bore: about 0.009 uL lost to the spine, and at most 0.045 uL of this pass handed to the next (1.1% of a sublibrary). That is the cross-contamination bound; it shows up as index hopping at that rate and is measurable in the reads rather than invisible. Hold the air on for 60 s after the liquid has left to clear the route.",
+      "protocol_step": 67
     }
   ]
 }

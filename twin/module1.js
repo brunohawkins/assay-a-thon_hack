@@ -1,6 +1,6 @@
 // Module 1 v1 (MJ's valve-free culture chip, chip/module1_v1.json): its flow twin.
 //
-// The chip is drawn from its spec with channel paths taken from the laser-cut DXF
+// The chip is drawn from its spec with channel paths taken from the embossing DXF
 // (cad/exports/module1_v1/module1_v1.dxf) and its STLs where present, at real scale. The
 // liquid is driven by twin/network.js (the same model as operator/network.py): pick a mode
 // (or set each port to FEED / VENT / CAP), the network is solved, and dye is advected along
@@ -12,8 +12,9 @@ import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import {
   Network, parseDxfChannels, MODES, DESIGN_MODES, modeStates, solverPorts, keyResult, safetyCheck, dyeTimes,
-  diffusionMm, PORT_HOLE_UL,
+  diffusionMm, shearCeiling,
 } from './network.js';
+import { contracts } from './contracts.js';
 
 export const CHIP_ID = 'module1_v1';
 const PORTS = ['p_in', 'p_g_in', 'p_a_in', 'p_mid', 'p_g_out', 'p_a_out'];
@@ -25,7 +26,6 @@ const DYE_NAMES = ['red', 'yellow', 'blue'];
 const CELLS = 14;                      // cells per channel in the advection grid
 const D_MM2_S = (8.8 ** 2) / (2 * 12 * 3600); // mm^2/s from the design doc's 8.8 mm in 12 h
 const PROTOCOL_FEED = 11;              // uL/min (build_module1.py)
-const BENCH_DEFAULT = 50;              // uL/min, dye demo default (no cells: shear doesn't matter)
 const SPEEDS = [1, 10, 100, 1000, 10000];
 const CHAMBER_INFO = { n_cx: 'neuron chamber', g_cx: 'glia (microglia) chamber', a_cx: 'astrocyte chamber', j_mid: 'junction (not a culture chamber)' };
 
@@ -80,7 +80,9 @@ export function createModule1View({ ctx, ui, overlays, root }) {
   let idleT = 0;
   let decisions = [];
   let measured = {};
-  const bench = Object.fromEntries(PORTS.map((p) => [p, BENCH_DEFAULT]));
+  // Dye-demo syringe rate. contracts/ carries no parameter for it yet, so contracts.js hands
+  // back the operator's value and lists it in `missing`; the panel names where it came from.
+  const bench = Object.fromEntries(PORTS.map((p) => [p, contracts().benchFlowUlMin]));
   const group = new THREE.Group();
   const objs = { arrows: null, cells: null, portIcons: {}, m2: null, disc: null, discLabel: null };
   const panel = $('m1-panel');
@@ -91,6 +93,9 @@ export function createModule1View({ ctx, ui, overlays, root }) {
 
   try { measured = JSON.parse(localStorage.getItem('m1v1-measured') ?? '{}'); } catch { measured = {}; }
 
+  // The chip's own top layer, so "the N mm lid" is never a second copy of a number.
+  const lidMm = () => net?.chip.layers?.at(-1)?.thickness_mm ?? '?';
+
   // ---------------------------------------------------------------- loading
 
   async function prepare(spec) {
@@ -98,13 +103,14 @@ export function createModule1View({ ctx, ui, overlays, root }) {
     const rects = res.ok ? parseDxfChannels(await res.text()) : [];
     net = new Network(spec, rects);
     // Draw-only additions (the spec file itself is not changed): channel paths from the DXF,
-    // the 2 mm port holes, and a module block so ports and cells draw as on module chips.
+    // the port holes at the contract bore, and a module block so ports and cells draw as on
+    // module chips.
     const view = structuredClone(spec);
     for (const ch of view.channels) {
       const g = net.geometry[ch.id];
       ch.path = [g.a, g.b];
     }
-    for (const p of view.ports) p.width_um = 2000;
+    for (const p of view.ports) p.width_um = net.portHoleMm * 1000;
     view.module = { id: 'm1v1', name: 'Module 1 v1', status: 'designed', printed: true };
     return { view, dxf: rects.length };
   }
@@ -120,8 +126,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
       l.element.remove();
       return false;
     });
-    chip.loadStls(`${root}cad/exports/${CHIP_ID}/`);
-    buildOverlays();
+    buildOverlays(); // STLs are loaded by main.js, from the folder this chip owns
     attached = true;
     panel.hidden = false;
     document.body.classList.add('has-m1');
@@ -253,14 +258,14 @@ export function createModule1View({ ctx, ui, overlays, root }) {
       const s = part.spec;
       part.box.userData.info = part.kind === 'chamber'
         ? `<b>${s.id}</b> · ${CHAMBER_INFO[s.id] ?? s.type}<br>${s.size[0]} × ${s.size[1]} × ${s.size[2]} mm · ${s.volume_ul} µL${s.mesh_pore_um ? ` · ${s.mesh_pore_um} µm mesh (bought membrane?)` : ' · no mesh'}`
-        : `<b>${s.id}</b> · port: 2 mm hole through the 3 mm lid (${PORT_HOLE_UL} µL)<br>at (${s.position[0]}, ${s.position[1]}) mm`;
+        : `<b>${s.id}</b> · port: ${net.portHoleMm} mm hole through the ${lidMm()} mm lid (${net.portHoleUl.toFixed(2)} µL)<br>at (${s.position[0]}, ${s.position[1]}) mm`;
       part.box.userData.port = part.kind === 'port' ? s.id : null;
       hoverTargets.push(part.box);
     }
     for (const ch of chip.channels) {
       const g = net.geometry[ch.id];
       for (const seg of ch.group.children) {
-        seg.userData.info = `<b>${ch.id}</b> · channel ${ch.from} → ${ch.to}<br>${g.width_mm.toFixed(2)} × ${g.depth_mm} mm · ${g.length_mm.toFixed(2)} mm long (from the DXF) · ${(g.length_mm * g.width_mm * g.depth_mm).toFixed(2)} µL`;
+        seg.userData.info = `<b>${ch.id}</b> · channel ${ch.from} → ${ch.to}<br>${g.width_mm.toFixed(2)} × ${g.depth_mm} mm · ${g.length_mm.toFixed(2)} mm long (${g.source}) · ${(g.length_mm * g.width_mm * g.depth_mm).toFixed(2)} µL`;
         seg.userData.channel = ch.id;
         hoverTargets.push(seg);
       }
@@ -296,7 +301,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
   function newSim() {
     const node = {};
     for (const c of net.chip.chambers) node[c.id] = { c: [0, 0, 0], v: c.volume_ul };
-    for (const p of net.chip.ports) node[p.id] = { c: [0, 0, 0], v: PORT_HOLE_UL };
+    for (const p of net.chip.ports) node[p.id] = { c: [0, 0, 0], v: net.portHoleUl };
     const cells = net.edges.map(() => Array.from({ length: CELLS }, () => [0, 0, 0]));
     return { node, cells };
   }
@@ -526,6 +531,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
 
   function renderPanel() {
     if (!panel || !net) return;
+    const C = contracts();
     const s = state ?? modeStates('grow', PROTOCOL_FEED);
     const times = sol ? dyeTimes(net, sol, s.states, s.flows) : {};
     const modeBtn = (m) => `<button data-m1mode="${m}" aria-pressed="${state?.mode === m}">${esc(MODES[m].label)}</button>`;
@@ -548,14 +554,18 @@ export function createModule1View({ ctx, ui, overlays, root }) {
       const c = sol.channels[e.id];
       return `<tr><td>${e.id}</td><td class="num">${Math.abs(c.flow_ul_min).toFixed(2)}</td><td>${c.flow_ul_min ? `${c.from}→${c.to}` : '–'}</td><td class="num">${c.shear_dyn_cm2.toFixed(3)}</td></tr>`;
     }).join('') : '';
+    const ceiling = shearCeiling();
     const chamberRows = sol ? ['n_cx', 'g_cx', 'a_cx', 'j_mid'].map((c) => `<tr><td>${c}</td><td class="num">${sol.chambers[c].throughput_ul_min.toFixed(2)}</td><td></td>
-      <td class="num ${c !== 'j_mid' && sol.chambers[c].shear_dyn_cm2 > 0.01 ? 'off' : ''}">${sol.chambers[c].shear_dyn_cm2.toFixed(4)}</td></tr>`).join('') : '';
+      <td class="num ${c !== 'j_mid' && sol.chambers[c].shear_dyn_cm2 > ceiling ? 'off' : ''}">${sol.chambers[c].shear_dyn_cm2.toFixed(4)}</td></tr>`).join('') : '';
     const decisionRows = decisions.map((d, k) => `<li class="dec ${d.status}" data-decision="${k}" tabindex="0">
         <span class="tag ${d.status}">${d.status}</span> <b>${esc(MODES[d.intent]?.label ?? 'custom')}</b> · ${esc(d.reason)}
         <div class="meta">${esc(d.summary)}</div>${[...(d.reasons ?? []).map((r) => `<div class="blk">✕ ${esc(r)}</div>`), ...(d.warnings ?? []).map((w) => `<div class="wrn">! ${esc(w)}</div>`)].join('')}</li>`).join('');
     panel.innerHTML = `
       <div class="cp-head"><h2>Module 1 v1 · flow</h2>
-        <p class="meta">MJ's chip (being laser-cut) · real scale · channels from the DXF · solver: twin/network.js = operator/network.py</p></div>
+        <p class="meta">MJ's chip (resin print + hot emboss) · real scale · channels from the DXF · solver: twin/network.js = operator/network.py</p>
+        <p class="meta">µ = ${C.mu_pa_s} Pa s (fluid.viscosity_37c_pa_s: culture medium at 37 °C, not the ${C.muWater20cPaS} Pa s water-at-20 °C value) · shear ceiling ${ceiling} dyn/cm² · port bore ${net.portHoleMm} mm — all from contracts/</p>
+        ${net.estimated.length ? `<p class="wrn">! no DXF rectangle matched ${esc(net.estimated.join(', '))}: those lengths are straight-line estimates, not cut geometry</p>` : ''}
+        ${C.missing.map((m) => `<p class="wrn">! ${esc(m.wanted)} does not exist: ${esc(String(m.name))} = ${m.value} comes from ${esc(m.from)}</p>`).join('')}</div>
       <section><h3>Mode</h3><div class="m1-modes">${DESIGN_MODES.map(modeBtn).join('')}</div>
         <div class="m1-modes sub">${['collect', 'idle'].map(modeBtn).join('')}</div>
         <p class="m1-result">${sol ? esc(keyResult(state?.mode, sol)) : ''}</p>
@@ -575,7 +585,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
       </section>
       <section><h3>Dye arrival, predicted <small>first tint – plug flow, at these rates</small></h3>
         <table class="m1-times"><thead><tr><th>dye</th><th>predicted</th><th>measured</th></tr></thead><tbody>${timeRows || '<tr><td colspan="3">no flow</td></tr>'}</tbody></table>
-        <p class="meta">Includes the 2 × 2 × 3 mm inlet hole (${PORT_HOLE_UL} µL); tubing to the chip not included.</p>
+        <p class="meta">Includes the ${net.portHoleMm} × ${net.portHoleMm} × ${lidMm()} mm inlet hole (${net.portHoleUl.toFixed(2)} µL); tubing to the chip not included.</p>
       </section>
       <details><summary>Solver: every channel</summary>
         <table class="m1-solver"><thead><tr><th></th><th>µL/min</th><th>direction</th><th>shear dyn/cm²</th></tr></thead><tbody>${chRows}${chamberRows}</tbody></table>

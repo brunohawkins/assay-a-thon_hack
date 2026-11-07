@@ -35,21 +35,33 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FEED, VENT, CAP = "FEED", "VENT", "CAP"
-MU_37C = 0.8e-3            # Pa s: water at 37 C, the value protocols/build_module1.py uses
+
+
+def _parameter(name: str) -> float:
+    """One value from contracts/parameters.json. No fallback: a missing contract is a bug,
+    and a literal copied here is exactly how this file drifted from model.py last time."""
+    params = json.loads((ROOT / "contracts" / "parameters.json").read_text())["parameters"]
+    return float(params[name]["value"])
+
+
+# Pa s. The 37 C medium value, NOT fluid.viscosity_pa_s, which is water at 20 C and is the
+# dye-demo figure. These chips run at 37 C, so the 20 C value makes every derived flow about
+# 20% too conservative. The original hard-coded 0.8e-3 was the right physics with no provenance.
+MU_37C = _parameter("fluid.viscosity_37c_pa_s")
+SHEAR_CEILING_DYN_CM2 = _parameter("shear.culture_ceiling_dyn_cm2")
+
+
 def _port_hole_mm() -> float:
     """Port bore, taken from the same contract cad/make_train_cad.py reads.
 
     This was a 2.0 mm literal mirroring a 2.0 mm literal in the CAD generator. When the
     generator started deriving the bore from contracts/blocks.json (0.8 mm) this copy went
     stale, every port-connected channel stopped matching its own DXF, and the geometry
-    silently fell back to the straight-line estimate.
+    silently fell back to the straight-line estimate. Reading the contract and failing on
+    it is the point: falling back to the stale literal is what hid the drift before.
     """
-    try:
-        import json
-        b = json.loads((ROOT / "contracts" / "blocks.json").read_text())
-        return float(b["fabrication_floors"]["min_port_mm"])
-    except Exception:
-        return 2.0
+    b = json.loads((ROOT / "contracts" / "blocks.json").read_text())
+    return float(b["fabrication_floors"]["min_port_mm"])
 
 
 PORT_HOLE_MM = _port_hole_mm()   # cad/make_train_cad.py PORT_SIZE_MM, same source
@@ -169,12 +181,14 @@ class Network:
     geometry: dict = field(init=False)
     edges: list[dict] = field(init=False)
     nodes: list[str] = field(init=False)
+    entry_width_mm: dict = field(init=False)   # chamber -> {channel: width across the flow, mm}
 
     def __post_init__(self):
         self.geometry = channel_geometry(self.chip, self.dxf)
         chambers = {c["id"]: c for c in self.chip["chambers"]}
         self.nodes = list(chambers) + [p["id"] for p in self.chip.get("ports", [])]
         self.edges = []
+        self.entry_width_mm = {cid: {} for cid in chambers}
         for ch in self.chip["channels"]:
             g = self.geometry[ch["id"]]
             r = rect_resistance(g["length_mm"], g["width_mm"], g["depth_mm"], self.mu)
@@ -182,6 +196,7 @@ class Network:
                 if end in chambers:
                     leg, width = _chamber_leg(chambers[end], pt)
                     r += rect_resistance(leg, width, chambers[end]["size"][2], self.mu)
+                    self.entry_width_mm[end][ch["id"]] = width
             self.edges.append({"id": ch["id"], "from": ch["from"], "to": ch["to"], "R": r, **g})
 
     # ------------------------------------------------------------------ solving
@@ -272,8 +287,15 @@ class Network:
         chamber_rows = {}
         for cid, c in chambers.items():
             thru = inflow[cid]
+            # Width across the flow is whichever chamber side the stream actually crosses, as
+            # _chamber_leg works out from the entry point - not always sy. Where several
+            # channels feed one chamber, take the narrowest live entry: that is the worst shear.
+            widths = [w for eid, w in self.entry_width_mm[cid].items()
+                      if abs(flows.get(eid, 0.0)) > 1e-12] or list(self.entry_width_mm[cid].values())
+            width = min(widths) if widths else c["size"][1]
             chamber_rows[cid] = {"throughput_ul_min": round(thru, 6),
-                                 "shear_dyn_cm2": round(shear_dyn_cm2(thru, c["size"][1], c["size"][2], self.mu), 6),
+                                 "shear_dyn_cm2": round(shear_dyn_cm2(thru, width, c["size"][2], self.mu), 6),
+                                 "width_across_flow_mm": round(width, 4),
                                  "volume_ul": c["volume_ul"]}
         routing = self._routing(flows, state, culture)
         return {"ports": port_flow, "channels": channel_rows, "chambers": chamber_rows,
@@ -364,12 +386,12 @@ def _default_feed_ul_min() -> float:
     (140 x 75 mm -> the 30 x 20 mm build envelope) and a literal here went stale the
     moment it was, silently pushing wall shear 4x over the ceiling. tau = 6*mu*Q/(w*h^2)
     with w the chamber width across the flow and h its depth.
+
+    The chip is required. Returning a literal when it cannot be read is how a stale 2.0
+    silently came back, so an unreadable chip raises instead.
     """
-    mu, ceiling, margin = 0.8e-3, 0.01, 0.85
-    try:
-        chip = json.loads((ROOT / "chip" / "module1_v1.json").read_text())
-    except OSError:
-        return 2.0
+    mu, ceiling, margin = MU_37C, SHEAR_CEILING_DYN_CM2, 0.85
+    chip = json.loads((ROOT / "chip" / "module1_v1.json").read_text())
     flows = []
     for c in chip["chambers"]:
         if c.get("type") == "pool":          # the junction is not a culture chamber
@@ -377,7 +399,9 @@ def _default_feed_ul_min() -> float:
         w, h = c["size"][1] * 1e-3, c["size"][2] * 1e-3
         q = (ceiling / 10.0) * w * h * h / (6.0 * mu)      # m3/s
         flows.append(q * 60.0 * 1e9)                        # uL/min
-    return round(min(flows) * margin, 3) if flows else 2.0
+    if not flows:
+        raise NetworkError("chip/module1_v1.json has no culture chamber: no feed can be derived")
+    return round(min(flows) * margin, 3)
 
 
 DEFAULT_FEED_UL_MIN = _default_feed_ul_min()
@@ -412,27 +436,68 @@ def threshold_flow(width_mm: float, depth_mm: float, ceiling: float, mu: float) 
     return ceiling / DYN_CM2_PER_PA * (width_mm / 1000) * (depth_mm / 1000) ** 2 / (6 * mu) * 60e9
 
 
-def design_check(net: Network) -> list[dict]:
-    """The design doc's numbers next to what the solver gets. Nothing is tuned to fit."""
-    sols = solve_modes(net)
+DOC_FLOW_UL_MIN = 11.0     # the feed the design doc's pressure numbers were worked out at
+DOC_MU_PA_S = 0.8e-3       # same as fluid.viscosity_37c_pa_s, so no carry-over scaling is needed
+DOC_PRESSURE_MBAR = (0.04, 0.22)
+DOC_Q_CHAMBER_UL_MIN = 13.5
+DOC_Q_CHANNEL_UL_MIN = 0.9
+
+
+def protocol_flow_ul_min(path: Path | None = None) -> float:
+    """The largest feed protocols/module1_v1.json actually asks for.
+
+    The shear row must be checked against a flow the run uses. Checking it at
+    DEFAULT_FEED_UL_MIN made it unfalsifiable, because that flow is itself derived by
+    dividing the shear ceiling by 0.85 - the row then validated its own input.
+    """
+    steps = json.loads((path or ROOT / "protocols" / "module1_v1.json").read_text())["steps"]
+    flows = [s["flow_ul_min"] for s in steps if s.get("flow_ul_min")]
+    if not flows:
+        raise NetworkError("protocols/module1_v1.json sets no flow_ul_min: no run flow to check shear at")
+    return max(flows)
+
+
+def design_check(net: Network, flow: float = DEFAULT_FEED_UL_MIN) -> list[dict]:
+    """The design doc's numbers next to what the solver gets, every row at a stated flow.
+
+    The doc's figures were derived at DOC_FLOW_UL_MIN and DOC_MU_PA_S. The solver runs at
+    `flow` and at the contract viscosity, so each doc figure is carried to those conditions
+    before comparing: pressure scales with mu*Q, a shear-threshold flow with 1/mu. Comparing
+    a solver at 2.4 uL/min against targets frozen at 11 reported DIFF forever and taught
+    everyone to ignore the table.
+    """
+    sols = solve_modes(net, flow)
     running = {m: s["max_pressure_mbar"] for m, s in sols.items() if m in ("grow", "int_n", "int_g", "int_a", "harvest", "seed")}
     lo, hi = min(running.values()), max(running.values())
     ch = net.chip["chambers"][0]
     chan = net.chip["channels"][0]
-    q_chamber = threshold_flow(ch["size"][1], ch["size"][2], 0.01, net.mu)
-    q_channel = threshold_flow(chan["width_mm"], chan["depth_mm"], 0.01, net.mu)
-    worst_chamber = max((r["shear_dyn_cm2"], m, c) for m, s in sols.items() for c, r in s["chambers"].items() if c != "j_mid")
+    ceiling = SHEAR_CEILING_DYN_CM2
+    q_chamber = threshold_flow(ch["size"][1], ch["size"][2], ceiling, net.mu)
+    q_channel = threshold_flow(chan["width_mm"], chan["depth_mm"], ceiling, net.mu)
+    mu_scale = DOC_MU_PA_S / net.mu
+    p_scale = (flow / DOC_FLOW_UL_MIN) / mu_scale
+    doc_lo, doc_hi = (p * p_scale for p in DOC_PRESSURE_MBAR)
+    doc_q_chamber = DOC_Q_CHAMBER_UL_MIN * mu_scale
+    doc_q_channel = DOC_Q_CHANNEL_UL_MIN * mu_scale
+    # Shear is checked at a flow the protocol actually commands, not at the solver's own default.
+    run_flow = protocol_flow_ul_min()
+    run_sols = sols if abs(run_flow - flow) < 1e-9 else solve_modes(net, run_flow)
+    worst_chamber = max((r["shear_dyn_cm2"], m, c) for m, s in run_sols.items() for c, r in s["chambers"].items() if c != "j_mid")
     d_implied = (8.8e-3) ** 2 / (2 * 12 * 3600)
+    at = f"{flow:g} uL/min per feed, mu = {net.mu * 1000:g} mPa s"
     rows = [
-        {"quantity": "Running pressure, all modes at 11 uL/min per feed (mbar)", "doc": "0.04-0.22",
+        {"quantity": f"Running pressure, all modes at {at} (mbar)", "doc": f"{doc_lo:.3f}-{doc_hi:.3f}",
          "solver": f"{lo:.3f}-{hi:.3f}", "per_mode": running,
-         "match": abs(lo - 0.04) / 0.04 < 0.3 and abs(hi - 0.22) / 0.22 < 0.3},
-        {"quantity": "Chamber shear reaches 0.01 dyn/cm2 at (uL/min)", "doc": "13.5", "solver": f"{q_chamber:.2f}",
-         "match": abs(q_chamber - 13.5) < 0.2},
-        {"quantity": "Channel shear reaches 0.01 dyn/cm2 at (uL/min)", "doc": "0.9", "solver": f"{q_channel:.2f}",
-         "match": abs(q_channel - 0.9) < 0.05},
-        {"quantity": "Highest chamber shear in any mode at 11 uL/min (dyn/cm2)", "doc": "< 0.01",
-         "solver": f"{worst_chamber[0]:.4f} ({worst_chamber[2]}, {worst_chamber[1]})", "match": worst_chamber[0] < 0.01},
+         "match": abs(lo - doc_lo) / doc_lo < 0.3 and abs(hi - doc_hi) / doc_hi < 0.3},
+        {"quantity": f"Chamber shear reaches {ceiling:g} dyn/cm2 at (uL/min, mu = {net.mu * 1000:g} mPa s)",
+         "doc": f"{doc_q_chamber:.2f}", "solver": f"{q_chamber:.2f}",
+         "match": abs(q_chamber - doc_q_chamber) < 0.2 * mu_scale},
+        {"quantity": f"Channel shear reaches {ceiling:g} dyn/cm2 at (uL/min, mu = {net.mu * 1000:g} mPa s)",
+         "doc": f"{doc_q_channel:.2f}", "solver": f"{q_channel:.2f}",
+         "match": abs(q_channel - doc_q_channel) < 0.05 * mu_scale},
+        {"quantity": f"Highest chamber shear in any mode at the protocol's {run_flow:g} uL/min (dyn/cm2)",
+         "doc": f"< {ceiling:g}",
+         "solver": f"{worst_chamber[0]:.4f} ({worst_chamber[2]}, {worst_chamber[1]})", "match": worst_chamber[0] < ceiling},
         {"quantity": "Diffusion: implied D from 8.8 mm in 12 h (m2/s)", "doc": "8.8 mm / 12 h, 33 mm / 7 days",
          "solver": f"{d_implied:.2e}; 7 days -> {math.sqrt(2 * d_implied * 7 * 86400) * 1000:.1f} mm", "match": True},
     ]
@@ -470,8 +535,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.report:
             for m, s in sols.items():
                 _print_solution(MODULE1_MODES[m]["label"], s)
-            print("\nDesign-doc check (mu = 0.8 mPa s, water at 37 C, as build_module1.py):")
-            for r in design_check(net):
+            print(f"\nDesign-doc check (mu = {net.mu * 1000:g} mPa s, contracts/parameters.json fluid.viscosity_pa_s; "
+                  f"doc figures carried from {DOC_FLOW_UL_MIN:g} uL/min and {DOC_MU_PA_S * 1000:g} mPa s):")
+            for r in design_check(net, args.flow):
                 print(f"  {'OK  ' if r['match'] else 'DIFF'} {r['quantity']}: doc {r['doc']}, solver {r['solver']}")
         if args.json:
             args.json.write_text(json.dumps({"chip": chip["id"], "flow_ul_min": args.flow, "modes": sols}, indent=1) + "\n")

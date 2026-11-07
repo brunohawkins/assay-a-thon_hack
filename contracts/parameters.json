@@ -172,7 +172,7 @@
         "CapSeq"
       ],
       "assumption": false,
-      "note": "Outlet sized for released spheroids (~150 um+) after collagenase release"
+      "note": "Outlet sized for released spheroids (~150 um+) after the matrix-digesting enzyme release step"
     },
     "size_sort.cutoff_um": {
       "value": null,
@@ -237,7 +237,7 @@
         "inDrops"
       ],
       "assumption": false,
-      "note": "0.25% trypsin-EDTA"
+      "note": "Enzymatic dissociation reagent held at 37 C. The reagent, its concentration and the chelator it carries are not recorded in this repo (CONFIDENTIALITY.md); only the temperature matters to the chip, which needs a 37 C zone over the dissociation chamber"
     },
     "dissociation.time_min": {
       "value": null,
@@ -296,13 +296,14 @@
       "assumption": false,
       "note": "40 x 40 um flow-focusing nozzle (existing kit)"
     },
-    "encapsulation.gelma_flow_ul_h": {
+    "encapsulation.shell_flow_ul_h": {
       "value": 250,
       "units": "uL/h",
       "source": [
         "SPC-NAR"
       ],
-      "assumption": false
+      "assumption": false,
+      "note": "Shell stream: the photocrosslinkable hydrogel precursor."
     },
     "encapsulation.cell_flow_ul_h": {
       "value": 100,
@@ -311,7 +312,7 @@
         "SPC-NAR"
       ],
       "assumption": false,
-      "note": "Cells in 15% w/v dextran 500 kDa"
+      "note": "Core stream: cells suspended in the viscous core buffer (see encapsulation.core_buffer_viscous)"
     },
     "encapsulation.oil_flow_ul_h": {
       "value": 700,
@@ -332,14 +333,14 @@
       "assumption": false,
       "note": "0.1-0.2 M cells per 100 uL"
     },
-    "encapsulation.dextran_percent_w_v": {
-      "value": 15,
-      "units": "% w/v",
+    "encapsulation.core_buffer_viscous": {
+      "value": null,
+      "units": "-",
       "source": [
         "SPC-NAR"
       ],
       "assumption": false,
-      "note": "Dextran 500 kDa"
+      "note": "FLAG, not a number: the core stream is not water. It carries a high-molecular-weight, non-ionic polymer crowding agent, which is what makes the aqueous two-phase system work: the core buffer and the shell precursor are mutually immiscible and density-matched, so each droplet phase-separates into a core inside a shell instead of mixing. ENGINEERING CONSEQUENCES, which is all this repo records: the core stream is markedly more viscous than water, so channels carrying it are made WIDER and SHORTER to keep the pressure drop down (see the Module 1b resuspension mixer), and fluid.viscosity_pa_s (water) understates the core leg of any flow calculation. The polymer, its molecular weight and its concentration are held outside this repo (CONFIDENTIALITY.md)"
     },
     "gelation.temp_c": {
       "value": 4,
@@ -375,14 +376,14 @@
       ],
       "assumption": false
     },
-    "crosslink.lap_percent_w_v": {
+    "crosslink.photoinitiator_percent_w_v": {
       "value": 0.1,
       "units": "% w/v",
       "source": [
         "SPC-NAR"
       ],
       "assumption": false,
-      "note": "LAP photoinitiator"
+      "note": "Photoinitiator loading for the 405 nm cure, from the cited paper's figure; treat the exact loading as the paper's, not ours"
     },
     "wash.bench_g": {
       "value": 2000,
@@ -420,14 +421,14 @@
       "assumption": true,
       "note": "After lysis, reverse transcription, and the final wash"
     },
-    "lysis.gitc_molar": {
-      "value": 4,
-      "units": "M",
+    "lysis.chaotropic": {
+      "value": null,
+      "units": "-",
       "source": [
         "CapSeq"
       ],
       "assumption": false,
-      "note": "Harsh lysis with 4 M guanidinium thiocyanate for fragile cells; needs chemically resistant materials and a dedicated waste line"
+      "note": "FLAG, not a number: fragile cells need a harsh lysis buffer built on a STRONG CHAOTROPIC SALT at high molarity. ENGINEERING CONSEQUENCES, which is all this repo records: (1) every wetted surface, seal and adhesive on the lysis path must be chemically resistant to it; (2) it is a potent inhibitor of every downstream enzyme, so it must be washed out of the capsules before reverse transcription, ligation or amplification - this is why the wash budget exists; (3) silica-like surfaces bind nucleic acid in it, so glass is a poor wetted surface there; (4) it needs its OWN waste port and line, and that waste must never meet bleach. The salt and its concentration are not recorded in this repo (CONFIDENTIALITY.md)"
     },
     "reagents.common_lines": {
       "value": 8,
@@ -493,6 +494,16 @@
       "assumption": true,
       "note": "Demo target on the sheet"
     },
+    "fluid.viscosity_37c_pa_s": {
+      "value": 0.0008,
+      "units": "Pa s",
+      "source": [
+        "Textbook",
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "USE THIS FOR EVERY CULTURE AND PROTOCOL FLOW OR SHEAR CALCULATION. The chips run at 37 C carrying culture medium, not water at room temperature. Water at 37 C is 0.69 mPa s (textbook); dissolved protein raises it roughly 15%, giving about 0.8 mPa s. Marked an assumption because the exact medium is not characterised. Every generator originally hard-coded 0.8e-3, which was the right physics with the wrong provenance; pointing them at fluid.viscosity_pa_s (water at 20 C) instead made every derived flow 20% too conservative. Keep the two values separate."
+    },
     "fluid.viscosity_pa_s": {
       "value": 0.001,
       "units": "Pa s",
@@ -500,7 +511,7 @@
         "Textbook"
       ],
       "assumption": false,
-      "note": "Water at ~20 C"
+      "note": "Water at ~20 C. This is the DYE DEMO value: room-temperature water in a bench test. Do NOT use it for a 37 C culture or protocol calculation - use fluid.viscosity_37c_pa_s, which is 20% lower, or every flow you derive will be needlessly conservative. Note also encapsulation.core_buffer_viscous: the core stream is markedly more viscous than either value."
     },
     "mesh.open_fraction": {
       "value": 0.35,
@@ -695,7 +706,25 @@
         "CapSeq"
       ],
       "assumption": false,
-      "note": "Split-and-pool barcoding is DROPPED. Cells carry a per-lane lipid-anchored oligo barcode applied in module 1, so reverse transcription uses a plain poly(dT) primer and adds no barcode. Module 4's index PCR still adds the sublibrary index. NOTE the surviving barcodes are per-LANE, not per-cell: three lanes x four sublibrary indices is about twelve distinguishable groups, so the data is lane-level, not single-cell."
+      "note": "Only PLATE-BASED split-and-pool is dropped; per-CELL barcoding is not. Module 3's reverse transcription uses a plain poly(dT) primer and adds no barcode itself. The per-cell barcode comes from stage 4b (protocols/sctip_spc_v1.json): each capsule is re-injected into its own oil droplet, where one barcode from a pool of 16 random bases (4.3e9) is clonally amplified IN THAT DROPLET and overlap-extended onto that capsule's cDNA - AmpliDrop (doi:10.1101/2024.08.13.607508) on semipermeable capsules. The emulsion is the containment: no anchor, no cleavage. One capsule = one cell, so the data IS single-cell. Barcoding must follow RT, because overlap extension needs a template already inside the capsule. The per-lane label plus module 4's four sublibrary indices (~twelve groups) are DEMULTIPLEXING, not resolution, and must never be counted as the barcode space - doing so is what made this repo wrongly conclude the data was lane-level. Loading is Poisson at mean 3: ~5% of droplets get no barcode and those cells are lost; most get several and are merged computationally. Droplet hardware is bought (below the 200 um in-plane floor); the chemistry is ours."
+    },
+    "barcoding.random_bases": {
+      "value": 16,
+      "units": "bases",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "Length of the random cell barcode, so the pool is 4^16 = about 4.3e9 sequences. This, not lanes x sublibraries, is the barcode space that sets the collision rate."
+    },
+    "barcoding.loading_mean": {
+      "value": 3,
+      "units": "barcodes per droplet",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "Barcode loading is Poisson because a free molecule cannot be ordered the way a close-packed bead can. Aiming for exactly one would discard 37% of cells, so the published method runs at a mean of 3: about 5% of droplets get none and are lost, and about 80% get several and are resolved afterwards by merging barcodes that share fragments."
     },
     "barcoding.lanes": {
       "value": 3,

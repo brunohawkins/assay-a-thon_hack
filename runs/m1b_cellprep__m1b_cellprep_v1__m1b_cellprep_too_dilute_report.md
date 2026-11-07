@@ -4,7 +4,7 @@
 
 - Scenario: `m1b_cellprep_too_dilute`: Too few cells per uL: even undiluted they give well under 0.1 cells per capsule, so the safety checker blocks the hand-off and says how much to concentrate.
 - Status: **stopped**
-- Created: 2026-11-07T17:47:46Z
+- Created: 2026-11-07T19:16:22Z
 
 ## Outcome
 

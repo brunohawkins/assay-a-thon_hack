@@ -14,5 +14,18 @@ jobs:
           python-version: "3.10"
       - run: pip install -r requirements.txt
       - run: python tools/validate.py
+      # NOTE: check_chip_spec.py exits 0 on WARNINGS, so channel crossings, port pitch and
+      # sub-floor features do NOT fail this step. The assertions for those live in
+      # tests/test_design_rules.py and the figure step below; this one catches ERRORS only.
       - run: python tools/check_chip_spec.py
+      # cad/make_figures.py is the repo's ONLY planar-collision detector: in a single
+      # fluidic layer two channels that touch in plan view ARE one channel, and a port
+      # drilled onto a channel it does not belong to is a short circuit. Neither is visible
+      # in the JSON and neither is checked by validate.py or check_chip_spec.py. It exits
+      # non-zero on a collision. --all so placeholder and draft chips are drawn too.
+      - run: python cad/make_figures.py --all
+      # A committed figure that no longer matches its spec is a drawing of a chip we are not
+      # building, and the figures are what people read. Regenerating above must be a no-op.
+      - name: figures in cad/figures are up to date
+        run: git diff --exit-code -- cad/figures
       - run: python -m unittest discover -s tests -v

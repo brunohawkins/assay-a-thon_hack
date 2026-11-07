@@ -3,7 +3,19 @@
 Describe a single-cell assay protocol; AI designs a microfluidic **capsule processor**
 chip for it, and an AI operator runs the protocol on that chip, shown live as a 3D
 digital twin. Cells sit in capsules that stay put on mesh floors while liquids are
-exchanged around them, split into chambers and pooled back together. This weekend
+exchanged around them, split into chambers and pooled back together.
+
+**Why "single-cell" is earned, not assumed.** Each capsule holds one cell, and each capsule
+is re-injected into its own oil droplet where a single barcode molecule from a pool of
+4.3 × 10⁹ is clonally amplified *in that droplet* and joined onto that cell's cDNA, so every
+cell carries its own clonal barcode (the AmpliDrop idea applied to semipermeable capsules,
+[10.1101/2024.08.13.607508](https://doi.org/10.1101/2024.08.13.607508); design in
+[protocols/sctip_spc_design.md](protocols/sctip_spc_design.md)). The ~12 groups you get from
+three lanes × four sublibrary indices are a **demultiplexing** convenience on top — they are
+not the resolution of the data. The barcoding chemistry is ours; the droplet hardware it
+needs is below our 200 µm in-plane floor and is bought.
+
+This weekend
 there are no pumps, cameras or wet-lab data: everything runs in software, with
 resin-printed, hot-embossed parts for the physical chip (30 × 20 mm, 0.3 mm deep, one
 fluidic layer). Retention features cannot be printed at this floor, so capsule
@@ -80,13 +92,13 @@ printed show piece; the scale bar works in both. The **Chip
 sizing** panel shows what the sizing calculator says the chip needs next to what it has.
 The twin opens on the **pipeline view**: every current module left to right (from
 `protocols/pipeline_mvp.json`): Module 1 v1 (culture) -> cell prep -> Module 2 (encapsulation, `spc_demo_v1`) ->
-Module 3 (load, lysis, wash; translated from Szonja's file) -> barcoding (a HOLE: no chip, no protocol) ->
+Module 3 (load, lysis, wash, RT; translated from the project's geometry requirements sheet) -> barcoding (stage 4b: design + protocol, no printable chip - the droplet steps run on a bought kit) ->
 Module 4 (sublibrary split + index PCR) -> Module 5 (release + cleanup) -> SPRI and QC (off-chip) -> library out. Each card
 has a status badge (FINAL, DRAFT, TRANSLATED, MISSING), says whether it is **built for the
 dye demo** or **twin only**, and shows its hand-off ports (TBC where not named) with
 a ⚠ where the two chips' ports differ (the demo needs an adapter). Cells, capsules and library
 move between the cards; click a module for its own view (tabs along the top). Module 1 v1 is a
-flow twin (see below); Module 3 plays Szonja's workflow on the translated chip; Modules 4 and 5
+flow twin (see below); Module 3 plays the sheet's workflow on the translated chip; Modules 4 and 5
 play MJ's protocols with a design-note panel (fill order ABCD DCBA and thermocycle on the whole
 chip; pass k of 4, magnet on/off). The superseded drafts (Module 1 brief, 1b, 3 wash) are under
 **Old drafts**. Generated chips' views show their animations (valves, a day counter while cells
@@ -98,8 +110,8 @@ with safety tags), an alert banner, and an **Open loop / Closed loop** toggle th
 replays the same protocol and faults the other way. How the closed loop works:
 [operator/README.md](operator/README.md).
 
-Other tools: `python operator/sizing.py mvp cells:100000` (chip sizing, port of Szonja's
-sheet), `python cad/export_display_model.py cad/m3_wash_spec.json` (printable display model),
+Other tools: `python operator/sizing.py mvp cells:100000` (chip sizing, port of the
+project's geometry requirements sheet), `python cad/export_display_model.py cad/m3_wash_spec.json` (printable display model),
 `python -m unittest discover -s tests` (tests).
 
 The twin only reads run files, so a recorded run always works offline. That's the

@@ -19,6 +19,27 @@ The current modules are listed in `contracts/README.md` ("The current modules") 
 Change a design by changing generator parameters and re-running the generator (see "How to
 design Module 2 or 3" in `contracts/README.md`). Never hand-edit the specs.
 
+Retired and superseded export sets carry a **`RETIRED.md`** next to their parts
+(`cad/exports/m1_culture_v1/`, `m1b_cellprep_v1/`, `m2_encapsulation_v1/`, `m3_wash_v1/`,
+`sctip_spc_v1/`), written by `cad/make_train_cad.py` from its `RETIRED` table. Nothing on
+disk should look live when it is not: a fabricator browsing `cad/exports/` cannot read the
+pipeline tables. Retire a chip by adding it to that table and re-running the generator.
+
+## The DXFs, and which one to machine
+
+`cad/make_train_cad.py` writes **two** DXFs per chip, both rewritten on every run, so
+neither can go stale against the other:
+
+| File | What it is |
+|---|---|
+| `<chip_id>_closed.dxf` | **The fabrication file. Machine this one.** Every chamber and every channel is ONE closed `LWPOLYLINE` (group 70 = 1), on layer `CHAMBERS`, `CHANNELS` or `GROOVES`. Each channel **stops on the chamber wall it enters** — its end cap is trimmed back onto that wall — so no chamber outline and no channel outline cross, no channel segment runs through the inside of a chamber, and the two shapes meet edge to edge, which keeps the junction open under even-odd fill. |
+| `<chip_id>.dxf` | The reference drawing and the hydraulic model's input. Every channel is the full centreline rectangle as four `LINE` entities, running to where its *centreline* meets the chamber wall, because that is where the channel's hydraulic length ends: `operator/network.py` and `twin/network.js` read channel lengths and widths out of it. An oblique channel therefore pokes a half-width into the chamber **in this file**. It is a drawing of centrelines, not a cut path — don't machine it. |
+
+Both declare their units: `$INSUNITS = 4` (millimetres) and `$MEASUREMENT = 1` in a real
+`HEADER` section, with the layers declared in `TABLES`. These files used to have no
+`HEADER` at all, so they stated no units at all, and a CAM importer that defaults to
+inches would have scaled every part by 25.4 — a 30 mm chip arriving 762 mm wide, silently.
+
 ## Export rules (the twin depends on these)
 
 1. **One STL per part**, saved in `cad/exports/`.
@@ -31,7 +52,11 @@ design Module 2 or 3" in `contracts/README.md`). Never hand-edit the specs.
    x along the slide, y across it, **z up**. Export each part *in place* (don't move it to the
    origin), so `m3_trap_1.stl` sits where the chip spec says `m3_trap_1` is.
 5. Binary or ASCII STL both work.
-6. **One chip owns the flat folder; every other chip gets a subfolder.** Part files are
+6. **Nothing loose in the flat folder that isn't the flat folder's chip.** `cad/exports/`
+   belongs to `ipsc_to_mgl_chip_v1` (see the next rule); a one-piece print named by its
+   chip id goes in that chip's own folder, which is why Ayrton's hello world mould now
+   lives at `cad/exports/hello_world_plate/hello_world_plate.stl`.
+7. **One chip owns the flat folder; every other chip gets a subfolder.** Part files are
    named by bare ID and IDs repeat across chips (`inlet_1` is not unique), so
    `cad/exports/inlet_1.stl` can only mean one chip. `twin/main.js` loads
    `cad/exports/` flat, so that namespace belongs to the chip the twin shows, and
@@ -39,13 +64,24 @@ design Module 2 or 3" in `contracts/README.md`). Never hand-edit the specs.
    `chip.loadStls()` already takes a base path, so pointing the twin at a subfolder is
    a one-line change whenever someone wants the second chip in it. `module1_v1` is in
    `cad/exports/module1_v1/`.
-7. **`module1_v1` is one layer, resin-printed and hot-embossed.** It has no feature under
+8. **`module1_v1` is one layer, resin-printed and hot-embossed.** It has no feature under
    0.2 mm and no on-chip valve, so it needs no photolithography, cast layer, PDMS or glass,
    and no second fabrication route.
 
 If your CAD can export **GLB with named parts**, put that in `cad/exports/` as well
 (e.g. `chip_v1.glb`), with each part named by its ID. The twin doesn't load GLB yet,
 but it keeps colours and names together and is the easiest upgrade path.
+
+## Regenerating the exports
+
+```
+python cad/make_train_cad.py --all                      # every chip spec, chip/ and cad/*_spec.json
+python cad/make_train_cad.py --chip chip/<spec>.json    # just one
+```
+
+Run `--all` after any spec change. In a chip's **own** folder the generator deletes parts
+that chip no longer has (an orphan STL is a part someone makes by mistake); in the shared
+flat folder it only reports them, and it never deletes a one-piece `<chip_id>.stl`.
 
 ## Checking your export
 
@@ -63,11 +99,21 @@ units (inches, or centred on the part). Re-export in place in mm.
 
 ## Hello world plate (MVP)
 
-`exports/hello_world_plate.stl` is Ayrton's hello world MVP: a **positive mould**,
-15 × 10 mm, with two 1 mm wells joined by a 0.5 × 0.2 mm channel (5 mm long) raised
-0.2 mm on a 0.5 mm base. Casting against it gives two open-top wells joined by an
-open-top channel. It's exported in **µm with the plate centred on 0,0**; the dims file
-records that, so the file doesn't need re-exporting.
+`exports/hello_world_plate/hello_world_plate.stl` is Ayrton's hello world MVP: a
+**positive mould**, 15 × 10 mm, with two 1 mm wells joined by a 0.5 × 0.2 mm channel
+(5 mm long) raised 0.2 mm on a 0.5 mm base. Casting against it gives two open-top wells
+joined by an open-top channel. It's exported in **µm with the plate centred on 0,0**; the
+dims file records that, so the file doesn't need re-exporting.
+
+It **moved out of the flat `exports/` folder** into its own chip folder (rule 6): the flat
+folder belongs to `ipsc_to_mgl_chip_v1`, and a file in µm centred on 0,0 sitting loose
+among another chip's in-place mm parts is exactly the mix-up rules 3, 4 and 7 exist to
+stop. It was moved rather than converted, because `cad/hello_world_dims.json` is the
+record of how it was exported and `cad/hello_world_spec.py` checks the STL against that
+record; rewriting the file in mm would make the record a lie. Side effect:
+`cad/hello_world_spec.py` only looks in flat `cad/exports/`, so it now prints "no hello
+world STL in cad/exports/ yet" and skips the bounding-box check. Point it at the subfolder
+when someone owns that file.
 
 - **Edit dimensions only in `cad/hello_world_dims.json`.** Values were measured from the STL.
   `stl_units`, `stl_origin` and `positive_mould` describe how the STL was exported. Names in
@@ -79,7 +125,8 @@ records that, so the file doesn't need re-exporting.
   more than 10% off and never changes the STL or the dims.
 - A new version can be one piece (`hello_world_plate.stl`) or separate parts (`well_1.stl`,
   `channel_1.stl`, `well_2.stl`). If the export settings change, update `stl_units` /
-  `stl_origin` to match.
+  `stl_origin` to match. A one-piece print is the one STL `make_train_cad.py` will not
+  delete from a chip's own folder, because it is named by the chip id rather than a part id.
 
 ## Real scale vs display model
 

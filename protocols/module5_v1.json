@@ -3,19 +3,19 @@
   "name": "Sublibrary split, index PCR, release and cleanup, library out (steps 15-17) - module5_v1",
   "source": "Capsule workflow: Baronas et al., Science 391, 1138 (2026), doi:10.1126/science.ady7227 (CapSeq). Split-pool barcoding with a final indexing PCR: Rosenberg AB et al., Science 2018;360:176, doi:10.1126/science.aam8999 (SPLiT-seq). Chip geometry, the interleaved fill order, the dead-volume accounting and the flows are ours.",
   "placeholder": false,
-  "description": "Steps 16-17: release, cleanup, library out, on chip/module5_v1.json. Second half of a two-chip run; see protocols/build_library_out.py. Runs across two chips: module4_v1 for the interleaved split and index PCR, then module5_v1 for the collagenase release, the bead cleanup and the library outlet. Built in the protocol sheet's order (PCR before release); published practice releases first, so that order is contested and the reasoning is in protocols/build_library_out.py. Four chambers are filled one at a time by an off-chip rotary valve in the order A B C D D C B A, twice, to keep the sublibraries even. The PCR is written out cycle by cycle. Module 5 runs one pass per sublibrary, with an explicit dilution before the beads, no ethanol wash on chip, and ratio-based size selection left as an off-chip tube step. Reagent names are generic and the volumes, setpoints and cycle count are round placeholders to be fitted. Flows are computed from chamber geometry so that wall shear stays at or below 0.01 dyn/cm2, and every volume is a fraction of its chamber's volume_ul.",
+  "description": "Steps 16-17: release, cleanup, library out, on chip/module5_v1.json. Second half of a two-chip run; see protocols/build_library_out.py. Runs across two chips: module4_v1 for the interleaved split, the index PCR and the collection of the four sublibraries, then module5_v1 for the collagenase release, the bead cleanup and the library outlet. Built in the protocol sheet's order (PCR before release); published practice releases first, so that order is contested and the reasoning is in protocols/build_library_out.py. Four chambers are filled one at a time by an off-chip rotary valve in the order A B C D D C B A, twice, to keep the sublibraries even. The PCR is written out cycle by cycle. The amplified sublibraries then leave module 4 one at a time through out_sub along a shared collection spine that stays dry until amplification is over, each pushed by air rather than a chase liquid so nothing is diluted; p_vent is capped so the spine is one-way, and the worst-case carry-over from one pass to the next is 0.045 uL, 1.1% of a sublibrary. Each one then crosses to module 5's in_lib by tubing. Module 5 runs one pass per sublibrary, with an explicit dilution before the beads, no ethanol wash on chip, and ratio-based size selection left as an off-chip tube step. Reagent names are generic and the volumes, setpoints and cycle count are round placeholders to be fitted. Flows are computed from chamber geometry so that wall shear stays at or below 0.01 dyn/cm2, and every volume is a fraction of its chamber's volume_ul.",
   "steps": [
     {
       "step": 1,
       "operation": "load",
       "target": "react_cx",
       "reagent": "pcr_product_capsules",
-      "volume_ul": 4.22,
-      "duration_s": 144,
+      "volume_ul": 4.16,
+      "duration_s": 143,
       "temp_c": null,
       "washes": null,
       "flow_ul_min": 2.86,
-      "note": "Step 16, pass 1: move sublibrary 1 (sub_1) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "note": "Step 16, pass 1: sublibrary 1 (sub_1) arrives from module 4's out_sub, through tubing, at module 5's in_lib. That is the module4_to_module5 hand-off: out_sub is capsule-passable and in_lib is the load inlet. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
       "ports": {
         "feed": [
           "in_lib"
@@ -207,12 +207,12 @@
       "operation": "load",
       "target": "react_cx",
       "reagent": "pcr_product_capsules",
-      "volume_ul": 4.22,
-      "duration_s": 144,
+      "volume_ul": 4.16,
+      "duration_s": 143,
       "temp_c": null,
       "washes": null,
       "flow_ul_min": 2.86,
-      "note": "Step 16, pass 2: move sublibrary 2 (sub_2) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "note": "Step 16, pass 2: sublibrary 2 (sub_2) arrives from module 4's out_sub, through tubing, at module 5's in_lib. That is the module4_to_module5 hand-off: out_sub is capsule-passable and in_lib is the load inlet. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
       "ports": {
         "feed": [
           "in_lib"
@@ -404,12 +404,12 @@
       "operation": "load",
       "target": "react_cx",
       "reagent": "pcr_product_capsules",
-      "volume_ul": 4.22,
-      "duration_s": 144,
+      "volume_ul": 4.16,
+      "duration_s": 143,
       "temp_c": null,
       "washes": null,
       "flow_ul_min": 2.86,
-      "note": "Step 16, pass 3: move sublibrary 3 (sub_3) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "note": "Step 16, pass 3: sublibrary 3 (sub_3) arrives from module 4's out_sub, through tubing, at module 5's in_lib. That is the module4_to_module5 hand-off: out_sub is capsule-passable and in_lib is the load inlet. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
       "ports": {
         "feed": [
           "in_lib"
@@ -601,12 +601,12 @@
       "operation": "load",
       "target": "react_cx",
       "reagent": "pcr_product_capsules",
-      "volume_ul": 4.22,
-      "duration_s": 144,
+      "volume_ul": 4.16,
+      "duration_s": 143,
       "temp_c": null,
       "washes": null,
       "flow_ul_min": 2.86,
-      "note": "Step 16, pass 4: move sublibrary 4 (sub_4) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "note": "Step 16, pass 4: sublibrary 4 (sub_4) arrives from module 4's out_sub, through tubing, at module 5's in_lib. That is the module4_to_module5 hand-off: out_sub is capsule-passable and in_lib is the load inlet. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
       "ports": {
         "feed": [
           "in_lib"

@@ -17,17 +17,32 @@ capsule suspension handed over from step 14. The output is a sequencing-ready li
       60 C anneal, 72 C extend, 8-14 cycles (12 here), at 2-4 C/s (3 here). Each PCR cycle is
       three hold_temp steps so the run file shows the real thermal profile. The four chambers
       share one heater, so each hold_temp names sub_1 and its note says the whole chip follows.
-  16. RELEASE + CLEANUP, chip/module5_v1.json. Collagenase digest at 37 C in react_cx, NOT
-      proteinase K, which leaves these capsules intact. Then magnetic bead capture in bead_cx,
-      buffer exchange and elution. Module 5 holds 8.1 uL in react_cx while the four sublibraries
-      add up to far more, so it runs FOUR PASSES, one per sublibrary. The indices differ, so the
-      four eluates can be mixed for sequencing in the tube at the end.
+  15b. COLLECTION, still on chip/module4_v1.json. The amplified sublibraries leave through
+      out_sub, the chip's capsule-passable product outlet, ONE AT A TIME along the shared
+      collection spine (node_1..node_4). Each chamber taps the spine through a 0.2 mm
+      constriction that opens into a 0.6 mm node: that step is a capillary stop, so the spine
+      stays dry through filling and through the whole thermal profile, and the four reactions
+      only ever meet the spine after their PCR is over. Collection is driven from the chamber's
+      own fill port with AIR and p_vent CAPPED, so the spine is one-way toward out_sub and the
+      sublibrary is never diluted; what stays behind is the wetted film, not the bore. Order is
+      sub_1 first (farthest from out_sub, so it crosses a virgin spine) to sub_4 last (one
+      segment). CARRY_UL below is the worst-case film one pass can hand the next, straight from
+      the geometry; --report prints it as a fraction of the sublibrary. A sublibrary can never
+      be contaminated by one still sealed behind its own stop, only by one already collected.
+  16. RELEASE + CLEANUP, chip/module5_v1.json. Each sublibrary arrives from module 4's out_sub,
+      through tubing, at module 5's in_lib: that is the module4_to_module5 hand-off, and it is
+      now a named port on both sides. Collagenase digest at 37 C in react_cx, NOT proteinase K,
+      which leaves these capsules intact. Then magnetic bead capture in bead_cx, buffer exchange
+      and elution. Module 5 holds 8.1 uL in react_cx while the four sublibraries add up to far
+      more, so it runs FOUR PASSES, one per sublibrary, in the same order they were collected.
+      The indices differ, so the four eluates can be mixed for sequencing in the tube at the end.
   17. LIBRARY OUT through out_lib, then off-chip QC.
 
 Operations. A fill pulse, a bead load and a sublibrary transfer are `load`; adding primer, PCR mix,
 dilution, wash and elution buffer are `exchange` (flow-through, nothing is retained, there is no
-mesh); the collagenase digest and the library hand-offs are `release`; the PCR and the digest are
-`hold_temp`. There is no `split` step: the split is done by the valve, not by the chip, and the
+mesh); the collagenase digest, the sublibrary collection through out_sub and the library hand-offs
+are `release`; the PCR and the digest are `hold_temp`. There is no `split` step: the split is done
+by the valve, not by the chip, and the
 planner's split reads channel topology that module 4 deliberately does not have. The PCR is written
 out as one `hold_temp` per segment, not with the `cycles` field: the operator sends the step's
 temp_c and duration_s only, and the twin reads the cycle number from each step's narration, so a
@@ -36,15 +51,43 @@ port state (`ports`): the chips route by port, and only a capped port is a true 
 
 Volumes and flow. Nothing numeric about liquid is typed in here. Each volume is a fraction of a
 chamber's volume_ul (SUSP_FRACTION, PRIMER_FRACTION, BEADS_FRACTION, ...), and `volume_ul` of an
-exchange is per wash, so no step moves more than its chamber holds: a step that wants five chamber
-volumes is five washes of one. Wall shear is tau = 6*mu*Q/(w*h^2) in dyn/cm2 (1 Pa = 10 dyn/cm2),
-w = size[1] and h = size[2] of the chamber the step targets (and of every chamber on the route for
-a through-flow). Every flow is FLOW_FRACTION (85%) of the flow that gives 0.01 dyn/cm2 in the
-tightest chamber, floored to 0.01 uL/min; the capture and elution steps are slowed further
-because bead binding kinetics, not shear, set their pace. Duration = washes*volume/flow*60
-times a 1.4 margin. Capsules do not adhere and would tolerate more, but the project applies the
-0.01 ceiling to every chamber, so it is applied here. Narrow channels see more shear at these
-flows (--report prints them); only chambers are held to the ceiling.
+exchange is per wash. Duration = washes*volume/flow*60 times a 1.4 margin.
+
+WHICH CEILING APPLIES TO WHICH CHAMBER. This file used to say: "Capsules do not adhere and would
+tolerate more, but the project applies the 0.01 ceiling to every chamber, so it is applied here."
+contracts/parameters.json now says the opposite in as many words: shear.culture_ceiling_dyn_cm2
+"applies to chambers holding ADHERENT CELLS... It does NOT apply to chambers holding CAPSULES: a
+capsule is not attached to anything and the limit there is capsule.escape_pressure_kpa". Neither
+chip here holds a cell attached to anything, so the culture ceiling applies to NOTHING on this
+path, and there are two different bounds instead:
+
+  sub_1..sub_4, and react_cx while the capsules are still intact (the fill pulses, the primer and
+  mix additions, the collection, the arrival at module 5 and the collagenase in) are CAPSULE
+  steps. The bound is pressure across a packed capsule bed, kept under control.pressure_margin of
+  capsule.escape_pressure_kpa, with the bed resistance from contracts/parameters.json
+  (mesh.bed_resistance_kpa_per_ul_min). See capsule_flow(). That is about 59.5 uL/min rather than
+  the 2.9-3.4 uL/min the culture ceiling allowed, and it is why these steps used to take so long
+  for no cell's benefit. The capillary stops are untouched by it: driving 59.5 uL/min through a
+  0.2 mm tap costs a few Pa against a stop that holds of order a kPa.
+
+  bead_cx (and the dilution pass that crosses it) holds about 1 um magnetic beads held by a
+  magnet. No cell and no capsule, so neither bound applies: what sets the pace is SPRI binding and
+  elution kinetics. Those flows are left exactly as they were, as kinetics PLACEHOLDERS to be
+  fitted on real eluates, and route_flow() is kept for them alone with that caveat attached. They
+  are not shear limits and must not be read as any.
+
+Narrow channels see more shear at these flows (--report prints them); no chamber here is held to a
+shear ceiling at all.
+
+WHAT AN EXCHANGE IS FOR IS A FIELD, NOT PROSE. Every exchange carries `exchange_kind`. The index
+primer and the PCR mix are FILLs: they go into a part-air-filled chamber behind a capillary stop,
+nothing drains, and they are bounded ABOVE by the chamber's volume_ul (together with the capsule
+suspension they bring it to REACTION_FILL). They are arguably not exchanges at all - but the
+instruction set's `load` carries no reagent (operator/commands.py: load(target, volume_ul)) and the
+model draws the capsule carrier for it, so calling them `load` would throw away the index identity
+that is the entire point of module 4. `exchange` with exchange_kind "fill" is what says it. The
+dilution and the bead buffer exchange are SWEEPs, sized from exchange.target_fraction; the elution
+is a PARTIAL, deliberately half a bead_cx volume, because a small eluate is the point.
 
 THE DILUTION PROBLEM. Once the shell dissolves it contributes roughly 10,000 times more polymer
 mass than there is DNA. SPRI binding depends on the crowding reagent holding DNA on the bead
@@ -73,6 +116,11 @@ settle is where the digest goes between the two chips in that order (the collect
 not specified) or how cleanup would be done after PCR, which would then be a tube step. MJ and
 the protocol owners need to decide before this is built as the final run.
 
+Port states, module 4 (no valves either): filling, priming and the two reagent additions feed the
+chamber's own in_s port with p_vent vented and out_sub CAPPED, so the capillary stop at the node
+is the thing holding the liquid. Thermocycling caps everything. Collection feeds the chamber's own
+in_s port with out_sub vented and p_vent CAPPED, which is what makes the spine one-way.
+
 Port states, module 5 (no valves; a capped port is the only true block): digest hold, in_lib and
 in_prot and in_bead and both outlets capped. Dilution and capture, in_prot feeds, out_waste
 vented, in_bead and out_lib capped, magnet ON. Buffer exchange, in_bead feeds, out_waste vented.
@@ -89,9 +137,11 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+ROOT = HERE.parent
 OUT_M4 = HERE / "module4_v1.json"
 OUT_M5 = HERE / "module5_v1.json"
-CHIPS = HERE.parent / "chip"
+CHIPS = ROOT / "chip"
+CONTRACT = ROOT / "contracts" / "parameters.json"
 M4 = json.loads((CHIPS / "module4_v1.json").read_text())
 M5 = json.loads((CHIPS / "module5_v1.json").read_text())
 
@@ -102,9 +152,24 @@ SOURCE = (
     "fill order, the dead-volume accounting and the flows are ours."
 )
 
-MU_PA_S = 0.8e-3
-SHEAR_CEILING = 0.01   # dyn/cm2, applied to every chamber
-FLOW_FRACTION = 0.85   # run at this fraction of the shear-ceiling flow
+
+def parameter(name: str) -> float:
+    """One value from contracts/parameters.json. No fallback: a missing contract is a bug,
+    and a literal copied here is how mu lost its provenance last time."""
+    return float(json.loads(CONTRACT.read_text())["parameters"][name]["value"])
+
+
+# mu is the 37 C culture-medium value the contract tells every protocol calculation to use,
+# READ from the contract. This file used to carry a literal 0.8e-3: the right physics with no
+# provenance, and nothing to stop it drifting from the contract again.
+MU_PA_S = parameter("fluid.viscosity_37c_pa_s")
+SHEAR_CEILING = parameter("shear.culture_ceiling_dyn_cm2")   # ADHERENT CELLS ONLY; see the docstring
+ESCAPE_KPA = parameter("capsule.escape_pressure_kpa")
+PRESSURE_MARGIN = parameter("control.pressure_margin")
+BED_RESISTANCE = parameter("mesh.bed_resistance_kpa_per_ul_min")
+EXCHANGE_TARGET = parameter("exchange.target_fraction")
+SWEEP_CV = -math.log(1.0 - EXCHANGE_TARGET)   # chamber volumes a sweep needs to hit the goal
+FLOW_FRACTION = 0.85   # run at this fraction of whichever bound applies
 MARGIN = 1.4
 
 # --- split and PCR (module 4) ---
@@ -118,6 +183,8 @@ SUSP_FRACTION = 0.3            # of a sub chamber's volume, in capsule suspensio
 PRIMER_FRACTION = 0.075        # of a sub chamber's volume
 REACTION_FILL = 0.7            # of a sub chamber's volume once suspension, primer and mix are in
 SWITCH_S = 5                   # valve switch and settle between pulses, assumption
+COLLECT_ORDER = SUBS           # south to north: sub_1 crosses a virgin spine, sub_4 one segment
+AIR_CHASE_S = 60               # air held on after the liquid has left, to clear the route; assumption
 CYCLES = 12                    # 8-14
 RAMP_C_S = 3.0                 # 2-4 C/s
 INITIAL = (98, 60)             # setpoint C, dwell s
@@ -147,7 +214,12 @@ OFFCHIP_S = 20                 # tubing flush between chips
 CH4 = {c["id"]: c for c in M4["chambers"]} | {c["id"]: c for c in M4["channels"]}
 CH5 = {c["id"]: c for c in M5["chambers"]} | {c["id"]: c for c in M5["channels"]}
 PORT4 = {p["id"]: p for p in M4["ports"]}
-VENT4 = next(p["id"] for p in M4["ports"] if p["type"] == "outlet")
+# Module 4 has two outlets and they are not interchangeable: p_vent is the air leg behind the
+# capillary stops, OUT4 is the capsule-passable product outlet the sublibraries actually leave by.
+VENT4 = next(p["id"] for p in M4["ports"]
+             if p["type"] == "outlet" and p.get("capsule_passable") is False)
+OUT4 = next(p["id"] for p in M4["ports"]
+            if p["type"] == "outlet" and p.get("capsule_passable") is True)
 PORT5 = {p["id"]: p for p in M5["ports"]}
 WASTE5, LIB5 = "out_waste", "out_lib"
 assert WASTE5 in PORT5 and LIB5 in PORT5, "module 5 lost a port this protocol routes through"
@@ -187,9 +259,33 @@ def channel_ul(chip: dict, channel_id: str) -> float:
     return _gap(a, b) * ch["width_mm"] * ch["depth_mm"]
 
 
+def capsule_flow() -> float:
+    """FLOW_FRACTION of the flow that keeps the pressure across a PACKED CAPSULE BED under
+    control.pressure_margin of capsule.escape_pressure_kpa, floored to 0.01 uL/min.
+
+    This is the bound for a chamber holding capsules, and it is the only bound the contract
+    gives for one: the risk is a soft capsule being squeezed through whatever constriction it
+    is packed against (here the 0.2 mm tap out of a sub chamber, or ch_react_bead out of
+    react_cx), not a cell being detached from a surface it is stuck to. The bed resistance is
+    the contract's mesh.bed_resistance_kpa_per_ul_min at full cover, which is the same number
+    operator/model.py and operator/safety.py judge a run against, so a flow derived here and a
+    flow approved there cannot disagree. Geometry does not enter: a packed bed, not the
+    chamber's cross-section, is what the pressure falls across.
+    """
+    return math.floor(FLOW_FRACTION * PRESSURE_MARGIN * ESCAPE_KPA / BED_RESISTANCE * 100) / 100
+
+
 def route_flow(chip: dict, chambers: list[str], slowdown: float = 1.0) -> float:
-    """FLOW_FRACTION of the shear-ceiling flow of the tightest chamber on the route, times `slowdown`,
-    floored to 0.01 uL/min. Channels are not held to the ceiling: they are far narrower than any chamber."""
+    """KINETICS PLACEHOLDER for the bead steps only, to be fitted on real eluates.
+
+    bead_cx holds about 1 um magnetic beads on a magnet: no adherent cell and no capsule, so
+    neither shear.culture_ceiling_dyn_cm2 nor capsule.escape_pressure_kpa bounds it, and what
+    sets the pace is SPRI binding and elution kinetics. The numbers this returns are the ones
+    the file has always used - FLOW_FRACTION of the flow that would give SHEAR_CEILING in the
+    tightest chamber on the route, times `slowdown` - kept unchanged so the bead residence
+    times do not move. They are NOT a shear limit and must not be read as one; they are a
+    stand-in for a binding time nobody has measured yet.
+    """
     caps = []
     for f in chambers:
         c = next(c for c in chip["chambers"] if c["id"] == f)
@@ -225,13 +321,41 @@ LINE4 = max(LINE_IN.values())
 # the tail left in the fill line is mix, so the mix is topped up to bring the chamber to REACTION_FILL
 MIX_UL = round(REACTION_FILL * V_SUB - SUSP_UL - PRIMER_UL + LINE4, 3)
 CONTENT_UL = SUSP_UL + PRIMER_UL + MIX_UL - LINE4   # what actually reaches the chamber
+
+# --- the shared collection spine on module 4 ------------------------------------------------
+# One spine, reached in sequence. A sublibrary's route out is its own tap, then every spine
+# segment between its node and node_4, then ch_out. Nothing else is in the route, because the
+# spine only ever flows toward OUT4: p_vent is capped for every collection pass.
+SPINE = ["ch_spine_12", "ch_spine_23", "ch_spine_34"]
+
+
+def collect_path(sub: str) -> list[str]:
+    return [f"ch_tap_{sub[-1]}"] + SPINE[SUBS.index(sub):] + ["ch_out"]
+
+
+PATH_UL = {s: round(sum(channel_ul(M4, c) for c in collect_path(s)), 3) for s in SUBS}
+
+
+def shared_with_earlier(sub: str) -> float:
+    """Channel volume on this sublibrary's route that an earlier pass has already wetted."""
+    i = COLLECT_ORDER.index(sub)
+    earlier = {c for s in COLLECT_ORDER[:i] for c in collect_path(s)}
+    return sum(channel_ul(M4, c) for c in collect_path(sub) if c in earlier)
+
+
+# What a pass leaves in the spine (lost), and the worst case it can hand the next pass. The air
+# chase means the loss is the wetted film, not the bore: HOLDUP_FRACTION of the route.
+SPINE_HOLDUP = {s: round(HOLDUP_FRACTION * PATH_UL[s], 3) for s in SUBS}
+COLLECT_LOSS = max(SPINE_HOLDUP.values())
+CARRY_UL = round(HOLDUP_FRACTION * max(shared_with_earlier(s) for s in SUBS), 4)
 LINE_LIB = channel_ul(M5, "ch_in_lib")
 LINE_PROT = channel_ul(M5, "ch_in_prot")
 LINE_BEAD = channel_ul(M5, "ch_in_bead")
 LINE_REACT_BEAD = channel_ul(M5, "ch_react_bead")
 LINE_OUT = channel_ul(M5, "ch_out_lib")
-TRANSFER_LOSS = HOLDUP_SUB + OFFCHIP_LINE_UL + LINE_LIB
+TRANSFER_LOSS = HOLDUP_SUB + COLLECT_LOSS + OFFCHIP_LINE_UL + LINE_LIB
 DELIVERED_UL = round(CONTENT_UL - TRANSFER_LOSS, 2)   # reaches react_cx
+CARRY_FRACTION = CARRY_UL / DELIVERED_UL              # worst-case index cross-talk, pass to pass
 PRODUCT_UL = round(ELUTE_UL - HOLDUP_BEAD - LINE_OUT, 2)
 BEAD_LOAD_UL = round(BEADS_UL + LINE_BEAD, 3)
 
@@ -322,13 +446,35 @@ def build() -> dict:
              f"so one step stands for all four.",
              dwell + ramp, temp_c=temp, ports=ports_for(M4))
 
-    # steps 16 and 17: four passes through module 5
+    # step 15b: collect the four sublibraries, one at a time, along the shared spine
+    for i, sub in enumerate(COLLECT_ORDER, start=1):
+        n = sub[-1]
+        route = " -> ".join(collect_path(sub))
+        emit("release", sub,
+             f"Step 15b, collection {i} of {len(COLLECT_ORDER)}: send sublibrary {LETTER[sub]} out of {sub} "
+             f"through out_sub, driven by AIR at in_s{n} with out_sub vented and p_vent CAPPED. Air, not a "
+             f"chase liquid: the sublibrary is not diluted, and it arrives at module 5 at the volume it left "
+             f"at. The push bursts this chamber's capillary stop and runs {route} ({PATH_UL[sub]} uL of "
+             f"channel); the other three stops are untouched and dry, so the other three sublibraries stay "
+             f"sealed in their chambers, and the spine only ever flows toward out_sub. The spine was dry for "
+             f"the whole thermal profile, so no index met another while there was anything to cross-prime. "
+             f"What stays behind is the wetted film, not the bore: about {SPINE_HOLDUP[sub]} uL lost to the "
+             f"spine, and at most {CARRY_UL:g} uL of this pass handed to the next ({CARRY_FRACTION:.1%} of a "
+             f"sublibrary). That is the cross-contamination bound; it shows up as index hopping at that rate "
+             f"and is measurable in the reads rather than invisible. Hold the air on for "
+             f"{AIR_CHASE_S:g} s after the liquid has left to clear the route.",
+             math.ceil((CONTENT_UL + PATH_UL[sub]) / F_FILL * 60.0 * MARGIN) + AIR_CHASE_S,
+             reagent="air_chase", volume_ul=CONTENT_UL, flow_ul_min=F_FILL,
+             ports=ports_for(M4, [f"in_s{n}"], [OUT4]))
+
+    # steps 16 and 17: four passes through module 5, in the order they were collected
     for sub in PASSES:
         n = sub[-1]
         who = f"sublibrary {n} ({sub})"
         emit("load", "react_cx",
-             f"Step 16, pass {n}: move {who} from module 4 to module 5 through in_lib, with tubing between "
-             f"the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and "
+             f"Step 16, pass {n}: {who} arrives from module 4's out_sub, through tubing, at module 5's in_lib. "
+             f"That is the module4_to_module5 hand-off: out_sub is capsule-passable and in_lib is the load "
+             f"inlet. Four sublibraries will not fit react_cx together, so each gets its own pass and "
              f"keeps its own index.",
              math.ceil(DELIVERED_UL / F_LOAD * 60.0 * MARGIN) + OFFCHIP_S, reagent="pcr_product_capsules",
              volume_ul=DELIVERED_UL, flow_ul_min=F_LOAD,
@@ -388,12 +534,18 @@ def build() -> dict:
         "source": SOURCE,
         "placeholder": False,
         "description": (
-            "Runs across two chips: module4_v1 for the interleaved split and index PCR, then module5_v1 "
-            "for the collagenase release, the bead cleanup and the library outlet. Built in the protocol "
+            "Runs across two chips: module4_v1 for the interleaved split, the index PCR and the collection "
+            "of the four sublibraries, then module5_v1 for the collagenase release, the bead cleanup and the "
+            "library outlet. Built in the protocol "
             "sheet's order (PCR before release); published practice releases first, so that order is "
             "contested and the reasoning is in protocols/build_library_out.py. Four chambers are filled "
             "one at a time by an off-chip rotary valve in the order A B C D D C B A, twice, to keep the "
-            "sublibraries even. The PCR is written out cycle by cycle. Module 5 runs one pass per "
+            "sublibraries even. The PCR is written out cycle by cycle. The amplified sublibraries then leave "
+            "module 4 one at a time through out_sub along a shared collection spine that stays dry until "
+            "amplification is over, each pushed by air rather than a chase liquid so nothing is diluted; "
+            "p_vent is capped so the spine is one-way, and the worst-case carry-over from one pass to the next is "
+            f"{CARRY_UL:g} uL, {CARRY_FRACTION:.1%} of a sublibrary. Each one then crosses to module 5's "
+            "in_lib by tubing. Module 5 runs one pass per "
             "sublibrary, with an explicit dilution before the beads, no ethanol wash on chip, and "
             "ratio-based size selection left as an off-chip tube step. Reagent names are generic and the "
             "volumes, setpoints and cycle count are round placeholders to be fitted. Flows are computed "
@@ -418,6 +570,16 @@ def report() -> None:
     print(f"  {len(FILL_ORDER)} pulses ({PALINDROMES} palindromes; 8-16 allowed). "
           f"Expected CV 3-8% interleaved, against 30-100% for a symmetric manifold.\n")
 
+    print(f"Collection along the shared spine, in order, out through {OUT4} with {VENT4} capped:")
+    print(f"  {'pass':<6}{'route':<52}{'route uL':>9}{'film uL':>9}{'from earlier uL':>17}")
+    for i, s in enumerate(COLLECT_ORDER, start=1):
+        print(f"  {i:<6}{' '.join(collect_path(s)):<52}{PATH_UL[s]:>9.3f}{SPINE_HOLDUP[s]:>9.3f}"
+              f"{HOLDUP_FRACTION * shared_with_earlier(s):>17.3f}")
+    print(f"  worst-case carry-over one pass hands the next: {CARRY_UL:g} uL against a "
+          f"{DELIVERED_UL:.2f} uL sublibrary = {CARRY_FRACTION:.1%}. One-way spine, so a sublibrary can "
+          f"only pick up\n  from one already collected, never from one still behind its own dry "
+          f"capillary stop.\n")
+
     print(f"Thermal profile, {CYCLES} cycles (8-14 allowed), ramp {RAMP_C_S:g} C/s (2-4 allowed):")
     print(f"  {'segment':<20}{'temp C':>8}{'dwell s':>9}{'ramp s':>8}{'step s':>8}{'total s':>9}")
     total = 0.0
@@ -438,6 +600,8 @@ def report() -> None:
          "kept between pulses, pushed into the chamber by the primer and mix, so the mix volume covers it"),
         ("rotary valve stem + tubing (one-off)", OFFCHIP_LINE_UL, "assumption; stays primed after the last pulse"),
         ("transfer: sub chamber hold-up", HOLDUP_SUB, "assumption; film and corners"),
+        ("collection: spine film, worst pass (sub_1)", COLLECT_LOSS,
+         f"air-chased, so the film not the bore of a {max(PATH_UL.values()):.2f} uL route"),
         ("transfer: off-chip tubing", OFFCHIP_LINE_UL, "assumption"),
         ("transfer: ch_in_lib", LINE_LIB, "fills with sample and stays"),
         ("dilution flush: react_cx hold-up", HOLDUP_REACT, "assumption; DNA left behind"),

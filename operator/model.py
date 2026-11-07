@@ -54,7 +54,7 @@ class ModelParams:
     @classmethod
     def from_chip(cls, chip: dict, parameters: dict) -> "ModelParams":
         d_um = chip.get("capsule", {}).get("diameter_um", _p(parameters, "capsule.diameter_um"))
-        mu = _p(parameters, "fluid.viscosity_pa_s")
+        mu = _p(parameters, "fluid.viscosity_37c_pa_s")   # 37 C medium, not water at 20 C
         vol, bed, clean, cap = {}, {}, {}, {}
         for c in chip["chambers"]:
             cid = c["id"]

@@ -76,7 +76,12 @@ def total_volume(command: str, args: dict, model: ProcessModel) -> float:
     if command == "load":
         return float(args.get("volume_ul", 0))
     if command == "release":
-        return float(args.get("volume_ul", model.params.chamber_volume_ul.get(args["target"], 0) * 4))
+        # A release with no stated volume is sized like one wash: wash.chamber_volumes_per_wash
+        # chamber volumes, from contracts/parameters.json. This used to be a literal 4 that no
+        # longer matched the contract's 5, so the overflow rule under-counted every such release.
+        params, _ = _contracts()
+        per_wash = params["parameters"]["wash.chamber_volumes_per_wash"]["value"]
+        return float(args.get("volume_ul", model.params.chamber_volume_ul.get(args["target"], 0) * per_wash))
     return 0.0
 
 
@@ -109,7 +114,9 @@ def check_static(command: str, args: dict, chip: dict, run_params: dict | None =
         if args.get("state") == "open" and pairs and variant == "control":
             blocked.append(f"opening {', '.join(pairs)} is not allowed in the control variant: the control chip's "
                            f"chambers must stay isolated (pair valves stay closed)")
-    temp = args.get("temp_c") if command in ("hold_temp", "culture") else None
+    # Any command carrying a temperature is checked, not just hold_temp and culture: a PCR
+    # step at 98 C is still 98 C against the chip material, whatever the command is called.
+    temp = args.get("temp_c")
     if temp is not None:
         limit, name, unknown = material_limit(chip, materials)
         if limit is not None and temp > limit:
@@ -132,7 +139,7 @@ def cell_prep_target(m2_chip: dict) -> dict:
     s = sizing.compute({
         "capsule_diameter_um": m2_chip.get("capsule", {}).get("diameter_um", p["capsule.diameter_um"]["value"]),
         "cell_flow_ul_h": core,
-        "gelma_flow_ul_h": enc.get("shell_flow_ul_h", p["encapsulation.gelma_flow_ul_h"]["value"]),
+        "shell_flow_ul_h": enc.get("shell_flow_ul_h", p["encapsulation.shell_flow_ul_h"]["value"]),
         "oil_flow_ul_h": enc.get("oil_flow_ul_h", p["encapsulation.oil_flow_ul_h"]["value"]),
     })
     mean = p["capsule.mean_cells_target"]["value"]
@@ -159,7 +166,10 @@ def check_cell_prep(cells_per_ul: float, viability: float, m2_chip: dict) -> Saf
         blocked.append(f"too concentrated - dilute {mean / t['target_mean']:.1f}x: {cells_per_ul:,.0f} cells/uL gives "
                        f"{mean:.2f} cells per capsule at Module 2's flows (target {t['target_mean']:g})")
     elif mean < t["mean_low"]:
-        blocked.append(f"too dilute - concentrate {t['target_mean'] / mean:.1f}x: {cells_per_ul:,.0f} cells/uL gives "
+        # mean is 0 when cells_per_ul is 0: there is nothing to concentrate, so say so
+        # rather than dividing by it.
+        how = "no cells to concentrate" if mean <= 0 else f"concentrate {t['target_mean'] / mean:.1f}x"
+        blocked.append(f"too dilute - {how}: {cells_per_ul:,.0f} cells/uL gives "
                        f"{mean:.3f} cells per capsule at Module 2's flows (target {t['target_mean']:g})")
     if blocked:
         return SafetyResult("blocked", blocked)
@@ -199,7 +209,12 @@ def check(command: str, args: dict, believed: ChipState, chip: dict, model: Proc
             future = believed.copy()
             if command == "load":
                 future.chambers[target].capsules_on_mesh += args.get("capsules", 0)
-            q = float(args.get("flow_ul_min", 20.0))
+            # The flow must be stated. A default here approved the command against a pressure
+            # computed at a flow the run never uses, which is worse than refusing to judge it.
+            if args.get("flow_ul_min") is None:
+                return Blocked(f"{command} on '{target}' gives no flow_ul_min: the mesh pressure rule cannot be "
+                               f"checked, and '{target}' has a retention that capsules can be pushed through")
+            q = float(args["flow_ul_min"])
             pressure = model.mesh_pressure(future, target, q)
             limit = model.params.escape_pressure_kpa
             margin = p["control.pressure_margin"]["value"]
@@ -218,15 +233,22 @@ def check(command: str, args: dict, believed: ChipState, chip: dict, model: Proc
 
     # 4. reservoir would run dry
     reagent = args.get("reagent") or ("capsule_suspension" if command == "load" else None)
-    if reagent and vol > 0 and reagent in believed.reservoirs_ul:
-        left = believed.reservoirs_ul[reagent]
-        if left < vol:
-            blocked.append(f"reservoir '{reagent}' would run dry: needs {vol:.0f} uL, {left:.0f} uL left")
-        elif left < 1.1 * vol:
-            warnings.append(f"reservoir '{reagent}' is nearly empty: {left:.0f} uL left for {vol:.0f} uL")
+    if reagent and vol > 0:
+        if reagent not in believed.reservoirs_ul:
+            # Unknown names used to skip the rule entirely, so a typo or a renamed reagent
+            # walked straight past it. An unknown reservoir cannot be shown to hold enough.
+            blocked.append(f"reagent '{reagent}' has no reservoir in the believed state "
+                           f"(known: {', '.join(sorted(believed.reservoirs_ul)) or 'none'}): "
+                           f"cannot tell whether it would run dry - check the name")
+        else:
+            left = believed.reservoirs_ul[reagent]
+            if left < vol:
+                blocked.append(f"reservoir '{reagent}' would run dry: needs {vol:.0f} uL, {left:.0f} uL left")
+            elif left < 1.1 * vol:
+                warnings.append(f"reservoir '{reagent}' is nearly empty: {left:.0f} uL left for {vol:.0f} uL")
 
-    # 5. temperature vs material
-    if command == "hold_temp":
+    # 5. temperature vs material, for any command that carries one (not just hold_temp)
+    if args.get("temp_c") is not None:
         limit, name, unknown = material_limit(chip, materials)
         if limit is not None and args["temp_c"] > limit:
             blocked.append(f"{args['temp_c']:g} C is above {name}'s max working temperature ({limit:g} C)")

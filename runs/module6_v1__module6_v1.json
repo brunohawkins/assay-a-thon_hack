@@ -4,7 +4,7 @@
   "chip_id": "module6_v1",
   "chip_spec": "chip/module6_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T18:18:49Z",
+  "created_at": "2026-11-07T19:04:05Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": null,
@@ -116,7 +116,7 @@
         "flow_ul_min": 1373.3,
         "waste": "out_n"
       },
-      "narration": "Neurons: quench flood in place, 2 wetted volumes in about 1 s through the combs, chloroform-free. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
+      "narration": "Neurons: quench flood in place, 2 wetted volumes in about 1 s through the combs, free of chlorinated solvents. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
       "protocol_step": 6
     },
     {
@@ -239,7 +239,7 @@
         "flow_ul_min": 1373.3,
         "waste": "out_g"
       },
-      "narration": "Glia: quench flood in place, 2 wetted volumes in about 1 s through the combs, chloroform-free. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
+      "narration": "Glia: quench flood in place, 2 wetted volumes in about 1 s through the combs, free of chlorinated solvents. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
       "protocol_step": 15
     },
     {
@@ -362,7 +362,7 @@
         "flow_ul_min": 1373.3,
         "waste": "out_a"
       },
-      "narration": "Astrocytes: quench flood in place, 2 wetted volumes in about 1 s through the combs, chloroform-free. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
+      "narration": "Astrocytes: quench flood in place, 2 wetted volumes in about 1 s through the combs, free of chlorinated solvents. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
       "protocol_step": 24
     },
     {

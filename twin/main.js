@@ -1,5 +1,6 @@
 // Entry point: loads runs/index.json, shows the pipeline view or a module view, plays runs.
 // The twin only ever reads run files, so a recorded run always works offline.
+import { loadContracts } from './contracts.js';
 import { createScene } from './scene.js';
 import { Chip } from './chip.js';
 import { Player } from './player.js';
@@ -12,6 +13,22 @@ import { createModule1View, CHIP_ID as M1V1 } from './module1.js';
 import { createLibraryView, LIB_CHIPS } from './library_modules.js';
 
 const ROOT = '../'; // serve the repo root: python -m http.server, then open /twin/
+
+// Contracts first. Viscosity, the port bore, the shear ceiling and the build envelope all come
+// from contracts/parameters.json and contracts/blocks.json, and network.js, chip.js and
+// module1.js read them the moment they are constructed. The twin will not run on stand-in
+// physics: the last time it carried its own copies they drifted 25% and 2.5x from the
+// contracts and from operator/network.py, and nothing said so.
+try {
+  await loadContracts(ROOT);
+} catch (err) {
+  document.getElementById('error-text').textContent =
+    `${err.message} The twin reads its physics from contracts/parameters.json and `
+    + 'contracts/blocks.json and will not fall back to numbers of its own. Start a server from '
+    + 'the repo root (python -m http.server 8000) and open http://localhost:8000/twin/';
+  document.getElementById('error').hidden = false;
+  throw err;
+}
 
 const ctx = createScene(document.getElementById('viewport'));
 let chip = null;
@@ -159,14 +176,26 @@ async function ensureChip(path) {
   player.setChip(chip);
   ui.setChipInfo(spec, pipelineData?.entries.find((e) => e.spec?.id === spec.id) ?? null);
   if (m1.isChip(spec)) {
-    m1.attach(chip); // loads its own STLs from cad/exports/module1_v1/
+    m1.attach(chip);
     ctx.frameChip(spec.footprint); // re-fit now the flow panel takes the left side
   }
-  else chip.loadStls(`${ROOT}cad/exports/`).then((ids) => {
-    if (ids.length) ui.toast(`Using CAD for ${ids.join(', ')}`);
-  });
+  // Every chip loads the folder that BELONGS to it (cad/exports/<chip_id>/, or the flat
+  // cad/exports/ only when its .chip_id names this chip). Part ids repeat across chips, so
+  // loading the flat folder for all of them drew another chip's geometry at another chip's
+  // coordinates and toasted "Using CAD for inlet_1, outlet_1" as if it had worked.
+  // Awaited, so the chip on screen and the CAD badge describing it can never be two
+  // different chips: selectRun's `busy` guard then makes the whole swap atomic.
+  await loadChipCad(spec);
   displayManifest = await findDisplayModel(spec.id, ROOT);
-  ui.setDisplayAvailable(displayManifest, spec.id);
+  ui.setDisplayAvailable(displayManifest, spec.id, spec);
+}
+
+async function loadChipCad(spec) {
+  const target = chip;
+  const src = await Chip.stlSource(spec.id, ROOT);
+  const report = await target.loadStls(src, ROOT);
+  if (chip !== target) return; // the user switched chips while this was in flight
+  ui.setCadStatus({ ...report, chipId: spec.id, why: src.why, undrawn: target.undrawn });
 }
 
 // Real scale: the working chip, in real mm. Display model: the printed show piece.
@@ -276,7 +305,8 @@ async function ensurePipeline() {
 }
 
 // Szonja's workflow as a run: flows become load / exchange / back-flush; the no-flow steps
-// (settle, incubate) join the step before them. Ends with the hand-off to to_split_tree.
+// (settle, incubate) join the step before them. Ends with the hand-off out of to_split_tree,
+// which now feeds Module 4: split-and-pool barcoding is dropped, so there is no split tree.
 async function module3Run(entry) {
   const src = await fetchJson(M3_SOURCE);
   const events = [];
@@ -305,7 +335,7 @@ async function module3Run(entry) {
     t += dur;
   }
   events.push({ command: 'release', args: { target: 'main_trap', reagent: 'wash_buffer' }, t_s: t, duration_s: 60, protocol_step: events.length + 1,
-    narration: `Hand-off: the resuspended capsules leave through to_split_tree for the barcoding split tree (${src.interfaces?.downstream ?? 'not designed yet'}).` });
+    narration: 'Hand-off: the resuspended capsules leave through to_split_tree, which now feeds Module 4 (sublibrary split + index PCR). The port keeps its name from the dropped split-and-pool design; there is no split tree.' });
   return { protocol_id: entry.protocol_id, protocol_name: entry.protocol_name, chip_id: entry.chip_id, chip_spec: entry.chip_spec,
     operator: 'planner', placeholder: true, synthetic: true, total_duration_s: t + 60, events };
 }

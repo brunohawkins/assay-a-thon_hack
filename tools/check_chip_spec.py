@@ -8,6 +8,17 @@ works for capsules. Capsule diameter, swell factor and nozzle width come from th
 when it states them, else from contracts/parameters.json. Protocols are the ones with a
 run on the chip (runs/), plus any given with --protocol.
 
+The build envelope and the port rule come from the chip's optional top-level "scale"
+(contracts/schemas/chip_spec.schema.json), read out of contracts/blocks.json:
+  demo (the default, so every chip that does not say otherwise)  -> envelope, 30 x 20 mm,
+      and fabrication_floors.max_ports_per_chip (6), which blocks.json says plainly is a
+      demo-envelope limit rather than a process floor;
+  target -> target_envelope, 127.76 x 85.48 mm (ANSI/SLAS), where the port limit lifts and
+      becomes how many ports fit that area at fabrication_floors.min_port_pitch_mm.
+Nothing else changes with scale: one fluidic layer, one etch depth, 0.3 mm max depth, the
+in-plane floors and the block library apply identically, so a demo chip is checked exactly
+as strictly as it always was.
+
 Errors (exit code 1):
   - trap gap or retention opening >= 0.4 x capsule diameter
   - capsule-carrying channel, or capsule-passable outlet, narrower than 1.5 x capsule diameter
@@ -18,13 +29,27 @@ Errors (exit code 1):
     filter chamber whose purpose is cells), including the nozzle of a chip DOWNSTREAM across
     a pipeline hand-off (Module 1b's filter vs Module 2's nozzle); a pass prints an OK line
   - thermal zone (or protocol hold_temp) above the chip material's max working temperature
-Warnings:
+  - two channels that CROSS in plan view. We print ONE fluidic layer, so a crossing is not a
+    bridge, it is a short circuit between whatever those two lines serve. Every channel is
+    checked: the ones that declare a "path" along it, the rest along the straight clipped
+    centreline cad/make_train_cad.py actually cuts (imported from cad/make_figures.py, so
+    the drawing, the cut path and this check cannot disagree). This used to be a warning that
+    only looked at channels with an explicit path, which is 8 of 16 specs, so on the other
+    half the rule returned an empty list and passed trivially.
+  - port bore below fabrication_floors.min_port_mm: tubing cannot be connected to it
+  - more than one layer at the fluidic depth, or any on-chip valve: both need a second layer
+Warnings (do not fail CI, so only judgement calls live here):
   - fabricated feature smaller than the fabrication minimum in cad/fabrication.json
-    (fabrication limits never block the design; while they're TODO, one summary warning)
-  - barcode collision rate above 5%
+    (fabrication limits never block the design; while they're TODO, one summary warning).
+    A WEIR's opening_um is excluded: it is a gap in Z between the crest and the lid, and the
+    in-plane floor limits width only (see the schema's retention description), so comparing
+    it with the in-plane minimum was a false positive on every weir chip.
+  - barcode collision rate above 5%, over the RANDOM per-cell barcode pool (4^random_bases);
+    lanes and sublibraries are demultiplexing metadata and are never the barcode space
   - reagent whose compatibility with the chip material is TODO or incompatible
   - unknown material, channel shallower than a capsule, outlet without a width
-  - two channels with explicit paths that cross in the same layer (they would join)
+  - ports closer than min_port_pitch_mm (set by the connector footprint, not the process)
+  - a mesh pore below the in-plane floor (legal as a bought insert, not if we must make it)
 TODO lines: fabrication limits still unknown; parts marked fabricable: false (by design).
 """
 
@@ -37,10 +62,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "operator"))
+sys.path.insert(0, str(ROOT / "cad"))
 
 import commands  # noqa: E402
 import schema_io  # noqa: E402
 import sizing  # noqa: E402
+
+# Channel geometry comes from the drawing tool, which gets it from the CAD tool: one
+# computation of "where does this channel actually run", not three. make_figures.segments_of
+# clips each channel to the boxes at its ends exactly as cad/make_train_cad.py cuts it.
+try:
+    import make_figures as figures  # noqa: E402
+except Exception:                   # pragma: no cover - cad/ missing or unimportable
+    figures = None
 
 TRAP_MAX_FACTOR = 0.4
 CHANNEL_MIN_FACTOR = 1.5

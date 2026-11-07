@@ -4,7 +4,7 @@
   "chip_id": "module5_v1",
   "chip_spec": "chip/module5_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T17:52:56Z",
+  "created_at": "2026-11-07T18:57:14Z",
   "placeholder": false,
   "sizing": {
     "capsule_count": null,
@@ -32,21 +32,21 @@
     ],
     "swollen_diameter_um": 140.0
   },
-  "total_duration_s": 29060.0,
+  "total_duration_s": 29056.0,
   "events": [
     {
       "t_s": 0.0,
-      "duration_s": 144.0,
+      "duration_s": 143.0,
       "command": "load",
       "args": {
         "target": "react_cx",
-        "volume_ul": 4.22
+        "volume_ul": 4.16
       },
-      "narration": "Step 16, pass 1: move sublibrary 1 (sub_1) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "narration": "Step 16, pass 1: sublibrary 1 (sub_1) arrives from module 4's out_sub, through tubing, at module 5's in_lib. That is the module4_to_module5 hand-off: out_sub is capsule-passable and in_lib is the load inlet. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
       "protocol_step": 1
     },
     {
-      "t_s": 144.0,
+      "t_s": 143.0,
       "duration_s": 161.0,
       "command": "load",
       "args": {
@@ -57,7 +57,7 @@
       "protocol_step": 2
     },
     {
-      "t_s": 305.0,
+      "t_s": 304.0,
       "duration_s": 50.0,
       "command": "release",
       "args": {
@@ -68,7 +68,7 @@
       "protocol_step": 3
     },
     {
-      "t_s": 355.0,
+      "t_s": 354.0,
       "duration_s": 1800.0,
       "command": "hold_temp",
       "args": {
@@ -80,7 +80,7 @@
       "protocol_step": 4
     },
     {
-      "t_s": 2155.0,
+      "t_s": 2154.0,
       "duration_s": 2859.0,
       "command": "exchange",
       "args": {
@@ -94,7 +94,7 @@
       "protocol_step": 5
     },
     {
-      "t_s": 5014.0,
+      "t_s": 5013.0,
       "duration_s": 848.0,
       "command": "exchange",
       "args": {
@@ -108,7 +108,7 @@
       "protocol_step": 6
     },
     {
-      "t_s": 5862.0,
+      "t_s": 5861.0,
       "duration_s": 428.0,
       "command": "exchange",
       "args": {
@@ -122,7 +122,7 @@
       "protocol_step": 7
     },
     {
-      "t_s": 6290.0,
+      "t_s": 6289.0,
       "duration_s": 300.0,
       "command": "release",
       "args": {
@@ -133,18 +133,18 @@
       "protocol_step": 8
     },
     {
-      "t_s": 6590.0,
-      "duration_s": 144.0,
+      "t_s": 6589.0,
+      "duration_s": 143.0,
       "command": "load",
       "args": {
         "target": "react_cx",
-        "volume_ul": 4.22
+        "volume_ul": 4.16
       },
-      "narration": "Step 16, pass 2: move sublibrary 2 (sub_2) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "narration": "Step 16, pass 2: sublibrary 2 (sub_2) arrives from module 4's out_sub, through tubing, at module 5's in_lib. That is the module4_to_module5 hand-off: out_sub is capsule-passable and in_lib is the load inlet. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
       "protocol_step": 9
     },
     {
-      "t_s": 6734.0,
+      "t_s": 6732.0,
       "duration_s": 161.0,
       "command": "load",
       "args": {
@@ -155,7 +155,7 @@
       "protocol_step": 10
     },
     {
-      "t_s": 6895.0,
+      "t_s": 6893.0,
       "duration_s": 50.0,
       "command": "release",
       "args": {
@@ -166,7 +166,7 @@
       "protocol_step": 11
     },
     {
-      "t_s": 6945.0,
+      "t_s": 6943.0,
       "duration_s": 1800.0,
       "command": "hold_temp",
       "args": {
@@ -178,7 +178,7 @@
       "protocol_step": 12
     },
     {
-      "t_s": 8745.0,
+      "t_s": 8743.0,
       "duration_s": 2859.0,
       "command": "exchange",
       "args": {
@@ -192,7 +192,7 @@
       "protocol_step": 13
     },
     {
-      "t_s": 11604.0,
+      "t_s": 11602.0,
       "duration_s": 848.0,
       "command": "exchange",
       "args": {
@@ -206,7 +206,7 @@
       "protocol_step": 14
     },
     {
-      "t_s": 12452.0,
+      "t_s": 12450.0,
       "duration_s": 428.0,
       "command": "exchange",
       "args": {
@@ -220,7 +220,7 @@
       "protocol_step": 15
     },
     {
-      "t_s": 12880.0,
+      "t_s": 12878.0,
       "duration_s": 300.0,
       "command": "release",
       "args": {
@@ -231,18 +231,18 @@
       "protocol_step": 16
     },
     {
-      "t_s": 13180.0,
-      "duration_s": 144.0,
+      "t_s": 13178.0,
+      "duration_s": 143.0,
       "command": "load",
       "args": {
         "target": "react_cx",
-        "volume_ul": 4.22
+        "volume_ul": 4.16
       },
-      "narration": "Step 16, pass 3: move sublibrary 3 (sub_3) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "narration": "Step 16, pass 3: sublibrary 3 (sub_3) arrives from module 4's out_sub, through tubing, at module 5's in_lib. That is the module4_to_module5 hand-off: out_sub is capsule-passable and in_lib is the load inlet. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
       "protocol_step": 17
     },
     {
-      "t_s": 13324.0,
+      "t_s": 13321.0,
       "duration_s": 161.0,
       "command": "load",
       "args": {
@@ -253,7 +253,7 @@
       "protocol_step": 18
     },
     {
-      "t_s": 13485.0,
+      "t_s": 13482.0,
       "duration_s": 50.0,
       "command": "release",
       "args": {
@@ -264,7 +264,7 @@
       "protocol_step": 19
     },
     {
-      "t_s": 13535.0,
+      "t_s": 13532.0,
       "duration_s": 1800.0,
       "command": "hold_temp",
       "args": {
@@ -276,7 +276,7 @@
       "protocol_step": 20
     },
     {
-      "t_s": 15335.0,
+      "t_s": 15332.0,
       "duration_s": 2859.0,
       "command": "exchange",
       "args": {
@@ -290,7 +290,7 @@
       "protocol_step": 21
     },
     {
-      "t_s": 18194.0,
+      "t_s": 18191.0,
       "duration_s": 848.0,
       "command": "exchange",
       "args": {
@@ -304,7 +304,7 @@
       "protocol_step": 22
     },
     {
-      "t_s": 19042.0,
+      "t_s": 19039.0,
       "duration_s": 428.0,
       "command": "exchange",
       "args": {
@@ -318,7 +318,7 @@
       "protocol_step": 23
     },
     {
-      "t_s": 19470.0,
+      "t_s": 19467.0,
       "duration_s": 300.0,
       "command": "release",
       "args": {
@@ -329,18 +329,18 @@
       "protocol_step": 24
     },
     {
-      "t_s": 19770.0,
-      "duration_s": 144.0,
+      "t_s": 19767.0,
+      "duration_s": 143.0,
       "command": "load",
       "args": {
         "target": "react_cx",
-        "volume_ul": 4.22
+        "volume_ul": 4.16
       },
-      "narration": "Step 16, pass 4: move sublibrary 4 (sub_4) from module 4 to module 5 through in_lib, with tubing between the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
+      "narration": "Step 16, pass 4: sublibrary 4 (sub_4) arrives from module 4's out_sub, through tubing, at module 5's in_lib. That is the module4_to_module5 hand-off: out_sub is capsule-passable and in_lib is the load inlet. Four sublibraries will not fit react_cx together, so each gets its own pass and keeps its own index.",
       "protocol_step": 25
     },
     {
-      "t_s": 19914.0,
+      "t_s": 19910.0,
       "duration_s": 161.0,
       "command": "load",
       "args": {
@@ -351,7 +351,7 @@
       "protocol_step": 26
     },
     {
-      "t_s": 20075.0,
+      "t_s": 20071.0,
       "duration_s": 50.0,
       "command": "release",
       "args": {
@@ -362,7 +362,7 @@
       "protocol_step": 27
     },
     {
-      "t_s": 20125.0,
+      "t_s": 20121.0,
       "duration_s": 1800.0,
       "command": "hold_temp",
       "args": {
@@ -374,7 +374,7 @@
       "protocol_step": 28
     },
     {
-      "t_s": 21925.0,
+      "t_s": 21921.0,
       "duration_s": 2859.0,
       "command": "exchange",
       "args": {
@@ -388,7 +388,7 @@
       "protocol_step": 29
     },
     {
-      "t_s": 24784.0,
+      "t_s": 24780.0,
       "duration_s": 848.0,
       "command": "exchange",
       "args": {
@@ -402,7 +402,7 @@
       "protocol_step": 30
     },
     {
-      "t_s": 25632.0,
+      "t_s": 25628.0,
       "duration_s": 428.0,
       "command": "exchange",
       "args": {
@@ -416,7 +416,7 @@
       "protocol_step": 31
     },
     {
-      "t_s": 26060.0,
+      "t_s": 26056.0,
       "duration_s": 300.0,
       "command": "release",
       "args": {
@@ -427,7 +427,7 @@
       "protocol_step": 32
     },
     {
-      "t_s": 26360.0,
+      "t_s": 26356.0,
       "duration_s": 900.0,
       "command": "release",
       "args": {
@@ -438,7 +438,7 @@
       "protocol_step": 33
     },
     {
-      "t_s": 27260.0,
+      "t_s": 27256.0,
       "duration_s": 1800.0,
       "command": "release",
       "args": {

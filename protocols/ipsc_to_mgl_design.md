@@ -53,8 +53,8 @@ Abud is precisely the removal of the sort, which the authors validated by RNA-se
 non-adherently", which a chamber cannot hold. Washer et al. 2022
 (doi 10.1038/s41598-022-23477-2) showed that adding one more factor to the maturation
 medium restores adherence and retention without costing identity, and Lanfer et al. 2022
-(doi 10.3390/ijms23094526) independently matured progenitors from the same monolayer kit
-into adherent cells. The protocol file follows that, and it is a clean side experiment:
+(doi 10.3390/ijms23094526) independently matured progenitors from the same class of
+commercial monolayer differentiation system into adherent cells. The protocol file follows that, and it is a clean side experiment:
 with and without, scored on adherent fraction.
 
 ## How a flask protocol becomes a chip protocol

@@ -1,17 +1,30 @@
-// Pipeline view: every current module on one screen, left to right, from
-// protocols/pipeline_mvp.json. Each module shows its status badge (FINAL, DRAFT, TRANSLATED,
-// MISSING), whether it is built for Sunday's dye demo or exists in the twin only, and its
-// outgoing hand-off (ports, TBC, connector warnings). Cells, then capsules, then library
-// move card to card as dots; the bottom timeline is the pipeline's phases. Click a module
-// to open its own view.
+// Pipeline view: every current module on one screen, left to right, in the order
+// protocols/pipeline_mvp.json lists them (so barcoding draws between Module 3 and Module 4,
+// where it belongs: overlap extension needs a template already inside the capsule). Each
+// module shows its status badge (FINAL, DRAFT, TRANSLATED, MISSING), whether it is built for
+// Sunday's dye demo or exists in the twin only, and its outgoing hand-off (ports, TBC,
+// connector warnings). Cells, then capsules, then library move card to card as dots; the
+// bottom timeline is the pipeline's phases. Click a module to open its own view.
+//
+// Every word on a card comes from pipeline_mvp.json or the chip spec, except the per-module
+// summary() prose below. Cross-check that prose against protocols/pipeline_status.md: this
+// file once carried a "barcoding is not designed yet, Module 3 points to
+// barcoding_geometry.json" card for a file that never existed, which told the viewer the
+// pipeline had no single-cell step. It has one.
 import { formatDuration } from './player.js';
 
 // What each module does, as short stage names for the card (keyed by pipeline module id).
+// barcoding is stage 4b of protocols/pipeline_status.md: it sits between module 3 and
+// module 4 because overlap extension needs a template already inside the capsule, and it is
+// the stage that makes this a single-cell assay. Its stages come from
+// protocols/sctip_spc_v1.json steps 1-16 and 20-21 (steps 17-19 are the chromatin variant's
+// tail and are not run on this path).
 const STAGES = {
   module1: ['seed', 'grow apart', 'interaction modes', 'collect → j_mid'],
   module2: ['co-flow', 'nozzle', 'phase separation', 'cold delay (off-chip)', 'trap: oil out', 'UV cure', 'washes'],
-  module3: ['load (100 µm pre-filter)', 'lysis ×2', 'wash ×3', 'back-flush'],
-  barcoding: ['split', 'barcode', 'pool'],
+  module3: ['load (100 µm pre-filter)', 'lysis ×2', 'wash ×3', 'RT 42 °C (no barcode)', 'back-flush'],
+  barcoding: ['re-inject close-packed (kit)', 'one droplet per capsule (kit)', 'clonal barcode amplification',
+    'overlap-extend onto cDNA', 'break emulsion (kit)', 'trap on weir + wash'],
   module4: ['fill ABCD DCBA', 'index primer', 'PCR mix', 'thermocycle'],
   module5: ['collagenase release', 'dilute', 'bead capture', 'elute → out_lib'],
 };
@@ -28,17 +41,33 @@ function summary(e, days) {
   const s = e.spec;
   switch (e.module) {
     case 'module1':
-      return `Three lineages grow apart, then each chamber's medium crosses to the other two in turn (${days} days, compressed). No valves: every route is FEED / VENT / CAP at the ports. This is the chip being laser-cut for Sunday's dye demo.`;
+      return `Three lineages grow apart, then each chamber's medium crosses to the other two in turn (${days} days, compressed). No valves: every route is FEED / VENT / CAP at the ports. This is the chip for Sunday's dye demo, made by resin print + hot emboss.`;
     case 'module2':
       return e.switched
         ? `MJ's Module 2 (${esc(e.chipPath)}), picked up automatically.`
         : 'Core and shell co-flow into the nozzle and oil pinches off droplets that phase-separate into core-shell capsules; cold delay off-chip, then oil out, UV cure and washes. A stand-in: MJ is redesigning this module.';
     case 'module3': {
       const trap = s?.chambers?.find((c) => c.id === 'main_trap');
-      return `Szonja's ${trap ? `${trap.size[0]} × ${trap.size[1]} mm ` : ''}trap holds the capsules behind a ${trap?.retention?.opening_um ?? '–'} µm retention gap: two lysis exchanges to their own waste, three washes, then a back-flush lifts the bed. Translated into the chip-spec format; layout inferred.`;
+      return `Szonja's ${trap ? `${trap.size[0]} × ${trap.size[1]} mm ` : ''}trap holds the capsules behind a ${trap?.retention?.opening_um ?? '–'} µm retention gap: two lysis exchanges to their own waste, three washes, reverse transcription as one 42 °C hold, then a back-flush lifts the bed. RT adds no barcode; the next stage does. Translated into the chip-spec format; layout inferred.`;
     }
     case 'barcoding':
-      return 'Split-and-pool barcoding (library steps 4–12) is not designed yet: Module 3 points to barcoding_geometry.json, which is not in the repo.';
+      // The stage the pipeline file had lost, then rationalised as a design choice. See
+      // protocols/pipeline_status.md ("Blunt notes") and protocols/sctip_spc_design.md.
+      return 'THE STAGE THAT MAKES THIS A SINGLE-CELL ASSAY. Each washed capsule from Module 3 is '
+        + 're-injected into its own oil droplet, where one barcode molecule from a pool of 16 random '
+        + 'bases (4.3 × 10⁹, so under 0.002% of capsules collide) is clonally amplified and '
+        + "overlap-extended onto that capsule's cDNA — AmpliDrop applied to semipermeable capsules. "
+        + 'The emulsion is the containment, so no anchor molecule and no cleavage step. One capsule '
+        + "holds one cell, so every cell gets its own barcode; Module 1's lane label and Module 4's "
+        + 'four sublibrary indices (~12 groups) are demultiplexing metadata, not resolution. '
+        + 'Barcode loading is Poisson at a mean of 3: ~5% of droplets get none and those cells are '
+        + 'lost, and most get several and are merged computationally. The chemistry is ours; the '
+        + 'droplet hardware is BOUGHT — re-injection needs a ~0.85 × capsule-diameter entrance and '
+        + 'the slots are 100 × 150 µm, both far under the 200 µm in-plane floor, so this is not a '
+        + 'printable chip and that is the position, not a failure. The one part we do fabricate is '
+        + 'capsule retention: a 25 µm depth weir under the lid, because the floor is in-plane and z '
+        + 'is free. Protocol: protocols/sctip_spc_v1.json steps 1–16 and 20–21; steps 17–19 are the '
+        + 'chromatin variant tail and are not run here.';
     case 'module4':
       return 'An off-chip rotary valve splits the pooled capsules four ways, one chamber at a time in palindromic order (ABCD DCBA); each chamber gets its own index primer and the whole chip is thermocycled.';
     case 'module5':
@@ -52,7 +81,22 @@ function facts(e) {
   const s = e.spec;
   if (!s) return 'no chip yet';
   const n = (k) => (s[k] ?? []).length;
-  return `${s.footprint.x} × ${s.footprint.y} mm · ${n('chambers')} chambers · ${n('ports')} ports${n('valves') ? ` · ${n('valves')} valves` : ''}`;
+  const geom = `${s.footprint.x} × ${s.footprint.y} mm · ${n('chambers')} chambers · ${n('ports')} ports${n('valves') ? ` · ${n('valves')} valves` : ''}`;
+  // A chip spec is not the same thing as a printable part: barcoding's spec is a demo-scale
+  // layout whose droplet features are under the in-plane floor, so the card must not read as
+  // "this one is built".
+  return notPrintable(e) ? `${geom} · demo layout only, NOT printable: droplet steps on a bought kit` : geom;
+}
+
+// protocols/pipeline_mvp.json records this in the module's build.method.
+const notPrintable = (e) => /NOT PRINTABLE/i.test(e.build?.method ?? '');
+
+// build.method runs to a paragraph for the bought-hardware modules; the card shows its first
+// sentence and keeps the whole thing in the tooltip.
+function buildText(e) {
+  const m = e.build?.method ?? '';
+  const cut = m.indexOf(', and that is');
+  return cut > 0 ? `${m.slice(0, cut)}` : m.split(/\.\s/)[0];
 }
 
 function connectorText(c) {
@@ -121,10 +165,16 @@ export function createPipeline(root, handlers = {}) {
           <h3>${esc(e.name)}</h3>
           <div class="pl-badges">
             <span class="badge st-${e.status}" title="${esc(e.statusNote ?? '')}">${STATUS[e.status]}</span>
-            <span class="badge ${demo ? 'printed' : 'sim-only'}">${demo ? 'Built for Sunday’s dye demo' : 'Twin only'}</span>
+            ${demo
+              ? '<span class="badge printed">Built for Sunday’s dye demo</span>'
+              : notPrintable(e)
+                ? `<span class="badge st-draft" title="${esc(e.build?.method ?? '')}">Bought hardware · our chemistry</span>`
+                : '<span class="badge sim-only">Twin only</span>'}
           </div>
           ${e.statusNote ? `<p class="pl-mj">${esc(e.statusNote)}</p>` : ''}
-          <article class="pl-card" ${e.view ? `data-open="${esc(e.view)}" data-file="${esc(e.file ?? '')}" tabindex="0" title="Open ${esc(e.name)}"` : 'title="Not designed yet: nothing to open"'}>
+          <article class="pl-card" ${e.view
+            ? `data-open="${esc(e.view)}" data-file="${esc(e.file ?? '')}" tabindex="0" title="Open ${esc(e.name)}"`
+            : `title="${esc(e.protocol ? `${e.name}: it has a chip spec and ${e.protocol}, but no recorded run for the twin to play.` : 'Not designed yet: nothing to open')}"`}>
             <span class="pl-anchor in" data-anchor="in_${k}"></span>
             ${e.module === 'module1' ? '<header><b>MJ’s chip</b><span class="pl-day" data-day>day 0</span></header>' : ''}
             <ol class="pl-stages">${stages.map((s, j) => `<li data-stage="${k}:${j}">${esc(s)}<span class="pl-anchor" data-anchor="s_${k}_${j}"></span></li>`).join('')}</ol>
@@ -132,7 +182,7 @@ export function createPipeline(root, handlers = {}) {
             ${h ? `<p class="pl-out">out: ${portText(h.from)} → ${h.to.module ? portText(h.to) : esc(h.to.roadmap)}<span class="pl-anchor out" data-anchor="out_${k}"></span></p>` : ''}
             ${h ? connectorText(h.connector) : ''}
           </article>
-          <p class="pl-meta">${esc(e.owner ?? '')}${e.build ? ` · ${esc(e.build.method)}` : ''}</p>
+          <p class="pl-meta" title="${esc(e.build?.method ?? '')}">${esc(e.owner ?? '')}${e.build ? ` · ${esc(buildText(e))}` : ''}</p>
         </section>
         <div class="pl-arrow" aria-hidden="true"></div>`;
     };

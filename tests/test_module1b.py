@@ -80,23 +80,56 @@ class Operator(unittest.TestCase):
 
 
 class CrossChipFilter(unittest.TestCase):
+    """The cross-chip rule (a cell filter must be finer than the nozzle it feeds) on the
+    SHIPPED pipeline, plus the same rule on M1B as a reference-only regression."""
+
     def check(self, chip, downstream):
         params = schema_io.load_json(ROOT / "contracts" / "parameters.json")
         materials = schema_io.load_json(ROOT / "contracts" / "materials.json")["materials"]
         return ccs.check(chip, [], params, materials, {"laser_kerf_um": None, "min_embossed_feature_um": None}, downstream)
 
+    def pipeline(self):
+        _, pipe = schema_io.pipelines()[0]
+        chips = {m["module"]: schema_io.load_json(ROOT / schema_io.pipeline_chip(m)[0])
+                 for m in pipe["modules"] if schema_io.pipeline_chip(m)[0]}
+        return pipe, chips
+
+    def nozzle_of(self, chip):
+        return ((chip or {}).get("encapsulation") or {}).get("nozzle_um")
+
+    def cell_filters(self, chip):
+        """(id, gap_um) for every declared cell filter: the chip-level one and filter chambers."""
+        out = [(c["id"], c["filter"]["gap_um"]) for c in chip.get("chambers", [])
+               if (c.get("filter") or {}).get("purpose") == "cells"]
+        gap = (chip.get("cell_filter") or {}).get("gap_um")
+        return out + ([("cell_filter", gap)] if gap is not None else [])
+
     def test_m1b_is_out_of_the_pipeline(self):
         self.assertEqual(ccs.downstream_nozzles(M1B), [])           # superseded: no longer in the pipeline
 
-    def test_a_chip_feeding_a_declared_nozzle_through_a_handoff_is_told_about_it(self):
-        pipe_path, pipe = schema_io.pipelines()[0]
-        chips = {m["module"]: schema_io.load_json(ROOT / schema_io.pipeline_chip(m)[0])
-                 for m in pipe["modules"] if schema_io.pipeline_chip(m)[0]}
+    def test_every_handoff_in_the_pipeline_is_classified_and_asserted(self):
+        """Each hand-off either feeds a declared nozzle (and downstream_nozzles must say so)
+        or it does not (and downstream_nozzles must stay silent) - with the reason named.
+        Previously this loop ran over all the hand-offs and only one of them asserted."""
+        pipe, chips = self.pipeline()
+        fed = 0
         for h in pipe["handoffs"]:
-            src, dst = chips.get(h["from"].get("module")), chips.get(h["to"].get("module"))
-            nozzle = ((dst or {}).get("encapsulation") or {}).get("nozzle_um")
-            if src and nozzle and h["from"].get("port") in {p["id"] for p in src.get("ports", [])}:
-                self.assertIn((nozzle, dst["id"], h["id"]), ccs.downstream_nozzles(src), h["id"])
+            with self.subTest(handoff=h["id"]):
+                src, dst = chips.get(h["from"].get("module")), chips.get(h["to"].get("module"))
+                nozzle = self.nozzle_of(dst)
+                port = h["from"].get("port")
+                entries = [e for e in ccs.downstream_nozzles(src) if e[2] == h["id"]] if src else []
+                ports = {p["id"] for p in (src or {}).get("ports", [])}
+                if src and nozzle and port in ports:
+                    fed += 1
+                    self.assertEqual(entries, [(nozzle, dst["id"], h["id"])])
+                    for fid, gap in self.cell_filters(src):
+                        self.assertLess(gap, nozzle, f"{src['id']} filter '{fid}' feeds a {nozzle:g} um nozzle")
+                else:
+                    self.assertEqual(entries, [], "nothing downstream to check against")
+                    why = (not src, nozzle is None, port not in ports)
+                    self.assertTrue(any(why), f"{h['id']}: a fed nozzle must be reported, not skipped")
+        self.assertTrue(fed, "no hand-off in the pipeline feeds a declared nozzle, so the rule never fires")
 
     def test_the_pipelines_encapsulation_chip_declares_its_nozzle(self):
         # Otherwise the upstream cell filter is never checked against it (check_chip_spec.downstream_nozzles is silent).
@@ -107,16 +140,36 @@ class CrossChipFilter(unittest.TestCase):
         self.assertTrue((chip.get("encapsulation") or {}).get("nozzle_um"),
                         f"{chip_path} has no encapsulation.nozzle_um, so no upstream filter is checked against it")
 
-    def test_filter_smaller_than_the_downstream_nozzle_is_confirmed(self):
-        f = self.check(M1B, [(40, "m2_encapsulation_v1", "m1b_to_m2")])
+    def test_the_chip_feeding_the_encapsulation_nozzle_declares_a_cell_filter(self):
+        """Without a declared filter upstream, nothing in the repo checks clump size against
+        the nozzle: check_chip_spec reports the nozzle but has no gap to compare it with."""
+        pipe, chips = self.pipeline()
+        h = next(h for h in pipe["handoffs"] if self.nozzle_of(chips.get(h["to"].get("module"))))
+        src, dst = chips[h["from"]["module"]], chips[h["to"]["module"]]
+        nozzle = self.nozzle_of(dst)
+        filters = self.cell_filters(src)
+        self.assertTrue(filters, f"{src['id']} feeds {dst['id']}'s {nozzle:g} um nozzle through {h['id']} but declares "
+                                 f"no cell filter, so clumps reaching the nozzle are unchecked")
+        f = self.check(src, ccs.downstream_nozzles(src))
         self.assertEqual(f.errors, [])
-        self.assertTrue(any("m1b_filter_1" in o and "< the 40 um nozzle" in o for o in f.ok))
+        self.assertTrue([o for o in f.ok if "nozzle" in o], "the checker should confirm the filter against the nozzle")
+
+    def test_filter_smaller_than_the_downstream_nozzle_is_confirmed(self):
+        # REFERENCE ONLY: M1B is superseded and out of the pipeline, so it has no real
+        # downstream nozzle. The nozzle is the SHIPPED encapsulation chip's, not a made-up 40.
+        _, chips = self.pipeline()
+        nozzle = self.nozzle_of(chips["module2"])
+        f = self.check(M1B, [(nozzle, chips["module2"]["id"], "m1b_to_module2")])
+        self.assertEqual(f.errors, [])
+        self.assertTrue(any("m1b_filter_1" in o and f"< the {nozzle:g} um nozzle" in o for o in f.ok))
 
     def test_filter_as_wide_as_the_downstream_nozzle_is_an_error(self):
+        _, chips = self.pipeline()
+        nozzle = self.nozzle_of(chips["module2"])
         chip = copy.deepcopy(M1B)
-        next(c for c in chip["chambers"] if c["id"] == "m1b_filter_1")["filter"]["gap_um"] = 40
-        f = self.check(chip, [(40, "m2_encapsulation_v1", "m1b_to_m2")])
-        self.assertTrue(any("m1b_filter_1" in e and "m2_encapsulation_v1 downstream" in e for e in f.errors))
+        next(c for c in chip["chambers"] if c["id"] == "m1b_filter_1")["filter"]["gap_um"] = nozzle
+        f = self.check(chip, [(nozzle, chips["module2"]["id"], "m1b_to_module2")])
+        self.assertTrue(any("m1b_filter_1" in e and f"{chips['module2']['id']} downstream" in e for e in f.errors))
 
 
 class Pipeline(unittest.TestCase):

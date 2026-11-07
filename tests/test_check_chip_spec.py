@@ -92,10 +92,28 @@ class Rules(unittest.TestCase):
         self.assertEqual(f.errors, [])
         self.assertTrue(has(f.warnings, "below the fabrication minimum"))
 
-    def test_barcode_collisions_warn(self):
+    def test_lanes_and_sublibraries_alone_do_not_raise_a_collision_warning(self):
+        # They are DEMULTIPLEXING metadata (which lineage, which sublibrary), not the cell's
+        # identity: that is a random barcode amplified in the capsule's own droplet, over a
+        # 4^barcoding.random_bases pool (operator/sizing.py, protocols/sctip_spc_design.md).
+        # This test used to assert the opposite - that 3 lanes x 1 sublibrary is "only 3
+        # barcodes" - which is the arithmetic behind the claim that the assay is lane-level.
         chip = copy.deepcopy(GOOD)
-        # 3 lanes x 1 sublibrary is only 3 barcodes, so a full capsule load collides.
         chip["barcoding"] = {"lanes": 3, "sublibraries": 1}
+        f = run(chip)
+        self.assertEqual(f.errors, [])
+        self.assertFalse(has(f.warnings, "barcode collisions"))
+
+    def test_a_chip_can_declare_the_random_barcode_so_the_collision_rule_can_fire(self):
+        """GAP, asserted so it is not quietly dropped: the collision warning in
+        check_chip_spec.py is now UNREACHABLE from any chip. The chip_spec schema's
+        barcoding block is additionalProperties: false with only rounds, chambers_per_round,
+        lanes and sublibraries, and check() forwards only lanes and sublibraries to
+        sizing.compute(), so nothing a chip can say changes the random-barcode pool the rule
+        is computed over. Closing it needs a schema field and one more forwarded input."""
+        chip = copy.deepcopy(GOOD)
+        chip["barcoding"] = {"lanes": 3, "sublibraries": 4, "random_bases": 4}   # 4^4 = 256
+        self.assertEqual(schema_io.schema_errors("chip_spec", chip), [])
         self.assertTrue(has(run(chip).warnings, "barcode collisions"))
 
     def test_reagent_compatibility_todo_and_incompatible(self):

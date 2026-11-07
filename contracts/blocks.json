@@ -6,7 +6,8 @@
     "max_depth_mm": 0.3,
     "layers": 1,
     "note": "Resin 3D printing plus hot embossing, one fluidic layer, 30 x 20 mm build area.",
-    "_two_scales": "TWO envelopes. chip/ is built to the DEMO one (30 x 20 mm), which is what we can print today. target_envelope (200 x 300 mm) is the agreed maximum for the real device. Scale-free rules carry over unchanged; the rest are listed under target_envelope."
+    "_three_scales": "THREE scales, and only one of them is a maximum. DEMO 30 x 20 mm: this block, what chip/ is built to and what we can print today. TARGET 127.76 x 85.48 mm: the design target for the real device, the ANSI/SLAS 1-2004 microplate footprint (see target_envelope). CEILING 290 x 190 mm: the absolute maximum chip size, agreed so both prototyping routes stay standard (target_envelope.max_allowed_x_mm / max_allowed_y_mm, reasoning in target_envelope._ceiling). Nothing in the design needs the ceiling. Scale-free rules carry over between all three unchanged; the rest are listed under target_envelope.",
+    "_max_ports": "6 ports per chip. This is a DEMO ENVELOPE limit, not a process floor: it is what 30 x 20 mm fits at the 5 mm min_port_pitch_mm, and nothing about resin printing or embossing caps port count. It LIFTS AT TARGET SCALE, where an ANSI/SLAS footprint at the same pitch holds hundreds of port positions, so lanes get dedicated feeds, drains and sampling lines instead of sharing off-chip selectors. The number itself is still filed as fabrication_floors.max_ports_per_chip because the tools and tests read it from there; it is the same limit, not a second one."
   },
   "fabrication_floors": {
     "min_open_channel_mm": 0.2,
@@ -15,7 +16,8 @@
     "min_port_mm": 0.8,
     "min_port_pitch_mm": 5.0,
     "max_ports_per_chip": 6,
-    "note": "From the fabrication review. Print open and seal with film rather than printing an enclosed channel below 0.5 mm."
+    "note": "From the fabrication review. Print open and seal with film rather than printing an enclosed channel below 0.5 mm.",
+    "_max_ports_per_chip_is_not_a_floor": "FILED HERE, BUT IT IS NOT A PROCESS FLOOR. max_ports_per_chip (6) is a DEMO ENVELOPE constraint and belongs with envelope._max_ports: it is how many 0.8 mm ports fit in 30 x 20 mm at the 5 mm min_port_pitch_mm, not a limit of printing or embossing. It LIFTS AT TARGET SCALE: an ANSI/SLAS 127.76 x 85.48 mm plate at the same 5 mm pitch holds hundreds of port positions. Every other key in this block is a real floor that does NOT change with chip size. The key keeps this name and location only because tools/check_chip_spec.py, tests/test_envelope.py and the cad/generators/ scripts read it from here, so moving it would break them; read it as a demo number."
   },
   "basic": {
     "straight_channel": "Straight run.",
@@ -78,17 +80,18 @@
   },
   "retention": {
     "_problem": "The smallest feature we can print is 200 um IN PLANE. A capsule is 70 um, swelling to 140 um. So no printed in-plane gap can retain a capsule, and every 5-30 um mesh in the old designs is unbuildable. On-chip washing depends on retention, so this decides whether washing works at all.",
-    "solution": "DEPTH WEIR. The 200 um floor applies to WIDTH, not to z: a crest 240 um tall leaves a 60 um gap under the lid, which retains a 70 um capsule while liquid passes. It is still ONE fluidic layer, because the crest is relief in the same mould or print, exactly like the print-open-and-seal-with-film rule above. Prior art: Harrison/Oleschuk weir bead traps (US 7,312,611).",
+    "solution": "DEPTH WEIR. The 200 um floor applies to WIDTH, not to z: a crest that stops short of the lid leaves a gap in z, and the agreed gap is 25 um, which retains a 70 um capsule while liquid passes. THE CREST HEIGHT IS NOT A NUMBER IN THIS FILE: it is that CHIP's etch depth minus the 25 um gap, derived per chip, because chips have different depths (see weir_geometry.gap_um and weir_geometry.crest_height_rule). 25 um is the only figure to quote, and it sits inside the legal 21-28 um band set by the rule below. It is still ONE fluidic layer, because the crest is relief in the same mould or print, exactly like the print-open-and-seal-with-film rule above. Prior art: Harrison/Oleschuk weir bead traps (US 7,312,611).",
     "weir_geometry": {
       "gap_um": 25,
       "crest_thickness_um": 200,
+      "_crest_thickness_is_not_a_height": "crest_thickness_um (200) is the crest's IN-PLANE thickness, which is simply the 200 um floor. It is NOT the crest's height. There is deliberately no crest height in this file: see crest_height_rule.",
       "rule": "gap must be STRICTLY below trap.gap_factor_high (0.4) x capsule diameter (70 um) = 28 um and at or above trap.gap_factor_low (0.3) x D = 21 um. 25 um sits inside that band. tools/check_chip_spec.py enforces the upper bound with >=, so a gap equal to it fails.",
       "pressure_drop_pa_at_100_ul_min": 2,
       "block": "trap_chamber",
-      "untested": "No published capture efficiency for weirs retaining particles above 100 um. Run a coupon with 40, 60 and 80 um gaps before committing. z tolerance of +/-20 um is a 33% error on a 60 um gap.",
-      "z_tolerance_warning": "A 28 um gap in a 300 um layer is the hard part. Published z tolerance on these processes is around +/-20 um, which is +/-71% of the gap, so the weir could close or leak outright. THIS IS THE BIGGEST UNKNOWN IN THE RETENTION SCHEME. Run a coupon before committing. If it fails, the lever is capsule size: capsules are tunable 35-260 um, and a larger capsule allows a proportionally larger, more printable gap.",
+      "untested": "No published capture efficiency for weirs retaining particles above 100 um. Run a coupon with 21, 24 and 27 um gaps before committing: that spans the legal band end to end (at or above 21 um, strictly below 28 um) around the agreed 25 um. Do NOT coupon 40, 60 or 80 um gaps: all three are at or above 0.4 x 70 = 28 um, so a 70 um capsule passes straight through and they would fail the rule above. z tolerance of +/-20 um is a +/-80% error on the 25 um gap, which is what the coupon is actually testing.",
+      "z_tolerance_warning": "A 25 um gap in a 300 um layer is the hard part. Published z tolerance on these processes is around +/-20 um, which is +/-80% of the gap, so the weir could close or leak outright. THIS IS THE BIGGEST UNKNOWN IN THE RETENTION SCHEME. Run a coupon before committing. If it fails, the lever is capsule size: capsules are tunable 35-260 um, and a larger capsule allows a proportionally larger, more printable gap.",
       "retains_um": 70,
-      "crest_height_rule": "crest = that CHIP's etch depth minus the gap. It is NOT a fixed number: a 272 um crest cannot exist in a 150 um layer, and chips have different depths. Derive it per chip."
+      "crest_height_rule": "THE ONLY RULE FOR CREST HEIGHT: crest = that CHIP's etch depth minus gap_um (25). It is NOT a fixed number and no fixed number for it is recorded anywhere in this file, because chips have different depths and a crest taller than the layer cannot exist. Derive it per chip; the cad/generators/ scripts already do (depth_um - gap_um). If you find a hard-coded crest height in any file, it is a leftover: delete it and derive instead."
     },
     "alternatives_ranked": [
       "dld_array as a CONTINUOUS WASH rather than retention: at gap 200 um and eps 0.125 the critical diameter is ~105 um, so swollen capsules displace and unswollen ones do not. Needs +/-10 um gap tolerance.",
@@ -106,7 +109,7 @@
     "layers": 1,
     "area_mm2": 10921,
     "area_ratio_vs_demo": 18,
-    "_decision": "Design target is the ANSI/SLAS 1-2004 microplate footprint, 127.76 x 85.48 mm. Three lanes at 1,200 mm2 need 3,600 mm2, which is 33% of it, so the area we actually require fits with room for the PCR dock and the extraction region. 200 x 300 mm stays recorded as the absolute ceiling, but nothing in the design needs it.",
+    "_decision": "Design target is the ANSI/SLAS 1-2004 microplate footprint, 127.76 x 85.48 mm. Three lanes at 1,200 mm2 need 3,600 mm2, which is 33% of it, so the area we actually require fits with room for the PCR dock and the extraction region. 290 x 190 mm stays recorded as the absolute ceiling (max_allowed_x_mm / max_allowed_y_mm, reasoning in _ceiling), but nothing in the design needs it.",
     "_why_not_600": [
       "Yield did not need it: 1e5 cells is about 1,200 mm2, a 35 x 35 mm lane.",
       "Concentration does not improve with area. An adherent chamber holds about 277 cells/uL whatever its size, because that is density divided by height, so a flow-through extract is roughly 36x too dilute at ANY board size. The fix is trap-and-elute, not area.",
@@ -114,7 +117,7 @@
       "600 mm does not fit a CO2 incubator shelf (about 450-500 mm), which weeks-long culture needs.",
       "Embossing 600 x 600 mm needs roughly 70 tonnes and a non-desktop press."
     ],
-    "what_it_buys": "60,000 mm2, 100x the demo. Three lanes at 1,200 mm2 each is 3,600 mm2, about 6% of the board, so culture area stops being the limit and there is room for the PCR dock, the extraction region and spare lanes.",
+    "what_it_buys": "10,921 mm2, 18x the demo (area_mm2 and area_ratio_vs_demo above). Three lanes at 1,200 mm2 each is 3,600 mm2, 33% of the plate, so culture area stops being the limit and there is room for the PCR dock, the extraction region and spare lanes.",
     "design_rules_at_this_scale": [
       "KEEP CHAMBER LENGTH CONSTANT and replicate chambers. Residence time is NOT scale-free: at fixed shear the velocity is fixed, so a longer lane has proportionally longer residence time.",
       "Extraction happens AFTER concentration, never in the culture chamber. Size the extract by cells/1e4 microlitres, not by chamber area.",
@@ -141,15 +144,15 @@
     "_why_sbs": [
       "No mainstream cell-culture microfluidic device is larger. Mimetas OrganoPlate puts 40 three-lane chips on ONE SBS plate; Emulate runs 12 chips per array. The field repeats small units inside a standard outline rather than making one big chip.",
       "It unlocks off-the-shelf hardware: plate handlers and stackers, readers, imagers, liquid handlers on the 9 mm ANSI/SLAS 4-2004 pitch, incubator shelves and robot grippers. That matters for the stated goal of running with no human intervention.",
-      "It fits every desktop resin printer, so prototyping stays cheap. A 200 x 300 mm part fits NONE of them - the largest desktop build is about 353 x 196 mm - and would force CNC plus a large press.",
+      "It fits every desktop resin printer, so prototyping stays cheap. The REJECTED 200 x 300 mm proposal (no longer a ceiling of any kind, see _ceiling) fits NONE of them - the largest desktop build is about 353 x 196 mm, and 300 mm exceeds its 196 mm side - and would force CNC plus a large press.",
       "It is inside the hot-embossing comfort zone (rigid platens are fine to about 200 mm; 300 mm is the hard edge)."
     ],
     "_caveat": "ANSI/SLAS fixes the outline and well positions, NOT well-bottom height, so SBS size alone does not guarantee a plate reader or imager will focus on the chip. Check working distance.",
-    "_ceiling": "290 x 190 mm is the agreed MAXIMUM chip size (55,100 mm2, 92x the demo). It was chosen so BOTH prototyping routes stay standard: it fits the largest desktop resin build (Formlabs Form 4L, 353 x 196 mm) AND a 296 mm square hot-embossing platen (Collin P300S class, 296 mm, 300 kN - the part needs only 55-165 kN). 300 x 190 was considered and dropped because it misses the 296 mm platen by 4 mm and would force a 500 mm press. NOTE round wafer tools (EVG 540/750, 300 mm) take a rectangle by its DIAGONAL, and this part's is 347 mm, so they are out regardless; use a square-platen press. Nothing in the current design needs this size: three lanes require 3,600 mm2, 33% of an SBS plate.",
+    "_ceiling": "290 x 190 mm is the agreed MAXIMUM chip size (55,100 mm2, 92x the demo). It was chosen so BOTH prototyping routes stay standard: it fits the largest desktop resin build (Formlabs Form 4L, 353 x 196 mm) AND a 296 mm square hot-embossing platen (Collin P300S class, 296 mm, 300 kN - the part needs only 55-165 kN). 300 x 190 was considered and dropped because it misses the 296 mm platen by 4 mm and would force a 500 mm press. NOTE round wafer tools (EVG 540/750, 300 mm) take a rectangle by its DIAGONAL, and this part's is 346.7 mm (sqrt(290^2 + 190^2)), so they are out regardless; use a square-platen press. Nothing in the current design needs this size: three lanes require 3,600 mm2, 33% of an SBS plate.",
     "fabrication_routes_at_ceiling": {
       "resin_prototype": "Formlabs Form 4L, 353 x 196 mm build. Fits with 63 x 6 mm margin.",
       "embossing": "296 mm square platen (Collin P300S class). Fits with 6 x 106 mm margin.",
-      "not_usable": "300 mm ROUND wafer tools: a 290 x 190 rectangle has a 346 mm diagonal."
+      "not_usable": "300 mm ROUND wafer tools: a 290 x 190 rectangle has a 346.7 mm diagonal, so it does not fit a 300 mm round platen."
     }
   }
 }

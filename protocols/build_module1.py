@@ -34,13 +34,34 @@ Limits found in review:
     (about 1.4 mbar). With a fixed flow at each inlet every stream can only leave by its own
     route, so the pressure-matching problem disappears.
   - Shear: the 0.01 dyn/cm2 ceiling is applied to the CHAMBERS (derived from chamber
-    geometry, about 2.8 uL/min at the 30 x 20 mm scale), where the cells are. The 0.2 x 0.3 mm CHANNELS exceed it above about 0.2
-    uL/min; they are transit, not culture.
+    geometry, about 2.3 uL/min at the 30 x 20 mm scale and the contract viscosity), where
+    the cells are. The 0.2 x 0.3 mm CHANNELS exceed it above about 0.18 uL/min; they are
+    transit, not culture.
   - Each lineage has one chamber, so the passages in the published methods are not done.
 
 Flow rates come from chamber geometry as in build_ipsc_to_mgl.py: tau = 6*mu*Q/(w*h^2),
 w being the chamber width across the flow. Where a mode splits a stream in two the split is
 taken as equal. Reagent names are generic: see CONFIDENTIALITY.md.
+
+mu is read from contracts/parameters.json, NOT hard-coded. This file used to carry
+mu = 0.8e-3 Pa s while the contract says 0.001, which is 20% low; shear goes as mu, so
+every flow derived here as "85% of the shear-ceiling flow" was really 106% of it, i.e. over
+the ceiling. A literal copy of a contract value is exactly how that drift happened.
+
+HOW MUCH LIQUID AN EXCHANGE MOVES. Every exchange step declares what it is FOR, because
+that, not habit, sets the volume (see exchange_cv). The declaration is written into the step
+as the DATA field `exchange_kind` ("sweep", "partial" or "fill"), not only into the note: it
+used to live in English prose alone, so a checker could not tell a deliberate half medium
+change from a wash that was too small to work, and the two rules contradicted each other.
+The note still says the same thing in words, for the twin's narration.
+  sweep   - a wash, rinse, reset or clear-out. A chamber is well mixed, so what is left
+            after V chamber volumes is exp(-V): reaching exchange.target_fraction takes
+            SWEEP_CV chamber volumes in total, split across the washes. HALF a chamber
+            volume cannot clear a chamber however many times it is repeated, which is what
+            96 steps of this protocol used to ask for.
+  partial - a routine culture medium half-change. Deliberately does NOT clear the chamber:
+            the conditioned medium left behind is the point. Stays at PARTIAL_CV.
+  fill    - put a reagent in. One chamber volume displaces the bulk of what was there.
 """
 
 from __future__ import annotations
@@ -52,6 +73,7 @@ from pathlib import Path
 
 OUT = Path(__file__).resolve().parent / "module1_v1.json"
 CHIP = Path(__file__).resolve().parents[1] / "chip" / "module1_v1.json"
+CONTRACT = Path(__file__).resolve().parents[1] / "contracts" / "parameters.json"
 
 SOURCE = (
     "Neural lane: Shi Y, Kirwan P, Livesey FJ. Directed differentiation of human pluripotent "
@@ -65,9 +87,41 @@ SOURCE = (
 )
 
 DAY = 86400.0
-MU_PA_S = 0.8e-3
-SHEAR_CEILING = 0.01
+
+
+def parameter(name: str) -> float:
+    """One value from contracts/parameters.json. No fallback: a missing contract is a bug,
+    and a literal copied here is how mu drifted 20% below the contract last time."""
+    return float(json.loads(CONTRACT.read_text())["parameters"][name]["value"])
+
+
+MU_PA_S = parameter("fluid.viscosity_pa_s")
+SHEAR_CEILING = parameter("shear.culture_ceiling_dyn_cm2")
+EXCHANGE_TARGET = parameter("exchange.target_fraction")
+SWEEP_CV = -math.log(1.0 - EXCHANGE_TARGET)   # chamber volumes a sweep needs to hit the goal
+PARTIAL_CV = 0.5                              # a culture half-change, on purpose
 MARGIN = 1.4
+
+# Appended to every exchange note, so the file always says what fraction of a chamber volume
+# the step moves and whether it is trying to clear the chamber.
+CV_NOTE = {
+    "sweep": ("SWEEP: {total:.1f} chamber volumes in total, which is what the {goal:.0%} exchange "
+              "goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), "
+              "so half a volume cannot clear it however often it is repeated)."),
+    "partial": ("PARTIAL change: {total:.1f} of a chamber volume. This is NOT trying to clear the "
+                "chamber - the conditioned medium left behind is wanted, as in any bench half-change."),
+    "fill": ("FILL: {total:.1f} chamber volume(s) to put the reagent in, not a sweep to get the old "
+             "liquid out; about {left:.0%} of what was there stays behind."),
+}
+
+
+def exchange_cv(kind: str, washes: int) -> float:
+    """Chamber volumes PER WASH for an exchange of this kind. See the module docstring."""
+    if kind == "sweep":
+        return SWEEP_CV / washes
+    if kind == "partial":
+        return PARTIAL_CV
+    return 1.0
 
 PORTS = ["p_in", "p_g_in", "p_a_in", "p_mid", "p_g_out", "p_a_out"]
 FEED, CAP, VENT = "FEED", "CAP", "VENT"
@@ -164,10 +218,10 @@ def events() -> list[tuple[float, dict]]:
     """Every scheduled operation on a real calendar, as (day, partial step)."""
     ev: list[tuple[float, dict]] = []
 
-    def add(day, operation, target, note, mode, reagent=None, fraction=None, washes=1,
+    def add(day, operation, target, note, mode, reagent=None, kind=None, washes=1,
             temp_c=None, duration_s=None, until=None):
         ev.append((day, dict(operation=operation, target=target, note=f"{TAG[mode]}: {note}", mode=mode,
-                             reagent=reagent, fraction=fraction, washes=washes, temp_c=temp_c,
+                             reagent=reagent, kind=kind, washes=washes, temp_c=temp_c,
                              duration_s=duration_s, until=until)))
 
     for lane, L in LANES.items():
@@ -175,7 +229,7 @@ def events() -> list[tuple[float, dict]]:
         med1, med2 = L["media"]
         add(seed - 0.5, "exchange", c,
             f"Coat {c} through {inlet} alone with coating solution; the other inlets stay capped so "
-            f"the {lane} chamber is the only one wetted.", "grow", "coating_solution", 1.0)
+            f"the {lane} chamber is the only one wetted.", "grow", "coating_solution", "fill")
         add(seed, "load", c,
             f"Seed iPSCs into the {lane} chamber through {inlet} on its own day, with p_mid vented. "
             f"The other two chambers are untouched, which is why the shared-inlet seed (mode 1) is not "
@@ -190,15 +244,17 @@ def events() -> list[tuple[float, dict]]:
             n = day - seed
             if use_med2 and not switched and med1 != med2:
                 add(day, "exchange", c,
-                    f"Day {n:g} of the {lane} lane: full change into {medium} through {inlet}, p_mid vented. "
+                    f"Day {n:g} of the {lane} lane: change into {medium} through {inlet}, p_mid vented. "
+                    f"This one IS meant to clear the chamber - the previous medium drives a different "
+                    f"stage and carrying it over would blur the switch - so it sweeps rather than half-changes. "
                     f"The stream meets the others only at the junction j_mid, outside every chamber.",
-                    "grow", medium, 1.0)
+                    "grow", medium, "sweep")
                 switched = True
             else:
                 add(day, "exchange", c,
                     f"Day {n:g} of the {lane} lane: half change of {medium} through {inlet}, p_mid vented. "
                     f"The three media converge at the junction j_mid, outside every chamber, and leave through p_mid.",
-                    "grow", medium, 0.5)
+                    "grow", medium, "partial")
             day += 2
 
     # --- interaction window: one direction at a time, each preceded by a separate-growth reset ---
@@ -209,14 +265,17 @@ def events() -> list[tuple[float, dict]]:
         others = [x["chamber"] for k, x in LANES.items() if k != lane]
         for k, other in LANES.items():
             add(day - 0.1, "exchange", other["chamber"],
-                f"Reset before the {lane}-source direction: half change of {other['media'][1]} so every chamber "
-                f"starts from its own medium.", "grow", other["media"][1], 0.5)
+                f"Reset before the {lane}-source direction: clear {other['chamber']} back to {other['media'][1]} "
+                f"so every chamber starts from its own medium. The previous direction left another lane's "
+                f"conditioned medium in here, and carrying it over would confound the comparison, so this one "
+                f"has to actually clear - a half change would leave most of it.",
+                "grow", other["media"][1], "sweep")
         add(day, "exchange", c,
             f"Push {medium} through {c} from {inlet} with p_mid capped. The conditioned medium goes "
             f"{c} to the junction j_mid, then splits to {others[0]} and {others[1]} and leaves by "
-            f"{EXITS[mode]} (vented). Twice the chamber volume goes through, so the other two see this "
-            f"lane's secretome.",
-            mode, medium, 1.0, washes=2)
+            f"{EXITS[mode]} (vented), so the other two see this lane's secretome. Deliberately a delivery "
+            f"and not a wash: what matters is what arrives downstream, not clearing {c}.",
+            mode, medium, "fill", washes=2)
         add(day + 0.5, "hold_temp", c,
             f"All ports capped so the {lane} secretome acts on the other two chambers; imaging and "
             f"supernatant sampling measure the response.", "idle", temp_c=37, until=day + 1.9)
@@ -231,26 +290,30 @@ def events() -> list[tuple[float, dict]]:
         add(h + 0.01, "exchange", chamber,
             f"Feed {tag} into {chamber} through {LANES[lane]['inlet']}, p_mid vented. A lipid-anchored oligo "
             f"inserts into the membrane with no antibody and no spin, so each chamber carries its own label "
-            f"before anything is mixed.", "grow", tag, 0.5, duration_s=600)
+            f"before anything is mixed. The leftover medium is the same share in all three chambers, so it "
+            f"does not bias which lane is which.", "grow", tag, "fill", duration_s=600)
     for chamber in BARCODES:
         add(h + 0.02, "exchange", chamber,
             f"Wash unbound barcode out of {chamber} through {LANES[LANE_OF[chamber]]['inlet']}. Carryover causes "
-            f"background, so this decides whether the labels can be told apart.",
-            "grow", "wash_buffer", 0.5, washes=2)
+            f"background, so this decides whether the labels can be told apart, and it is the one step here that "
+            f"MUST reach its exchange goal.",
+            "grow", "wash_buffer", "sweep", washes=2)
     for chamber in BARCODES:
         add(h + 0.03, "exchange", chamber,
-            f"Lift the cells in {chamber} with a gentle, enzyme-free reagent at 4 C.",
-            "grow", "dissociation_reagent", 0.5, duration_s=900)
+            f"Lift the cells in {chamber} with a gentle, enzyme-free reagent at 4 C. The wash before this left "
+            f"wash buffer, not medium, in the chamber, so one volume of reagent is enough to act.",
+            "grow", "dissociation_reagent", "fill", duration_s=900)
     add(h + 0.05, "exchange", "n_cx",
-        "Quench with a carrier-protein buffer through p_in, so released cells do not stick to the walls; "
-        "it sweeps them on to the junction.",
-        "grow", "quench_buffer", 0.5)
+        "Quench with a carrier-protein buffer through p_in, so released cells do not stick to the walls, and "
+        "sweep them on to the junction. Recovery is the whole point here, so this is sized to clear the chamber, "
+        "not to top it up.",
+        "grow", "quench_buffer", "sweep")
     for chamber in ("g_cx", "a_cx"):
         port = LANES[LANE_OF[chamber]]["inlet"].replace("_in", "_out")
         add(h + 0.055, "exchange", chamber,
-            f"Back-flush {chamber} from {port} with quench buffer, which lifts the cells off its mesh and "
-            f"sweeps them into the junction j_mid.",
-            "collect", "quench_buffer", 0.5)
+            f"Back-flush {chamber} from {port} with quench buffer, which lifts the cells off its weir and "
+            f"sweeps them into the junction j_mid. Sized to clear the chamber: cells left behind are cells lost.",
+            "collect", "quench_buffer", "sweep")
     add(h + 0.06, "pool", "j_mid",
         "Pool all three barcoded lanes in the junction j_mid. They are safe to mix now because each carries its own barcode: "
         "lane identity survives in the sequencing data, and so does any cell that crossed between chambers.",
@@ -268,11 +331,14 @@ def build() -> dict:
     start = min(d for d, _ in evs)
 
     def emit(operation, target, note, duration_s, reagent=None, volume_ul=None,
-             temp_c=None, washes=None, flow_ul_min=None):
+             temp_c=None, washes=None, flow_ul_min=None, exchange_kind=None):
         nonlocal t
-        steps.append({"step": len(steps) + 1, "operation": operation, "target": target,
-                      "reagent": reagent, "volume_ul": volume_ul, "duration_s": round(duration_s),
-                      "temp_c": temp_c, "washes": washes, "flow_ul_min": flow_ul_min, "note": note})
+        step = {"step": len(steps) + 1, "operation": operation, "target": target,
+                "reagent": reagent, "volume_ul": volume_ul, "duration_s": round(duration_s),
+                "temp_c": temp_c, "washes": washes, "flow_ul_min": flow_ul_min, "note": note}
+        if exchange_kind is not None:
+            step["exchange_kind"] = exchange_kind
+        steps.append(step)
         t += round(duration_s)
 
     for day, e in evs:
@@ -283,11 +349,17 @@ def build() -> dict:
                  "incubating on its own; the chip acts on one chamber at a time.", gap, temp_c=37)
         op, target = e["operation"], e["target"]
         if op == "exchange":
-            volume = round(CH[target]["volume_ul"] * (e["fraction"] or 1.0), 1)
+            kind, washes = e["kind"] or "fill", e["washes"]
+            per_wash = exchange_cv(kind, washes)
+            volume = round(CH[target]["volume_ul"] * per_wash, 1)
+            total_cv = per_wash * washes
+            note = f"{e['note']} " + CV_NOTE[kind].format(
+                total=total_cv, goal=EXCHANGE_TARGET, left=math.exp(-total_cv))
             flow = feed_flow(e["mode"])
-            minimum = e["washes"] * volume / flow * 60.0
-            emit("exchange", target, e["note"], e["duration_s"] or minimum * MARGIN,
-                 reagent=e["reagent"], volume_ul=volume, washes=e["washes"], flow_ul_min=flow)
+            minimum = washes * volume / flow * 60.0
+            emit("exchange", target, note, e["duration_s"] or minimum * MARGIN,
+                 reagent=e["reagent"], volume_ul=volume, washes=washes, flow_ul_min=flow,
+                 exchange_kind=kind)
         elif op == "hold_temp":
             duration = e["duration_s"]
             if e["until"] is not None:
@@ -314,7 +386,16 @@ def build() -> dict:
             "sends each chamber's conditioned medium across to the other two in turn; each lane is then "
             "barcoded and the three are pooled into one suspension for encapsulation. Runs about "
             f"{MATURE_DAY + INTERACT_DAYS} days. Reagent names are generic; see the source citation. "
-            "Flow rates are computed from chamber geometry to keep wall shear at or below 0.01 dyn/cm2."
+            f"Flow rates are computed from chamber geometry to keep wall shear at or below "
+            f"{SHEAR_CEILING:g} dyn/cm2 (tau = 6*mu*Q/(w*h^2), mu = {MU_PA_S:g} Pa s read from "
+            f"contracts/parameters.json, not hard-coded). Every exchange says what it is for in its "
+            f"`exchange_kind` field as well as in its note, so a checker can read it: a SWEEP "
+            f"(wash, rinse, reset) moves {SWEEP_CV:.1f} chamber volumes, which is what the "
+            f"{EXCHANGE_TARGET:.0%} exchange goal needs in a well-mixed chamber; a PARTIAL culture "
+            f"half-change moves {PARTIAL_CV:g} and deliberately leaves conditioned medium behind, so the "
+            f"one-chamber-volume floor does not apply to it; a FILL "
+            f"moves one volume to put a reagent in. The 96 steps that used to move half a volume whatever "
+            f"their purpose are now sized by purpose."
         ),
         "steps": steps,
     }
@@ -343,11 +424,25 @@ def report() -> None:
             w, h = CH[c]["size"][1], CH[c]["size"][2]
             cells += f"{q * share[c]:.1f} uL/min {shear(q * share[c], w, h):.4f}".rjust(20)
         print(f"{label:<34}{q:>8.1f}  {cells}" if q > 0 else f"{label:<34}{'-':>8}  no flow")
-    print(f"  shear in dyn/cm2, ceiling {SHEAR_CEILING}; chamber ceiling flow: "
-          + ", ".join(f"{c} {max_flow(CH[c]['size'][1], CH[c]['size'][2]):.1f} uL/min" for c in CULTURE))
+    print(f"  shear in dyn/cm2, ceiling {SHEAR_CEILING} at mu = {MU_PA_S:g} Pa s "
+          f"(contracts/parameters.json fluid.viscosity_pa_s); chamber ceiling flow: "
+          + ", ".join(f"{c} {max_flow(CH[c]['size'][1], CH[c]['size'][2]):.2f} uL/min" for c in CULTURE))
     ch = json.loads(CHIP.read_text())["channels"][0]
     print(f"  channels ({ch['width_mm']} x {ch['depth_mm']} mm) pass the ceiling above "
-          f"{max_flow(ch['width_mm'], ch['depth_mm']):.1f} uL/min: transit, not culture")
+          f"{max_flow(ch['width_mm'], ch['depth_mm']):.2f} uL/min: transit, not culture")
+
+    print(f"\nExchange sizing (chamber volumes), goal {EXCHANGE_TARGET:.0%}:")
+    for kind, washes in (("sweep", 1), ("sweep", 2), ("partial", 1), ("fill", 1), ("fill", 2)):
+        per = exchange_cv(kind, washes)
+        print(f"  {kind:<8}{washes} wash(es): {per:.2f} CV each, {per * washes:.2f} CV total, "
+              f"leaves {math.exp(-per * washes):.1%} of the old liquid")
+    proto = build()
+    kinds = {"sweep": 0, "partial": 0, "fill": 0}
+    for s in proto["steps"]:
+        if s["operation"] == "exchange":
+            kinds[s["exchange_kind"]] += 1
+    print("  steps by purpose (read from the exchange_kind field, not from the prose): "
+          + ", ".join(f"{k} {v}" for k, v in kinds.items()))
 
 
 if __name__ == "__main__":

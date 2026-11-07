@@ -1,7 +1,7 @@
 {
   "id": "ipsc_to_mgl_chip_v1",
   "name": "iPSC to microglia-like cell train v1",
-  "description": "DEMO SCALE: this chip has been scaled down uniformly in x and y by a factor of 0.192 (fit_chip.py) from 150 x 100 mm to fit the 30 x 20 mm, 0.3 mm deep, single-layer resin-print and hot-emboss envelope; depths are unchanged and chamber volumes were recomputed from the new geometry. The mat_* chambers were then re-placed (x = 20.2 mm) and m3_concentrate enlarged to 3.0 x 1.2 mm (1.08 uL) so that every wall is at least 0.5 mm. Channel widths were clamped to the 0.2 mm fabrication floor, which changed the channel aspect ratio, so flow resistances no longer match the original design and flow numbers drawn from it must be re-derived. The text below describes the original design intent and still quotes its original dimensions. Five linked culture and fluidics modules on one 150 x 100 mm board, for running a published monolayer iPSC-to-microglia differentiation end to end with no off-chip handling. Left to right: m1_expand (iPSC expansion, lifted as aggregates), m2_hemogenic (adherent hemogenic endothelium; progenitors round up and float off from about day 7), m3_concentrate (30 um filter plus concentrator, which replaces the centrifugation step), mat_1..mat_4 (four parallel maturation chambers, giving n = 4 or four conditions) and m5_harvest (pooling, dissociation and delivery to the encapsulation inlet). Chamber height is set by a 0.3 mm spacer layer cut from acrylic (or a stack of adhesive film to the same thickness), so every chamber is a cut-out rectangle in one laser-cut layer. RETENTION (revised): the old 5 um retention mesh in m3_concentrate, mat_1..mat_4 and m5_harvest could not be printed (floor 200 um in plane), so it is gone. Each of those chambers is now a trap_chamber with a DEPTH WEIR at its outlet: a crest 272 um tall and 200 um thick in the 300 um layer leaves a 25 um gap under the lid (0.4 x a 70 um capsule, the rule tools/check_chip_spec.py enforces), relief in the same single etch depth and one fluidic layer, recorded on each chamber as a structured weir object (crest_height_um 272, gap_um 28, retains_um 70). It is a weir, not a mesh. It retains aggregates, clumps and capsules above about 70 um; it does NOT retain single cells (about 10 to 15 um), which pass through the 25 um gap, so the 5 um cell-retention role of the old mesh is NOT met and these chambers cannot hold dispersed progenitors or microglia (see protocols/retention_audit.md). The weir is UNTESTED, and the z tolerance is the biggest unknown: a +/-20 um z error is about +/-71% of a 25 um gap, so the gap could close or leak outright. Run a coupon with 40, 60 and 80 um gaps before committing. m1_expand and m2_hemogenic have no retention because their cells are attached to the floor. Separately, the ch_m2_m3 line carries a 30 um in-line filter (cell_filter.gap_um) that blocks detached endothelial sheet while passing progenitors; that is a channel feature, not a chamber retention mesh. Geometry and flow numbers are ours; the step schedule they serve is from the published protocol cited in protocols/ipsc_to_mgl_v1.json. Retention is a depth weir (275 um crest, 25 um gap) recorded in each chamber's retention field; the in-plane 200 um floor does not apply in z. UNTESTED: z tolerance of about +/-20 um on a 25 um gap is the main risk.",
+  "description": "DEMO SCALE: this chip has been scaled down uniformly in x and y by a factor of 0.192 (fit_chip.py) from 150 x 100 mm to fit the 30 x 20 mm, 0.3 mm deep, single-layer resin-print and hot-emboss envelope; depths are unchanged and chamber volumes were recomputed from the new geometry. The mat_* chambers were then re-placed (x = 20.2 mm) and m3_concentrate enlarged to 3.0 x 1.2 mm (1.08 uL) so that every wall is at least 0.5 mm. Channel widths were clamped to the 0.2 mm fabrication floor, which changed the channel aspect ratio, so flow resistances no longer match the original design and flow numbers drawn from it must be re-derived. The text below describes the original design intent and still quotes its original dimensions. Five linked culture and fluidics modules on one 150 x 100 mm board, for running a published monolayer iPSC-to-microglia differentiation end to end with no off-chip handling. Left to right: m1_expand (iPSC expansion, lifted as aggregates), m2_hemogenic (adherent hemogenic endothelium; progenitors round up and float off from about day 7), m3_concentrate (30 um filter plus concentrator, which replaces the centrifugation step), mat_1..mat_4 (four parallel maturation chambers, giving n = 4 or four conditions) and m5_harvest (pooling, dissociation and delivery to the encapsulation inlet). Chamber height is set by a 0.3 mm spacer layer cut from acrylic (or a stack of adhesive film to the same thickness), so every chamber is a cut-out rectangle in one laser-cut layer. RETENTION (revised): the old 5 um retention mesh in m3_concentrate, mat_1..mat_4 and m5_harvest could not be printed (floor 200 um in plane), so it is gone. Each of those chambers is now a trap_chamber with a DEPTH WEIR at its outlet: a 200 um thick crest leaves a 25 um gap under the lid, relief in the same single etch depth and one fluidic layer. The crest height is not a fixed number - it is THIS chip's etch depth minus the gap, derived per chip - and 25 um is strictly below 0.4 x a 70 um capsule (28 um), the bound tools/check_chip_spec.py enforces with >=, so a 28 um gap would FAIL it. It is recorded on each chamber as retention {type: weir, opening_um: 25, source: fabricated}, which is the only form the schema allows: there is no separate weir object with crest_height_um or retains_um, and the schema forbids one. It is a weir, not a mesh. It retains aggregates, clumps and capsules above about 70 um; it does NOT retain single cells (about 10 to 15 um), which pass through the 25 um gap, so the 5 um cell-retention role of the old mesh is NOT met and these chambers cannot hold dispersed progenitors or microglia (see protocols/retention_audit.md). The weir is UNTESTED, and the z tolerance is the biggest unknown: a +/-20 um z error is about +/-71% of a 25 um gap, so the gap could close or leak outright. Run a coupon with 40, 60 and 80 um gaps before committing. m1_expand and m2_hemogenic have no retention because their cells are attached to the floor. Separately, the ch_m2_m3 line carries a 30 um in-line filter (cell_filter.gap_um) that blocks detached endothelial sheet while passing progenitors; that is a channel feature, not a chamber retention mesh. Geometry and flow numbers are ours; the step schedule they serve is from the published protocol cited in protocols/ipsc_to_mgl_v1.json. Retention is a depth weir with a 25 um gap, the crest being this chip's etch depth minus that gap, recorded in each chamber's retention field (type weir, opening_um 25, source fabricated) and nowhere else; the in-plane 200 um floor does not apply in z. UNTESTED: z tolerance of about +/-20 um on a 25 um gap is the main risk.",
   "placeholder": false,
   "units": "mm",
   "footprint": {
@@ -76,7 +76,7 @@
       "mesh_pore_um": null,
       "volume_ul": 1.08,
       "block": "trap_chamber",
-      "note": "Depth weir (crest 272 um, gap 28 um in a 300 um layer), not a mesh; retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the gap is the biggest unknown. See chip description.",
+      "note": "Depth weir, 25 um gap (retention.opening_um), crest = this chip's etch depth minus the gap; not a mesh. Retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the 25 um gap is the biggest unknown. See chip description.",
       "retention": {
         "type": "weir",
         "opening_um": 25,
@@ -99,7 +99,7 @@
       "mesh_pore_um": null,
       "volume_ul": 2.831,
       "block": "trap_chamber",
-      "note": "Depth weir (crest 272 um, gap 28 um in a 300 um layer), not a mesh; retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the gap is the biggest unknown. See chip description.",
+      "note": "Depth weir, 25 um gap (retention.opening_um), crest = this chip's etch depth minus the gap; not a mesh. Retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the 25 um gap is the biggest unknown. See chip description.",
       "retention": {
         "type": "weir",
         "opening_um": 25,
@@ -122,7 +122,7 @@
       "mesh_pore_um": null,
       "volume_ul": 2.831,
       "block": "trap_chamber",
-      "note": "Depth weir (crest 272 um, gap 28 um in a 300 um layer), not a mesh; retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the gap is the biggest unknown. See chip description.",
+      "note": "Depth weir, 25 um gap (retention.opening_um), crest = this chip's etch depth minus the gap; not a mesh. Retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the 25 um gap is the biggest unknown. See chip description.",
       "retention": {
         "type": "weir",
         "opening_um": 25,
@@ -145,7 +145,7 @@
       "mesh_pore_um": null,
       "volume_ul": 2.831,
       "block": "trap_chamber",
-      "note": "Depth weir (crest 272 um, gap 28 um in a 300 um layer), not a mesh; retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the gap is the biggest unknown. See chip description.",
+      "note": "Depth weir, 25 um gap (retention.opening_um), crest = this chip's etch depth minus the gap; not a mesh. Retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the 25 um gap is the biggest unknown. See chip description.",
       "retention": {
         "type": "weir",
         "opening_um": 25,
@@ -168,7 +168,7 @@
       "mesh_pore_um": null,
       "volume_ul": 2.831,
       "block": "trap_chamber",
-      "note": "Depth weir (crest 272 um, gap 28 um in a 300 um layer), not a mesh; retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the gap is the biggest unknown. See chip description.",
+      "note": "Depth weir, 25 um gap (retention.opening_um), crest = this chip's etch depth minus the gap; not a mesh. Retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the 25 um gap is the biggest unknown. See chip description.",
       "retention": {
         "type": "weir",
         "opening_um": 25,
@@ -191,7 +191,7 @@
       "mesh_pore_um": null,
       "volume_ul": 2.212,
       "block": "trap_chamber",
-      "note": "Depth weir (crest 272 um, gap 28 um in a 300 um layer), not a mesh; retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the gap is the biggest unknown. See chip description.",
+      "note": "Depth weir, 25 um gap (retention.opening_um), crest = this chip's etch depth minus the gap; not a mesh. Retains aggregates and capsules of about 70 um and above, NOT single cells of 10-15 um. Untested; z tolerance of about +/-20 um on the 25 um gap is the biggest unknown. See chip description.",
       "retention": {
         "type": "weir",
         "opening_um": 25,

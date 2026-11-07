@@ -203,7 +203,7 @@ def translate(src: dict) -> tuple[dict, list[str]]:
         "laser-cuttable (Module 1's narrowest cut feature is 800 um). Pillar row or bought mesh? If mesh: which, and how is it bonded?",
         f"Channels {chan['width_um']} x {chan['depth_um']} um are also below laser-cut size, and the trap is "
         f"{trap['height_um']} um deep: two depths in one layer. Which process (embossing, milling, printing)?",
-        "Footprint, layer material (must tolerate 4 M GITC) and port positions are not in the file: confirm or supply them.",
+        "Footprint, layer material (must tolerate a strong chaotropic lysis reagent) and port positions are not in the file: confirm or supply them.",
         "Back-flush route: 'wash_buffer routed to the outlet side of the retention gap'. Is a second channel from the "
         "wash_buffer port (as translated) what you meant, or a separate port?",
         "to_split_tree must sit on the capsule side of the retention gap to let resuspended capsules out; translated on "

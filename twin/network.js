@@ -4,12 +4,17 @@
 //   chamber's slab from the entry edge to its centre;  ports  FEED (uL/min), VENT (0 Pa), CAP.
 // Also: the medium tracer, dye arrival times, the one-line result and the safety rules of
 // operator/module1_operator.py, so editing a pump rate in the twin re-solves on the spot.
+//
+// Viscosity, the port bore and the shear ceiling come from twin/contracts.js, which reads the
+// same contracts/ files operator/network.py reads. They are not constants here: this file
+// held MU_37C = 0.8e-3 and PORT_HOLE_MM = 2.0 while the contracts said 0.001 Pa s and
+// 0.8 mm, so loadContracts() must have finished before anything in here is called.
+import { contracts, portHoleUl } from './contracts.js';
 
-export const MU_37C = 0.8e-3;
-const PORT_HOLE_MM = 2.0;
-export const PORT_HOLE_UL = 2 * 2 * 3;
+const mu37c = () => contracts().mu_pa_s;
+const portHoleMm = () => contracts().portHoleMm;
+export const shearCeiling = () => contracts().shearCeiling;
 const FIRST_TINT = 2 / 3;
-export const SHEAR_CEILING = 0.01;
 
 export const MODES = {
   grow: { label: 'Separate growth', feed: ['p_in', 'p_g_in', 'p_a_in'], vent: ['p_mid'] },
@@ -75,7 +80,8 @@ const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 // id -> {a, b, length_mm, width_mm, depth_mm, source}
 export function channelGeometry(chip, dxfRects = null) {
   const boxes = Object.fromEntries(chip.chambers.map((c) => [c.id, [c.center, c.size]]));
-  for (const p of chip.ports ?? []) boxes[p.id] = [p.position, [PORT_HOLE_MM, PORT_HOLE_MM, 0]];
+  const bore = portHoleMm();
+  for (const p of chip.ports ?? []) boxes[p.id] = [p.position, [bore, bore, 0]];
   const out = {};
   for (const ch of chip.channels) {
     const [ca, sa] = boxes[ch.from];
@@ -98,13 +104,13 @@ export function channelGeometry(chip, dxfRects = null) {
 
 // ------------------------------------------------------------------ physics
 
-export function rectResistance(lengthMm, widthMm, depthMm, mu = MU_37C) {
+export function rectResistance(lengthMm, widthMm, depthMm, mu = mu37c()) {
   const w = Math.max(widthMm, depthMm) / 1000;
   const h = Math.min(widthMm, depthMm) / 1000;
   return (12 * mu * (lengthMm / 1000)) / (w * h ** 3 * (1 - (0.63 * h) / w));
 }
 
-export function shear(flowUlMin, widthMm, depthMm, mu = MU_37C) {
+export function shear(flowUlMin, widthMm, depthMm, mu = mu37c()) {
   const q = (Math.abs(flowUlMin) * 1e-9) / 60;
   return ((6 * mu * q) / ((widthMm / 1000) * (depthMm / 1000) ** 2)) * 10;
 }
@@ -117,10 +123,17 @@ function chamberLeg(c, entry) {
 }
 
 export class Network {
-  constructor(chip, dxfRects = null, mu = MU_37C) {
+  constructor(chip, dxfRects = null, mu = mu37c()) {
     this.chip = chip;
     this.mu = mu;
+    this.portHoleMm = portHoleMm();
+    this.portHoleUl = portHoleUl(chip);
     this.geometry = channelGeometry(chip, dxfRects);
+    // Channels whose ends did not land on a DXF rectangle: a straight-line estimate, not the
+    // cut geometry. Said out loud (the twin used to fall back to this without a word).
+    this.estimated = dxfRects?.length
+      ? chip.channels.filter((ch) => this.geometry[ch.id].source !== 'DXF').map((ch) => ch.id)
+      : [];
     this.chambers = Object.fromEntries(chip.chambers.map((c) => [c.id, c]));
     this.nodes = [...chip.chambers.map((c) => c.id), ...(chip.ports ?? []).map((p) => p.id)];
     this.culture = chip.chambers.filter((c) => !['pool', 'junction', 'split', 'inlet', 'outlet'].includes(c.type)).map((c) => c.id);
@@ -307,10 +320,11 @@ export function safetyCheck(net, mode, states, flows, { cells = true } = {}) {
   try { sol = net.solve(solverPorts(states, flows)); } catch (e) { return { status: 'blocked', reasons: [e.message], warnings: [], sol: null }; }
   const foreign = sol.routing.foreign_medium;
   if (mode === 'grow' && Object.keys(foreign).length) blocked.push(`separate growth must keep the media apart, but ${foreignText(foreign)}`);
+  const ceiling = shearCeiling();
   for (const c of ['n_cx', 'g_cx', 'a_cx']) {
     const tau = sol.chambers[c].shear_dyn_cm2;
-    if (tau > SHEAR_CEILING) {
-      const msg = `${c} wall shear ${tau.toFixed(4)} dyn/cm² > ${SHEAR_CEILING} (throughput ${sol.chambers[c].throughput_ul_min.toFixed(1)} µL/min)`;
+    if (tau > ceiling) {
+      const msg = `${c} wall shear ${tau.toFixed(4)} dyn/cm² > ${ceiling} (throughput ${sol.chambers[c].throughput_ul_min.toFixed(1)} µL/min)`;
       if (cells) blocked.push(msg); else warnings.push(`${msg}: fine for the dye demo (no cells), too high with cells`);
     }
   }
@@ -350,7 +364,7 @@ export function dyeTimes(net, sol, states, flows) {
   const targets = ['j_mid', ...Object.entries(states).filter(([, s]) => s === 'VENT').map(([p]) => p)];
   for (const [src, s] of Object.entries(states)) {
     if (s !== 'FEED' || !(flows[src] > 0)) continue;
-    const best = { [src]: (PORT_HOLE_UL / flows[src]) * 60 };
+    const best = { [src]: (net.portHoleUl / flows[src]) * 60 };
     const queue = [src];
     while (queue.length) {
       queue.sort((a, b) => best[a] - best[b]);

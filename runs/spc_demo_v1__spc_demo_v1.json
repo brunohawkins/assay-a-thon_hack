@@ -1,10 +1,10 @@
 {
   "protocol_id": "spc_demo_v1",
-  "protocol_name": "Capsule generation, demo run",
+  "protocol_name": "Flow-focusing dye demo (reference board, not the pipeline's encapsulator)",
   "chip_id": "spc_demo_v1",
   "chip_spec": "chip/spc_demo_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T17:52:56Z",
+  "created_at": "2026-11-07T18:55:24Z",
   "placeholder": false,
   "sizing": {
     "capsule_count": null,
@@ -32,7 +32,7 @@
     ],
     "swollen_diameter_um": 140.0
   },
-  "total_duration_s": 2079.0,
+  "total_duration_s": 2081.0,
   "events": [
     {
       "t_s": 0.0,
@@ -45,25 +45,25 @@
         "washes": 1,
         "flow_ul_min": 3.107
       },
-      "narration": "Prime the board with oil before anything aqueous goes in. Do this first and always: the walls have to be oil-wetted for water-in-oil to work at all, and an aqueous stream that touches a dry wall first will wet it and keep wetting it.",
+      "narration": "Prime the board with oil before anything aqueous goes in. Do this first and always: the walls have to be oil-wetted for water-in-oil to work at all, and an aqueous stream that touches a dry wall first will wet it and keep wetting it. Getting this order right, and seeing what happens when you do not, is half the point of running the board.",
       "protocol_step": 1
     },
     {
       "t_s": 581.0,
-      "duration_s": 778.0,
+      "duration_s": 780.0,
       "command": "encapsulate",
       "args": {
         "target": "xj_1",
         "core_flow_ul_h": 19.9,
         "shell_flow_ul_h": 19.9,
         "oil_flow_ul_h": 146.5,
-        "capsules": 213
+        "capsules": 3757
       },
-      "narration": "Start the two aqueous streams and the oil, and let the junction settle. Expect a minute or two of ragged, uneven droplets before it locks into a steady drip: that is normal, and it is the syringe pump and the tubing settling rather than the chip. Cells ride in the core stream at about 13 cells/uL, which gives a mean of 0.2 cells per capsule. That figure belongs to a 390 um capsule and falls as the cube of diameter, so do not reuse it if the nozzle changes. At about 0.36 droplets per second the demo batch of 213 capsules takes about 10 min.",
+      "narration": "Start the two dye streams and the oil, and let the junction settle. Expect a minute or two of ragged, uneven droplets before it locks into a steady drip: that is normal, and it is the syringe pump and the tubing settling rather than the chip. NO CELLS GO ON THIS BOARD - both aqueous streams are dye, because this is a geometry demo and not the pipeline's encapsulator. The orifice is 300 um wide by 150 um deep, so droplets are confined by the depth: treat 150 um as an INDICATIVE bound, not a prediction. At about 6.26 droplets per second the demo batch of 3,757 droplets takes about 10 min.",
       "protocol_step": 2
     },
     {
-      "t_s": 1359.0,
+      "t_s": 1361.0,
       "duration_s": 120.0,
       "command": "hold_temp",
       "args": {
@@ -71,18 +71,18 @@
         "temp_c": 22,
         "duration_s": 120
       },
-      "narration": "FILM THIS. The serpentine shows a regular train of 390 um capsules. Even spacing and even size is the whole result: if droplets vary in size the flow ratio is off, and if they merge the surfactant or the surface treatment is wrong.",
+      "narration": "FILM THIS. The serpentine shows the droplet train. MEASURE THE SPREAD, NOT THE DIAMETER: even spacing and even size is the whole result, and the 150 um figure is only the depth bound. If droplets vary in size the flow ratio is off; if they merge the surfactant or the surface treatment is wrong.",
       "protocol_step": 3
     },
     {
-      "t_s": 1479.0,
+      "t_s": 1481.0,
       "duration_s": 600.0,
       "command": "release",
       "args": {
         "target": "delay_1",
-        "reagent": "photoinitiator"
+        "reagent": "dye_solution"
       },
-      "narration": "Collect into a tube on ice. Let the two aqueous polymers demix for a few minutes, which is what puts the shell on the outside, then flood-cure at 405 nm. Curing is off-chip on purpose: demixing takes minutes, and a serpentine holding minutes at this flow would be longer than the board.",
+      "narration": "Collect into a tube and look at the droplets under a scope. NOTHING IS CURED AND NOTHING GOES DOWNSTREAM: these are dye droplets of order 150 um from a geometry demo, not the pipeline's 70 um capsules. Those come from the off-chip commercial droplet kit and its 40 um nozzle, because a 40 um orifice is 5x below our 200 um in-plane fabrication floor and cannot be made here.",
       "protocol_step": 4
     }
   ]
