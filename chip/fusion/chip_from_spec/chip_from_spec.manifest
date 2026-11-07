@@ -1,0 +1,10 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "script",
+  "author": "SzonjaS",
+  "description": {
+    "": "Build a printable chip (cut chip body + lid with port holes) from a chip spec JSON in chip/."
+  },
+  "supportedOS": "windows|mac",
+  "editEnabled": true
+}
