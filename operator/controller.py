@@ -1,0 +1,499 @@
+"""Closed-loop controller (model-predictive): plan -> approve -> execute in slices ->
+measure -> compare -> correct -> re-plan.
+
+For each protocol step:
+  1. the optimizer plans the step from the BELIEVED state
+  2. the safety checker approves (or blocks) the plan
+  3. the executor sends it to the adapter in small time slices
+  4. after each slice the sensors are read and compared with the model's prediction
+  5. if the error is above control.error_threshold, the model's parameters are refitted
+     (mesh resistance from pressure, chamber volume from outlet absorbance) and the rest
+     of the step is re-planned
+  6. predictions, measurements, errors, model updates and alerts are all logged
+With sensors, the believed state is corrected by each measurement and converges on the
+truth. Without sensors (open loop) belief runs on the model alone and drifts; the
+summary reports how far.
+
+Operators (operators.py, llm_operator.py) drive this through a small set of primitives:
+plan_step, execute_plan, back_flush, get_state, get_sensors, get_alerts,
+pause_for_human, distrust_sensor. Every action passes the safety checker.
+"""
+
+from __future__ import annotations
+
+import math
+
+import optimizer
+import safety
+from model import CARRIER, ModelParams, ProcessModel
+from state import ChipState
+
+EVENT_ARG_KEYS = {
+    "load": ("target", "volume_ul"),
+    "exchange": ("target", "reagent", "volume_ul", "washes", "flow_ul_min", "direction"),
+    "hold_temp": ("target", "temp_c", "duration_s"),
+    "release": ("target", "reagent"),
+    "split": ("source", "targets"),
+    "pool": ("sources", "target"),
+}
+
+
+class Controller:
+    def __init__(self, protocol: dict, chip: dict, adapter, scenario: dict | None = None,
+                 operator: str = "planner", monitor=None):
+        self.protocol, self.chip, self.adapter = protocol, chip, adapter
+        self.scenario = scenario or {}
+        self.operator = operator
+        self.params, self.materials = safety._contracts()
+        self.model = ProcessModel(ModelParams.from_chip(chip, self.params))
+        self.initial_model = self.model.params.copy()
+        reagents = sorted({s["reagent"] for s in protocol["steps"] if s.get("reagent")} | {CARRIER})
+        self.reagents = reagents
+        self.believed = ChipState.from_chip_spec(chip, self.params, reagents=reagents,
+                                                 reservoirs_ul=self.scenario.get("reservoirs_ul"), label="believed")
+        self.initial_reservoirs = dict(self.believed.reservoirs_ul)
+        caps = adapter.capabilities()
+        self.trusted = set(caps.get("sensors", []))
+        self.loop = "closed" if self.trusted else "open"
+        p = self.params["parameters"]
+        self.error_threshold = p["control.error_threshold"]["value"]
+        self.slices_per_wash = int(p["control.slices_per_wash"]["value"])
+        self.monitor = monitor
+        self.steps = {s["step"]: s for s in protocol["steps"]}
+        self.plans: dict[int, dict] = {}
+        self.events: list[dict] = []
+        self.log: list[dict] = []
+        self.alerts: list[dict] = []          # all alerts raised
+        self.active_alerts: list[dict] = []   # not yet handled
+        self.model_updates: list[dict] = []
+        self.transcript: list[dict] = []      # every operator action, tool-call style
+        self.last_measurement: dict = {}
+        self.status = "running"
+        self.status_reason = ""
+        self.current_step: int | None = None
+        self.step_results: dict[int, dict] = {}
+        self.recoveries = 0
+        # Absorbance evidence accumulates over an exchange: (target, reagent, c at start, volume since).
+        self._anchor: dict | None = None
+
+    # ------------------------------------------------------------------ logging
+
+    def _log(self, kind: str, message: str, step: int | None = None, **data) -> dict:
+        entry = {"t_s": round(self.believed.clock_s, 2), "kind": kind, "step": step if step is not None else self.current_step,
+                 "message": message}
+        if data:
+            entry["data"] = data
+        self.log.append(entry)
+        return entry
+
+    def record_call(self, tool: str, args: dict, explanation: str) -> None:
+        self.transcript.append({"tool": tool, "input": args, "explanation": explanation})
+
+    # ------------------------------------------------------------------ primitives
+
+    def get_state(self) -> dict:
+        return {"loop": self.loop, "status": self.status,
+                "chambers": {cid: self.believed.summary(cid) for cid in self.believed.chambers},
+                "model": {"mesh_resistance": dict(self.model.params.mesh_resistance),
+                          "chamber_volume_ul": dict(self.model.params.chamber_volume_ul)},
+                "trusted_sensors": sorted(self.trusted)}
+
+    def get_sensors(self) -> dict:
+        return dict(self.last_measurement)
+
+    def get_alerts(self) -> list[dict]:
+        return list(self.active_alerts)
+
+    def plan_step(self, step_no: int, explanation: str = "") -> dict:
+        step = self.steps[step_no]
+        self.current_step = step_no
+        self.record_call("plan_step", {"step": step_no}, explanation)
+        goal = optimizer.goal_for_step(step, self.chip)
+        plan = optimizer.plan_step(goal, self.believed, self.model, self.chip)
+        self.plans[step_no] = plan
+        chosen = plan["args"]
+        msg = (f"step {step_no}: chose {self._describe(plan['command'], chosen)}; predicted {plan['predicted']}"
+               if plan["feasible"] else f"step {step_no}: no safe plan meets the goal")
+        self._log("plan", msg, step_no, plan=plan, explanation=explanation)
+        return plan
+
+    def execute_plan(self, step_no: int, explanation: str = "") -> dict:
+        self.record_call("execute_plan", {"step": step_no}, explanation)
+        plan = self.plans.get(step_no) or self.plan_step(step_no, explanation)
+        if not plan["feasible"]:
+            self._log("blocked", f"step {step_no}: nothing to execute (no safe plan)", step_no)
+            return {"status": "no_safe_plan"}
+        verdict = safety.check(plan["command"], plan["args"], self.believed, self.chip, self.model)
+        self._log("safety", f"{verdict.status}: {self._describe(plan['command'], plan['args'])}"
+                  + (f" ({'; '.join(verdict.reasons)})" if verdict.reasons else ""), step_no, safety=verdict.to_dict(),
+                  explanation=explanation)
+        if verdict.status == "blocked":
+            return {"status": "blocked", "reasons": verdict.reasons}
+        outcome = self._run(plan, step_no, explanation or self.steps[step_no].get("note", ""), verdict)
+        if outcome["status"] == "done":
+            self.step_results[step_no] = self._step_result(step_no)
+        return outcome
+
+    def back_flush(self, chamber: str, explanation: str = "", reagent: str | None = None) -> dict:
+        """Lift capsules off the mesh (recovery from a pressure alert, or a protocol step)."""
+        self.record_call("back_flush", {"chamber": chamber}, explanation)
+        reagent = reagent or next((s["reagent"] for s in self.protocol["steps"]
+                                   if s.get("direction") == "backflush" and s.get("reagent")), None) \
+            or next((s["reagent"] for s in self.protocol["steps"] if s["operation"] == "exchange"), "wash_buffer")
+        goal = {"step": self.current_step, "operation": "exchange", "kind": "backflush", "target": chamber,
+                "reagent": reagent, "volume_ul": round(2 * self.model.params.chamber_volume_ul[chamber], 1),
+                "fraction": optimizer._param("backflush.target_fraction")}
+        plan = optimizer.plan_step(goal, self.believed, self.model, self.chip)
+        self._log("plan", f"recovery back-flush of {chamber}: {self._describe(plan['command'], plan['args'] or {})}",
+                  plan=plan, explanation=explanation)
+        if not plan["feasible"]:
+            return {"status": "no_safe_plan"}
+        verdict = safety.check(plan["command"], plan["args"], self.believed, self.chip, self.model)
+        self._log("safety", f"{verdict.status}: recovery back-flush", safety=verdict.to_dict(), explanation=explanation)
+        if verdict.status == "blocked":
+            return {"status": "blocked", "reasons": verdict.reasons}
+        outcome = self._run(plan, self.current_step, explanation or "Back-flush to lift the capsules and clear the mesh.",
+                            verdict, recovery=True)
+        self.recoveries += 1
+        for a in self.active_alerts:
+            if a["name"] == "pressure_high":
+                a["resolved_by"] = "back_flush"
+        self.active_alerts = [a for a in self.active_alerts if a["name"] != "pressure_high"]
+        return outcome
+
+    def pause_for_human(self, reason: str) -> dict:
+        self.record_call("pause_for_human", {"reason": reason}, reason)
+        self.status, self.status_reason = "paused_for_human", reason
+        self._log("pause", f"paused for a human: {reason}")
+        return {"status": "paused_for_human"}
+
+    def stop(self, reason: str) -> dict:
+        self.status, self.status_reason = "stopped", reason
+        self._log("stop", f"stopped: {reason}")
+        return {"status": "stopped"}
+
+    def distrust_sensor(self, sensor: str, reason: str) -> dict:
+        self.record_call("distrust_sensor", {"sensor": sensor}, reason)
+        self.trusted.discard(sensor)
+        for a in self.active_alerts:
+            if a["name"] == "sensor_disagreement" and a["evidence"].get("sensor") == sensor:
+                a["resolved_by"] = "distrust_sensor"
+        self.active_alerts = [a for a in self.active_alerts
+                              if not (a["name"] == "sensor_disagreement" and a["evidence"].get("sensor") == sensor)]
+        self._log("model_update", f"distrusting sensor {sensor}; falling back to the model for it ({reason})",
+                  sensor=sensor)
+        return {"status": "ok", "trusted_sensors": sorted(self.trusted)}
+
+    # ------------------------------------------------------------------ execution
+
+    def _describe(self, command: str, args: dict) -> str:
+        if not command:
+            return "nothing"
+        if command == "exchange":
+            d = " back-flush" if args.get("direction") == "backflush" else ""
+            soak = f" + {args['soak_s']:.0f} s soak" if args.get("soak_s") else ""
+            return f"exchange{d} {args.get('washes', 1)} x {args['volume_ul']:g} uL {args.get('reagent')} at {args['flow_ul_min']:g} uL/min{soak}"
+        if command in ("load", "release"):
+            return f"{command} {args.get('volume_ul', 0):g} uL at {args.get('flow_ul_min', 0):g} uL/min"
+        if command == "hold_temp":
+            return f"hold {args['temp_c']:g} C for {args['duration_s']:g} s (ramp {args.get('ramp_c_per_s', 1):g} C/s)"
+        return command
+
+    def _true(self) -> ChipState | None:
+        t = self.adapter.true_state()
+        return ChipState.from_dict(t) if t else None
+
+    def _run(self, plan: dict, step_no: int, narration: str, verdict, recovery: bool = False) -> dict:
+        command, args = plan["command"], dict(plan["args"])
+        target = args.get("target")
+        seg = self._new_segment(command, args, step_no, narration, verdict, recovery, plan)
+        replans = 0
+        if command in ("exchange", "load", "release"):
+            per_wash = float(args["volume_ul"])
+            remaining = per_wash * int(args.get("washes", 1))
+            slice_v = per_wash / self.slices_per_wash
+            done_in_wash = 0.0
+            while remaining > 1e-9:
+                v = min(slice_v, remaining)
+                sl = {k: val for k, val in args.items() if k not in ("washes", "soak_s")}
+                sl["volume_ul"] = v
+                if command == "load":
+                    sl["capsules"] = args.get("capsules", 0) * v / (per_wash * int(args.get("washes", 1)))
+                wash_start = done_in_wash < 1e-9
+                upd, alerts = self._slice(seg, command, sl, target, wash_start=wash_start)
+                remaining -= v
+                done_in_wash = (done_in_wash + v) % per_wash if per_wash else 0.0
+                severe = [a for a in alerts if a["severity"] == "critical"]
+                if severe:
+                    self._close_segment(seg)
+                    return {"status": "interrupted", "alerts": severe}
+                if upd and remaining > 1e-9 and replans < 3 and command == "exchange" and not recovery:
+                    replans += 1
+                    new = self._replan(step_no, plan)
+                    if new is None:
+                        self._close_segment(seg)
+                        return {"status": "no_safe_plan"}
+                    if new is not False:
+                        self._close_segment(seg)
+                        plan, args = new, dict(new["args"])
+                        per_wash = float(args["volume_ul"])
+                        remaining = per_wash * int(args.get("washes", 1))
+                        slice_v = per_wash / self.slices_per_wash
+                        done_in_wash = 0.0
+                        seg = self._new_segment(command, args, step_no, narration + " (re-planned)", verdict, recovery, plan)
+            if args.get("soak_s"):
+                for _ in range(2):
+                    self._slice(seg, "wait", {"duration_s": args["soak_s"] / 2}, target)
+        elif command == "hold_temp":
+            ramp_time = abs(args["temp_c"] - self.believed.chambers[target].temp_c) / args.get("ramp_c_per_s", 1.0)
+            total = ramp_time + args["duration_s"]
+            n = 6
+            for _ in range(n):
+                _, alerts = self._slice(seg, "hold_temp", {**args, "duration_s": total / n}, target)
+                if any(a["severity"] == "critical" for a in alerts):
+                    self._close_segment(seg)
+                    return {"status": "interrupted", "alerts": alerts}
+        else:
+            self._slice(seg, command, args, target)
+        self._close_segment(seg)
+        return {"status": "done"}
+
+    def _new_segment(self, command, args, step_no, narration, verdict, recovery, plan) -> dict:
+        return {"t_s": round(self.believed.clock_s, 3), "command": command, "plan_args": dict(args),
+                "protocol_step": step_no, "narration": narration, "operator": self.operator,
+                "safety": verdict.to_dict(), "recovery": recovery, "slices": [], "model_updates": [], "alerts": [],
+                "volume_done": 0.0, "plan_step": plan.get("step")}
+
+    def _close_segment(self, seg: dict) -> None:
+        if not seg["slices"]:
+            return
+        command, a = seg["command"], seg["plan_args"]
+        args = {k: a[k] for k in EVENT_ARG_KEYS.get(command, ()) if k in a}
+        if command == "exchange":
+            per = float(a["volume_ul"])
+            washes = max(1, round(seg["volume_done"] / per)) if per else 1
+            args.update(volume_ul=round(seg["volume_done"] / washes, 3), washes=int(washes))
+        elif command == "load":
+            args["volume_ul"] = round(seg["volume_done"], 3)
+        elif command == "hold_temp":
+            args["duration_s"] = a["duration_s"]
+        event = {"t_s": seg["t_s"], "duration_s": round(self.believed.clock_s - seg["t_s"], 3), "command": command,
+                 "args": args, "narration": seg["narration"], "protocol_step": seg["protocol_step"],
+                 "operator": seg["operator"], "explanation": seg["narration"], "safety": seg["safety"],
+                 "recovery": seg["recovery"], "plan_args": seg["plan_args"], "slices": seg["slices"],
+                 "model_updates": seg["model_updates"], "alerts": seg["alerts"]}
+        self.events.append(event)
+
+    def _slice(self, seg: dict, command: str, sl: dict, target: str, wash_start: bool = False) -> tuple[list, list]:
+        before = self.believed
+        if command == "exchange":
+            a = self._anchor
+            if not a or a["target"] != target or a["reagent"] != sl["reagent"]:
+                ch = before.chambers[target]
+                c0 = ch.concentration if ch.reagent == sl["reagent"] else 0.0
+                self._anchor = {"target": target, "reagent": sl["reagent"], "c0": c0, "volume": 0.0}
+            self._anchor["volume"] += sl["volume_ul"]
+        pred_state, pred = self.model.predict(before, command, sl)
+        self.adapter.send(command, sl, wash_start=wash_start)
+        meas = {k: v for k, v in self.adapter.read_sensors().items() if k in self.trusted}
+        self.last_measurement = meas
+        true = self._true()
+        believed = self._fuse(pred_state, pred, meas, command, sl, target, before)
+        errors = self._errors(pred, meas, before, target)
+        updates = self._update_model(command, sl, pred, meas, before, target, errors)
+        self.believed = believed
+        if updates:  # re-predict this slice's end state with the corrected model, keeping measurements
+            for u in updates:
+                seg["model_updates"].append(u)
+        alerts = self.monitor.check(self, command, sl, pred, meas, target) if self.monitor else []
+        for a in alerts:
+            seg["alerts"].append(a)
+        if command in ("exchange", "load", "release"):
+            seg["volume_done"] += sl["volume_ul"]
+        t_chamber = true.chambers[target] if (true and target in true.chambers) else None
+        seg["slices"].append({
+            "t_s": round(self.believed.clock_s, 3), "dt_s": round(pred["dt_s"], 3), "command": command,
+            "flow_ul_min": sl.get("flow_ul_min"), "volume_ul": round(sl.get("volume_ul", 0.0), 4),
+            "predicted": {"pressure_kpa": round(pred["pressure_kpa"], 4), "outlet_absorbance": _r(pred["outlet_absorbance"]),
+                          "temp_c": _r(pred["temp_c"])},
+            "measured": {k: v for k, v in meas.items()},
+            "true": None if t_chamber is None else {"pressure_kpa": round(t_chamber.pressure_kpa, 4),
+                                                    "outlet_absorbance": round(t_chamber.concentration, 4),
+                                                    "temp_c": round(t_chamber.temp_c, 3)},
+            "error": errors,
+            "believed": self.believed.summary(target),
+            "true_state": true.summary(target) if true else None,
+        })
+        return updates, alerts
+
+    def _fuse(self, s: ChipState, pred: dict, meas: dict, command: str, sl: dict, target: str, before: ChipState) -> ChipState:
+        """Correct the model's predicted state with whatever trusted sensors measured."""
+        if not meas or target not in s.chambers:
+            return s
+        ch = s.chambers[target]
+        if "pressure_kpa" in meas and ch.has_retention and command in ("exchange", "load"):
+            ch.pressure_kpa = meas["pressure_kpa"]
+        if meas.get("outlet_absorbance") is not None and command in ("exchange", "load", "release"):
+            ch.concentration = min(1.0, max(0.0, meas["outlet_absorbance"]))
+        if "temperature_c" in meas:
+            ch.temp_c = meas["temperature_c"]
+        if "pump_volume_ul" in meas and pred["dispensed_ul"] > 0:
+            delta = pred["dispensed_ul"] - meas["pump_volume_ul"]
+            reagent = sl.get("reagent") or (CARRIER if command == "load" else None)
+            if reagent in s.reservoirs_ul:
+                s.reservoirs_ul[reagent] += delta
+            if command == "release":
+                s.collection_ul -= delta
+            else:
+                s.waste_ul -= delta
+        if "capsules_counted" in meas:
+            counted = meas["capsules_counted"]
+            if command == "release":
+                s.capsules_collected += counted - pred["capsules_out_collection"]
+                ch.capsules_suspended -= counted - pred["capsules_out_collection"]
+            elif command in ("exchange", "load"):
+                extra = counted - pred["capsules_out_waste"]
+                s.capsules_lost += extra
+                ch.capsules_on_mesh = max(0.0, ch.capsules_on_mesh - extra)
+        return s
+
+    def _errors(self, pred: dict, meas: dict, before: ChipState, target: str) -> dict:
+        err = {}
+        if "pressure_kpa" in meas and abs(pred["pressure_kpa"]) > 0.2:
+            err["pressure_kpa"] = round((meas["pressure_kpa"] - pred["pressure_kpa"]) / abs(pred["pressure_kpa"]), 4)
+        if meas.get("outlet_absorbance") is not None and pred["outlet_absorbance"] is not None:
+            # Compare with the model's prediction from the start of this exchange (evidence accumulates).
+            a = self._anchor
+            if a and a["target"] == target:
+                expect = 1 - (1 - a["c0"]) * math.exp(-a["volume"] / self.model.params.chamber_volume_ul[target])
+            else:
+                expect = pred["outlet_absorbance"]
+            rem_p = max(1 - expect, 0.02)
+            err["outlet_absorbance"] = round(((1 - meas["outlet_absorbance"]) - (1 - expect)) / rem_p, 4)
+        if "temperature_c" in meas and pred["temp_c"] is not None:
+            err["temperature_c"] = round(meas["temperature_c"] - pred["temp_c"], 3)
+        return err
+
+    def _update_model(self, command, sl, pred, meas, before: ChipState, target, errors) -> list[dict]:
+        """Simple estimation: refit mesh resistance from pressure and chamber volume from absorbance."""
+        updates = []
+        p = self.model.params
+        if command == "exchange" and sl.get("direction") != "backflush" and "pressure_kpa" in errors \
+                and abs(errors["pressure_kpa"]) > self.error_threshold:
+            q = sl["flow_ul_min"]
+            ch = before.chambers[target]
+            cover = min(1.0, (ch.capsules_on_mesh + ch.capsules_suspended) / max(p.monolayer_capacity[target], 1.0))
+            if cover > 0.2 and q > 0:
+                fit = max(0.0, (meas["pressure_kpa"] / q - p.mesh_clean_resistance[target]) / cover)
+                old = p.mesh_resistance[target]
+                new = old + 0.8 * (fit - old)
+                p.mesh_resistance[target] = new
+                updates.append(self._model_update(f"mesh_resistance[{target}]", old, new, "kPa per uL/min",
+                                                  f"pressure {meas['pressure_kpa']:.2f} kPa vs predicted {pred['pressure_kpa']:.2f} "
+                                                  f"({100 * errors['pressure_kpa']:+.0f}%)"))
+        a = self._anchor
+        if command == "exchange" and a and "outlet_absorbance" in errors and abs(errors["outlet_absorbance"]) > self.error_threshold:
+            c0, c1, v = a["c0"], meas["outlet_absorbance"], a["volume"]
+            if 0 <= c0 < 0.9 and c0 + 0.03 < c1 < 0.985 and v > 0:
+                fit = -v / math.log((1 - c1) / (1 - c0))
+                old = p.chamber_volume_ul[target]
+                new = old + 0.7 * (fit - old)
+                if 0.3 * old < new < 3 * old:
+                    p.chamber_volume_ul[target] = new
+                    updates.append(self._model_update(f"chamber_volume_ul[{target}]", old, new, "uL",
+                                                      f"outlet absorbance {c1:.3f} after {v:.0f} uL: leftover old liquid "
+                                                      f"{100 * errors['outlet_absorbance']:+.0f}% vs the model since the exchange began"))
+        return updates
+
+    def _model_update(self, param: str, old: float, new: float, unit: str, reason: str) -> dict:
+        u = {"t_s": round(self.believed.clock_s, 2), "param": param, "old": round(old, 5), "new": round(new, 5),
+             "unit": unit, "reason": reason}
+        self.model_updates.append(u)
+        self._log("model_update", f"{param}: {old:.4g} -> {new:.4g} {unit} ({reason})", **u)
+        return u
+
+    def _replan(self, step_no: int, plan: dict):
+        """Re-plan the rest of a step after a model update. False = keep going; None = no safe plan."""
+        goal = plan["goal"]
+        new = optimizer.plan_step(goal, self.believed, self.model, self.chip)
+        if not new["feasible"]:
+            self._log("blocked", f"step {step_no}: after the model update no safe plan meets the goal", step_no)
+            return None
+        old_a, new_a = plan["args"], new["args"]
+        same = (new_a.get("flow_ul_min") == old_a.get("flow_ul_min")
+                and abs(new_a["volume_ul"] * new_a.get("washes", 1) - old_a["volume_ul"] * old_a.get("washes", 1)) < 1e-6)
+        if same:
+            return False
+        new["replanned_from"] = {k: old_a.get(k) for k in ("flow_ul_min", "volume_ul", "washes")}
+        self.plans[step_no] = new
+        self._log("replan", f"step {step_no}: re-planned the rest after a model update: {self._describe(new['command'], new_a)}",
+                  step_no, plan=new)
+        return new
+
+    # ------------------------------------------------------------------ results
+
+    def _main_chamber(self) -> str:
+        for c in self.chip["chambers"]:
+            if c.get("retention") or c.get("mesh_pore_um"):
+                return c["id"]
+        return self.chip["chambers"][0]["id"]
+
+    def _step_result(self, step_no: int) -> dict:
+        step = self.steps[step_no]
+        t = self._true()
+        target = step["target"]
+        out = {"believed": self.believed.summary(target)}
+        if t:
+            out["true"] = t.summary(target)
+        return out
+
+    def summary(self) -> dict:
+        cid = self._main_chamber()
+        t = self._true()
+        b = self.believed
+        wash_steps = [n for n, s in self.steps.items() if s["operation"] == "exchange" and s.get("direction") != "backflush"]
+        last_wash = max([n for n in wash_steps if n in self.step_results], default=None)
+        res = {"status": self.status, "status_reason": self.status_reason, "loop": self.loop,
+               "duration_s": round(b.clock_s, 1), "alerts": len(self.alerts), "recoveries": self.recoveries,
+               "model_updates": len(self.model_updates),
+               "alert_names": sorted({a["name"] for a in self.alerts})}
+
+        def side(state: ChipState | None) -> dict | None:
+            if state is None:
+                return None
+            loaded = max(state.capsules_loaded, 1e-9)
+            used = {r: round(self.initial_reservoirs.get(r, 0) - v, 2) for r, v in state.reservoirs_ul.items()
+                    if r in self.initial_reservoirs}
+            return {"capsule_recovery_pct": round(100 * state.capsules_collected / loaded, 2) if state.capsules_loaded else None,
+                    "capsules_collected": round(state.capsules_collected), "capsules_lost": round(state.capsules_lost),
+                    "capsules_on_mesh": round(state.chambers[cid].capsules_on_mesh),
+                    "reagent_used_ul": used, "waste_ul": round(state.waste_ul, 2), "collection_ul": round(state.collection_ul, 2)}
+
+        res["believed"] = side(b)
+        res["true"] = side(t)
+        if last_wash is not None:
+            sr = self.step_results[last_wash]
+            res["final_exchange_pct"] = {"step": last_wash, "believed": sr["believed"]["exchange_pct"],
+                                         "true": sr.get("true", {}).get("exchange_pct")}
+        if t is not None:
+            tp = self.adapter.true_params() if hasattr(self.adapter, "true_params") else {}
+            drift = {
+                "capsules_collected": abs(res["believed"]["capsules_collected"] - res["true"]["capsules_collected"]),
+                "capsules_lost": abs(res["believed"]["capsules_lost"] - res["true"]["capsules_lost"]),
+                "waste_ul": round(abs(b.waste_ul - t.waste_ul), 2),
+            }
+            if "final_exchange_pct" in res and res["final_exchange_pct"]["true"] is not None:
+                drift["final_exchange_pct_points"] = round(abs(res["final_exchange_pct"]["believed"] - res["final_exchange_pct"]["true"]), 2)
+            for key in ("mesh_resistance", "chamber_volume_ul"):
+                if key in tp and cid in tp[key]:
+                    believed_v = getattr(self.model.params, key)[cid]
+                    true_v = tp[key][cid]
+                    initial_v = getattr(self.initial_model, key)[cid]
+                    drift[f"{key}_error_pct"] = {"start": round(100 * (initial_v - true_v) / true_v, 1),
+                                                 "end": round(100 * (believed_v - true_v) / true_v, 1)}
+            res["drift"] = drift
+        return res
+
+
+def _r(v):
+    return None if v is None else round(v, 4)
