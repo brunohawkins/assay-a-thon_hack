@@ -199,9 +199,23 @@ PASSES = SUBS
 DIGEST_C, DIGEST_S = 37, 1800
 COLLAGENASE_FRACTION = 0.15    # of react_cx's volume
 BEADS_FRACTION = 0.5           # of bead_cx's volume
-DILUTION_FOLD = 5              # chamber volumes of dilution buffer pushed through react_cx; a placeholder to be fitted
-EXCHANGE_FRACTION, EXCHANGE_WASHES = 1.0, 2   # of bead_cx's volume per wash
-ELUTE_FRACTION = 0.5           # of bead_cx's volume
+# Dilution buffer pushed through react_cx, in react_cx volumes IN TOTAL. The fold is a
+# chemistry placeholder to be fitted (see THE DILUTION PROBLEM); the SPLIT into washes is not
+# free, because volume_ul is per wash and the planner can only multiply the stated per-wash
+# volume by a small number of washes. Four washes of 1.25 chamber volumes keeps every wash
+# above one chamber volume and the total above SWEEP_CV, so the step both dilutes as intended
+# and provably clears react_cx.
+DILUTION_FOLD, DILUTION_WASHES = 5, 4
+# Bead buffer exchange: a SWEEP, so its total is the exchange goal and not a round number.
+# It used to be 2 washes of one bead_cx volume = 2 chamber volumes, which leaves exp(-2) = 14%
+# of the binding buffer behind: 86% exchanged against a 99% goal, i.e. a step that could not do
+# what it said. Three washes keeps each one above a chamber volume.
+EXCHANGE_WASHES = 3
+EXCHANGE_FRACTION = SWEEP_CV / EXCHANGE_WASHES   # of bead_cx's volume per wash
+ELUTE_FRACTION = 0.5           # of bead_cx's volume: a PARTIAL, a small eluate on purpose
+assert DILUTION_FOLD >= SWEEP_CV, "the dilution sweep would not reach exchange.target_fraction"
+assert DILUTION_FOLD / DILUTION_WASHES >= 1.0 and EXCHANGE_FRACTION >= 1.0, \
+    "a sweep's per-wash volume must be at least one chamber volume"
 CAPTURE_SLOWDOWN = 0.5         # kinetics-limited steps run at this fraction of the shear-ceiling flow
 ELUTE_SLOWDOWN = 0.25
 
@@ -311,8 +325,10 @@ SUSP_UL = PULSE_UL * FILL_ORDER.count("sub_1")
 PRIMER_UL = round(PRIMER_FRACTION * V_SUB, 3)
 COLLAGENASE_UL = round(COLLAGENASE_FRACTION * V_REACT, 3)
 BEADS_UL = round(BEADS_FRACTION * V_BEAD, 3)
-DILUTION_UL = DILUTION_FOLD * V_REACT      # in total; each wash is one react_cx volume
-EXCHANGE_UL = round(EXCHANGE_FRACTION * V_BEAD, 3)
+DILUTION_UL = DILUTION_FOLD * V_REACT      # in total, over DILUTION_WASHES washes
+DILUTION_PER_WASH_UL = round(DILUTION_FOLD / DILUTION_WASHES * V_REACT, 3)
+# rounded UP, never down: a sweep rounded down sits below the goal it was derived from
+EXCHANGE_UL = math.ceil(EXCHANGE_FRACTION * V_BEAD * 1000) / 1000
 ELUTE_UL = round(ELUTE_FRACTION * V_BEAD, 3)
 HOLDUP_SUB, HOLDUP_REACT, HOLDUP_BEAD = (round(HOLDUP_FRACTION * v, 3) for v in (V_SUB, V_REACT, V_BEAD))
 
@@ -363,13 +379,19 @@ assert MIX_UL <= V_SUB and PRIMER_UL <= V_SUB and PULSE_UL <= V_SUB, "a module 4
 assert DELIVERED_UL + COLLAGENASE_UL <= V_REACT, "digest does not fit react_cx"
 assert BEAD_LOAD_UL <= V_BEAD, "bead load does not fit bead_cx"
 
-F_FILL = route_flow(M4, ["sub_1"])
-F_LOAD = route_flow(M5, ["react_cx"])
-F_DIG = route_flow(M5, ["react_cx"])
+# Capsule steps: bounded by escape pressure across a packed bed, not by a cell ceiling.
+F_FILL = capsule_flow()     # sub_* fill pulses, primer, mix and collection
+F_LOAD = capsule_flow()     # intact capsules arriving in react_cx
+F_DIG = capsule_flow()      # collagenase into react_cx, capsules still intact
+# Bead steps: kinetics placeholders, unchanged (see route_flow).
 F_DIL = route_flow(M5, ["react_cx", "bead_cx"], CAPTURE_SLOWDOWN)
 F_BEADLOAD = route_flow(M5, ["bead_cx"])
 F_EXCH = route_flow(M5, ["bead_cx"], CAPTURE_SLOWDOWN)
 F_ELUTE = route_flow(M5, ["bead_cx"], ELUTE_SLOWDOWN)
+CULTURE_CEILING_FLOWS = {   # what the (inapplicable) culture ceiling would have allowed
+    "sub_*": route_flow(M4, ["sub_1"]),
+    "react_cx": route_flow(M5, ["react_cx"]),
+}
 
 
 def ramp_s(a: float, b: float) -> float:
@@ -404,10 +426,16 @@ def build() -> dict:
     steps: list[dict] = []
 
     def emit(operation, target, note, duration_s, reagent=None, volume_ul=None, temp_c=None,
-             washes=None, flow_ul_min=None, ports=None):
+             washes=None, flow_ul_min=None, ports=None, exchange_kind=None):
+        if operation == "exchange" and exchange_kind is None:
+            raise ValueError(f"exchange on {target} must declare exchange_kind ('sweep', 'partial' "
+                             f"or 'fill'); an absent one means the strict sweep rule, so it is "
+                             f"stated here rather than left to a default")
         step = {"step": len(steps) + 1, "operation": operation, "target": target,
                 "reagent": reagent, "volume_ul": volume_ul, "duration_s": round(duration_s),
                 "temp_c": temp_c, "washes": washes, "flow_ul_min": flow_ul_min, "note": note}
+        if exchange_kind is not None:
+            step["exchange_kind"] = exchange_kind
         if ports is not None:
             step["ports"] = ports
         steps.append(step)
@@ -427,16 +455,22 @@ def build() -> dict:
         emit("exchange", sub,
              f"Step 15: one index primer into {sub} through in_s{n}. Each chamber gets its own, which is "
              f"what tells the four sublibraries apart after sequencing. It also pushes the capsules left in "
-             f"the fill line into the chamber.",
+             f"the fill line into the chamber. FILL, not a sweep: {sub} is part air at this point, behind "
+             f"its capillary stop, and nothing drains - this adds {PRIMER_FRACTION:.1%} of the chamber's "
+             f"{V_SUB:g} uL on top of the suspension already in it, on the way to "
+             f"{REACTION_FILL:.0%} full. A fill is bounded ABOVE by the chamber, never below: sweeping a "
+             f"chamber you are still filling would wash the index straight out of it.",
              exchange_s(1, PRIMER_UL, F_FILL), reagent=f"index_primer_{n}", volume_ul=PRIMER_UL, washes=1,
-             flow_ul_min=F_FILL, ports=ports_for(M4, [f"in_s{n}"], [VENT4]))
+             flow_ul_min=F_FILL, exchange_kind="fill", ports=ports_for(M4, [f"in_s{n}"], [VENT4]))
     for sub in SUBS:
         emit("exchange", sub,
              f"Step 15: PCR mix into {sub}. The fill line keeps its own volume as dead space, so the mix "
              f"volume includes it. Capillary-stop vents let air out and hold the liquid, so the four "
-             f"reactions stay isolated.",
+             f"reactions stay isolated. FILL: this is the last of the three additions and it brings the "
+             f"chamber to {REACTION_FILL:.0%} of its {V_SUB:g} uL. Nothing leaves, so there is nothing to "
+             f"sweep; the bound is the chamber volume above, not the exchange goal below.",
              exchange_s(1, MIX_UL, F_FILL), reagent="pcr_mix", volume_ul=MIX_UL, washes=1, flow_ul_min=F_FILL,
-             ports=ports_for(M4, [f"in_s{sub[-1]}"], [VENT4]))
+             exchange_kind="fill", ports=ports_for(M4, [f"in_s{sub[-1]}"], [VENT4]))
 
     for label, temp, dwell, ramp in profile():
         what = "cool down and hold" if label == "hold" else label
@@ -496,23 +530,38 @@ def build() -> dict:
              DIGEST_S, temp_c=DIGEST_C, ports=ports_for(M5))
         emit("exchange", "react_cx",
              f"Step 16, pass {n}: DILUTE, then capture. Dilution buffer is pushed through react_cx into "
-             f"bead_cx at low flow, {DILUTION_FOLD} fills of one react_cx volume. The dissolved shell carries about 10,000 times more polymer than DNA, "
+             f"bead_cx at low flow, {DILUTION_WASHES} washes of {DILUTION_FOLD / DILUTION_WASHES:g} "
+             f"react_cx volumes = {DILUTION_FOLD:g} in total. The dissolved shell carries about 10,000 "
+             f"times more polymer than DNA, "
              f"and at that level bead binding fails, so the digest must be diluted before it meets the "
-             f"beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste.",
-             exchange_s(DILUTION_FOLD, V_REACT, F_DIL), reagent="dilution_buffer", volume_ul=V_REACT,
-             washes=DILUTION_FOLD, flow_ul_min=F_DIL, ports=ports_for(M5, ["in_prot"], [WASTE5]))
+             f"beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste. "
+             f"SWEEP: {DILUTION_FOLD:g} chamber volumes is past the {SWEEP_CV:.1f} the "
+             f"{EXCHANGE_TARGET:.0%} exchange goal needs, so react_cx is provably cleared into the bead "
+             f"chamber and no digest is left behind. The flow is a bead-binding kinetics placeholder, not "
+             f"a shear limit.",
+             exchange_s(DILUTION_WASHES, DILUTION_PER_WASH_UL, F_DIL), reagent="dilution_buffer",
+             volume_ul=DILUTION_PER_WASH_UL, washes=DILUTION_WASHES, flow_ul_min=F_DIL,
+             exchange_kind="sweep", ports=ports_for(M5, ["in_prot"], [WASTE5]))
         emit("exchange", "bead_cx",
              f"Step 16, pass {n}: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, "
              f"magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead "
-             f"about 100,000 times harder than the magnet and wrecks the pellet.",
+             f"about 100,000 times harder than the magnet and wrecks the pellet. SWEEP: "
+             f"{EXCHANGE_WASHES} washes of {EXCHANGE_FRACTION:.2f} chamber volumes = {SWEEP_CV:.1f} in "
+             f"total, which is what the {EXCHANGE_TARGET:.0%} exchange goal needs in a well-mixed "
+             f"chamber. It used to be 2 volumes, which leaves {math.exp(-2):.0%} of the binding buffer on "
+             f"the pellet and carries it into the eluate. The flow is a binding-kinetics placeholder, not "
+             f"a shear limit.",
              exchange_s(EXCHANGE_WASHES, EXCHANGE_UL, F_EXCH), reagent="exchange_buffer",
              volume_ul=EXCHANGE_UL, washes=EXCHANGE_WASHES, flow_ul_min=F_EXCH,
-             ports=ports_for(M5, ["in_bead"], [WASTE5]))
+             exchange_kind="sweep", ports=ports_for(M5, ["in_bead"], [WASTE5]))
         emit("exchange", "bead_cx",
              f"Step 16, pass {n}: elute in a small volume through in_bead, out_lib vented and out_waste "
-             f"capped, magnet still ON so the beads stay put.",
+             f"capped, magnet still ON so the beads stay put. PARTIAL: {ELUTE_FRACTION:.0%} of bead_cx's "
+             f"{V_BEAD:g} uL, replaced on purpose and not a sweep. A small eluate is the whole point of "
+             f"eluting - concentration is what the sequencer wants - so the one-chamber-volume floor does "
+             f"not apply here; sweeping the chamber would dilute the library it is trying to recover.",
              exchange_s(1, ELUTE_UL, F_ELUTE), reagent="elution_buffer", volume_ul=ELUTE_UL, washes=1,
-             flow_ul_min=F_ELUTE, ports=ports_for(M5, ["in_bead"], [LIB5]))
+             flow_ul_min=F_ELUTE, exchange_kind="partial", ports=ports_for(M5, ["in_bead"], [LIB5]))
         emit("release", "bead_cx",
              f"Step 17, pass {n}: library {n} leaves through out_lib into a tube, chased with air to recover "
              f"the liquid left in the short out_lib channel.",
@@ -548,9 +597,18 @@ def build() -> dict:
             "in_lib by tubing. Module 5 runs one pass per "
             "sublibrary, with an explicit dilution before the beads, no ethanol wash on chip, and "
             "ratio-based size selection left as an off-chip tube step. Reagent names are generic and the "
-            "volumes, setpoints and cycle count are round placeholders to be fitted. Flows are computed "
-            "from chamber geometry so that wall shear stays at or below 0.01 dyn/cm2, and every volume is a "
-            "fraction of its chamber's volume_ul."
+            "volumes, setpoints and cycle count are round placeholders to be fitted. Every volume is a "
+            "fraction of its chamber's volume_ul, and every exchange declares what it is FOR in its "
+            "exchange_kind field: the index primer and the PCR mix are FILLs into a part-air-filled "
+            "chamber behind a capillary stop and are bounded above by the chamber, the dilution and the "
+            "bead buffer exchange are SWEEPs sized from exchange.target_fraction, and the elution is a "
+            "PARTIAL because a small eluate is the point. Neither chip holds a cell attached to anything, "
+            "so shear.culture_ceiling_dyn_cm2 - which contracts/parameters.json reserves for chambers of "
+            "adherent cells - applies to nothing here: the capsule steps are bounded by "
+            "capsule.escape_pressure_kpa across a packed bed "
+            f"({F_FILL:g} uL/min, against the {CULTURE_CEILING_FLOWS['sub_*']:g} uL/min the culture "
+            "ceiling used to impose), and the bead steps run at kinetics placeholders to be fitted on "
+            "real eluates."
         ),
         "steps": steps,
     }
@@ -623,20 +681,49 @@ def report() -> None:
     print(f"  sample-path dead volume per sublibrary {lost:.2f} uL against {PRODUCT_UL:.2f} uL of product "
           f"({lost / PRODUCT_UL:.1f}x)\n")
 
-    print(f"Shear (dyn/cm2). Ceiling {SHEAR_CEILING:g} in every chamber; channels are not held to it.")
-    print(f"  {'route':<34}{'flow':>6}  {'chamber':>8}  {'narrowest channel':>18}")
+    print(f"Which bound applies to which chamber (mu = {MU_PA_S:g} Pa s, contracts/parameters.json "
+          f"fluid.viscosity_37c_pa_s).")
+    print(f"  No chamber on this path holds an adherent cell, so the {SHEAR_CEILING:g} dyn/cm2 culture "
+          f"ceiling applies to none of them.")
+    print(f"  {'route':<26}{'holds':<10}{'bound':<22}{'flow':>7}{'was':>7}  "
+          f"{'chamber tau':>11}{'channel tau':>12}")
     rows = [
-        ("fill, module 4", M4, F_FILL, "sub_1", "ch_in_1"),
-        ("load, module 5", M5, F_LOAD, "react_cx", "ch_in_lib"),
-        ("dilution and capture", M5, F_DIL, "bead_cx", "ch_in_prot"),
-        ("buffer exchange", M5, F_EXCH, "bead_cx", "ch_in_bead"),
-        ("elution", M5, F_ELUTE, "bead_cx", "ch_out_lib"),
+        ("fill, module 4", "capsules", "escape pressure", M4, F_FILL,
+         CULTURE_CEILING_FLOWS["sub_*"], "sub_1", "ch_in_1"),
+        ("collection, module 4", "capsules", "escape pressure", M4, F_FILL,
+         CULTURE_CEILING_FLOWS["sub_*"], "sub_1", "ch_tap_1"),
+        ("load, module 5", "capsules", "escape pressure", M5, F_LOAD,
+         CULTURE_CEILING_FLOWS["react_cx"], "react_cx", "ch_in_lib"),
+        ("collagenase in", "capsules", "escape pressure", M5, F_DIG,
+         CULTURE_CEILING_FLOWS["react_cx"], "react_cx", "ch_in_prot"),
+        ("dilution and capture", "beads", "binding kinetics (TODO)", M5, F_DIL, F_DIL,
+         "bead_cx", "ch_in_prot"),
+        ("buffer exchange", "beads", "binding kinetics (TODO)", M5, F_EXCH, F_EXCH,
+         "bead_cx", "ch_in_bead"),
+        ("elution", "beads", "elution kinetics (TODO)", M5, F_ELUTE, F_ELUTE,
+         "bead_cx", "ch_out_lib"),
     ]
-    for name, chip, q, cid, chid in rows:
+    for name, holds, bound, chip, q, was, cid, chid in rows:
         c = next(x for x in chip["chambers"] if x["id"] == cid)
         ch = next(x for x in chip["channels"] if x["id"] == chid)
-        print(f"  {name:<34}{q:>6.2f}  {shear(q, c['size'][1], c['size'][2]):>8.4f}  "
-              f"{shear(q, ch['width_mm'], ch['depth_mm']):>18.4f}")
+        print(f"  {name:<26}{holds:<10}{bound:<22}{q:>7.2f}{was:>7.2f}  "
+              f"{shear(q, c['size'][1], c['size'][2]):>11.4f}{shear(q, ch['width_mm'], ch['depth_mm']):>12.4f}")
+    print(f"  escape-pressure bound: {FLOW_FRACTION:.0%} of {PRESSURE_MARGIN:.0%} of {ESCAPE_KPA:g} kPa "
+          f"across a packed bed at {BED_RESISTANCE:g} kPa per uL/min = {F_FILL:g} uL/min. The 'was' column "
+          f"is what the\n  inapplicable culture ceiling imposed; tau is printed for information only, not "
+          f"as a limit.\n")
+    print("Exchange sizing, by what each step is FOR:")
+    for part in (build(),):
+        for s in part["steps"]:
+            if s["operation"] != "exchange":
+                continue
+            vc = next((c["volume_ul"] for c in M4["chambers"] + M5["chambers"] if c["id"] == s["target"]), None)
+            total = s["volume_ul"] * (s["washes"] or 1)
+            print(f"  step {s['step']:>2}  {s['exchange_kind']:<8}{s['target']:<10}{s['reagent']:<18}"
+                  f"{s['volume_ul']:>7.2f} uL x{s['washes']}  = {total / vc:>5.2f} CV  "
+                  f"leaves {math.exp(-total / vc):>7.2%}")
+            if s["step"] > 40:
+                break
 
 
 def split_by_chip(protocol: dict) -> list[tuple]:

@@ -30,7 +30,7 @@
   <text x="618" y="322.1" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#2f6fb0" text-anchor="middle" font-weight="bold">delay_1</text>
   <text x="618" y="334.6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.02" fill="#8b949e" text-anchor="middle">serpentine_channel</text>
   <text x="618" y="346.51" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">11 × 13 mm</text>
-  <text x="618" y="358.41" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">21.5 µL</text>
+  <text x="618" y="358.41" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">4.68 µL</text>
   <line x1="352" y1="259.8" x2="352" y2="331.8" stroke="#8b949e" stroke-width="0.7"/>
   <line x1="427.8" y1="327.8" x2="431.8" y2="331.8" stroke="#8b949e" stroke-width="0.7"/>
   <rect x="192.2" y="318.9" width="102.6" height="34.2" fill="#ffffff" stroke="none" opacity="0.92"/>

@@ -4,7 +4,7 @@
   "chip_id": "module5_v1",
   "chip_spec": "chip/module5_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T18:57:14Z",
+  "created_at": "2026-11-07T22:45:18Z",
   "placeholder": false,
   "sizing": {
     "capsule_count": null,
@@ -32,11 +32,11 @@
     ],
     "swollen_diameter_um": 140.0
   },
-  "total_duration_s": 29056.0,
+  "total_duration_s": 32812.0,
   "events": [
     {
       "t_s": 0.0,
-      "duration_s": 143.0,
+      "duration_s": 26.0,
       "command": "load",
       "args": {
         "target": "react_cx",
@@ -46,7 +46,7 @@
       "protocol_step": 1
     },
     {
-      "t_s": 143.0,
+      "t_s": 26.0,
       "duration_s": 161.0,
       "command": "load",
       "args": {
@@ -57,8 +57,8 @@
       "protocol_step": 2
     },
     {
-      "t_s": 304.0,
-      "duration_s": 50.0,
+      "t_s": 187.0,
+      "duration_s": 3.0,
       "command": "release",
       "args": {
         "target": "react_cx",
@@ -68,7 +68,7 @@
       "protocol_step": 3
     },
     {
-      "t_s": 354.0,
+      "t_s": 190.0,
       "duration_s": 1800.0,
       "command": "hold_temp",
       "args": {
@@ -80,35 +80,35 @@
       "protocol_step": 4
     },
     {
-      "t_s": 2154.0,
+      "t_s": 1990.0,
       "duration_s": 2859.0,
       "command": "exchange",
       "args": {
         "target": "react_cx",
         "reagent": "dilution_buffer",
-        "volume_ul": 8.1,
-        "washes": 5,
+        "volume_ul": 10.125,
+        "washes": 4,
         "flow_ul_min": 1.19
       },
-      "narration": "Step 16, pass 1: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow, 5 fills of one react_cx volume. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste.",
+      "narration": "Step 16, pass 1: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow, 4 washes of 1.25 react_cx volumes = 5 in total. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste. SWEEP: 5 chamber volumes is past the 4.6 the 99% exchange goal needs, so react_cx is provably cleared into the bead chamber and no digest is left behind. The flow is a bead-binding kinetics placeholder, not a shear limit.",
       "protocol_step": 5
     },
     {
-      "t_s": 5013.0,
-      "duration_s": 848.0,
+      "t_s": 4849.0,
+      "duration_s": 1951.0,
       "command": "exchange",
       "args": {
         "target": "bead_cx",
         "reagent": "exchange_buffer",
-        "volume_ul": 6.0,
-        "washes": 2,
+        "volume_ul": 9.211,
+        "washes": 3,
         "flow_ul_min": 1.19
       },
-      "narration": "Step 16, pass 1: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet.",
+      "narration": "Step 16, pass 1: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet. SWEEP: 3 washes of 1.54 chamber volumes = 4.6 in total, which is what the 99% exchange goal needs in a well-mixed chamber. It used to be 2 volumes, which leaves 14% of the binding buffer on the pellet and carries it into the eluate. The flow is a binding-kinetics placeholder, not a shear limit.",
       "protocol_step": 6
     },
     {
-      "t_s": 5861.0,
+      "t_s": 6800.0,
       "duration_s": 428.0,
       "command": "exchange",
       "args": {
@@ -118,11 +118,11 @@
         "washes": 1,
         "flow_ul_min": 0.59
       },
-      "narration": "Step 16, pass 1: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put.",
+      "narration": "Step 16, pass 1: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put. PARTIAL: 50% of bead_cx's 6 uL, replaced on purpose and not a sweep. A small eluate is the whole point of eluting - concentration is what the sequencer wants - so the one-chamber-volume floor does not apply here; sweeping the chamber would dilute the library it is trying to recover.",
       "protocol_step": 7
     },
     {
-      "t_s": 6289.0,
+      "t_s": 7228.0,
       "duration_s": 300.0,
       "command": "release",
       "args": {
@@ -133,8 +133,8 @@
       "protocol_step": 8
     },
     {
-      "t_s": 6589.0,
-      "duration_s": 143.0,
+      "t_s": 7528.0,
+      "duration_s": 26.0,
       "command": "load",
       "args": {
         "target": "react_cx",
@@ -144,7 +144,7 @@
       "protocol_step": 9
     },
     {
-      "t_s": 6732.0,
+      "t_s": 7554.0,
       "duration_s": 161.0,
       "command": "load",
       "args": {
@@ -155,8 +155,8 @@
       "protocol_step": 10
     },
     {
-      "t_s": 6893.0,
-      "duration_s": 50.0,
+      "t_s": 7715.0,
+      "duration_s": 3.0,
       "command": "release",
       "args": {
         "target": "react_cx",
@@ -166,7 +166,7 @@
       "protocol_step": 11
     },
     {
-      "t_s": 6943.0,
+      "t_s": 7718.0,
       "duration_s": 1800.0,
       "command": "hold_temp",
       "args": {
@@ -178,35 +178,35 @@
       "protocol_step": 12
     },
     {
-      "t_s": 8743.0,
+      "t_s": 9518.0,
       "duration_s": 2859.0,
       "command": "exchange",
       "args": {
         "target": "react_cx",
         "reagent": "dilution_buffer",
-        "volume_ul": 8.1,
-        "washes": 5,
+        "volume_ul": 10.125,
+        "washes": 4,
         "flow_ul_min": 1.19
       },
-      "narration": "Step 16, pass 2: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow, 5 fills of one react_cx volume. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste.",
+      "narration": "Step 16, pass 2: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow, 4 washes of 1.25 react_cx volumes = 5 in total. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste. SWEEP: 5 chamber volumes is past the 4.6 the 99% exchange goal needs, so react_cx is provably cleared into the bead chamber and no digest is left behind. The flow is a bead-binding kinetics placeholder, not a shear limit.",
       "protocol_step": 13
     },
     {
-      "t_s": 11602.0,
-      "duration_s": 848.0,
+      "t_s": 12377.0,
+      "duration_s": 1951.0,
       "command": "exchange",
       "args": {
         "target": "bead_cx",
         "reagent": "exchange_buffer",
-        "volume_ul": 6.0,
-        "washes": 2,
+        "volume_ul": 9.211,
+        "washes": 3,
         "flow_ul_min": 1.19
       },
-      "narration": "Step 16, pass 2: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet.",
+      "narration": "Step 16, pass 2: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet. SWEEP: 3 washes of 1.54 chamber volumes = 4.6 in total, which is what the 99% exchange goal needs in a well-mixed chamber. It used to be 2 volumes, which leaves 14% of the binding buffer on the pellet and carries it into the eluate. The flow is a binding-kinetics placeholder, not a shear limit.",
       "protocol_step": 14
     },
     {
-      "t_s": 12450.0,
+      "t_s": 14328.0,
       "duration_s": 428.0,
       "command": "exchange",
       "args": {
@@ -216,11 +216,11 @@
         "washes": 1,
         "flow_ul_min": 0.59
       },
-      "narration": "Step 16, pass 2: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put.",
+      "narration": "Step 16, pass 2: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put. PARTIAL: 50% of bead_cx's 6 uL, replaced on purpose and not a sweep. A small eluate is the whole point of eluting - concentration is what the sequencer wants - so the one-chamber-volume floor does not apply here; sweeping the chamber would dilute the library it is trying to recover.",
       "protocol_step": 15
     },
     {
-      "t_s": 12878.0,
+      "t_s": 14756.0,
       "duration_s": 300.0,
       "command": "release",
       "args": {
@@ -231,8 +231,8 @@
       "protocol_step": 16
     },
     {
-      "t_s": 13178.0,
-      "duration_s": 143.0,
+      "t_s": 15056.0,
+      "duration_s": 26.0,
       "command": "load",
       "args": {
         "target": "react_cx",
@@ -242,7 +242,7 @@
       "protocol_step": 17
     },
     {
-      "t_s": 13321.0,
+      "t_s": 15082.0,
       "duration_s": 161.0,
       "command": "load",
       "args": {
@@ -253,8 +253,8 @@
       "protocol_step": 18
     },
     {
-      "t_s": 13482.0,
-      "duration_s": 50.0,
+      "t_s": 15243.0,
+      "duration_s": 3.0,
       "command": "release",
       "args": {
         "target": "react_cx",
@@ -264,7 +264,7 @@
       "protocol_step": 19
     },
     {
-      "t_s": 13532.0,
+      "t_s": 15246.0,
       "duration_s": 1800.0,
       "command": "hold_temp",
       "args": {
@@ -276,35 +276,35 @@
       "protocol_step": 20
     },
     {
-      "t_s": 15332.0,
+      "t_s": 17046.0,
       "duration_s": 2859.0,
       "command": "exchange",
       "args": {
         "target": "react_cx",
         "reagent": "dilution_buffer",
-        "volume_ul": 8.1,
-        "washes": 5,
+        "volume_ul": 10.125,
+        "washes": 4,
         "flow_ul_min": 1.19
       },
-      "narration": "Step 16, pass 3: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow, 5 fills of one react_cx volume. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste.",
+      "narration": "Step 16, pass 3: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow, 4 washes of 1.25 react_cx volumes = 5 in total. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste. SWEEP: 5 chamber volumes is past the 4.6 the 99% exchange goal needs, so react_cx is provably cleared into the bead chamber and no digest is left behind. The flow is a bead-binding kinetics placeholder, not a shear limit.",
       "protocol_step": 21
     },
     {
-      "t_s": 18191.0,
-      "duration_s": 848.0,
+      "t_s": 19905.0,
+      "duration_s": 1951.0,
       "command": "exchange",
       "args": {
         "target": "bead_cx",
         "reagent": "exchange_buffer",
-        "volume_ul": 6.0,
-        "washes": 2,
+        "volume_ul": 9.211,
+        "washes": 3,
         "flow_ul_min": 1.19
       },
-      "narration": "Step 16, pass 3: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet.",
+      "narration": "Step 16, pass 3: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet. SWEEP: 3 washes of 1.54 chamber volumes = 4.6 in total, which is what the 99% exchange goal needs in a well-mixed chamber. It used to be 2 volumes, which leaves 14% of the binding buffer on the pellet and carries it into the eluate. The flow is a binding-kinetics placeholder, not a shear limit.",
       "protocol_step": 22
     },
     {
-      "t_s": 19039.0,
+      "t_s": 21856.0,
       "duration_s": 428.0,
       "command": "exchange",
       "args": {
@@ -314,11 +314,11 @@
         "washes": 1,
         "flow_ul_min": 0.59
       },
-      "narration": "Step 16, pass 3: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put.",
+      "narration": "Step 16, pass 3: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put. PARTIAL: 50% of bead_cx's 6 uL, replaced on purpose and not a sweep. A small eluate is the whole point of eluting - concentration is what the sequencer wants - so the one-chamber-volume floor does not apply here; sweeping the chamber would dilute the library it is trying to recover.",
       "protocol_step": 23
     },
     {
-      "t_s": 19467.0,
+      "t_s": 22284.0,
       "duration_s": 300.0,
       "command": "release",
       "args": {
@@ -329,8 +329,8 @@
       "protocol_step": 24
     },
     {
-      "t_s": 19767.0,
-      "duration_s": 143.0,
+      "t_s": 22584.0,
+      "duration_s": 26.0,
       "command": "load",
       "args": {
         "target": "react_cx",
@@ -340,7 +340,7 @@
       "protocol_step": 25
     },
     {
-      "t_s": 19910.0,
+      "t_s": 22610.0,
       "duration_s": 161.0,
       "command": "load",
       "args": {
@@ -351,8 +351,8 @@
       "protocol_step": 26
     },
     {
-      "t_s": 20071.0,
-      "duration_s": 50.0,
+      "t_s": 22771.0,
+      "duration_s": 3.0,
       "command": "release",
       "args": {
         "target": "react_cx",
@@ -362,7 +362,7 @@
       "protocol_step": 27
     },
     {
-      "t_s": 20121.0,
+      "t_s": 22774.0,
       "duration_s": 1800.0,
       "command": "hold_temp",
       "args": {
@@ -374,35 +374,35 @@
       "protocol_step": 28
     },
     {
-      "t_s": 21921.0,
+      "t_s": 24574.0,
       "duration_s": 2859.0,
       "command": "exchange",
       "args": {
         "target": "react_cx",
         "reagent": "dilution_buffer",
-        "volume_ul": 8.1,
-        "washes": 5,
+        "volume_ul": 10.125,
+        "washes": 4,
         "flow_ul_min": 1.19
       },
-      "narration": "Step 16, pass 4: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow, 5 fills of one react_cx volume. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste.",
+      "narration": "Step 16, pass 4: DILUTE, then capture. Dilution buffer is pushed through react_cx into bead_cx at low flow, 4 washes of 1.25 react_cx volumes = 5 in total. The dissolved shell carries about 10,000 times more polymer than DNA, and at that level bead binding fails, so the digest must be diluted before it meets the beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste. SWEEP: 5 chamber volumes is past the 4.6 the 99% exchange goal needs, so react_cx is provably cleared into the bead chamber and no digest is left behind. The flow is a bead-binding kinetics placeholder, not a shear limit.",
       "protocol_step": 29
     },
     {
-      "t_s": 24780.0,
-      "duration_s": 848.0,
+      "t_s": 27433.0,
+      "duration_s": 1951.0,
       "command": "exchange",
       "args": {
         "target": "bead_cx",
         "reagent": "exchange_buffer",
-        "volume_ul": 6.0,
-        "washes": 2,
+        "volume_ul": 9.211,
+        "washes": 3,
         "flow_ul_min": 1.19
       },
-      "narration": "Step 16, pass 4: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet.",
+      "narration": "Step 16, pass 4: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead about 100,000 times harder than the magnet and wrecks the pellet. SWEEP: 3 washes of 1.54 chamber volumes = 4.6 in total, which is what the 99% exchange goal needs in a well-mixed chamber. It used to be 2 volumes, which leaves 14% of the binding buffer on the pellet and carries it into the eluate. The flow is a binding-kinetics placeholder, not a shear limit.",
       "protocol_step": 30
     },
     {
-      "t_s": 25628.0,
+      "t_s": 29384.0,
       "duration_s": 428.0,
       "command": "exchange",
       "args": {
@@ -412,11 +412,11 @@
         "washes": 1,
         "flow_ul_min": 0.59
       },
-      "narration": "Step 16, pass 4: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put.",
+      "narration": "Step 16, pass 4: elute in a small volume through in_bead, out_lib vented and out_waste capped, magnet still ON so the beads stay put. PARTIAL: 50% of bead_cx's 6 uL, replaced on purpose and not a sweep. A small eluate is the whole point of eluting - concentration is what the sequencer wants - so the one-chamber-volume floor does not apply here; sweeping the chamber would dilute the library it is trying to recover.",
       "protocol_step": 31
     },
     {
-      "t_s": 26056.0,
+      "t_s": 29812.0,
       "duration_s": 300.0,
       "command": "release",
       "args": {
@@ -427,7 +427,7 @@
       "protocol_step": 32
     },
     {
-      "t_s": 26356.0,
+      "t_s": 30112.0,
       "duration_s": 900.0,
       "command": "release",
       "args": {
@@ -438,7 +438,7 @@
       "protocol_step": 33
     },
     {
-      "t_s": 27256.0,
+      "t_s": 31012.0,
       "duration_s": 1800.0,
       "command": "release",
       "args": {

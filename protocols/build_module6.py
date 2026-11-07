@@ -18,13 +18,44 @@ prose in the chip description. Nothing numeric is typed in here any more:
             the quench, and no shear ceiling at all after the cells are dead.
   durations volume / flow, or a thermal ramp from thermal.max_ramp_c_per_s and thermal.tau_s.
 
-mu is read from contracts/parameters.json and scaled by a declared temperature ratio; it is
-never copied as a literal (that is how build_module1.py's mu drifted 20% below contract).
+THREE FLUIDS, THREE VISCOSITIES, AND THE CONTRACT NOW DISTINGUISHES TWO OF THEM.
+contracts/parameters.json carries fluid.viscosity_37c_pa_s (culture medium at 37 C, 0.8 mPa s)
+AND fluid.viscosity_pa_s (water at 20 C, 1.0 mPa s, explicitly the dye-demo value). They are
+not interchangeable and this script uses each where it belongs: 37 C steps take the 37 C
+medium key directly, the ice-cold aqueous rinse takes the water key carried to 4 C by the
+textbook water ratio, and the cold organic quench solvent - which is neither, and has no
+contract value - is a flagged ASSUMPTION used only for flood pressure and Reynolds number,
+never for a shear ceiling. No viscosity is copied as a bare literal: that is how
+build_module1.py's mu drifted 20% below contract. See the table at MU, below.
 
 WHY THE LANE, NOT THE CHAMBER, IS THE VOLUME UNIT. The field is in SERIES with an inlet
 comb, an outlet comb and two port stubs. One "chamber volume" does not displace the lane,
 so every exchange here is a multiple of the LANE WETTED VOLUME. The load is the exception
 and is now capped at exactly one field volume: see LOAD, below.
+
+WHAT EVERY EXCHANGE IS FOR (exchange_kind), BECAUSE ABSENCE MEANS SWEEP. Each of the twelve
+exchanges declares its job, and the job sets the volume rule. Nothing is left undeclared:
+add() raises if an exchange arrives without a kind, or if a non-exchange carries one.
+
+  fill    3  the PRIME of each lane's upstream dead volume. The lane is dry before seeding,
+             so there is nothing to clear. A fill is capped ABOVE at one chamber volume, and
+             the dead volume is 1.45 of one, so it is written as 2 washes of half of it; in
+             the instrument it is one continuous push with no drain in between.
+  sweep   9  the pre-quench RINSE (its job is to clear medium so it cannot contaminate the
+             extract), the QUENCH FLOOD (its job is displacement: solvent everywhere a cell
+             sits) and the solubilisation FLUSH (it decides fraction-to-fraction carry-over).
+             All three are sized from contracts exchange.target_fraction.
+  partial 6  the four elution CHASES and nothing else. A chase takes a DEFINED fraction - the
+             field plus everything downstream of it - because the extract volume is the whole
+             lever for metabolomics here. Sweeping one to target would dilute the fraction
+             about 2.5x and break the <=10 uL rule, so taking a fraction IS the point. Each
+             says how many chamber volumes it replaces, which is what a partial owes.
+
+A SWEEP ON THIS CHIP COSTS MORE THAN THE CONTRACT FLOOR. -ln(1 - target) chamber volumes
+assumes clean reagent reaches the chamber from the first microlitre. Here the inlet stub and
+comb hold the SAME old liquid, so nothing clean arrives until that dead volume has passed.
+Every sweep is therefore sized as dead volume + the contract's chamber volumes, which is
+above the floor the test enforces, not at it.
 
 LOAD. Steps 1-3 of the old file pushed one whole lane wetted volume of cell suspension and
 declared it as a load into a 2.88 uL chamber. Both halves of that were wrong. Reconciled by
@@ -89,8 +120,8 @@ SOURCE = (
     "and contracts/. ONE EXTRACTION, TWO FRACTIONS: Coman et al. 2016 (SIMPLEX), "
     "doi:10.1074/mcp.M115.053702, and Sapcariu et al. 2014, doi:10.1016/j.mex.2014.07.002 - "
     "cited for the PRINCIPLE (metabolites in the supernatant, protein in the pellet) and for "
-    "the >=5 min cold soak, NOT for depth or CV figures: Sapcariu is a chloroform/Folch-type "
-    "biphasic partition and SIMPLEX an ether-based one, while this chip runs a single-phase "
+    "the >=5 min cold soak, NOT for depth or CV figures: Sapcariu is a chlorinated-solvent "
+    "(Folch-type) biphasic partition and SIMPLEX an ether-type one, while this chip runs a single-phase "
     "acidified polar-organic precipitation with no partition solvent at all, so quantitative "
     "transfer from either is an ASSUMPTION. EXTRACTION ON ADHERENT CELLS: Dettmer et al. 2011, "
     "doi:10.1007/s00216-010-4425-x (direct cold solvent on adherent cells beat scrape-in-buffer "
@@ -157,7 +188,22 @@ HEADROOM = 0.85                      # 15% under whichever shear ceiling applies
 CELL_DIAMETER_UM = 12.0              # ASSUMPTION, as build_module1.py
 CELLS_PER_MM2 = 1000.0               # ASSUMPTION: dense monolayer
 
-# --- process choices (what each step is FOR; the geometry says what a volume is) ---------
+# --- what each exchange is FOR (exchange_kind), and the volume rule that follows ---------
+# contracts/schemas/protocol.schema.json makes the job DATA instead of English in a note:
+#
+#   fill      the first filling of an empty or air-filled chamber. Bounded ABOVE by the
+#             chamber volume, no lower bound. It is not clearing anything.
+#   sweep     clearing the chamber's contents. Must move at least one chamber volume, and
+#             washes x volume must total SWEEP_CV chamber volumes, because a well-mixed
+#             chamber keeps exp(-V) of the old liquid after V chamber volumes.
+#   partial   a deliberate fractional change. Escapes the sweep floor BECAUSE it is
+#             deliberate, so its note has to say what fraction it replaces.
+#
+# ABSENCE MEANS SWEEP, so every exchange here declares itself. SWEEP_CV is derived from
+# contracts exchange.target_fraction, never stated.
+EXCHANGE_TARGET = parameter("exchange.target_fraction")
+SWEEP_CV = -math.log(1.0 - EXCHANGE_TARGET)
+
 FLOOD_LV = 2.0            # lane wetted volumes of quench: 1 to displace, 1 to be sure
 FLUSH_LV = 3.0            # lane wetted volumes of solubilisation buffer, exp(-3) = 5% left
 QUENCH_TARGET_S = 1.0     # the design requirement the comb geometry exists to meet
@@ -253,7 +299,18 @@ CELLS_PER_LANE = floor_area_mm2() * CELLS_PER_MM2
 LANE = {k: lane(k) for k in LANES}
 WETTED = LANE["n"]["wetted"]        # the three lanes are identical by construction
 EXTRACT = LANE["n"]["extract"]
+FIELD_UL = LANE["n"]["field"]
 assert all(abs(v["wetted"] - WETTED) < 1e-9 for v in LANE.values()), "lanes differ: size each one separately"
+
+# A SWEEP ON THIS CHIP COSTS MORE THAN THE CONTRACT FLOOR, AND THE DIFFERENCE IS THE DEAD
+# VOLUME. The contract rule is SWEEP_CV chamber volumes (SWEEP_FLOOR_UL below), which assumes
+# clean reagent arrives at the chamber from the first microlitre. Here the first
+# LANE['upstream'] uL only displaces the inlet stub and comb, which hold the SAME old liquid,
+# so nothing clean reaches the field until that has passed. The honest sweep is therefore the
+# upstream dead volume PLUS the contract's chamber volumes, and that is what this script
+# sizes rinses, floods and flushes from. It is deliberately above the test floor, not at it.
+SWEEP_FLOOR_UL = round(SWEEP_CV * FIELD_UL, 3)                      # what the contract asks
+SWEEP_UL = round(LANE["n"]["upstream"] + SWEEP_CV * FIELD_UL, 3)    # what the lane really needs
 
 
 # --- flow, shear and the regime the flood really runs in --------------------------------
@@ -388,7 +445,7 @@ def build() -> dict:
 
     def add(operation, note, duration_s, target=None, targets=None, reagent=None, reagents=None,
             volume_ul=None, temp_c=None, washes=None, flow_ul_min=None, waste=None,
-            interval_s=None, port_state=None):
+            interval_s=None, port_state=None, kind=None):
         step = {"step": len(steps) + 1, "operation": operation}
         if targets is not None:
             step["targets"] = targets
@@ -396,6 +453,12 @@ def build() -> dict:
             step["target"] = target
         step.update({"reagent": reagent, "volume_ul": volume_ul, "duration_s": duration_s,
                      "temp_c": temp_c, "washes": washes, "flow_ul_min": flow_ul_min})
+        if kind is not None:
+            if operation != "exchange":
+                raise SystemExit(f"exchange_kind on a {operation} step: the schema forbids it")
+            step["exchange_kind"] = kind
+        elif operation == "exchange":
+            raise SystemExit("every exchange must declare its exchange_kind: absence means sweep")
         if reagents is not None:
             step["reagents"] = reagents
         if interval_s is not None:
@@ -410,18 +473,26 @@ def build() -> dict:
         return ports([f"in_{key}"], [f"out_{key}"])
 
     # --- PHASE 0: seed, stage at 37 C -----------------------------------------------
+    prime_washes = math.ceil(LANE["n"]["upstream"] / FIELD_UL)
+    prime_per_wash = round(LANE["n"]["upstream"] / prime_washes, 3)
     for key, name in LANES.items():
         L = LANE[key]
         add("exchange",
-            f"{name.capitalize()}: PRIME the lane. {L['upstream']:.3f} uL of cell suspension fills the "
-            f"inlet stub and the inlet comb - the dead volume UPSTREAM of the field, which the "
+            f"{name.capitalize()}: PRIME the lane. A FILL, not a sweep: the lane is dry before seeding, "
+            f"so there is nothing to clear, and {L['upstream']:.3f} uL of cell suspension simply fills "
+            f"the inlet stub and the inlet comb - the dead volume UPSTREAM of the field, which the "
             f"suspension has to cross before a single cell reaches the floor. It is declared here "
             f"instead of being hidden inside the load, which is how the old file came to claim it was "
-            f"pushing 3.97 chamber volumes into a chamber. Held to the {CULTURE_CEILING:g} dyn/cm2 "
-            f"culture ceiling: these cells have to survive.",
-            push_s(L["upstream"], CULTURE_FLOW), target=f"cx_{key}", reagent=f"cell_suspension_{key}",
-            volume_ul=round(L["upstream"], 3), temp_c=CULTURE_TEMP_C, washes=1,
-            flow_ul_min=CULTURE_FLOW, waste=f"out_{key}", port_state=lane_ports(key))
+            f"pushing 3.97 chamber volumes into a chamber. Declared as {prime_washes} x "
+            f"{prime_per_wash:g} uL because the contract defines an exchange's volume_ul as the volume "
+            f"PER WASH and caps a FILL at one chamber volume ({FIELD_UL:g} uL), while the dead volume is "
+            f"{L['upstream'] / FIELD_UL:.2f} of one; in the instrument it is a single continuous push and "
+            f"nothing drains in between. Held to the {CULTURE_CEILING:g} dyn/cm2 culture ceiling: these "
+            f"cells have to survive.",
+            push_s(prime_per_wash * prime_washes, CULTURE_FLOW), target=f"cx_{key}",
+            reagent=f"cell_suspension_{key}", volume_ul=prime_per_wash, temp_c=CULTURE_TEMP_C,
+            washes=prime_washes, flow_ul_min=CULTURE_FLOW, waste=f"out_{key}",
+            port_state=lane_ports(key), kind="fill")
         add("load",
             f"{name.capitalize()}: LOAD exactly one field volume ({L['field']:g} uL) of cell suspension, "
             f"then stop flow so the cells settle onto the coated floor. One field volume is the cap: the "
@@ -461,37 +532,53 @@ def build() -> dict:
         port_state=ports([], []))
 
     wrong_flow = held_flow(CULTURE_CEILING, "rinse")      # what the old file used, for the contrast
+    rinse_ul = SWEEP_UL
     for key, name in LANES.items():
-        rinse_ul = FLOOD_LV * WETTED
         add("exchange",
-            f"{name.capitalize()}: pre-quench rinse, {FLOOD_LV:g} lane wetted volumes of ice-cold volatile "
-            f"buffer to waste in about {push_s(rinse_ul, RINSE_FLOW):.0f} s. Held to "
+            f"{name.capitalize()}: pre-quench rinse. A SWEEP - its whole job is to clear the medium so it "
+            f"does not contaminate the extract - so it is sized from contracts exchange.target_fraction "
+            f"and not from habit: {SWEEP_CV:.2f} chamber volumes reaches {EXCHANGE_TARGET:.0%} in a "
+            f"well-mixed chamber ({SWEEP_FLOOR_UL:g} uL), and the lane's {LANE[key]['upstream']:.3f} uL of "
+            f"upstream dead volume holds the SAME medium, so nothing clean reaches the field until that "
+            f"has passed. {rinse_ul:g} uL total, about {push_s(rinse_ul, RINSE_FLOW):.0f} s - shorter than "
+            f"the {FLOOD_LV:g} lane volumes this step used to push, because the target, not a round number "
+            f"of lane volumes, now sets it. Held to "
             f"shear.prelysis_rinse_ceiling_dyn_cm2 ({RINSE_CEILING:g} dyn/cm2), NOT to the "
             f"{CULTURE_CEILING:g} culture ceiling: that ceiling exists to keep adherent cells attached for "
             f"weeks, and against it the same rinse runs at {wrong_flow:g} uL/min and takes "
-            f"{push_s(rinse_ul, wrong_flow):.0f} s - twelve minutes of cold "
-            f"perturbation before a quench engineered to take about {QUENCH_TARGET_S:g} s. These cells are "
-            f"about to be deliberately killed; losing a few to shear costs nothing, a twelve-minute "
-            f"perturbation costs the measurement. SHORT IS ALSO THE BIOLOGY: Kapoore 2017 found washing "
+            f"{push_s(rinse_ul, wrong_flow):.0f} s - about "
+            f"{push_s(rinse_ul, wrong_flow) / 60:.0f} minutes of cold perturbation before a quench "
+            f"engineered to take about {QUENCH_TARGET_S:g} s (the old file's larger rinse took 700 s "
+            f"there). These cells are about to be deliberately killed; losing a few to shear costs "
+            f"nothing, a ten-minute perturbation costs the measurement. SHORT IS ALSO THE BIOLOGY: "
+            f"Kapoore 2017 found washing "
             f"itself leaks metabolites, so the rinse should be as brief as it can be while still clearing "
             f"the medium (Lorenz 2011: a quick rinse roughly doubles detected features).",
             push_s(rinse_ul, RINSE_FLOW), target=f"cx_{key}", reagent="cold_volatile_rinse",
             volume_ul=round(rinse_ul, 3), temp_c=RINSE_TEMP_C, washes=1, flow_ul_min=RINSE_FLOW,
-            waste=f"out_{key}", port_state=lane_ports(key))
+            waste=f"out_{key}", port_state=lane_ports(key), kind="sweep")
         add("exchange",
-            f"{name.capitalize()}: QUENCH FLOOD in place. {FLOOD_LV:g} lane wetted volumes "
-            f"({FLOOD_LV * WETTED:.3f} uL) of cold acidified organic solvent, free of chlorinated "
-            f"solvents, through the combs in about {QUENCH_TARGET_S:g} s at {FLOOD_FLOW:g} uL/min. The "
-            f"solvent arrives cold from an off-chip reservoir; the STAGE is still at {RINSE_TEMP_C:g} C. "
-            f"Cells lyse where they sit and the protein precipitates on the floor. No shear ceiling "
-            f"applies from here on. INERTIAL, NOT STOKES: at this flow the feed line runs Re ~ "
+            f"{name.capitalize()}: QUENCH FLOOD in place. ALSO A SWEEP, and deliberately classified as "
+            f"one: its purpose is displacement - replacing medium-free rinse buffer with solvent "
+            f"everywhere a cell sits - so it is held to the same {EXCHANGE_TARGET:.0%} target as the "
+            f"rinse. It costs nothing to honour: at {FLOOD_FLOW:g} uL/min the "
+            f"{SWEEP_UL:g} uL the target needs would take {push_s(SWEEP_UL, FLOOD_FLOW):.2f} s, so the "
+            f"step stays at {FLOOD_LV:g} lane wetted volumes ({FLOOD_LV * WETTED:.3f} uL = "
+            f"{FLOOD_LV * WETTED / FIELD_UL:.2f} chamber volumes, {FLOOD_LV * WETTED / SWEEP_UL:.1f}x the "
+            f"target) in about {QUENCH_TARGET_S:g} s. The extra over the target is not waste: the flood "
+            f"also has to fill the {LANE[key]['downstream']:.3f} uL DOWNSTREAM of the field, which the "
+            f"well-mixed-chamber rule knows nothing about, or the extract chase would push rinse buffer "
+            f"into vial M. Cold acidified organic solvent, free of chlorinated solvents; it arrives cold "
+            f"from an off-chip reservoir while the STAGE is still at {RINSE_TEMP_C:g} C. Cells lyse where "
+            f"they sit and the protein precipitates on the floor. No shear ceiling applies from here on. "
+            f"INERTIAL, NOT STOKES: at this flow the feed line runs Re ~ "
             f"{RE['re_line']:.0f} and the comb spine Re ~ {RE['re_spine']:.0f}, so entrance effects and "
             f"minor losses at the tooth branches are real; only the teeth (Re ~ {RE['re_tooth']:.1f}) and "
             f"the field (Re ~ {RE['re_field']:.1f}) are near-creeping. Uniformity rests on TOOTH "
             f"CONVECTION, not on Re << 1. Outlet at waste; flow then stops.",
             QUENCH_TARGET_S, target=f"cx_{key}", reagent="cold_acidified_organic_quench",
             volume_ul=round(FLOOD_LV * WETTED, 3), temp_c=SOAK_TEMP_C, washes=1,
-            flow_ul_min=FLOOD_FLOW, waste=f"out_{key}", port_state=lane_ports(key))
+            flow_ul_min=FLOOD_FLOW, waste=f"out_{key}", port_state=lane_ports(key), kind="sweep")
 
     # --- PHASE 3: cold soak, stage at -20 C -----------------------------------------
     add("hold_temp",
@@ -512,15 +599,21 @@ def build() -> dict:
     for key, name in LANES.items():
         L = LANE[key]
         add("exchange",
-            f"{name.capitalize()}: chase. The outlet valve turns to vial M and fresh quench solvent pushes "
-            f"the extract out of out_{key}. {L['extract']:.3f} uL = the field plus everything downstream of "
-            f"it (outlet comb + stub), which is the honest definition of what reaches the vial. Under the "
-            f"~10 uL extract-volume design rule, so about {CELLS_PER_LANE:.0f} cells land in "
-            f"{L['extract']:.2f} uL, about {CELLS_PER_LANE / L['extract']:.0f} cells/uL (ASSUMED "
-            f"{CELLS_PER_MM2:g} cells/mm2 on the {floor_area_mm2():g} mm2 floor).",
+            f"{name.capitalize()}: ELUTION CHASE, and a PARTIAL on purpose. The outlet valve turns to "
+            f"vial M and fresh quench solvent pushes the extract out of out_{key}. "
+            f"{L['extract']:.3f} uL = {L['extract'] / FIELD_UL:.2f} chamber volumes = the field plus "
+            f"everything downstream of it (outlet comb + stub), which is exactly what lies between the "
+            f"cells and the vial. It is NOT a sweep and must not be sized like one: the "
+            f"{SWEEP_UL:g} uL a {EXCHANGE_TARGET:.0%} sweep would push would dilute the metabolome "
+            f"{SWEEP_UL / L['extract']:.1f}x and break the <=10 uL extract-volume design rule, which is "
+            f"the whole lever for metabolomics on this chip. Taking a defined fraction IS the point. "
+            f"About {CELLS_PER_LANE:.0f} cells land in {L['extract']:.2f} uL, about "
+            f"{CELLS_PER_LANE / L['extract']:.0f} cells/uL (ASSUMED {CELLS_PER_MM2:g} cells/mm2 on the "
+            f"{floor_area_mm2():g} mm2 floor). What stays behind is a fresh charge of the same solvent, "
+            f"not old extract, because the flood that preceded this already swept the lane.",
             push_s(L["extract"], FLOOD_FLOW), target=f"cx_{key}", reagent="cold_acidified_organic_quench",
             volume_ul=round(L["extract"], 3), temp_c=SOAK_TEMP_C, washes=1, flow_ul_min=FLOOD_FLOW,
-            port_state=lane_ports(key))
+            port_state=lane_ports(key), kind="partial")
         add("collect",
             f"{name.capitalize()}: FRACTION 1, the metabolome, plus peptides under about 10 kDa, which do "
             f"not precipitate. Neutralised on arrival (the vial is pre-charged off chip) and kept on the "
@@ -539,15 +632,19 @@ def build() -> dict:
         settle_s(SOAK_TEMP_C, AMBIENT_C), target="cx_n", temp_c=AMBIENT_C, port_state=ports([], []))
     for key, name in LANES.items():
         add("exchange",
-            f"{name.capitalize()}: the outlet valve returns to waste and {FLUSH_LV:g} lane wetted volumes "
-            f"({FLUSH_LV * WETTED:.3f} uL) of solubilisation buffer clear the lane, the port hole and the "
-            f"stub of fraction 1 and displace the organic solvent. Ideal mixing leaves exp(-{FLUSH_LV:g}) = "
-            f"{math.exp(-FLUSH_LV):.0%} of the old solvent in the lane (a laminar slot displaces better; "
-            f"unmeasured, to be shown with a dye test). The precipitated protein stays on the floor.",
+            f"{name.capitalize()}: SWEEP. The outlet valve returns to waste and {FLUSH_LV:g} lane wetted "
+            f"volumes ({FLUSH_LV * WETTED:.3f} uL = {FLUSH_LV * WETTED / FIELD_UL:.2f} chamber volumes, "
+            f"{FLUSH_LV * WETTED / SWEEP_UL:.1f}x the {SWEEP_UL:g} uL the {EXCHANGE_TARGET:.0%} target "
+            f"needs) of solubilisation buffer clear the lane, the port hole and the stub of fraction 1 and "
+            f"displace the organic solvent. This is the one step where carry-over between the two "
+            f"fractions is decided, so it is sized well above the target rather than at it: ideal mixing "
+            f"leaves exp(-{FLUSH_LV:g}) = {math.exp(-FLUSH_LV):.0%} of the old solvent in the LANE (a "
+            f"laminar slot displaces better; unmeasured, to be shown with a dye test). The precipitated "
+            f"protein stays on the floor.",
             push_s(FLUSH_LV * WETTED, FLOOD_FLOW), target=f"cx_{key}",
             reagent="denaturing_solubilisation_buffer", volume_ul=round(FLUSH_LV * WETTED, 3),
             temp_c=AMBIENT_C, washes=1, flow_ul_min=FLOOD_FLOW, waste=f"out_{key}",
-            port_state=lane_ports(key))
+            port_state=lane_ports(key), kind="sweep")
     add("hold_temp",
         f"RESOLUBILISATION: stop-flow, {RESOLUBILISE_S:g} s at ambient ({AMBIENT_C:g} C), all three lanes. "
         f"NOT at 37 C, which is what the old file did: a warm hold in a carbamylating chaotrope modifies "
@@ -562,12 +659,17 @@ def build() -> dict:
     for key, name in LANES.items():
         L = LANE[key]
         add("exchange",
-            f"{name.capitalize()}: chase. The outlet valve turns to vial P and fresh buffer pushes the "
-            f"dissolved protein ({L['extract']:.3f} uL) out through the SAME port out_{key}, at a later "
-            f"time. Separate vials and separate valve positions mean the two fractions never share a vial.",
+            f"{name.capitalize()}: ELUTION CHASE, a PARTIAL for the same reason as fraction 1's. The "
+            f"outlet valve turns to vial P and fresh buffer pushes the dissolved protein "
+            f"({L['extract']:.3f} uL = {L['extract'] / FIELD_UL:.2f} chamber volumes, the field plus "
+            f"everything downstream of it) out through the SAME port out_{key}, at a later time. Taking "
+            f"that defined fraction is the point: sweeping to {EXCHANGE_TARGET:.0%} would hand the mass "
+            f"spectrometer {SWEEP_UL:g} uL of dilute protein instead of {L['extract']:.3f} uL. Separate "
+            f"vials and separate valve positions mean the two fractions never share a vial.",
             push_s(L["extract"], FLOOD_FLOW), target=f"cx_{key}",
             reagent="denaturing_solubilisation_buffer", volume_ul=round(L["extract"], 3),
-            temp_c=AMBIENT_C, washes=1, flow_ul_min=FLOOD_FLOW, port_state=lane_ports(key))
+            temp_c=AMBIENT_C, washes=1, flow_ul_min=FLOOD_FLOW, port_state=lane_ports(key),
+            kind="partial")
         add("collect",
             f"{name.capitalize()}: FRACTION 2, the proteome, ready for bottom-up digestion. Spin vial M and "
             f"add its pellet here: the flood may strip fines off the floor film (UNTESTED). The lane is "
@@ -597,10 +699,11 @@ def build() -> dict:
             f"into a {LANE['n']['field']:g} uL chamber (3.97x) is reconciled. The outlet comb is never "
             f"filled with cell suspension, so cells cannot be stranded past the field. "
             f"THE PRE-QUENCH RINSE is held to shear.prelysis_rinse_ceiling_dyn_cm2 "
-            f"({RINSE_CEILING:g} dyn/cm2), the contract value nothing used to read: {RINSE_FLOW:g} uL/min "
-            f"and about {push_s(FLOOD_LV * WETTED, RINSE_FLOW):.0f} s, against "
+            f"({RINSE_CEILING:g} dyn/cm2), the contract value nothing used to read: {RINSE_FLOW:g} uL/min, "
+            f"so the {SWEEP_UL:g} uL the exchange target needs takes about "
+            f"{push_s(SWEEP_UL, RINSE_FLOW):.0f} s, against "
             f"{held_flow(CULTURE_CEILING, 'rinse'):g} uL/min and "
-            f"{push_s(FLOOD_LV * WETTED, held_flow(CULTURE_CEILING, 'rinse')):.0f} s on the "
+            f"{push_s(SWEEP_UL, held_flow(CULTURE_CEILING, 'rinse')):.0f} s on the "
             f"culture ceiling. Kapoore 2017 found washing itself leaks metabolites, so the shortest "
             f"defensible rinse is also the right biology; this repo used to cite that paper for a long "
             f"careful wash, which is backwards. "
@@ -614,6 +717,20 @@ def build() -> dict:
             f"{RINSE_TEMP_C:g} C; resolubilisation is at ambient, not 37 C, so a carbamylating chaotrope "
             f"cannot modify peptides during a warm hold. Collect steps carry real durations "
             f"({collect_s():g} s) instead of 0. "
+            f"EVERY EXCHANGE DECLARES WHAT IT IS FOR in exchange_kind, because absence means sweep: "
+            f"{sum(1 for s in steps if s.get('exchange_kind') == 'fill')} FILL (the prime of each lane's "
+            f"dry upstream dead volume - nothing to clear, and capped above at one chamber volume, so it "
+            f"is written as {prime_washes} x {prime_per_wash:g} uL), "
+            f"{sum(1 for s in steps if s.get('exchange_kind') == 'sweep')} SWEEP (rinse, quench flood, "
+            f"solubilisation flush) and {sum(1 for s in steps if s.get('exchange_kind') == 'partial')} "
+            f"PARTIAL (the elution chases, which take a DEFINED fraction - the field plus everything "
+            f"downstream of it - because extract volume is the whole lever for metabolomics; sweeping one "
+            f"to {EXCHANGE_TARGET:.0%} would dilute the fraction about "
+            f"{SWEEP_UL / LANE['n']['extract']:.1f}x and break the <=10 uL rule). A SWEEP HERE COSTS MORE "
+            f"THAN THE CONTRACT FLOOR: {SWEEP_CV:.2f} chamber volumes ({SWEEP_FLOOR_UL:g} uL) assumes "
+            f"clean reagent reaches the field from the first microlitre, but the inlet stub and comb hold "
+            f"the same old liquid, so each sweep is sized as that {LANE['n']['upstream']:.3f} uL of dead "
+            f"volume PLUS the contract's chamber volumes = {SWEEP_UL:g} uL. "
             f"THREE VISCOSITIES, EACH NAMED: the culture, prime and load flows use "
             f"contracts fluid.viscosity_37c_pa_s ({MU['culture'] * 1e3:g} mPa s, culture medium at 37 C, "
             f"which is what they push); the rinse uses fluid.viscosity_pa_s (water, 20 C) carried to 4 C by "
@@ -693,6 +810,22 @@ def report() -> None:
         print(f"  {a:>3g} C -> {b:>3g} C: {settle_s(a, b):.0f} s")
 
     proto = build()
+    print(f"\nexchange_kind (absence means sweep, so nothing is left undeclared):")
+    for kind in ("fill", "sweep", "partial"):
+        rows = [s for s in proto["steps"] if s.get("exchange_kind") == kind]
+        print(f"  {kind:<8} {len(rows)}  " + ", ".join(
+            f"{s['volume_ul']:g}x{s['washes']} uL = {s['volume_ul'] * s['washes'] / FIELD_UL:.2f} CV"
+            for s in rows[:2]) + (" ..." if len(rows) > 2 else ""))
+    print(f"  sweep floor: {SWEEP_CV:.2f} CV = {SWEEP_FLOOR_UL:g} uL (contract); sized at "
+          f"{SWEEP_UL:g} uL = {SWEEP_UL / FIELD_UL:.2f} CV (+ the {LANE['n']['upstream']:.3f} uL of "
+          f"upstream dead volume that holds the same old liquid)")
+    print(f"  rinse  {SWEEP_UL:g} uL at {RINSE_FLOW:g} uL/min = {push_s(SWEEP_UL, RINSE_FLOW):.2f} s "
+          f"(contract floor alone would be {push_s(SWEEP_FLOOR_UL, RINSE_FLOW):.2f} s)")
+    print(f"  flood  {FLOOD_LV * WETTED:.3f} uL at {FLOOD_FLOW:g} uL/min = {QUENCH_TARGET_S:g} s "
+          f"({FLOOD_LV * WETTED / SWEEP_UL:.1f}x the target; the target alone would take "
+          f"{push_s(SWEEP_UL, FLOOD_FLOW):.2f} s)")
+    print(f"  ATP/ADP caveat: {push_s(SWEEP_UL, RINSE_FLOW):.0f} s of cold rinse is still many times the "
+          f"~1 s turnover, so it does NOT move - still INVALID")
     print(f"\n{len(proto['steps'])} steps, "
           f"{sum(s['duration_s'] for s in proto['steps']) / 3600:.1f} h of protocol time")
 

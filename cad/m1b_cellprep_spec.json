@@ -8,8 +8,8 @@
     "name": "Cell prep (draft)",
     "status": "superseded",
     "printed": false,
-    "superseded_by": "chip/module1_v1.json",
-    "note": "Superseded: Module 1 v1 delivers one counted suspension for encapsulation itself; kept for reference, out of the pipeline."
+    "superseded_by": "chip/cell_prep_v1.json",
+    "note": "Superseded by cell_prep_v1, which is the chip that does THIS job - detach, quench, count - and which protocols/pipeline_mvp.json runs as the cellprep module. This used to point at module1_v1, the culture chip: module 1 grows the cells and ends with its own dissociation, but it is not the successor to a cell-prep board, and naming it here sent anyone following the trail to the wrong file. Kept for reference, out of the pipeline."
   },
   "generator": {
     "script": "cad/generators/m1b_cellprep.py",

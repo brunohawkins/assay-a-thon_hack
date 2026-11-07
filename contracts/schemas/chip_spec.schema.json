@@ -177,7 +177,7 @@
     },
     "thermal_zones": {
       "type": "array",
-      "description": "Optional. Heated or cooled regions. Checks compare max_temp_c with the chip material's max working temperature.",
+      "description": "Optional. Heated or cooled regions, including sub-ambient ones. Checks compare max_temp_c with the chip material's max working temperature.",
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -185,9 +185,13 @@
         "properties": {
           "id": { "$ref": "#/$defs/snake_id" },
           "chambers": { "type": "array", "items": { "$ref": "#/$defs/snake_id" }, "description": "Chamber ids inside the zone." },
-          "max_temp_c": { "type": "number" },
-          "min_temp_c": { "type": "number" },
-          "purpose": { "type": "string", "description": "e.g. culture, rt, pcr, gelation. 'culture' triggers the swollen-capsule height check." }
+          "max_temp_c": { "type": "number", "description": "Hottest set point of the zone. Checked against the chip material's max working temperature (contracts/materials.json)." },
+          "min_temp_c": { "type": "number", "description": "Optional. Coldest set point. Declare it for any sub-ambient zone (a cold rinse, a -20 C solvent quench), so the zone says what it has to reach and not only what it must survive." },
+          "purpose": {
+            "type": "string",
+            "description": "DELIBERATELY A FREE STRING, not an enum: the vocabulary grows with the chemistry, and an enum written today would have excluded module 6's rinse, solvent quench and resolubilisation zones. Values in use: culture, rt, pcr, gelation, rinse, quench, resolubilisation. Only ONE value is load-bearing in code: \"culture\" (case-insensitive) marks a zone where cells or capsules are grown, and triggers the swollen-capsule chamber-height check in tools/check_chip_spec.py. Everything else is documentation. This matches contracts/README.md, which fixes the field list and the meaning of \"culture\" and does not close the list of purposes."
+          },
+          "note": { "type": "string", "description": "Optional. What this zone is for and why it is at this temperature, e.g. which protocol step drives it." }
         }
       }
     },

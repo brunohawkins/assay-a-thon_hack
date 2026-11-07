@@ -54,8 +54,13 @@ const PREFERRED = {
 };
 // The current modules' specs (MJ's, Szonja's translated) have no module block: their runs are
 // told apart by chip id. A chip/module2*.json from MJ lands in the Module 2 tab.
+// The three chips with no tab of their own - cell prep, the spc_demo encapsulation chip and
+// sctip_spc_v1, which is the barcoding stage (4b in protocols/pipeline_status.md) - open in
+// the Other tab, so their pipeline cards are clickable instead of looking undesigned.
 const CHIP_VIEW = { [M1V1]: 'm1v1', module3_v1_translated: 'm3v1', ...LIB_CHIPS };
-const moduleOf = (r) => r.module ?? CHIP_VIEW[r.chip_id] ?? (/^module2/.test(r.chip_id ?? '') ? 'm2' : null);
+const OTHER_CHIPS = new Set(['cell_prep_v1', 'spc_demo_v1', 'sctip_spc_v1']);
+const moduleOf = (r) => r.module ?? CHIP_VIEW[r.chip_id]
+  ?? (/^module2/.test(r.chip_id ?? '') ? 'm2' : OTHER_CHIPS.has(r.chip_id) ? 'other' : null);
 // The superseded drafts (Module 1 brief, 1b, 3 wash) share one "Old drafts" tab.
 const OLD = new Set(['m1', 'm1b', 'm3']);
 const tabOf = (m) => (OLD.has(m) ? 'old' : m);
@@ -225,7 +230,7 @@ async function setView(mode) {
 }
 
 function runsFor(m) {
-  if (m === 'other') return runs.filter((r) => !moduleOf(r));
+  if (m === 'other') return runs.filter((r) => { const v = moduleOf(r); return !v || v === 'other'; });
   if (m === 'old') return runs.filter((r) => OLD.has(moduleOf(r)));
   return runs.filter((r) => moduleOf(r) === m);
 }

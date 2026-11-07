@@ -31,6 +31,15 @@ export const DESIGN_MODES = ['grow', 'int_n', 'int_g', 'int_a', 'harvest', 'seed
 // ------------------------------------------------------------------ geometry
 
 // Channel centrelines from a cad/make_train_cad.py DXF: 4 LINEs per channel rectangle.
+//
+// This reads <chip_id>.dxf, NOT <chip_id>_closed.dxf, and that is deliberate. The generator's
+// own header says so: the plain file is "the REFERENCE drawing, and the hydraulic model's
+// input", with every channel as the full centreline rectangle running to where its centreline
+// meets the chamber wall - which is where the channel's hydraulic length ends. _closed.dxf is
+// the FABRICATION file: one closed LWPOLYLINE per feature with each channel's end cap trimmed
+// back to the chamber wall, so its channels are SHORTER than their hydraulic length, and it
+// holds no LINE entities for this parser to read at all (module1_v1: 52 LINEs in the plain
+// file, 0 in the closed one). Do not switch this over.
 export function parseDxfChannels(text) {
   const t = text.split('\n').map((s) => s.trim());
   const lines = [];

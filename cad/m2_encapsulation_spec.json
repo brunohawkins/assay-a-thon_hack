@@ -5,10 +5,11 @@
   "placeholder": true,
   "module": {
     "id": "m2",
-    "name": "Encapsulation",
-    "status": "draft",
+    "name": "Encapsulation (retired)",
+    "status": "superseded",
     "printed": false,
-    "note": "reference only: nozzle clamped to 200 um, cannot make capsules; encapsulation is off-chip (spc_demo_v1)"
+    "superseded_by": "chip/spc_demo_v1.json",
+    "note": "Superseded, not draft: the nozzle clamps to the 200 um in-plane floor, so this board cannot make the pipeline's 70 um capsule, and protocols/pipeline_mvp.json has already replaced it with spc_demo_v1 for the flow-focusing geometry and the commercial droplet kit for the capsules themselves. It stayed 'draft' long after that decision, which read as work in progress rather than a design that lost. Kept for reference, out of the pipeline."
   },
   "generator": {
     "script": "cad/generators/m2_encapsulation.py",

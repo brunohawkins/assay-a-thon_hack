@@ -43,10 +43,14 @@ Flow rates come from chamber geometry as in build_ipsc_to_mgl.py: tau = 6*mu*Q/(
 w being the chamber width across the flow. Where a mode splits a stream in two the split is
 taken as equal. Reagent names are generic: see CONFIDENTIALITY.md.
 
-mu is read from contracts/parameters.json, NOT hard-coded. This file used to carry
-mu = 0.8e-3 Pa s while the contract says 0.001, which is 20% low; shear goes as mu, so
-every flow derived here as "85% of the shear-ceiling flow" was really 106% of it, i.e. over
-the ceiling. A literal copy of a contract value is exactly how that drift happened.
+mu is read from contracts/parameters.json, NOT hard-coded, and it is the 37 C culture-medium
+value fluid.viscosity_37c_pa_s (0.0008 Pa s), which the contract says to use for "EVERY
+CULTURE AND PROTOCOL FLOW OR SHEAR CALCULATION". The other key, fluid.viscosity_pa_s
+(0.001), is water at 20 C - the dye-demo value - and this file was pointed at it for a
+while: shear goes as mu, so every flow derived here as "85% of the shear-ceiling flow" came
+out 20% lower than the chips can actually run. The original hard-coded 0.8e-3 was the right
+physics with the wrong provenance; reading the 37 C key is the right physics with the right
+provenance.
 
 HOW MUCH LIQUID AN EXCHANGE MOVES. Every exchange step declares what it is FOR, because
 that, not habit, sets the volume (see exchange_cv). The declaration is written into the step
@@ -91,11 +95,11 @@ DAY = 86400.0
 
 def parameter(name: str) -> float:
     """One value from contracts/parameters.json. No fallback: a missing contract is a bug,
-    and a literal copied here is how mu drifted 20% below the contract last time."""
+    and a literal copied here is how mu lost its provenance last time."""
     return float(json.loads(CONTRACT.read_text())["parameters"][name]["value"])
 
 
-MU_PA_S = parameter("fluid.viscosity_pa_s")
+MU_PA_S = parameter("fluid.viscosity_37c_pa_s")
 SHEAR_CEILING = parameter("shear.culture_ceiling_dyn_cm2")
 EXCHANGE_TARGET = parameter("exchange.target_fraction")
 SWEEP_CV = -math.log(1.0 - EXCHANGE_TARGET)   # chamber volumes a sweep needs to hit the goal
@@ -351,7 +355,11 @@ def build() -> dict:
         if op == "exchange":
             kind, washes = e["kind"] or "fill", e["washes"]
             per_wash = exchange_cv(kind, washes)
-            volume = round(CH[target]["volume_ul"] * per_wash, 1)
+            # A SWEEP is rounded UP, never down. Rounding 4.6 chamber volumes down to one
+            # decimal place puts the step a hair BELOW the exchange goal it was derived
+            # from, so the file would claim a goal its own numbers miss.
+            raw = CH[target]["volume_ul"] * per_wash
+            volume = math.ceil(raw * 10) / 10 if kind == "sweep" else round(raw, 1)
             total_cv = per_wash * washes
             note = f"{e['note']} " + CV_NOTE[kind].format(
                 total=total_cv, goal=EXCHANGE_TARGET, left=math.exp(-total_cv))
@@ -425,7 +433,7 @@ def report() -> None:
             cells += f"{q * share[c]:.1f} uL/min {shear(q * share[c], w, h):.4f}".rjust(20)
         print(f"{label:<34}{q:>8.1f}  {cells}" if q > 0 else f"{label:<34}{'-':>8}  no flow")
     print(f"  shear in dyn/cm2, ceiling {SHEAR_CEILING} at mu = {MU_PA_S:g} Pa s "
-          f"(contracts/parameters.json fluid.viscosity_pa_s); chamber ceiling flow: "
+          f"(contracts/parameters.json fluid.viscosity_37c_pa_s); chamber ceiling flow: "
           + ", ".join(f"{c} {max_flow(CH[c]['size'][1], CH[c]['size'][2]):.2f} uL/min" for c in CULTURE))
     ch = json.loads(CHIP.read_text())["channels"][0]
     print(f"  channels ({ch['width_mm']} x {ch['depth_mm']} mm) pass the ceiling above "

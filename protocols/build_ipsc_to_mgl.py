@@ -30,9 +30,12 @@ Two calculations set the flow rates.
    duration >= washes * volume_ul / flow_ul_min * 60. The repo validator checks this,
    and we add a margin for valve switching and settling.
 
-mu is READ FROM contracts/parameters.json, not hard-coded. This file used to carry
-mu = 0.8e-3 Pa s against a contract value of 0.001; shear goes as mu, so every flow
-derived here as "85% of the shear-ceiling flow" was really 106% of it - over the ceiling.
+mu is READ FROM contracts/parameters.json, not hard-coded, and the key is
+fluid.viscosity_37c_pa_s (0.0008 Pa s): the 37 C culture-medium value the contract says to
+use for every culture and protocol flow or shear calculation. fluid.viscosity_pa_s (0.001)
+is water at 20 C, the dye-demo value, and pointing this file at it made every derived flow
+20% too conservative. The original hard-coded 0.8e-3 was the right physics with the wrong
+provenance; the 37 C key is the right physics with the right provenance.
 
 HOW MUCH LIQUID AN EXCHANGE MOVES. A chamber is well mixed, so what is left of the old
 liquid after V chamber volumes is exp(-V). Half a chamber volume therefore leaves 61%
@@ -77,11 +80,11 @@ DAY = 86400.0
 
 def parameter(name: str) -> float:
     """One value from contracts/parameters.json. No fallback: a missing contract is a bug,
-    and a literal copied here is how mu drifted 20% below the contract last time."""
+    and a literal copied here is how mu lost its provenance last time."""
     return float(json.loads(CONTRACT.read_text())["parameters"][name]["value"])
 
 
-MU_PA_S = parameter("fluid.viscosity_pa_s")
+MU_PA_S = parameter("fluid.viscosity_37c_pa_s")
 SHEAR_CEILING = parameter("shear.culture_ceiling_dyn_cm2")   # below the 0.017 activation threshold
 EXCHANGE_TARGET = parameter("exchange.target_fraction")
 SWEEP_CV = -math.log(1.0 - EXCHANGE_TARGET)   # chamber volumes a sweep needs to hit the goal
@@ -223,7 +226,10 @@ class Protocol:
         waste = waste_port() if any(c["from"] == target and c["to"] == waste_port()
                                     for c in CHANNELS) else None
         per_wash = exchange_cv(kind, washes)
-        volume = round(CH[target]["volume_ul"] * per_wash, 4)
+        # A SWEEP is rounded UP, never down: rounding the derived chamber volumes down puts
+        # the step a hair below the exchange goal it was derived from.
+        raw = CH[target]["volume_ul"] * per_wash
+        volume = math.ceil(raw * 1e4) / 1e4 if kind == "sweep" else round(raw, 4)
         total_cv = per_wash * washes
         note = f"{note} " + CV_NOTE[kind].format(
             total=total_cv, goal=EXCHANGE_TARGET, left=math.exp(-total_cv))

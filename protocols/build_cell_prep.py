@@ -29,9 +29,12 @@ than comfortably under it. flow_section() reads the real cross-section from the 
 mixer block, and the same reasoning applies to its volume: a folded lane holds its lane, not
 its bounding box (see chamber_volume).
 
-mu is READ FROM contracts/parameters.json, not hard-coded. This file used to carry
-mu = 0.8e-3 Pa s against a contract value of 0.001; shear goes as mu, so every flow derived
-here as "85% of the shear-ceiling flow" was really 106% of it - over the ceiling.
+mu is READ FROM contracts/parameters.json, not hard-coded, and the key is
+fluid.viscosity_37c_pa_s (0.0008 Pa s): the 37 C culture-medium value the contract says to use
+for every culture and protocol flow or shear calculation. fluid.viscosity_pa_s (0.001) is
+water at 20 C, the dye-demo value, and pointing this file at it made every derived flow 20%
+too conservative. The original hard-coded 0.8e-3 was the right physics with the wrong
+provenance; the 37 C key is the right physics with the right provenance.
 
 TWO HONEST PROBLEMS THE CORRECTED NUMBERS EXPOSE, both in the chip and not fixable here:
   1. At the 0.01 dyn/cm2 culture ceiling a 0.2 x 0.15 mm lane passes only about
@@ -82,11 +85,11 @@ MIN = 60.0
 
 def parameter(name: str) -> float:
     """One value from contracts/parameters.json. No fallback: a missing contract is a bug,
-    and a literal copied here is how mu drifted 20% below the contract last time."""
+    and a literal copied here is how mu lost its provenance last time."""
     return float(json.loads(CONTRACT.read_text())["parameters"][name]["value"])
 
 
-MU_PA_S = parameter("fluid.viscosity_pa_s")
+MU_PA_S = parameter("fluid.viscosity_37c_pa_s")
 SHEAR_CEILING = parameter("shear.culture_ceiling_dyn_cm2")   # dyn/cm2, wherever cells are
 EXCHANGE_TARGET = parameter("exchange.target_fraction")
 SWEEP_CV = -math.log(1.0 - EXCHANGE_TARGET)   # chamber volumes a sweep needs to hit the goal
@@ -273,7 +276,8 @@ def build() -> dict:
         f"{SWEEP_CV:.1f} chamber volumes in total, because a well-mixed chamber keeps "
         f"exp(-V) of the old liquid after V volumes and one volume would leave over a third. "
         f"The cells are still attached, so this runs at the culture shear ceiling.",
-        0, reagent="wash_buffer", volume_ul=round(v_cult * WASH_CV, 3), washes=WASHES,
+        # rounded UP, never down: a sweep rounded down sits below the goal it was derived from
+        0, reagent="wash_buffer", volume_ul=math.ceil(v_cult * WASH_CV * 1000) / 1000, washes=WASHES,
         flow_ul_min=f_adherent, exchange_kind="sweep",
         port_state=ports(["in_buffer"], ["out_cells"]))
     add("exchange", "cult_1",

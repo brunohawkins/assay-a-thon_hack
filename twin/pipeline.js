@@ -21,6 +21,7 @@ import { formatDuration } from './player.js';
 // tail and are not run on this path).
 const STAGES = {
   module1: ['seed', 'grow apart', 'interaction modes', 'collect → j_mid'],
+  cellprep: ['rinse', 'dissociate at 37 °C', 'quench in the mixer', 'count in qc_1', 'out_cells → chilled tube'],
   module2: ['co-flow', 'nozzle', 'phase separation', 'cold delay (off-chip)', 'trap: oil out', 'UV cure', 'washes'],
   module3: ['load (100 µm pre-filter)', 'lysis ×2', 'wash ×3', 'RT 42 °C (no barcode)', 'back-flush'],
   barcoding: ['re-inject close-packed (kit)', 'one droplet per capsule (kit)', 'clonal barcode amplification',
@@ -32,6 +33,17 @@ const STATUS = { final: 'FINAL', draft: 'DRAFT', translated: 'TRANSLATED', missi
 const CARRIES = { cells: 'cells', capsules: 'capsules', library: 'library' };
 const DOTS = 6;
 
+// Timeline colours. Phase ids are built from pipeline_mvp.json (`pl_<module>` and
+// `pl_<handoff id>`), so they change whenever the chain does: the colour travels on the phase
+// event instead of living in a lookup table keyed by module name. twin/ui.js's COMMAND_COLORS
+// still held pl_m1 / pl_m1b / pl_m2 / pl_m3 long after those modules were retired, so every
+// phase had quietly fallen back to grey.
+const PHASE_COLOR = {
+  module1: '#c4b5fd', cellprep: '#86efac', module2: '#2dd4bf', module3: '#7dd3fc',
+  barcoding: '#f0abfc', module4: '#fcd34d', module5: '#ff5fd2',
+};
+const CARRIES_COLOR = { cells: '#fda4af', capsules: '#2dd4bf', library: '#ff5fd2' };
+
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const ease = (x) => { x = clamp01(x); return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2; };
@@ -42,10 +54,19 @@ function summary(e, days) {
   switch (e.module) {
     case 'module1':
       return `Three lineages grow apart, then each chamber's medium crosses to the other two in turn (${days} days, compressed). No valves: every route is FEED / VENT / CAP at the ports. This is the chip for Sunday's dye demo, made by resin print + hot emboss.`;
+    case 'cellprep':
+      return 'Rinse into a divalent-free buffer, dissociate at 37 °C, quench in the folded mixer on the '
+        + 'way out, then count about 400 cells in the chilled window and deliver to a tube. Deliberately '
+        + 'does NOT wash, filter, concentrate or exchange into the viscous buffer: at the feature floor '
+        + 'those four steps lose to a bench tube on both recovery and time. Wins over m1b_cellprep_v1.';
     case 'module2':
       return e.switched
         ? `MJ's Module 2 (${esc(e.chipPath)}), picked up automatically.`
-        : 'Core and shell co-flow into the nozzle and oil pinches off droplets that phase-separate into core-shell capsules; cold delay off-chip, then oil out, UV cure and washes. A stand-in: MJ is redesigning this module.';
+        : 'Core and shell co-flow into the nozzle and oil pinches off droplets that phase-separate into '
+          + 'core-shell capsules; cold delay off-chip, then oil out, curing off-chip and washes. The only '
+          + 'fabricable encapsulation chip — it wins over m2_encapsulation_v1 and sctip_spc_v1 stage A, '
+          + 'both retired. The orifice is below the 0.2 mm floor, so expect about 260 µm capsules against '
+          + "a 70 µm design: that size mismatch is the open problem, not the chip's existence.";
     case 'module3': {
       const trap = s?.chambers?.find((c) => c.id === 'main_trap');
       return `Szonja's ${trap ? `${trap.size[0]} × ${trap.size[1]} mm ` : ''}trap holds the capsules behind a ${trap?.retention?.opening_um ?? '–'} µm retention gap: two lysis exchanges to their own waste, three washes, reverse transcription as one 42 °C hold, then a back-flush lifts the bed. RT adds no barcode; the next stage does. Translated into the chip-spec format; layout inferred.`;
@@ -130,6 +151,7 @@ export function createPipeline(root, handlers = {}) {
     phases = [];
     entries.forEach((e, k) => {
       phases.push({ id: `pl_${e.module}`, kind: 'module', k, play: e.status === 'missing' ? 3 : 5.5,
+        color: PHASE_COLOR[e.module] ?? '#93c5fd',
         proto: e.module === 'module1' ? days * 86400 : (e.duration_s ?? 600),
         narration: `${e.name} · ${STATUS[e.status]}${e.statusNote ? ` (${e.statusNote})` : ''}. ${summary(e, days)}` });
       const h = outOf(k);
@@ -141,6 +163,7 @@ export function createPipeline(root, handlers = {}) {
         ? h.connector.status === 'match' ? ' Same port style on both chips.' : ` Connector ${h.connector.status}: ${h.connector.warning}`
         : '';
       phases.push({ id: `pl_${h.id}`, kind: 'handoff', k, to: to ? col[h.to.module] : null, h, play: 2.4, proto: 120,
+        color: CARRIES_COLOR[h.carries] ?? '#64748b',
         narration: `Hand-off: ${e.name} ${(h.from.ports ?? [h.from.port]).join(', ')} → ${toName}${to ? ` ${(h.to.ports ?? [h.to.port]).join(', ')}` : ''} (${CARRIES[h.carries]}).${tbc ? ' TBC: port not named yet.' : ''}${conn}` });
     });
     starts = [];
@@ -149,7 +172,7 @@ export function createPipeline(root, handlers = {}) {
     phases.forEach((ph, i) => {
       starts.push(acc);
       acc += ph.play;
-      ph.event = { command: ph.id, narration: ph.narration, args: {}, duration_s: ph.proto, t_s: proto, protocol_step: i + 1 };
+      ph.event = { command: ph.id, color: ph.color, narration: ph.narration, args: {}, duration_s: ph.proto, t_s: proto, protocol_step: i + 1 };
       proto += ph.proto;
     });
     total = acc;
@@ -190,8 +213,8 @@ export function createPipeline(root, handlers = {}) {
       <p class="pl-legend">
         <span class="badge st-final">FINAL</span><span class="badge st-draft">DRAFT</span><span class="badge st-translated">TRANSLATED</span><span class="badge st-missing">MISSING</span>
         <span class="pl-legend-gap"></span>
-        <span class="badge printed">Built for Sunday’s dye demo</span><span class="badge sim-only">Twin only</span>
-        <span class="pl-legend-gap"></span><span class="pl-legend-note">⚠ = the dye demo needs an adapter between the two chips' ports · <b class="tbc">TBC</b> = port not named yet</span>
+        <span class="badge printed">Built for Sunday’s dye demo</span><span class="badge sim-only">Twin only</span><span class="badge st-draft">Bought hardware · our chemistry</span>
+        <span class="pl-legend-gap"></span><span class="pl-legend-note">⚠ = the dye demo needs an adapter between the two chips' ports · <b class="tbc">TBC</b> = port not named yet · “Bought hardware” = the features are below the 200 µm in-plane floor, so that stage runs on a commercial kit</span>
       </p>
       <div class="pl-row">
         ${entries.map(card).join('')}

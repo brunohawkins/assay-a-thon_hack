@@ -1,12 +1,18 @@
 """Dry-run adapter: prints the exact hardware actions each command would cause, with
-timestamps, and returns the MODEL'S PREDICTIONS as "measurements".
+timestamps. NOTHING MOVES and NOTHING IS MEASURED.
 
-Use it to check what a run would do to real pumps, valves and the heater before any are
-connected. Nothing moves. Because measurements are predictions, the closed loop sees no
-error and never updates the model (that is expected in a dry run).
+Use it to check what a run would do to real pumps, routing and the heater before any are
+connected.
+
+It has no sensors. It can still say what the model expects each reading to be, and it
+offers those through predicted_readings() - never through read_sensors(), and never under
+the name "measured". They used to come back from read_sensors() under exactly that name,
+with simulated = False on top, so a dry-run report printed no simulated-hardware banner
+and its "measured" column was the model quoting itself as evidence. A dry run is therefore
+an OPEN loop: there is nothing to correct the model with.
 
 UNTESTED against real hardware (none available); the printed actions mirror what
-syringe_pump.py / valves.py would send.
+syringe_pump.py would send.
 """
 
 from __future__ import annotations
@@ -20,7 +26,9 @@ from state import ChipState
 
 class DryRun(Adapter):
     name = "dryrun"
-    simulated = False   # not a simulation of truth: it only echoes the model
+    # No hardware was involved, so every number in the run came out of the model. That is
+    # what simulated_hardware marks, and a reader must see the banner.
+    simulated = True
 
     def __init__(self, chip: dict, parameters: dict, scenario: dict | None = None, reagents: list[str] | None = None,
                  out=None):
@@ -41,8 +49,10 @@ class DryRun(Adapter):
         self.release = next((p for p, v in ports.items() if v.get("role") == "release"), None)
 
     def capabilities(self) -> dict:
-        return {"sensors": list(self.sensors_on), "actuators": ["pump", "valves", "heater"], "simulated": False,
-                "dry_run": True}
+        return {"sensors": [],                       # a dry run measures nothing
+                "predicted_readings": list(self.sensors_on),
+                "readings_are_predictions": True,
+                "actuators": ["pump", "routing", "heater"], "simulated": True, "dry_run": True}
 
     def _say(self, text: str) -> None:
         line = f"[t={self.state.clock_s:8.1f} s] {text}"

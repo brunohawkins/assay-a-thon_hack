@@ -4,7 +4,7 @@
   "chip_id": "module6_v1",
   "chip_spec": "chip/module6_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T19:04:05Z",
+  "created_at": "2026-11-07T23:06:03Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": null,
@@ -30,43 +30,100 @@
     ],
     "swollen_diameter_um": 140.0
   },
-  "total_duration_s": 90981.0,
+  "total_duration_s": 102552.0,
   "events": [
     {
       "t_s": 0.0,
-      "duration_s": 181.7,
-      "command": "load",
+      "duration_s": 66.51,
+      "command": "exchange",
       "args": {
         "target": "cx_n",
-        "volume_ul": 11.444
+        "reagent": "cell_suspension_n",
+        "volume_ul": 2.095,
+        "washes": 2,
+        "flow_ul_min": 3.78,
+        "waste": "out_n"
       },
-      "narration": "Neurons: load the lane's cell suspension through its own selector valve, filling the combs and field (one wetted volume), then stop flow so the cells settle and attach to the coated field floor. Held to the culture shear ceiling.",
+      "narration": "Neurons: PRIME the lane. A FILL, not a sweep: the lane is dry before seeding, so there is nothing to clear, and 4.189 uL of cell suspension simply fills the inlet stub and the inlet comb - the dead volume UPSTREAM of the field, which the suspension has to cross before a single cell reaches the floor. It is declared here instead of being hidden inside the load, which is how the old file came to claim it was pushing 3.97 chamber volumes into a chamber. Declared as 2 x 2.095 uL because the contract defines an exchange's volume_ul as the volume PER WASH and caps a FILL at one chamber volume (2.88 uL), while the dead volume is 1.45 of one; in the instrument it is a single continuous push and nothing drains in between. Held to the 0.01 dyn/cm2 culture ceiling: these cells have to survive.",
       "protocol_step": 1
     },
     {
-      "t_s": 181.7,
-      "duration_s": 181.7,
+      "t_s": 66.51,
+      "duration_s": 45.72,
       "command": "load",
       "args": {
-        "target": "cx_g",
-        "volume_ul": 11.444
+        "target": "cx_n",
+        "volume_ul": 2.88
       },
-      "narration": "Glia: load the lane's cell suspension through its own selector valve, filling the combs and field (one wetted volume), then stop flow so the cells settle and attach to the coated field floor. Held to the culture shear ceiling.",
+      "narration": "Neurons: LOAD exactly one field volume (2.88 uL) of cell suspension, then stop flow so the cells settle onto the coated floor. One field volume is the cap: the suspension front stops at the far field edge and the OUTLET comb is never filled with cells, so cells stranded in the outlet comb are prevented by the volume rather than hoped away by the field-only adhesion coat (which stays untested). Total suspension spent per lane is 7.069 uL, down from one whole wetted volume.",
       "protocol_step": 2
     },
     {
-      "t_s": 363.4,
-      "duration_s": 181.7,
-      "command": "load",
+      "t_s": 112.23,
+      "duration_s": 66.51,
+      "command": "exchange",
       "args": {
-        "target": "cx_a",
-        "volume_ul": 11.444
+        "target": "cx_g",
+        "reagent": "cell_suspension_g",
+        "volume_ul": 2.095,
+        "washes": 2,
+        "flow_ul_min": 3.78,
+        "waste": "out_g"
       },
-      "narration": "Astrocytes: load the lane's cell suspension through its own selector valve, filling the combs and field (one wetted volume), then stop flow so the cells settle and attach to the coated field floor. Held to the culture shear ceiling.",
+      "narration": "Glia: PRIME the lane. A FILL, not a sweep: the lane is dry before seeding, so there is nothing to clear, and 4.189 uL of cell suspension simply fills the inlet stub and the inlet comb - the dead volume UPSTREAM of the field, which the suspension has to cross before a single cell reaches the floor. It is declared here instead of being hidden inside the load, which is how the old file came to claim it was pushing 3.97 chamber volumes into a chamber. Declared as 2 x 2.095 uL because the contract defines an exchange's volume_ul as the volume PER WASH and caps a FILL at one chamber volume (2.88 uL), while the dead volume is 1.45 of one; in the instrument it is a single continuous push and nothing drains in between. Held to the 0.01 dyn/cm2 culture ceiling: these cells have to survive.",
       "protocol_step": 3
     },
     {
-      "t_s": 545.1,
+      "t_s": 178.74,
+      "duration_s": 45.72,
+      "command": "load",
+      "args": {
+        "target": "cx_g",
+        "volume_ul": 2.88
+      },
+      "narration": "Glia: LOAD exactly one field volume (2.88 uL) of cell suspension, then stop flow so the cells settle onto the coated floor. One field volume is the cap: the suspension front stops at the far field edge and the OUTLET comb is never filled with cells, so cells stranded in the outlet comb are prevented by the volume rather than hoped away by the field-only adhesion coat (which stays untested). Total suspension spent per lane is 7.069 uL, down from one whole wetted volume.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 224.46,
+      "duration_s": 66.51,
+      "command": "exchange",
+      "args": {
+        "target": "cx_a",
+        "reagent": "cell_suspension_a",
+        "volume_ul": 2.095,
+        "washes": 2,
+        "flow_ul_min": 3.78,
+        "waste": "out_a"
+      },
+      "narration": "Astrocytes: PRIME the lane. A FILL, not a sweep: the lane is dry before seeding, so there is nothing to clear, and 4.189 uL of cell suspension simply fills the inlet stub and the inlet comb - the dead volume UPSTREAM of the field, which the suspension has to cross before a single cell reaches the floor. It is declared here instead of being hidden inside the load, which is how the old file came to claim it was pushing 3.97 chamber volumes into a chamber. Declared as 2 x 2.095 uL because the contract defines an exchange's volume_ul as the volume PER WASH and caps a FILL at one chamber volume (2.88 uL), while the dead volume is 1.45 of one; in the instrument it is a single continuous push and nothing drains in between. Held to the 0.01 dyn/cm2 culture ceiling: these cells have to survive.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 290.97,
+      "duration_s": 45.72,
+      "command": "load",
+      "args": {
+        "target": "cx_a",
+        "volume_ul": 2.88
+      },
+      "narration": "Astrocytes: LOAD exactly one field volume (2.88 uL) of cell suspension, then stop flow so the cells settle onto the coated floor. One field volume is the cap: the suspension front stops at the far field edge and the OUTLET comb is never filled with cells, so cells stranded in the outlet comb are prevented by the volume rather than hoped away by the field-only adhesion coat (which stays untested). Total suspension spent per lane is 7.069 uL, down from one whole wetted volume.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 336.69,
+      "duration_s": 14400.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "cx_n",
+        "temp_c": 37.0,
+        "duration_s": 14400.0
+      },
+      "narration": "Stop-flow attachment, every port capped, the one thermal stage at 37 C under all three fields. PLACEHOLDER duration.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 14736.69,
       "duration_s": 86400.0,
       "command": "culture",
       "args": {
@@ -82,381 +139,369 @@
         ],
         "duration_s": 86400.0,
         "exchange_interval_s": 21600.0,
-        "volume_ul": 11.444,
+        "volume_ul": 11.258,
         "flow_ul_min": 3.78,
-        "temp_c": 37
+        "temp_c": 37.0
       },
-      "narration": "All three lanes culture in parallel through their own ports: one wetted volume of fresh medium every interval at the shear-ceiling flow, then stop-flow. Durations are placeholders.",
-      "protocol_step": 4
-    },
-    {
-      "t_s": 86945.1,
-      "duration_s": 712.0,
-      "command": "exchange",
-      "args": {
-        "target": "cx_n",
-        "reagent": "cold_volatile_rinse",
-        "volume_ul": 22.888,
-        "washes": 1,
-        "flow_ul_min": 1.93,
-        "waste": "out_n"
-      },
-      "narration": "Neurons: brief ice-cold volatile-buffer rinse of 2 wetted volumes to waste, mandatory because the medium is about 150:1 against intracellular volume. Held to the 0.01 dyn/cm2 ceiling, so it is slow (12 min); a rinse-specific ceiling would cut it to seconds.",
-      "protocol_step": 5
-    },
-    {
-      "t_s": 87657.1,
-      "duration_s": 1.0,
-      "command": "exchange",
-      "args": {
-        "target": "cx_n",
-        "reagent": "cold_acidified_organic_quench",
-        "volume_ul": 22.888,
-        "washes": 1,
-        "flow_ul_min": 1373.3,
-        "waste": "out_n"
-      },
-      "narration": "Neurons: quench flood in place, 2 wetted volumes in about 1 s through the combs, free of chlorinated solvents. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
-      "protocol_step": 6
-    },
-    {
-      "t_s": 87658.1,
-      "duration_s": 30.0,
-      "command": "hold_temp",
-      "args": {
-        "target": "cx_n",
-        "temp_c": 4,
-        "duration_s": 30.0
-      },
-      "narration": "Neurons: stop-flow extraction soak with the extract held cold. This is not a freeze-quench; the Peltier only keeps the extract cold.",
-      "protocol_step": 7
-    },
-    {
-      "t_s": 87688.1,
-      "duration_s": 0.4,
-      "command": "exchange",
-      "args": {
-        "target": "cx_n",
-        "reagent": "cold_acidified_organic_quench",
-        "volume_ul": 8.594,
-        "washes": 1,
-        "flow_ul_min": 1373.3
-      },
-      "narration": "Neurons: chase. The outlet valve is at vial M and fresh quench solvent pushes the extract (8.594 uL, about the pore volume plus a little) out through out_n.",
+      "narration": "All three lanes culture in parallel, each through its own port pair: one lane wetted volume (11.258 uL) of fresh medium every interval at the culture-ceiling flow, stop-flow in between. A lane volume, not a field volume, because the comb and the stubs are in series with the field and hold 8.378 uL of the medium. Duration and interval are PLACEHOLDERS. This chip is the extraction unit cell, not a culture chip: at target scale the cells arrive from the module 1 lanes.",
       "protocol_step": 8
     },
     {
-      "t_s": 87688.5,
-      "duration_s": 0.0,
-      "command": "collect",
+      "t_s": 101136.69,
+      "duration_s": 106.5,
+      "command": "hold_temp",
       "args": {
-        "targets": [
-          "cx_n"
-        ],
-        "volume_ul": 8.594
+        "target": "cx_n",
+        "temp_c": 4.0,
+        "duration_s": 106.5
       },
-      "narration": "Neurons: close vial M. FRACTION 1, the metabolome, plus peptides under about 10 kDa; neutralised on arrival, kept cold.",
+      "narration": "Cool the one stage from 37 C to 4 C, every port capped. Derived from thermal.max_ramp_c_per_s and three thermal.tau_s, not guessed. The stage STAYS at 4 C through the quench floods below: taking it to -20 C now would freeze the aqueous rinse buffer in the lanes, which is exactly the slow freeze-quench the comb geometry exists to avoid.",
       "protocol_step": 9
     },
     {
-      "t_s": 87688.5,
-      "duration_s": 1.5,
+      "t_s": 101243.19,
+      "duration_s": 18.03,
       "command": "exchange",
       "args": {
         "target": "cx_n",
-        "reagent": "denaturing_solubilisation_buffer",
-        "volume_ul": 34.332,
+        "reagent": "cold_volatile_rinse",
+        "volume_ul": 17.452,
         "washes": 1,
-        "flow_ul_min": 1373.3,
+        "flow_ul_min": 58.08,
         "waste": "out_n"
       },
-      "narration": "Neurons: the outlet valve returns to waste and 3 wetted volumes of solubilisation buffer clear the lane, port and stub of fraction 1 and displace the organic solvent. The precipitated protein stays on the floor.",
+      "narration": "Neurons: pre-quench rinse. A SWEEP - its whole job is to clear the medium so it does not contaminate the extract - so it is sized from contracts exchange.target_fraction and not from habit: 4.61 chamber volumes reaches 99% in a well-mixed chamber (13.263 uL), and the lane's 4.189 uL of upstream dead volume holds the SAME medium, so nothing clean reaches the field until that has passed. 17.452 uL total, about 18 s - shorter than the 2 lane volumes this step used to push, because the target, not a round number of lane volumes, now sets it. Held to shear.prelysis_rinse_ceiling_dyn_cm2 (0.3 dyn/cm2), NOT to the 0.01 culture ceiling: that ceiling exists to keep adherent cells attached for weeks, and against it the same rinse runs at 1.93 uL/min and takes 543 s - about 9 minutes of cold perturbation before a quench engineered to take about 1 s (the old file's larger rinse took 700 s there). These cells are about to be deliberately killed; losing a few to shear costs nothing, a ten-minute perturbation costs the measurement. SHORT IS ALSO THE BIOLOGY: Kapoore 2017 found washing itself leaks metabolites, so the rinse should be as brief as it can be while still clearing the medium (Lorenz 2011: a quick rinse roughly doubles detected features).",
       "protocol_step": 10
     },
     {
-      "t_s": 87690.0,
-      "duration_s": 600.0,
-      "command": "hold_temp",
-      "args": {
-        "target": "cx_n",
-        "temp_c": 37,
-        "duration_s": 600.0
-      },
-      "narration": "Neurons: stop-flow resolubilisation of the precipitated protein on the chamber floor. It is denatured by design.",
-      "protocol_step": 11
-    },
-    {
-      "t_s": 88290.0,
-      "duration_s": 0.4,
+      "t_s": 101261.22,
+      "duration_s": 1.0,
       "command": "exchange",
       "args": {
         "target": "cx_n",
-        "reagent": "denaturing_solubilisation_buffer",
-        "volume_ul": 8.594,
+        "reagent": "cold_acidified_organic_quench",
+        "volume_ul": 22.516,
         "washes": 1,
-        "flow_ul_min": 1373.3
+        "flow_ul_min": 1351.0,
+        "waste": "out_n"
       },
-      "narration": "Neurons: chase. The outlet valve is at vial P and fresh buffer pushes the dissolved protein (8.594 uL) out through the SAME port out_n.",
+      "narration": "Neurons: QUENCH FLOOD in place. ALSO A SWEEP, and deliberately classified as one: its purpose is displacement - replacing medium-free rinse buffer with solvent everywhere a cell sits - so it is held to the same 99% target as the rinse. It costs nothing to honour: at 1351 uL/min the 17.452 uL the target needs would take 0.78 s, so the step stays at 2 lane wetted volumes (22.516 uL = 7.82 chamber volumes, 1.3x the target) in about 1 s. The extra over the target is not waste: the flood also has to fill the 4.189 uL DOWNSTREAM of the field, which the well-mixed-chamber rule knows nothing about, or the extract chase would push rinse buffer into vial M. Cold acidified organic solvent, free of chlorinated solvents; it arrives cold from an off-chip reservoir while the STAGE is still at 4 C. Cells lyse where they sit and the protein precipitates on the floor. No shear ceiling applies from here on. INERTIAL, NOT STOKES: at this flow the feed line runs Re ~ 19 and the comb spine Re ~ 14, so entrance effects and minor losses at the tooth branches are real; only the teeth (Re ~ 2.4) and the field (Re ~ 1.8) are near-creeping. Uniformity rests on TOOTH CONVECTION, not on Re << 1. Outlet at waste; flow then stops.",
+      "protocol_step": 11
+    },
+    {
+      "t_s": 101262.22,
+      "duration_s": 18.03,
+      "command": "exchange",
+      "args": {
+        "target": "cx_g",
+        "reagent": "cold_volatile_rinse",
+        "volume_ul": 17.452,
+        "washes": 1,
+        "flow_ul_min": 58.08,
+        "waste": "out_g"
+      },
+      "narration": "Glia: pre-quench rinse. A SWEEP - its whole job is to clear the medium so it does not contaminate the extract - so it is sized from contracts exchange.target_fraction and not from habit: 4.61 chamber volumes reaches 99% in a well-mixed chamber (13.263 uL), and the lane's 4.189 uL of upstream dead volume holds the SAME medium, so nothing clean reaches the field until that has passed. 17.452 uL total, about 18 s - shorter than the 2 lane volumes this step used to push, because the target, not a round number of lane volumes, now sets it. Held to shear.prelysis_rinse_ceiling_dyn_cm2 (0.3 dyn/cm2), NOT to the 0.01 culture ceiling: that ceiling exists to keep adherent cells attached for weeks, and against it the same rinse runs at 1.93 uL/min and takes 543 s - about 9 minutes of cold perturbation before a quench engineered to take about 1 s (the old file's larger rinse took 700 s there). These cells are about to be deliberately killed; losing a few to shear costs nothing, a ten-minute perturbation costs the measurement. SHORT IS ALSO THE BIOLOGY: Kapoore 2017 found washing itself leaks metabolites, so the rinse should be as brief as it can be while still clearing the medium (Lorenz 2011: a quick rinse roughly doubles detected features).",
       "protocol_step": 12
     },
     {
-      "t_s": 88290.4,
-      "duration_s": 0.0,
+      "t_s": 101280.25,
+      "duration_s": 1.0,
+      "command": "exchange",
+      "args": {
+        "target": "cx_g",
+        "reagent": "cold_acidified_organic_quench",
+        "volume_ul": 22.516,
+        "washes": 1,
+        "flow_ul_min": 1351.0,
+        "waste": "out_g"
+      },
+      "narration": "Glia: QUENCH FLOOD in place. ALSO A SWEEP, and deliberately classified as one: its purpose is displacement - replacing medium-free rinse buffer with solvent everywhere a cell sits - so it is held to the same 99% target as the rinse. It costs nothing to honour: at 1351 uL/min the 17.452 uL the target needs would take 0.78 s, so the step stays at 2 lane wetted volumes (22.516 uL = 7.82 chamber volumes, 1.3x the target) in about 1 s. The extra over the target is not waste: the flood also has to fill the 4.189 uL DOWNSTREAM of the field, which the well-mixed-chamber rule knows nothing about, or the extract chase would push rinse buffer into vial M. Cold acidified organic solvent, free of chlorinated solvents; it arrives cold from an off-chip reservoir while the STAGE is still at 4 C. Cells lyse where they sit and the protein precipitates on the floor. No shear ceiling applies from here on. INERTIAL, NOT STOKES: at this flow the feed line runs Re ~ 19 and the comb spine Re ~ 14, so entrance effects and minor losses at the tooth branches are real; only the teeth (Re ~ 2.4) and the field (Re ~ 1.8) are near-creeping. Uniformity rests on TOOTH CONVECTION, not on Re << 1. Outlet at waste; flow then stops.",
+      "protocol_step": 13
+    },
+    {
+      "t_s": 101281.25,
+      "duration_s": 18.03,
+      "command": "exchange",
+      "args": {
+        "target": "cx_a",
+        "reagent": "cold_volatile_rinse",
+        "volume_ul": 17.452,
+        "washes": 1,
+        "flow_ul_min": 58.08,
+        "waste": "out_a"
+      },
+      "narration": "Astrocytes: pre-quench rinse. A SWEEP - its whole job is to clear the medium so it does not contaminate the extract - so it is sized from contracts exchange.target_fraction and not from habit: 4.61 chamber volumes reaches 99% in a well-mixed chamber (13.263 uL), and the lane's 4.189 uL of upstream dead volume holds the SAME medium, so nothing clean reaches the field until that has passed. 17.452 uL total, about 18 s - shorter than the 2 lane volumes this step used to push, because the target, not a round number of lane volumes, now sets it. Held to shear.prelysis_rinse_ceiling_dyn_cm2 (0.3 dyn/cm2), NOT to the 0.01 culture ceiling: that ceiling exists to keep adherent cells attached for weeks, and against it the same rinse runs at 1.93 uL/min and takes 543 s - about 9 minutes of cold perturbation before a quench engineered to take about 1 s (the old file's larger rinse took 700 s there). These cells are about to be deliberately killed; losing a few to shear costs nothing, a ten-minute perturbation costs the measurement. SHORT IS ALSO THE BIOLOGY: Kapoore 2017 found washing itself leaks metabolites, so the rinse should be as brief as it can be while still clearing the medium (Lorenz 2011: a quick rinse roughly doubles detected features).",
+      "protocol_step": 14
+    },
+    {
+      "t_s": 101299.28,
+      "duration_s": 1.0,
+      "command": "exchange",
+      "args": {
+        "target": "cx_a",
+        "reagent": "cold_acidified_organic_quench",
+        "volume_ul": 22.516,
+        "washes": 1,
+        "flow_ul_min": 1351.0,
+        "waste": "out_a"
+      },
+      "narration": "Astrocytes: QUENCH FLOOD in place. ALSO A SWEEP, and deliberately classified as one: its purpose is displacement - replacing medium-free rinse buffer with solvent everywhere a cell sits - so it is held to the same 99% target as the rinse. It costs nothing to honour: at 1351 uL/min the 17.452 uL the target needs would take 0.78 s, so the step stays at 2 lane wetted volumes (22.516 uL = 7.82 chamber volumes, 1.3x the target) in about 1 s. The extra over the target is not waste: the flood also has to fill the 4.189 uL DOWNSTREAM of the field, which the well-mixed-chamber rule knows nothing about, or the extract chase would push rinse buffer into vial M. Cold acidified organic solvent, free of chlorinated solvents; it arrives cold from an off-chip reservoir while the STAGE is still at 4 C. Cells lyse where they sit and the protein precipitates on the floor. No shear ceiling applies from here on. INERTIAL, NOT STOKES: at this flow the feed line runs Re ~ 19 and the comb spine Re ~ 14, so entrance effects and minor losses at the tooth branches are real; only the teeth (Re ~ 2.4) and the field (Re ~ 1.8) are near-creeping. Uniformity rests on TOOTH CONVECTION, not on Re << 1. Outlet at waste; flow then stops.",
+      "protocol_step": 15
+    },
+    {
+      "t_s": 101300.28,
+      "duration_s": 102.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "cx_n",
+        "temp_c": -20.0,
+        "duration_s": 102.0
+      },
+      "narration": "Every lane now holds organic solvent, so the stage can go sub-ambient without freezing anything: ramp to -20 C, ports capped. THE RIG NEEDS A SUB-AMBIENT SOURCE for this and protocols/thermal_map.md used to say it had none; that contradiction is resolved there.",
+      "protocol_step": 16
+    },
+    {
+      "t_s": 101402.28,
+      "duration_s": 300.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "cx_n",
+        "temp_c": -20.0,
+        "duration_s": 300.0
+      },
+      "narration": "EXTRACTION SOAK: 300 s stop-flow at -20 C, all three lanes together on the one stage. The old file soaked 30 s at 4 C, which under-extracts and may not form the protein film the resolubilisation step depends on. Published sequential extractions hold the cold organic step for at least 5 min at -20 C (Sapcariu 2014, doi:10.1016/j.mex.2014.07.002; Coman 2016 SIMPLEX, doi:10.1074/mcp.M115.053702); this is that floor, not an optimum. Not a freeze-quench: the quench already happened in the flood.",
+      "protocol_step": 17
+    },
+    {
+      "t_s": 101702.28,
+      "duration_s": 0.32,
+      "command": "exchange",
+      "args": {
+        "target": "cx_n",
+        "reagent": "cold_acidified_organic_quench",
+        "volume_ul": 7.069,
+        "washes": 1,
+        "flow_ul_min": 1351.0
+      },
+      "narration": "Neurons: ELUTION CHASE, and a PARTIAL on purpose. The outlet valve turns to vial M and fresh quench solvent pushes the extract out of out_n. 7.069 uL = 2.45 chamber volumes = the field plus everything downstream of it (outlet comb + stub), which is exactly what lies between the cells and the vial. It is NOT a sweep and must not be sized like one: the 17.452 uL a 99% sweep would push would dilute the metabolome 2.5x and break the <=10 uL extract-volume design rule, which is the whole lever for metabolomics on this chip. Taking a defined fraction IS the point. About 9600 cells land in 7.07 uL, about 1358 cells/uL (ASSUMED 1000 cells/mm2 on the 9.6 mm2 floor). What stays behind is a fresh charge of the same solvent, not old extract, because the flood that preceded this already swept the lane.",
+      "protocol_step": 18
+    },
+    {
+      "t_s": 101702.6,
+      "duration_s": 22.05,
       "command": "collect",
       "args": {
         "targets": [
           "cx_n"
         ],
-        "volume_ul": 8.594
+        "volume_ul": 7.069
       },
-      "narration": "Neurons: close vial P. FRACTION 2, the proteome, ready for bottom-up digestion. The lane is spent; the transcriptome arm is separate and runs on capsules through module 4.",
-      "protocol_step": 13
-    },
-    {
-      "t_s": 88290.4,
-      "duration_s": 712.0,
-      "command": "exchange",
-      "args": {
-        "target": "cx_g",
-        "reagent": "cold_volatile_rinse",
-        "volume_ul": 22.888,
-        "washes": 1,
-        "flow_ul_min": 1.93,
-        "waste": "out_g"
-      },
-      "narration": "Glia: brief ice-cold volatile-buffer rinse of 2 wetted volumes to waste, mandatory because the medium is about 150:1 against intracellular volume. Held to the 0.01 dyn/cm2 ceiling, so it is slow (12 min); a rinse-specific ceiling would cut it to seconds.",
-      "protocol_step": 14
-    },
-    {
-      "t_s": 89002.4,
-      "duration_s": 1.0,
-      "command": "exchange",
-      "args": {
-        "target": "cx_g",
-        "reagent": "cold_acidified_organic_quench",
-        "volume_ul": 22.888,
-        "washes": 1,
-        "flow_ul_min": 1373.3,
-        "waste": "out_g"
-      },
-      "narration": "Glia: quench flood in place, 2 wetted volumes in about 1 s through the combs, free of chlorinated solvents. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
-      "protocol_step": 15
-    },
-    {
-      "t_s": 89003.4,
-      "duration_s": 30.0,
-      "command": "hold_temp",
-      "args": {
-        "target": "cx_g",
-        "temp_c": 4,
-        "duration_s": 30.0
-      },
-      "narration": "Glia: stop-flow extraction soak with the extract held cold. This is not a freeze-quench; the Peltier only keeps the extract cold.",
-      "protocol_step": 16
-    },
-    {
-      "t_s": 89033.4,
-      "duration_s": 0.4,
-      "command": "exchange",
-      "args": {
-        "target": "cx_g",
-        "reagent": "cold_acidified_organic_quench",
-        "volume_ul": 8.594,
-        "washes": 1,
-        "flow_ul_min": 1373.3
-      },
-      "narration": "Glia: chase. The outlet valve is at vial M and fresh quench solvent pushes the extract (8.594 uL, about the pore volume plus a little) out through out_g.",
-      "protocol_step": 17
-    },
-    {
-      "t_s": 89033.8,
-      "duration_s": 0.0,
-      "command": "collect",
-      "args": {
-        "targets": [
-          "cx_g"
-        ],
-        "volume_ul": 8.594
-      },
-      "narration": "Glia: close vial M. FRACTION 1, the metabolome, plus peptides under about 10 kDa; neutralised on arrival, kept cold.",
-      "protocol_step": 18
-    },
-    {
-      "t_s": 89033.8,
-      "duration_s": 1.5,
-      "command": "exchange",
-      "args": {
-        "target": "cx_g",
-        "reagent": "denaturing_solubilisation_buffer",
-        "volume_ul": 34.332,
-        "washes": 1,
-        "flow_ul_min": 1373.3,
-        "waste": "out_g"
-      },
-      "narration": "Glia: the outlet valve returns to waste and 3 wetted volumes of solubilisation buffer clear the lane, port and stub of fraction 1 and displace the organic solvent. The precipitated protein stays on the floor.",
+      "narration": "Neurons: FRACTION 1, the metabolome, plus peptides under about 10 kDa, which do not precipitate. Neutralised on arrival (the vial is pre-charged off chip) and kept on the cold block. Duration is 22.05 s, not 0: two valve actuations, clearing the 1.003 uL outlet stub into the vial, then capping it and moving it. A physical fraction collection takes time, and six steps of this protocol used to claim it took none.",
       "protocol_step": 19
     },
     {
-      "t_s": 89035.3,
-      "duration_s": 600.0,
-      "command": "hold_temp",
-      "args": {
-        "target": "cx_g",
-        "temp_c": 37,
-        "duration_s": 600.0
-      },
-      "narration": "Glia: stop-flow resolubilisation of the precipitated protein on the chamber floor. It is denatured by design.",
-      "protocol_step": 20
-    },
-    {
-      "t_s": 89635.3,
-      "duration_s": 0.4,
+      "t_s": 101724.65,
+      "duration_s": 0.32,
       "command": "exchange",
       "args": {
         "target": "cx_g",
-        "reagent": "denaturing_solubilisation_buffer",
-        "volume_ul": 8.594,
+        "reagent": "cold_acidified_organic_quench",
+        "volume_ul": 7.069,
         "washes": 1,
-        "flow_ul_min": 1373.3
+        "flow_ul_min": 1351.0
       },
-      "narration": "Glia: chase. The outlet valve is at vial P and fresh buffer pushes the dissolved protein (8.594 uL) out through the SAME port out_g.",
-      "protocol_step": 21
+      "narration": "Glia: ELUTION CHASE, and a PARTIAL on purpose. The outlet valve turns to vial M and fresh quench solvent pushes the extract out of out_g. 7.069 uL = 2.45 chamber volumes = the field plus everything downstream of it (outlet comb + stub), which is exactly what lies between the cells and the vial. It is NOT a sweep and must not be sized like one: the 17.452 uL a 99% sweep would push would dilute the metabolome 2.5x and break the <=10 uL extract-volume design rule, which is the whole lever for metabolomics on this chip. Taking a defined fraction IS the point. About 9600 cells land in 7.07 uL, about 1358 cells/uL (ASSUMED 1000 cells/mm2 on the 9.6 mm2 floor). What stays behind is a fresh charge of the same solvent, not old extract, because the flood that preceded this already swept the lane.",
+      "protocol_step": 20
     },
     {
-      "t_s": 89635.7,
-      "duration_s": 0.0,
+      "t_s": 101724.97,
+      "duration_s": 22.05,
       "command": "collect",
       "args": {
         "targets": [
           "cx_g"
         ],
-        "volume_ul": 8.594
+        "volume_ul": 7.069
       },
-      "narration": "Glia: close vial P. FRACTION 2, the proteome, ready for bottom-up digestion. The lane is spent; the transcriptome arm is separate and runs on capsules through module 4.",
+      "narration": "Glia: FRACTION 1, the metabolome, plus peptides under about 10 kDa, which do not precipitate. Neutralised on arrival (the vial is pre-charged off chip) and kept on the cold block. Duration is 22.05 s, not 0: two valve actuations, clearing the 1.003 uL outlet stub into the vial, then capping it and moving it. A physical fraction collection takes time, and six steps of this protocol used to claim it took none.",
+      "protocol_step": 21
+    },
+    {
+      "t_s": 101747.02,
+      "duration_s": 0.32,
+      "command": "exchange",
+      "args": {
+        "target": "cx_a",
+        "reagent": "cold_acidified_organic_quench",
+        "volume_ul": 7.069,
+        "washes": 1,
+        "flow_ul_min": 1351.0
+      },
+      "narration": "Astrocytes: ELUTION CHASE, and a PARTIAL on purpose. The outlet valve turns to vial M and fresh quench solvent pushes the extract out of out_a. 7.069 uL = 2.45 chamber volumes = the field plus everything downstream of it (outlet comb + stub), which is exactly what lies between the cells and the vial. It is NOT a sweep and must not be sized like one: the 17.452 uL a 99% sweep would push would dilute the metabolome 2.5x and break the <=10 uL extract-volume design rule, which is the whole lever for metabolomics on this chip. Taking a defined fraction IS the point. About 9600 cells land in 7.07 uL, about 1358 cells/uL (ASSUMED 1000 cells/mm2 on the 9.6 mm2 floor). What stays behind is a fresh charge of the same solvent, not old extract, because the flood that preceded this already swept the lane.",
       "protocol_step": 22
     },
     {
-      "t_s": 89635.7,
-      "duration_s": 712.0,
-      "command": "exchange",
-      "args": {
-        "target": "cx_a",
-        "reagent": "cold_volatile_rinse",
-        "volume_ul": 22.888,
-        "washes": 1,
-        "flow_ul_min": 1.93,
-        "waste": "out_a"
-      },
-      "narration": "Astrocytes: brief ice-cold volatile-buffer rinse of 2 wetted volumes to waste, mandatory because the medium is about 150:1 against intracellular volume. Held to the 0.01 dyn/cm2 ceiling, so it is slow (12 min); a rinse-specific ceiling would cut it to seconds.",
-      "protocol_step": 23
-    },
-    {
-      "t_s": 90347.7,
-      "duration_s": 1.0,
-      "command": "exchange",
-      "args": {
-        "target": "cx_a",
-        "reagent": "cold_acidified_organic_quench",
-        "volume_ul": 22.888,
-        "washes": 1,
-        "flow_ul_min": 1373.3,
-        "waste": "out_a"
-      },
-      "narration": "Astrocytes: quench flood in place, 2 wetted volumes in about 1 s through the combs, free of chlorinated solvents. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
-      "protocol_step": 24
-    },
-    {
-      "t_s": 90348.7,
-      "duration_s": 30.0,
-      "command": "hold_temp",
-      "args": {
-        "target": "cx_a",
-        "temp_c": 4,
-        "duration_s": 30.0
-      },
-      "narration": "Astrocytes: stop-flow extraction soak with the extract held cold. This is not a freeze-quench; the Peltier only keeps the extract cold.",
-      "protocol_step": 25
-    },
-    {
-      "t_s": 90378.7,
-      "duration_s": 0.4,
-      "command": "exchange",
-      "args": {
-        "target": "cx_a",
-        "reagent": "cold_acidified_organic_quench",
-        "volume_ul": 8.594,
-        "washes": 1,
-        "flow_ul_min": 1373.3
-      },
-      "narration": "Astrocytes: chase. The outlet valve is at vial M and fresh quench solvent pushes the extract (8.594 uL, about the pore volume plus a little) out through out_a.",
-      "protocol_step": 26
-    },
-    {
-      "t_s": 90379.1,
-      "duration_s": 0.0,
+      "t_s": 101747.34,
+      "duration_s": 22.05,
       "command": "collect",
       "args": {
         "targets": [
           "cx_a"
         ],
-        "volume_ul": 8.594
+        "volume_ul": 7.069
       },
-      "narration": "Astrocytes: close vial M. FRACTION 1, the metabolome, plus peptides under about 10 kDa; neutralised on arrival, kept cold.",
-      "protocol_step": 27
+      "narration": "Astrocytes: FRACTION 1, the metabolome, plus peptides under about 10 kDa, which do not precipitate. Neutralised on arrival (the vial is pre-charged off chip) and kept on the cold block. Duration is 22.05 s, not 0: two valve actuations, clearing the 1.003 uL outlet stub into the vial, then capping it and moving it. A physical fraction collection takes time, and six steps of this protocol used to claim it took none.",
+      "protocol_step": 23
     },
     {
-      "t_s": 90379.1,
+      "t_s": 101769.39,
+      "duration_s": 111.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "cx_n",
+        "temp_c": 22.0,
+        "duration_s": 111.0
+      },
+      "narration": "Warm the stage to ambient (22 C), ports capped, BEFORE any aqueous buffer goes in: an aqueous solubilisation buffer pushed into a -20 C lane would freeze in the comb. The protein film is already precipitated, so warming the lane costs nothing.",
+      "protocol_step": 24
+    },
+    {
+      "t_s": 101880.39,
+      "duration_s": 1.5,
+      "command": "exchange",
+      "args": {
+        "target": "cx_n",
+        "reagent": "denaturing_solubilisation_buffer",
+        "volume_ul": 33.774,
+        "washes": 1,
+        "flow_ul_min": 1351.0,
+        "waste": "out_n"
+      },
+      "narration": "Neurons: SWEEP. The outlet valve returns to waste and 3 lane wetted volumes (33.774 uL = 11.73 chamber volumes, 1.9x the 17.452 uL the 99% target needs) of solubilisation buffer clear the lane, the port hole and the stub of fraction 1 and displace the organic solvent. This is the one step where carry-over between the two fractions is decided, so it is sized well above the target rather than at it: ideal mixing leaves exp(-3) = 5% of the old solvent in the LANE (a laminar slot displaces better; unmeasured, to be shown with a dye test). The precipitated protein stays on the floor.",
+      "protocol_step": 25
+    },
+    {
+      "t_s": 101881.89,
+      "duration_s": 1.5,
+      "command": "exchange",
+      "args": {
+        "target": "cx_g",
+        "reagent": "denaturing_solubilisation_buffer",
+        "volume_ul": 33.774,
+        "washes": 1,
+        "flow_ul_min": 1351.0,
+        "waste": "out_g"
+      },
+      "narration": "Glia: SWEEP. The outlet valve returns to waste and 3 lane wetted volumes (33.774 uL = 11.73 chamber volumes, 1.9x the 17.452 uL the 99% target needs) of solubilisation buffer clear the lane, the port hole and the stub of fraction 1 and displace the organic solvent. This is the one step where carry-over between the two fractions is decided, so it is sized well above the target rather than at it: ideal mixing leaves exp(-3) = 5% of the old solvent in the LANE (a laminar slot displaces better; unmeasured, to be shown with a dye test). The precipitated protein stays on the floor.",
+      "protocol_step": 26
+    },
+    {
+      "t_s": 101883.39,
       "duration_s": 1.5,
       "command": "exchange",
       "args": {
         "target": "cx_a",
         "reagent": "denaturing_solubilisation_buffer",
-        "volume_ul": 34.332,
+        "volume_ul": 33.774,
         "washes": 1,
-        "flow_ul_min": 1373.3,
+        "flow_ul_min": 1351.0,
         "waste": "out_a"
       },
-      "narration": "Astrocytes: the outlet valve returns to waste and 3 wetted volumes of solubilisation buffer clear the lane, port and stub of fraction 1 and displace the organic solvent. The precipitated protein stays on the floor.",
-      "protocol_step": 28
+      "narration": "Astrocytes: SWEEP. The outlet valve returns to waste and 3 lane wetted volumes (33.774 uL = 11.73 chamber volumes, 1.9x the 17.452 uL the 99% target needs) of solubilisation buffer clear the lane, the port hole and the stub of fraction 1 and displace the organic solvent. This is the one step where carry-over between the two fractions is decided, so it is sized well above the target rather than at it: ideal mixing leaves exp(-3) = 5% of the old solvent in the LANE (a laminar slot displaces better; unmeasured, to be shown with a dye test). The precipitated protein stays on the floor.",
+      "protocol_step": 27
     },
     {
-      "t_s": 90380.6,
+      "t_s": 101884.89,
       "duration_s": 600.0,
       "command": "hold_temp",
       "args": {
-        "target": "cx_a",
-        "temp_c": 37,
+        "target": "cx_n",
+        "temp_c": 22.0,
         "duration_s": 600.0
       },
-      "narration": "Astrocytes: stop-flow resolubilisation of the precipitated protein on the chamber floor. It is denatured by design.",
+      "narration": "RESOLUBILISATION: stop-flow, 600 s at ambient (22 C), all three lanes. NOT at 37 C, which is what the old file did: a warm hold in a carbamylating chaotrope modifies peptides and blocks identification, so the denaturant class here must be non-carbamylating and the hold is not heated. The '>90% membrane protein recovery after organic precipitation' figure in the literature is specific to COLD ACID resolubilisation, which this is not, so that number is NOT claimed here. The protein is denatured by design: native complexes and enzyme activity are gone, bottom-up identification and quantification are not. PLACEHOLDER duration.",
+      "protocol_step": 28
+    },
+    {
+      "t_s": 102484.89,
+      "duration_s": 0.32,
+      "command": "exchange",
+      "args": {
+        "target": "cx_n",
+        "reagent": "denaturing_solubilisation_buffer",
+        "volume_ul": 7.069,
+        "washes": 1,
+        "flow_ul_min": 1351.0
+      },
+      "narration": "Neurons: ELUTION CHASE, a PARTIAL for the same reason as fraction 1's. The outlet valve turns to vial P and fresh buffer pushes the dissolved protein (7.069 uL = 2.45 chamber volumes, the field plus everything downstream of it) out through the SAME port out_n, at a later time. Taking that defined fraction is the point: sweeping to 99% would hand the mass spectrometer 17.452 uL of dilute protein instead of 7.069 uL. Separate vials and separate valve positions mean the two fractions never share a vial.",
       "protocol_step": 29
     },
     {
-      "t_s": 90980.6,
-      "duration_s": 0.4,
+      "t_s": 102485.21,
+      "duration_s": 22.05,
+      "command": "collect",
+      "args": {
+        "targets": [
+          "cx_n"
+        ],
+        "volume_ul": 7.069
+      },
+      "narration": "Neurons: FRACTION 2, the proteome, ready for bottom-up digestion. Spin vial M and add its pellet here: the flood may strip fines off the floor film (UNTESTED). The lane is spent. The single-cell transcriptome arm is a different sample path - on this demo chip it is module 4 on capsules; at target scale it is the dissociated fields of the SAME lane.",
+      "protocol_step": 30
+    },
+    {
+      "t_s": 102507.26,
+      "duration_s": 0.32,
+      "command": "exchange",
+      "args": {
+        "target": "cx_g",
+        "reagent": "denaturing_solubilisation_buffer",
+        "volume_ul": 7.069,
+        "washes": 1,
+        "flow_ul_min": 1351.0
+      },
+      "narration": "Glia: ELUTION CHASE, a PARTIAL for the same reason as fraction 1's. The outlet valve turns to vial P and fresh buffer pushes the dissolved protein (7.069 uL = 2.45 chamber volumes, the field plus everything downstream of it) out through the SAME port out_g, at a later time. Taking that defined fraction is the point: sweeping to 99% would hand the mass spectrometer 17.452 uL of dilute protein instead of 7.069 uL. Separate vials and separate valve positions mean the two fractions never share a vial.",
+      "protocol_step": 31
+    },
+    {
+      "t_s": 102507.58,
+      "duration_s": 22.05,
+      "command": "collect",
+      "args": {
+        "targets": [
+          "cx_g"
+        ],
+        "volume_ul": 7.069
+      },
+      "narration": "Glia: FRACTION 2, the proteome, ready for bottom-up digestion. Spin vial M and add its pellet here: the flood may strip fines off the floor film (UNTESTED). The lane is spent. The single-cell transcriptome arm is a different sample path - on this demo chip it is module 4 on capsules; at target scale it is the dissociated fields of the SAME lane.",
+      "protocol_step": 32
+    },
+    {
+      "t_s": 102529.63,
+      "duration_s": 0.32,
       "command": "exchange",
       "args": {
         "target": "cx_a",
         "reagent": "denaturing_solubilisation_buffer",
-        "volume_ul": 8.594,
+        "volume_ul": 7.069,
         "washes": 1,
-        "flow_ul_min": 1373.3
+        "flow_ul_min": 1351.0
       },
-      "narration": "Astrocytes: chase. The outlet valve is at vial P and fresh buffer pushes the dissolved protein (8.594 uL) out through the SAME port out_a.",
-      "protocol_step": 30
+      "narration": "Astrocytes: ELUTION CHASE, a PARTIAL for the same reason as fraction 1's. The outlet valve turns to vial P and fresh buffer pushes the dissolved protein (7.069 uL = 2.45 chamber volumes, the field plus everything downstream of it) out through the SAME port out_a, at a later time. Taking that defined fraction is the point: sweeping to 99% would hand the mass spectrometer 17.452 uL of dilute protein instead of 7.069 uL. Separate vials and separate valve positions mean the two fractions never share a vial.",
+      "protocol_step": 33
     },
     {
-      "t_s": 90981.0,
-      "duration_s": 0.0,
+      "t_s": 102529.95,
+      "duration_s": 22.05,
       "command": "collect",
       "args": {
         "targets": [
           "cx_a"
         ],
-        "volume_ul": 8.594
+        "volume_ul": 7.069
       },
-      "narration": "Astrocytes: close vial P. FRACTION 2, the proteome, ready for bottom-up digestion. The lane is spent; the transcriptome arm is separate and runs on capsules through module 4.",
-      "protocol_step": 31
+      "narration": "Astrocytes: FRACTION 2, the proteome, ready for bottom-up digestion. Spin vial M and add its pellet here: the flood may strip fines off the floor film (UNTESTED). The lane is spent. The single-cell transcriptome arm is a different sample path - on this demo chip it is module 4 on capsules; at target scale it is the dissociated fields of the SAME lane.",
+      "protocol_step": 34
     }
   ]
 }

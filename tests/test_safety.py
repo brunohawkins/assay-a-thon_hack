@@ -92,10 +92,24 @@ class Rules(unittest.TestCase):
         # The rule above only means something if the shipped protocol is not already at it.
         self.assertLess(WASH["flow_ul_min"], MARGIN * ESCAPE_FLOW)
 
-    def test_backflush_has_no_mesh_pressure_rule(self):
-        r = safety.check("exchange", {**WASH, "flow_ul_min": round(ESCAPE_FLOW * 1.2, 3),
-                                      "direction": "backflush"}, state(), CHIP)
-        self.assertEqual(r.status, "approved")
+    def test_backflush_is_judged_on_the_magnitude_of_its_pressure(self):
+        # A back-flush pushes UP through the retention, so the pressure is negative, but its
+        # magnitude lifts capsules out of the chamber just as readily. safety.py used to skip
+        # the rule for a back-flush; it now judges the magnitude either way, so the same
+        # over-escape flow that is blocked forwards is blocked backwards too.
+        over = safety.check("exchange", {**WASH, "flow_ul_min": round(ESCAPE_FLOW * 1.2, 3),
+                                         "direction": "backflush"}, state(), CHIP)
+        self.assertEqual(over.status, "blocked")
+        self.assertIn("lifting off the retention", over.reasons[0])
+
+    def test_the_shipped_backflush_step_is_within_the_escape_pressure(self):
+        step = next((s for s in PROTOCOL["steps"] if s.get("direction") == "backflush"), None)
+        self.assertIsNotNone(step, "the shipped Module 3 protocol back-flushes the bed")
+        r = safety.check("exchange", {"target": step["target"], "reagent": step["reagent"],
+                                      "volume_ul": step["volume_ul"], "washes": step["washes"],
+                                      "flow_ul_min": step["flow_ul_min"], "direction": "backflush"},
+                         state(), CHIP)
+        self.assertNotEqual(r.status, "blocked", msg=f"step {step['step']}: {r.reasons}")
 
     def test_waste_overflow_is_blocked(self):
         s = state()

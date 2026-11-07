@@ -19,6 +19,18 @@ Checked 7 Nov 2026. Every chip: 30 × 20 mm, one layer. BUILT means a spec and p
 | 6 | Release, bead cleanup | `module5_v1` | `module5_v1.json` | BUILT |
 | 7 | Pool, SPRI, QC | tube, instruments | none | OFF-CHIP, HOLE |
 
+### Branch off stage 1: the bulk omics arm
+
+| # | Stage | Chip | Protocol | Status |
+|---|---|---|---|---|
+| M6 | **Module 6: bulk metabolome + proteome** from one single-phase acidified polar-organic extraction of **adherent** cells, in place, before encapsulation | `module6_v1` | `module6_v1.json` | BUILT, but **REQUIRES A SUB-AMBIENT STAGE** |
+
+It branches off the culture lanes and never rejoins the capsule chain, so `pipeline_mvp.json` records it as `module6_bulk_omics` with a `module1_to_module6` hand-off — that file can express one chain, not a branch, and "roadmap" there does **not** mean "not designed".
+
+**The new rig requirement.** Module 6 asks for a **−20 °C extraction soak (5 min)**, a **4 °C rinse** and a **4 °C quench flood**, all on **one thermal zone under all three lanes**. Consequences: no lane can be cold while another is alive, the stage must stay at 4 °C until every lane holds organic solvent, and it must be back at ambient before aqueous solubilisation buffer goes in — which is why `protocols/module6_v1.json` is ordered by phase, not by lane. The rig has no sub-ambient source today ([thermal_map.md](thermal_map.md) sets out the two options and the rejected alternative). Degraded fallback: soak at 4 °C on the existing cold block, which is off the published method and makes the yield and the metabolome/proteome split **unvalidated**.
+
+**One sample or two?** Today the bulk arm and the single-cell transcriptome arm run on **parallel samples within one experiment** — same lanes, same medium, same timepoint, different cells. `chip/module1_target_v1.json` adds replicated fields per lane so that some fields are quenched in place while others in the *same* lane go to the transcriptome; only then is "multi-omic from one sample" true.
+
 ## Retired and duplicates
 
 | Item | Replaced by | Retirement recorded? |

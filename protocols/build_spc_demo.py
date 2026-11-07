@@ -28,6 +28,24 @@ demo, measure the SPREAD, not the diameter.
 NO CELLS. Both aqueous streams are dye. Loading statistics (about 0.1 cells per capsule) belong
 to the off-chip kit at 70 um, not to this board.
 
+FOOTPRINT IS NOT CROSS-SECTION. delay_1 is a serpentine: an 11 x 13 mm footprint with 104 mm of
+0.3 mm lane folded inside it. This file used to feed the chamber's size[1] (13 mm) to
+tau = 6*mu*Q/(w*h^2), and shear goes as 1/w, so the delay line's shear read 43x low and the
+total flow derived from it was 43x too high. The chip's volume_ul had the same error the other
+way: 21.5 uL was the bounding box, while the lane holds 4.68 uL. Both now come from delay_1's
+`mixer` block via flow_section() and chamber_volume(), so the chip file carries the lane as data
+rather than as prose.
+
+THE SHEAR CEILING HERE IS A BORROWED ONE, AND IT IS WHAT MAKES THE DEMO SLOW. SHEAR_CEILING is
+shear.culture_ceiling_dyn_cm2, which the contract says applies to chambers holding ADHERENT
+CELLS - the risk being that flow peels them off the floor. There are no cells on this board and
+nothing to peel: it carries dye droplets in oil. Held to that ceiling on the true lane width the
+whole board runs at about 0.07 uL/min and drips under 0.2 Hz, so --report prints what the demo
+costs. The honest bound for a droplet board is the capillary number at the junction and the
+pressure the ports will take, neither of which this repo has a contract value for. Deciding that
+is a chip and contract question, so the number is derived from the contract we have and the
+caveat is printed rather than the ceiling being quietly raised.
+
 This is the scaled-down build. The full module (chip/sctip_spc_v1.json) is a 150 x 100
 mm board with three stages; the real fabrication envelope is 30 x 20 mm, single layer,
 one depth, so only the first stage fits. That stage is the right one to keep as a reference,
@@ -106,10 +124,34 @@ def shear(flow_ul_min: float, width_mm: float, height_mm: float) -> float:
     return (6.0 * MU_PA_S * q / (w * h * h)) * 10.0
 
 
+def flow_section(chamber: str) -> tuple[float, float]:
+    """The cross-section the liquid really flows through: (width_mm, depth_mm).
+
+    size[1] is the FOOTPRINT width, which is right for an open chamber and wrong for a
+    serpentine, whose lanes are separated by solid wall. delay_1's lane is 0.3 mm inside an
+    11 x 13 mm footprint, and shear goes as 1/w, so the footprint understated it 43x.
+    """
+    c = CH[chamber]
+    lane = (c.get("mixer") or {}).get("channel_width_mm")
+    return (lane or c["size"][1], c["size"][2])
+
+
+def chamber_volume(chamber: str) -> float:
+    """Liquid the chamber actually holds, in uL: the lane for a serpentine, else volume_ul."""
+    c = CH[chamber]
+    mixer = c.get("mixer") or {}
+    if mixer.get("length_mm") and mixer.get("channel_width_mm"):
+        return mixer["length_mm"] * mixer["channel_width_mm"] * c["size"][2]
+    return float(c["volume_ul"])
+
+
 # Every stream leaves through the delay line, so the delay line's shear ceiling caps the
 # total flow; the full module's oil-to-aqueous ratio and equal shell and core streams set
-# how it is shared. This keeps the droplet ratio and gives up speed.
-TOTAL_FLOW = math.floor(FLOW_FRACTION * max_flow(CH[DELAY]["size"][1], CH[DELAY]["size"][2]) * 1000) / 1000
+# how it is shared. This keeps the droplet ratio and gives up speed. The width is the LANE,
+# not the footprint: on the footprint this came out 43x higher and the delay line's own shear
+# was reported as 1/43 of its true value.
+TOTAL_FLOW = math.floor(FLOW_FRACTION * max_flow(*flow_section(DELAY)) * 1000) / 1000
+FOOTPRINT_FLOW = math.floor(FLOW_FRACTION * max_flow(CH[DELAY]["size"][1], CH[DELAY]["size"][2]) * 1000) / 1000
 _AQUEOUS = TOTAL_FLOW / (1.0 + OIL_TO_AQUEOUS)
 FLOW = {"shell": math.floor(_AQUEOUS * (1 - CORE_SHARE) * 1000) / 1000,
         "core": math.floor(_AQUEOUS * CORE_SHARE * 1000) / 1000,
@@ -129,13 +171,32 @@ def ports(feed=(), vent=()) -> dict:
     return {"feed": feed, "vent": vent, "cap": [p for p in PORTS if p not in feed + vent]}
 
 
+def other_wetted_ul() -> float:
+    """Everything the prime has to fill APART FROM the delay line, in uL.
+
+    The junction chambers plus the channels, each channel taken as its straight centre-to-
+    centre run at its own width and depth (the same estimate operator/network.py makes when
+    a part has no drawn path). Only used to say in the note how much more than one lane
+    volume a real prime moves; the step's volume_ul stays the chamber's, as a fill must.
+    """
+    at = {c["id"]: c["center"] for c in CHIP_SPEC["chambers"]}
+    at.update({p["id"]: p["position"] for p in CHIP_SPEC["ports"]})
+    total = sum(c["volume_ul"] for c in CHIP_SPEC["chambers"] if c["id"] != DELAY)
+    for ch in CHIP_SPEC["channels"]:
+        a, b = at.get(ch["from"]), at.get(ch["to"])
+        if a and b:
+            length = math.dist(a[:2], b[:2])
+            total += length * ch["width_mm"] * ch["depth_mm"]
+    return total
+
+
 def build() -> dict:
     steps: list[dict] = []
 
     def add(operation, target, note, duration_s, reagent=None, volume_ul=None,
             temp_c=None, washes=None, flow_ul_min=None, port_state=None, **extra):
         if operation == "exchange":
-            volume_ul = volume_ul if volume_ul is not None else CH[target]["volume_ul"]
+            volume_ul = volume_ul if volume_ul is not None else round(chamber_volume(target), 3)
             washes = washes if washes is not None else 1
             duration_s = max(duration_s,
                              washes * volume_ul / (flow_ul_min or TOTAL_FLOW) * 60.0 * 1.4)
@@ -151,12 +212,19 @@ def build() -> dict:
     run_s = n_drops / rate_hz()
 
     add("exchange", DELAY,
-        "Prime the board with oil before anything aqueous goes in. Do this first and "
-        "always: the walls have to be oil-wetted for water-in-oil to work at all, and an "
-        "aqueous stream that touches a dry wall first will wet it and keep wetting it. "
-        "Getting this order right, and seeing what happens when you do not, is half the "
-        "point of running the board.",
-        0, reagent="carrier_oil", flow_ul_min=TOTAL_FLOW,
+        f"Prime the board with oil before anything aqueous goes in. Do this first and "
+        f"always: the walls have to be oil-wetted for water-in-oil to work at all, and an "
+        f"aqueous stream that touches a dry wall first will wet it and keep wetting it. "
+        f"Getting this order right, and seeing what happens when you do not, is half the "
+        f"point of running the board. This is a FILL, not a sweep: the board arrives dry, so "
+        f"there is nothing in {DELAY} to clear and no exchange target to reach - the step just "
+        f"has to displace air. One lane volume, {chamber_volume(DELAY):.2f} uL, is what the "
+        f"serpentine holds; the junctions and channels upstream of it add about "
+        f"{other_wetted_ul():.2f} uL, so in practice you keep pushing until oil comes out of "
+        f"out_caps and no timer decides it. Sized at 21.5 uL (the chamber's old bounding-box "
+        f"volume_ul) this step claimed to put four and a half lane volumes of oil into a "
+        f"4.68 uL lane.",
+        0, reagent="carrier_oil", flow_ul_min=TOTAL_FLOW, exchange_kind="fill",
         port_state=ports(["in_oil"], ["out_caps"]))
     add("encapsulate", NOZZLE,
         f"Start the two dye streams and the oil, and let the junction settle. Expect a "
@@ -209,10 +277,20 @@ def build() -> dict:
             f"would say {UNCONFINED_UM:g} um, which is impossible in a {ORIFICE_DEPTH_UM:g} um "
             f"deep channel and is why that number is gone. No cells: both aqueous streams are "
             f"dye and nothing is cured. The streams keep the full module's oil-to-aqueous ratio, "
-            f"but their total is set by the delay line's shear ceiling (0.01 dyn/cm2 in "
-            f"{DELAY}), so it runs slower than the full module. The batch is what fits in "
-            f"{RUN_S / MIN:.0f} min at that rate. Reagent names are generic; see the source "
-            f"citation."
+            f"but their total is set by the shear ceiling in {DELAY}, so it runs slower than the "
+            f"full module. That ceiling is now applied to the serpentine's real 0.3 mm LANE rather "
+            f"than its 11 x 13 mm footprint: tau = 6*mu*Q/(w*h^2) goes as 1/w, so the footprint "
+            f"read {CH[DELAY]['size'][1] / flow_section(DELAY)[0]:.0f}x low and the total flow "
+            f"drops from {FOOTPRINT_FLOW:g} to {TOTAL_FLOW:g} uL/min, with the rate falling the "
+            f"same way. The chamber's volume_ul was the bounding box too, and is now the lane's "
+            f"{chamber_volume(DELAY):.2f} uL. BE AWARE WHAT THAT CEILING IS: "
+            f"shear.culture_ceiling_dyn_cm2 ({SHEAR_CEILING:g}) is scoped by the contract to "
+            f"chambers holding ADHERENT CELLS, and this board holds dye droplets in oil, so it is "
+            f"a conservative borrowed limit and it is what makes the demo slow. The honest bound "
+            f"here is the capillary number at the junction and the port pressure, for which there "
+            f"is no contract value yet: --report says so rather than the ceiling being raised on a "
+            f"guess. The batch is what fits in {RUN_S / MIN:.0f} min at that rate. Reagent names "
+            f"are generic; see the source citation."
         ),
         "steps": steps,
     }
@@ -233,14 +311,37 @@ def report() -> None:
     print(f"rate {rate_hz():.2f} Hz = {rate_hz() * 3600 / 1000:.1f}k/h")
     print(f"demo batch {demo_droplets():,} droplets in {RUN_S / MIN:.0f} min\n")
     c = CH[DELAY]
+    lw, lh = flow_section(DELAY)
+    bw = c["size"][1]
+    print(f"{DELAY}: footprint {c['size'][0]:g} x {bw:g} mm, lane {lw:g} x {lh:g} mm, "
+          f"{(c.get('mixer') or {}).get('length_mm', 0):g} mm long")
+    print(f"{'':<22}{'volume uL':>11}{'ceiling flow':>14}{'shear at run':>14}")
+    print(f"{'on the LANE (right)':<22}{chamber_volume(DELAY):>11.3f}{max_flow(lw, lh):>14.3f}"
+          f"{shear(sum(FLOW.values()), lw, lh):>14.4f}")
+    print(f"{'on the footprint':<22}{bw * c['size'][0] * lh:>11.3f}{max_flow(bw, lh):>14.3f}"
+          f"{shear(sum(FLOW.values()), bw, lh):>14.4f}")
+    print(f"  the footprint read shear {bw / lw:.0f}x low and volume "
+          f"{bw * c['size'][0] * lh / chamber_volume(DELAY):.1f}x high; total flow was "
+          f"{FOOTPRINT_FLOW:g} uL/min, is now {TOTAL_FLOW:g}")
+    print(f"  prime: the lane holds {chamber_volume(DELAY):.2f} uL and the rest of the board "
+          f"about {other_wetted_ul():.2f} uL more\n")
     print(f"{'stream':<10}{'uL/min':>9}{'uL/h':>9}")
     for k, v in FLOW.items():
         print(f"{k:<10}{v:>9.3f}{v * 60:>9.1f}")
-    print(f"\nshear in {DELAY}: {shear(sum(FLOW.values()), c['size'][1], c['size'][2]):.4f} dyn/cm2 "
+    print(f"\nshear in {DELAY}: {shear(sum(FLOW.values()), lw, lh):.4f} dyn/cm2 "
           f"(ceiling {SHEAR_CEILING:g}) at {sum(FLOW.values()):.3f} uL/min")
     print(f"oil : aqueous = {FLOW['oil'] / (FLOW['shell'] + FLOW['core']):.2f} : 1")
     print("no cells: both aqueous streams are dye. Loading statistics belong to the off-chip kit "
           "at 70 um, not to this board.")
+    print(f"WHAT THE CEILING COSTS: {SHEAR_CEILING:g} dyn/cm2 is shear.culture_ceiling_dyn_cm2, "
+          f"which the contract\n  scopes to chambers holding ADHERENT CELLS. This board holds dye "
+          f"droplets in oil - there is\n  nothing to peel off a wall - yet the ceiling is what sets "
+          f"the flow, so the demo drips at\n  {rate_hz():.2f} Hz and makes {demo_droplets():,} "
+          f"droplets in {RUN_S / MIN:.0f} min. On the footprint it appeared to\n  manage "
+          f"{rate_hz() * bw / lw:.1f} Hz. The real bound for a droplet board is the capillary number "
+          f"at the\n  junction and the port pressure, and the contract has neither, so this is "
+          f"derived from the\n  ceiling we do have and flagged rather than quietly raised. Chip "
+          f"and contract decision.")
 
 
 if __name__ == "__main__":

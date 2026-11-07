@@ -10,7 +10,6 @@ so the variant/pair-valve machinery below is exercised on a FIXTURE and labelled
     python -m unittest discover -s tests -v
 """
 
-import copy
 import sys
 import unittest
 from pathlib import Path
@@ -33,16 +32,13 @@ MATERIALS = schema_io.load_json(ROOT / "contracts" / "materials.json")["material
 CULTURE = [c["id"] for c in CHIP["chambers"] if c["type"] != "pool"]
 POOL = next(c["id"] for c in CHIP["chambers"] if c["type"] == "pool")
 
-# A FIXTURE, not a chip: NO spec in chip/ or cad/ has a single valve, because a pneumatic
-# membrane valve needs a second fluidic layer and we print one (contracts/blocks.json
-# "excluded"), and tests/test_envelope.py asserts that for every chip on disk. The three
-# tests marked ValveRulesNoChipUses below therefore cover safety.py code paths that NO
-# current chip can reach; they exist so the rules are not silently broken, and they are the
-# only place in the suite allowed to invent valves.
+# The valve fixture this file used to carry is GONE, with the rules it exercised. No spec in
+# chip/ or cad/ has a single valve (a pneumatic membrane valve needs a second fluidic layer
+# and we print one: contracts/blocks.json "excluded"), tests/test_envelope.py asserts that
+# for every chip on disk, and operator/safety.py has since dropped the pair/branch variant
+# rules and refuses the valve command outright. A fixture is the only way to reach deleted
+# code, which is a test of nothing.
 PAIRS = ["fx_valve_pair_1", "fx_valve_pair_2"]
-BRANCHES = ["fx_valve_branch_1", "fx_valve_branch_2"]
-VALVED = copy.deepcopy(CHIP)
-VALVED["valves"] = ([{"id": v, "kind": "pair"} for v in PAIRS] + [{"id": v, "kind": "branch"} for v in BRANCHES])
 
 
 class ShippedChip(unittest.TestCase):
@@ -63,34 +59,18 @@ class ShippedChip(unittest.TestCase):
         self.assertEqual(CHIP.get("run_parameters", {}), {})
         self.assertEqual({s.get("variant") for s in PROTOCOL["steps"]}, {None})
 
-    def test_any_valve_command_is_blocked_on_the_shipped_chip(self):
-        r = safety.check_static("valve", {"valves": PAIRS, "state": "open"}, CHIP, {})
-        self.assertEqual(r.status, "blocked")
-        self.assertIn("not a valve", r.reasons[0])
+    def test_every_valve_command_is_blocked_whatever_is_asked_for(self):
+        # There is nothing to switch, so every shape of the command is refused, in both
+        # states and with or without a run parameter - no chip, no fixture, no exception.
+        for state in ("open", "closed"):
+            for run_params in ({}, {"variant": "control"}, {"variant": "interaction"}):
+                r = safety.check_static("valve", {"valves": PAIRS, "state": state}, CHIP, run_params)
+                self.assertEqual(r.status, "blocked", msg=f"{state} {run_params}")
+                self.assertIn("not a valve", r.reasons[0])
 
-
-class ValveRulesNoChipUses(unittest.TestCase):
-    """safety.py's valve rules, on the VALVED fixture. No chip in the repo has a valve
-    (single fluidic layer), so these cover code no current artefact can reach. If valves
-    ever become buildable, point them at the real chip and delete the fixture."""
-
-    def test_opening_a_pair_valve_in_control_is_blocked(self):
-        r = safety.check_static("valve", {"valves": [PAIRS[1]], "state": "open"}, VALVED, {"variant": "control"})
-        self.assertEqual(r.status, "blocked")
-        self.assertIn("control variant", r.reasons[0])
-
-    def test_opening_pair_valves_in_interaction_is_approved(self):
-        r = safety.check_static("valve", {"valves": PAIRS, "state": "open"}, VALVED, {"variant": "interaction"})
-        self.assertEqual(r.status, "approved")
-
-    def test_branch_valves_and_closing_pairs_are_fine_in_control(self):
-        for args in ({"valves": BRANCHES, "state": "open"}, {"valves": PAIRS, "state": "closed"}):
-            self.assertEqual(safety.check_static("valve", args, VALVED, {"variant": "control"}).status, "approved")
-
-    def test_unknown_valve_is_blocked(self):
-        r = safety.check_static("valve", {"valves": ["m1_valve_nope"], "state": "open"}, VALVED,
-                                {"variant": "interaction"})
-        self.assertEqual(r.status, "blocked")
+    def test_no_shipped_chip_anywhere_has_a_valve_to_switch(self):
+        for path in sorted((ROOT / "chip").glob("*.json")):
+            self.assertEqual(schema_io.load_json(path).get("valves", []), [], path.name)
 
 
 class Protocol(unittest.TestCase):

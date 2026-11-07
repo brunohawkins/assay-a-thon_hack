@@ -13,24 +13,24 @@ const COMMAND_COLORS = {
   cure: '#a78bfa',
   transfer: '#fda4af',
   count: '#f0abfc',
-  pl_m1: '#c4b5fd', pl_m1_out: '#fda4af', pl_m1b: '#86efac', pl_m1b_out: '#fda4af',
-  pl_m2: '#2dd4bf', pl_m2_out: '#5eead4', pl_m3: '#7dd3fc', pl_roadmap: '#64748b',
 };
-// Chip id -> what that chip is, for the parameters panel. The current pipeline is
-// protocols/pipeline_mvp.json: module1_v1, cell_prep_v1, spc_demo_v1, module3_v1_translated,
-// module4_v1, module5_v1. The four m1/m1b/m2/m3 names below are the RETIRED drafts in cad/
-// (superseded in their own module blocks), kept because their runs still play in "Old drafts"
-// and labelled as retired so they cannot be read as current modules.
+// Chip id -> what that chip is, for the parameters panel. The chain is
+// protocols/pipeline_mvp.json / protocols/pipeline_status.md: module1_v1 (1), cell_prep_v1
+// (2), spc_demo_v1 (3), module3_v1_translated (4), sctip_spc_v1 (4b, barcoding),
+// module4_v1 (5), module5_v1 (6). The m1/m1b/m2/m3 names are the RETIRED drafts in cad/,
+// kept because their runs still play in "Old drafts" and labelled retired so they cannot be
+// read as current modules. sctip_spc_v1 is NOT retired: filing it as a duplicate of module
+// 3's trap is what lost the pipeline its single-cell step. Only its stage A is retired.
 const CHIP_NAMES = {
-  module1_v1: 'Module 1 · culture',
+  module1_v1: 'Module 1 · culture + lane label',
   cell_prep_v1: 'Cell prep · detach, quench, count',
   spc_demo_v1: 'Module 2 · encapsulation',
   module3_v1_translated: 'Module 3 · load, lysis, wash, RT',
+  sctip_spc_v1: 'Barcoding (4b) · one clonal barcode per capsule, in its own droplet',
   module4_v1: 'Module 4 · sublibrary split + index PCR',
   module5_v1: 'Module 5 · release + cleanup',
   module6_v1: 'Module 6 · three-lineage co-culture',
-  ipsc_to_mgl_chip_v1: 'iPSC-to-microglia train',
-  sctip_spc_v1: 'scTIP-SPC',
+  ipsc_to_mgl_chip_v1: 'iPSC-to-microglia train (separate experiment, not in the chain)',
   placeholder_chip_v1: 'Placeholder chip',
   m1_culture_v1: 'Module 1 culture (retired draft)',
   m1b_cellprep_v1: 'Module 1b cell prep (retired draft)',
@@ -47,6 +47,10 @@ function paramLabel(key) {
 }
 
 export function commandColor(ev) {
+  // Pipeline phases carry their own colour: their ids come from pipeline_mvp.json, so a table
+  // here keyed by module name goes stale the moment the chain changes - which is how pl_m1,
+  // pl_m1b, pl_m2 and pl_m3 outlived their modules and left the whole timeline grey.
+  if (ev.color) return ev.color;
   if (ev.command === 'exchange' || ev.command === 'mix') return reagentCss(ev.args.reagent);
   if (ev.command === 'culture') return reagentCss(ev.args.reagents?.[0]);
   if (ev.command === 'hold_temp') return tempCss(ev.args.temp_c);

@@ -3,19 +3,20 @@
   "name": "Flow-focusing dye demo (reference board, not the pipeline's encapsulator)",
   "source": "Flow focusing: Anna SL, Bontoux N, Stone HA. Appl Phys Lett 2003;82:364, doi:10.1063/1.1537519. Design rules relating orifice, flows and droplet size: Lashkaripour A et al., Nat Commun 2021;12:25, doi:10.1038/s41467-020-20284-z. Core-shell semipermeable capsules by aqueous two-phase separation inside the droplet: Leonaviciene G & Mazutis L, Nucleic Acids Res 2023;51:e2, doi:10.1093/nar/gkac918.",
   "placeholder": false,
-  "description": "A DYE DEMO, NOT A PIPELINE STAGE. Prime oil-first, start the two dye streams, settle the junction, film the droplet train, collect and look at it: about 3,757 droplets in roughly 35 min on a 30 x 20 mm single-depth chip. THIS BOARD DOES NOT SUPPLY THE PIPELINE AND CANNOT MAKE ITS 70 um CAPSULES: that needs about a 40 um orifice, which is 5x below the 200 um in-plane floor of both processes we have, so encapsulation is off-chip on the existing commercial droplet kit at 70 um. The orifice as drawn is 300 um wide by 150 um deep; droplets are confined by the depth, so 150 um is an INDICATIVE bound and the figure to measure on the demo is the spread, not the diameter. The 1.3x-the-nozzle rule would say 390 um, which is impossible in a 150 um deep channel and is why that number is gone. No cells: both aqueous streams are dye and nothing is cured. The streams keep the full module's oil-to-aqueous ratio, but their total is set by the delay line's shear ceiling (0.01 dyn/cm2 in delay_1), so it runs slower than the full module. The batch is what fits in 10 min at that rate. Reagent names are generic; see the source citation.",
+  "description": "A DYE DEMO, NOT A PIPELINE STAGE. Prime oil-first, start the two dye streams, settle the junction, film the droplet train, collect and look at it: about 79 droplets in roughly 117 min on a 30 x 20 mm single-depth chip. THIS BOARD DOES NOT SUPPLY THE PIPELINE AND CANNOT MAKE ITS 70 um CAPSULES: that needs about a 40 um orifice, which is 5x below the 200 um in-plane floor of both processes we have, so encapsulation is off-chip on the existing commercial droplet kit at 70 um. The orifice as drawn is 300 um wide by 150 um deep; droplets are confined by the depth, so 150 um is an INDICATIVE bound and the figure to measure on the demo is the spread, not the diameter. The 1.3x-the-nozzle rule would say 390 um, which is impossible in a 150 um deep channel and is why that number is gone. No cells: both aqueous streams are dye and nothing is cured. The streams keep the full module's oil-to-aqueous ratio, but their total is set by the shear ceiling in delay_1, so it runs slower than the full module. That ceiling is now applied to the serpentine's real 0.3 mm LANE rather than its 11 x 13 mm footprint: tau = 6*mu*Q/(w*h^2) goes as 1/w, so the footprint read 43x low and the total flow drops from 3.107 to 0.071 uL/min, with the rate falling the same way. The chamber's volume_ul was the bounding box too, and is now the lane's 4.68 uL. BE AWARE WHAT THAT CEILING IS: shear.culture_ceiling_dyn_cm2 (0.01) is scoped by the contract to chambers holding ADHERENT CELLS, and this board holds dye droplets in oil, so it is a conservative borrowed limit and it is what makes the demo slow. The honest bound here is the capillary number at the junction and the port pressure, for which there is no contract value yet: --report says so rather than the ceiling being raised on a guess. The batch is what fits in 10 min at that rate. Reagent names are generic; see the source citation.",
   "steps": [
     {
       "step": 1,
       "operation": "exchange",
       "target": "delay_1",
       "reagent": "carrier_oil",
-      "volume_ul": 21.5,
-      "duration_s": 581,
+      "volume_ul": 4.68,
+      "duration_s": 5537,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 3.107,
-      "note": "Prime the board with oil before anything aqueous goes in. Do this first and always: the walls have to be oil-wetted for water-in-oil to work at all, and an aqueous stream that touches a dry wall first will wet it and keep wetting it. Getting this order right, and seeing what happens when you do not, is half the point of running the board.",
+      "flow_ul_min": 0.071,
+      "note": "Prime the board with oil before anything aqueous goes in. Do this first and always: the walls have to be oil-wetted for water-in-oil to work at all, and an aqueous stream that touches a dry wall first will wet it and keep wetting it. Getting this order right, and seeing what happens when you do not, is half the point of running the board. This is a FILL, not a sweep: the board arrives dry, so there is nothing in delay_1 to clear and no exchange target to reach - the step just has to displace air. One lane volume, 4.68 uL, is what the serpentine holds; the junctions and channels upstream of it add about 3.62 uL, so in practice you keep pushing until oil comes out of out_caps and no timer decides it. Sized at 21.5 uL (the chamber's old bounding-box volume_ul) this step claimed to put four and a half lane volumes of oil into a 4.68 uL lane.",
+      "exchange_kind": "fill",
       "ports": {
         "feed": [
           "in_oil"
@@ -35,17 +36,17 @@
       "target": "xj_1",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 780,
+      "duration_s": 778,
       "temp_c": null,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Start the two dye streams and the oil, and let the junction settle. Expect a minute or two of ragged, uneven droplets before it locks into a steady drip: that is normal, and it is the syringe pump and the tubing settling rather than the chip. NO CELLS GO ON THIS BOARD - both aqueous streams are dye, because this is a geometry demo and not the pipeline's encapsulator. The orifice is 300 um wide by 150 um deep, so droplets are confined by the depth: treat 150 um as an INDICATIVE bound, not a prediction. At about 6.26 droplets per second the demo batch of 3,757 droplets takes about 10 min.",
+      "note": "Start the two dye streams and the oil, and let the junction settle. Expect a minute or two of ragged, uneven droplets before it locks into a steady drip: that is normal, and it is the syringe pump and the tubing settling rather than the chip. NO CELLS GO ON THIS BOARD - both aqueous streams are dye, because this is a geometry demo and not the pipeline's encapsulator. The orifice is 300 um wide by 150 um deep, so droplets are confined by the depth: treat 150 um as an INDICATIVE bound, not a prediction. At about 0.13 droplets per second the demo batch of 79 droplets takes about 10 min.",
       "flows_ul_h": {
-        "core": 19.9,
-        "shell": 19.9,
-        "oil": 146.5
+        "core": 0.4,
+        "shell": 0.4,
+        "oil": 3.3
       },
-      "capsules": 3757,
+      "capsules": 79,
       "ports": {
         "feed": [
           "in_oil",

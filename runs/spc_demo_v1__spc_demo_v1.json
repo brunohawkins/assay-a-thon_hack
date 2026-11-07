@@ -4,7 +4,7 @@
   "chip_id": "spc_demo_v1",
   "chip_spec": "chip/spc_demo_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T18:55:24Z",
+  "created_at": "2026-11-07T23:06:41Z",
   "placeholder": false,
   "sizing": {
     "capsule_count": null,
@@ -17,7 +17,7 @@
     "monolayer_area_mm2_needed": 490.0,
     "trap_area_mm2": 143,
     "packed_volume_ul_needed": 28.062,
-    "trap_volume_ul": 21.5,
+    "trap_volume_ul": 4.68,
     "channel_width_um": [
       300.0,
       300.0
@@ -32,38 +32,38 @@
     ],
     "swollen_diameter_um": 140.0
   },
-  "total_duration_s": 2081.0,
+  "total_duration_s": 7035.0,
   "events": [
     {
       "t_s": 0.0,
-      "duration_s": 581.0,
+      "duration_s": 5537.0,
       "command": "exchange",
       "args": {
         "target": "delay_1",
         "reagent": "carrier_oil",
-        "volume_ul": 21.5,
+        "volume_ul": 4.68,
         "washes": 1,
-        "flow_ul_min": 3.107
+        "flow_ul_min": 0.071
       },
-      "narration": "Prime the board with oil before anything aqueous goes in. Do this first and always: the walls have to be oil-wetted for water-in-oil to work at all, and an aqueous stream that touches a dry wall first will wet it and keep wetting it. Getting this order right, and seeing what happens when you do not, is half the point of running the board.",
+      "narration": "Prime the board with oil before anything aqueous goes in. Do this first and always: the walls have to be oil-wetted for water-in-oil to work at all, and an aqueous stream that touches a dry wall first will wet it and keep wetting it. Getting this order right, and seeing what happens when you do not, is half the point of running the board. This is a FILL, not a sweep: the board arrives dry, so there is nothing in delay_1 to clear and no exchange target to reach - the step just has to displace air. One lane volume, 4.68 uL, is what the serpentine holds; the junctions and channels upstream of it add about 3.62 uL, so in practice you keep pushing until oil comes out of out_caps and no timer decides it. Sized at 21.5 uL (the chamber's old bounding-box volume_ul) this step claimed to put four and a half lane volumes of oil into a 4.68 uL lane.",
       "protocol_step": 1
     },
     {
-      "t_s": 581.0,
-      "duration_s": 780.0,
+      "t_s": 5537.0,
+      "duration_s": 778.0,
       "command": "encapsulate",
       "args": {
         "target": "xj_1",
-        "core_flow_ul_h": 19.9,
-        "shell_flow_ul_h": 19.9,
-        "oil_flow_ul_h": 146.5,
-        "capsules": 3757
+        "core_flow_ul_h": 0.4,
+        "shell_flow_ul_h": 0.4,
+        "oil_flow_ul_h": 3.3,
+        "capsules": 79
       },
-      "narration": "Start the two dye streams and the oil, and let the junction settle. Expect a minute or two of ragged, uneven droplets before it locks into a steady drip: that is normal, and it is the syringe pump and the tubing settling rather than the chip. NO CELLS GO ON THIS BOARD - both aqueous streams are dye, because this is a geometry demo and not the pipeline's encapsulator. The orifice is 300 um wide by 150 um deep, so droplets are confined by the depth: treat 150 um as an INDICATIVE bound, not a prediction. At about 6.26 droplets per second the demo batch of 3,757 droplets takes about 10 min.",
+      "narration": "Start the two dye streams and the oil, and let the junction settle. Expect a minute or two of ragged, uneven droplets before it locks into a steady drip: that is normal, and it is the syringe pump and the tubing settling rather than the chip. NO CELLS GO ON THIS BOARD - both aqueous streams are dye, because this is a geometry demo and not the pipeline's encapsulator. The orifice is 300 um wide by 150 um deep, so droplets are confined by the depth: treat 150 um as an INDICATIVE bound, not a prediction. At about 0.13 droplets per second the demo batch of 79 droplets takes about 10 min.",
       "protocol_step": 2
     },
     {
-      "t_s": 1361.0,
+      "t_s": 6315.0,
       "duration_s": 120.0,
       "command": "hold_temp",
       "args": {
@@ -75,7 +75,7 @@
       "protocol_step": 3
     },
     {
-      "t_s": 1481.0,
+      "t_s": 6435.0,
       "duration_s": 600.0,
       "command": "release",
       "args": {

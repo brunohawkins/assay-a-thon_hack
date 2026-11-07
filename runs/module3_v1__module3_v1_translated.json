@@ -4,7 +4,7 @@
   "chip_id": "module3_v1_translated",
   "chip_spec": "chip/module3_v1_translated.json",
   "operator": "planner",
-  "created_at": "2026-11-07T17:52:55Z",
+  "created_at": "2026-11-07T22:45:17Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": 650000,
@@ -32,11 +32,11 @@
     ],
     "swollen_diameter_um": 140.0
   },
-  "total_duration_s": 12746.0,
+  "total_duration_s": 5072.0,
   "events": [
     {
       "t_s": 0.0,
-      "duration_s": 214.0,
+      "duration_s": 39.0,
       "command": "load",
       "args": {
         "target": "main_trap",
@@ -46,22 +46,22 @@
       "protocol_step": 1
     },
     {
-      "t_s": 214.0,
-      "duration_s": 1068.0,
+      "t_s": 39.0,
+      "duration_s": 179.0,
       "command": "exchange",
       "args": {
         "target": "main_trap",
         "reagent": "lysis_buffer",
-        "volume_ul": 38.443,
-        "washes": 5,
-        "flow_ul_min": 10.8,
+        "volume_ul": 177.037,
+        "washes": 1,
+        "flow_ul_min": 59.4,
         "waste": "lysis_waste"
       },
-      "narration": "Lyse the cells in the capsules: push lysis buffer through the bed to its own dedicated waste line, which never meets the other waste. 5 fills of one chamber volume each, so the bed is fully exchanged.",
+      "narration": "Lyse the cells in the capsules: push lysis buffer through the bed to its own dedicated waste line, which never meets the other waste. SWEEP: 4.6 chamber volumes, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V)), so the bed is fully exchanged.",
       "protocol_step": 2
     },
     {
-      "t_s": 1282.0,
+      "t_s": 218.0,
       "duration_s": 600.0,
       "command": "hold_temp",
       "args": {
@@ -73,37 +73,37 @@
       "protocol_step": 3
     },
     {
-      "t_s": 1882.0,
-      "duration_s": 3204.0,
+      "t_s": 818.0,
+      "duration_s": 179.0,
       "command": "exchange",
       "args": {
         "target": "main_trap",
         "reagent": "wash_buffer",
-        "volume_ul": 38.443,
-        "washes": 15,
-        "flow_ul_min": 10.8,
+        "volume_ul": 177.037,
+        "washes": 1,
+        "flow_ul_min": 59.4,
         "waste": "waste"
       },
-      "narration": "Wash out the lysis buffer through the retention gap to the wash waste: 3 rounds of 5 fills of one chamber volume each, since carryover would inhibit the next step.",
+      "narration": "Wash out the lysis buffer through the retention gap to the wash waste, since carryover would inhibit the next step. SWEEP: 4.6 chamber volumes, the 99% exchange goal for a well-mixed chamber. This used to ask for 15 chamber volumes, which no contract value implied and which needed more wash buffer than a reservoir holds.",
       "protocol_step": 4
     },
     {
-      "t_s": 5086.0,
-      "duration_s": 214.0,
+      "t_s": 997.0,
+      "duration_s": 39.0,
       "command": "exchange",
       "args": {
         "target": "main_trap",
         "reagent": "rt_mix",
         "volume_ul": 38.443,
         "washes": 1,
-        "flow_ul_min": 10.8,
+        "flow_ul_min": 59.4,
         "waste": "waste"
       },
-      "narration": "Fill the trap with the reverse-transcription mix, which carries a plain poly(dT) primer: no barcode and no UMI are added here, because the cells already carry their per-lane barcode from module 1. One chamber volume, so the bed is covered and no more is spent.",
+      "narration": "Fill the trap with the reverse-transcription mix, which carries a plain poly(dT) primer: no barcode and no UMI are added by reverse transcription itself. The per-cell barcode comes from the NEXT stage (protocols/sctip_spc_v1.json), where each capsule is re-injected into its own oil droplet and a single barcode molecule is clonally amplified there and overlap-extended onto this cDNA, so the data is single-cell. The per-lane label from module 1 and module 4's sublibrary index are for demultiplexing, not resolution. FILL: one chamber volume, so the bed is covered and no more is spent. It is a fill and not a sweep - the wash before it already cleared the trap - so it is bounded above by the chamber, not below by the sweep rule.",
       "protocol_step": 5
     },
     {
-      "t_s": 5300.0,
+      "t_s": 1036.0,
       "duration_s": 3600.0,
       "command": "hold_temp",
       "args": {
@@ -115,38 +115,38 @@
       "protocol_step": 6
     },
     {
-      "t_s": 8900.0,
-      "duration_s": 3204.0,
+      "t_s": 4636.0,
+      "duration_s": 179.0,
       "command": "exchange",
       "args": {
         "target": "main_trap",
         "reagent": "wash_buffer",
-        "volume_ul": 38.443,
-        "washes": 15,
-        "flow_ul_min": 10.8,
+        "volume_ul": 177.037,
+        "washes": 1,
+        "flow_ul_min": 59.4,
         "waste": "waste"
       },
-      "narration": "Wash the reverse-transcription mix out through the retention gap to the wash waste, leaving cDNA inside the capsules: 3 rounds of 5 fills of one chamber volume each.",
+      "narration": "Wash the reverse-transcription mix out through the retention gap to the wash waste, leaving cDNA inside the capsules. SWEEP: 4.6 chamber volumes, the 99% exchange goal for a well-mixed chamber.",
       "protocol_step": 7
     },
     {
-      "t_s": 12104.0,
-      "duration_s": 214.0,
+      "t_s": 4815.0,
+      "duration_s": 179.0,
       "command": "exchange",
       "args": {
         "target": "main_trap",
         "reagent": "resuspension_buffer",
-        "volume_ul": 38.443,
+        "volume_ul": 177.037,
         "washes": 1,
-        "flow_ul_min": 10.8,
+        "flow_ul_min": 59.4,
         "direction": "backflush"
       },
-      "narration": "Back-flush the trap through backflush_in: liquid pushed up through the retention gap lifts the capsules off it and sweeps them towards the capsule outlet.",
+      "narration": "Back-flush the trap through backflush_in: liquid pushed up through the retention gap lifts the capsules off it and sweeps them towards the capsule outlet. SWEEP, and sized like one: the bed comes off as exp(-2V) in chamber volumes V, so one chamber volume lifts only 86% against the 95% back-flush target, which is what this step used to ask for. 4.6 chamber volumes at 59.4 uL/min, which is above the 30 uL/min lift flow the bed needs to leave the weir at all.",
       "protocol_step": 8
     },
     {
-      "t_s": 12318.0,
-      "duration_s": 428.0,
+      "t_s": 4994.0,
+      "duration_s": 78.0,
       "command": "release",
       "args": {
         "target": "main_trap",

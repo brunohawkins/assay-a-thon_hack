@@ -24,10 +24,13 @@ from __future__ import annotations
 import math
 
 import optimizer
+import planner
 import safety
 from model import CARRIER, ModelParams, ProcessModel
 from state import ChipState
 
+# Which args go into the run file's event for each command, in the order of
+# contracts/schemas/commands.schema.json (an event is validated against it).
 EVENT_ARG_KEYS = {
     "load": ("target", "volume_ul"),
     "exchange": ("target", "reagent", "volume_ul", "washes", "flow_ul_min", "direction"),
@@ -35,7 +38,14 @@ EVENT_ARG_KEYS = {
     "release": ("target", "reagent"),
     "split": ("source", "targets"),
     "pool": ("sources", "target"),
+    "culture": ("targets", "reagents", "factors", "duration_s", "exchange_interval_s", "volume_ul",
+                "flow_ul_min", "temp_c"),
+    "collect": ("targets", "volume_ul"),
+    "harvest": ("targets", "reagent"),
 }
+
+# Which sensor a model refit is evidence FROM, so distrusting that sensor can undo it.
+FIT_SENSOR = {"mesh_resistance": "pressure_kpa", "chamber_volume_ul": "outlet_absorbance"}
 
 
 class Controller:
@@ -52,8 +62,21 @@ class Controller:
         self.believed = ChipState.from_chip_spec(chip, self.params, reagents=reagents,
                                                  reservoirs_ul=self.scenario.get("reservoirs_ul"), label="believed")
         self.initial_reservoirs = dict(self.believed.reservoirs_ul)
+        # The run's own parameters (e.g. variant = control | interaction). Without these the
+        # safety checker's variant rules cannot fire at all, which is how a closed-loop run
+        # on a control chip used to be approved by a checker that never saw the variant.
+        self.run_params = planner.run_params_for(chip, self.scenario.get("run_parameters"))
+        # Chambers whose contents are deliberately killed later in the protocol, and when:
+        # a rinse before that step is a PRE-LYSIS rinse and has its own shear ceiling.
+        self.lyse_steps = self._lyse_steps(protocol)
         caps = adapter.capabilities()
         self.trusted = set(caps.get("sensors", []))
+        # Some adapters answer read_sensors() with the model's own predictions (the dry run
+        # does). Those are NOT measurements: they must never be fused into belief, refit the
+        # model or be printed in a column called "measured".
+        self.readings_are_predictions = bool(caps.get("readings_are_predictions"))
+        if self.readings_are_predictions:
+            self.trusted = set()
         self.loop = "closed" if self.trusted else "open"
         p = self.params["parameters"]
         self.error_threshold = p["control.error_threshold"]["value"]
@@ -68,6 +91,8 @@ class Controller:
         self.model_updates: list[dict] = []
         self.transcript: list[dict] = []      # every operator action, tool-call style
         self.last_measurement: dict = {}
+        self.fits: list[dict] = []            # model refits, with the sensor each rests on
+        self.conservation_fixes: list[dict] = []
         self.status = "running"
         self.status_reason = ""
         self.current_step: int | None = None
@@ -75,6 +100,30 @@ class Controller:
         self.recoveries = 0
         # Absorbance evidence accumulates over an exchange: (target, reagent, c at start, volume since).
         self._anchor: dict | None = None
+
+    @staticmethod
+    def _lyse_steps(protocol: dict) -> dict:
+        """chamber -> the first step number at which its contents are deliberately killed."""
+        out: dict[str, int] = {}
+        for s in protocol["steps"]:
+            name = str(s.get("reagent") or "").lower()
+            if any(w in name for w in safety.LYSE_WORDS):
+                for t in [s.get("target")] + list(s.get("targets") or []):
+                    if t:
+                        out.setdefault(t, s["step"])
+        return out
+
+    def _lyse_ahead(self, step_no: int | None, args: dict) -> bool:
+        """True when this command acts on a chamber that is lysed at or after this step."""
+        targets = [t for t in [args.get("target")] + list(args.get("targets") or []) if t]
+        at = step_no if step_no is not None else -1
+        return any(t in self.lyse_steps and at <= self.lyse_steps[t] for t in targets)
+
+    def _check(self, command: str, args: dict, step_no: int | None = None):
+        """Every safety check in this class goes through here, so no call site can forget
+        the run parameters (rule 7) or the pre-lysis context (rule 9)."""
+        return safety.check(command, args, self.believed, self.chip, self.model,
+                            run_params=self.run_params, lyse_ahead=self._lyse_ahead(step_no, args))
 
     # ------------------------------------------------------------------ logging
 
@@ -109,7 +158,8 @@ class Controller:
         self.current_step = step_no
         self.record_call("plan_step", {"step": step_no}, explanation)
         goal = optimizer.goal_for_step(step, self.chip)
-        plan = optimizer.plan_step(goal, self.believed, self.model, self.chip)
+        plan = optimizer.plan_step(goal, self.believed, self.model, self.chip, run_params=self.run_params,
+                                   lyse_ahead=self._lyse_ahead(step_no, goal.get("args") or goal))
         self.plans[step_no] = plan
         chosen = plan["args"]
         msg = (f"step {step_no}: chose {self._describe(plan['command'], chosen)}; predicted {plan['predicted']}"
@@ -123,7 +173,7 @@ class Controller:
         if not plan["feasible"]:
             self._log("blocked", f"step {step_no}: nothing to execute (no safe plan)", step_no)
             return {"status": "no_safe_plan"}
-        verdict = safety.check(plan["command"], plan["args"], self.believed, self.chip, self.model)
+        verdict = self._check(plan["command"], plan["args"], step_no)
         self._log("safety", f"{verdict.status}: {self._describe(plan['command'], plan['args'])}"
                   + (f" ({'; '.join(verdict.reasons)})" if verdict.reasons else ""), step_no, safety=verdict.to_dict(),
                   explanation=explanation)
@@ -148,12 +198,13 @@ class Controller:
         goal = {"step": self.current_step, "operation": "exchange", "kind": "backflush", "target": chamber,
                 "reagent": reagent, "volume_ul": round(2 * self.model.params.chamber_volume_ul[chamber], 1),
                 "fraction": optimizer._param("backflush.target_fraction")}
-        plan = optimizer.plan_step(goal, self.believed, self.model, self.chip)
+        plan = optimizer.plan_step(goal, self.believed, self.model, self.chip, run_params=self.run_params,
+                                   lyse_ahead=self._lyse_ahead(self.current_step, goal))
         self._log("plan", f"recovery back-flush of {chamber}: {self._describe(plan['command'], plan['args'] or {})}",
                   plan=plan, explanation=explanation)
         if not plan["feasible"]:
             return {"status": "no_safe_plan"}
-        verdict = safety.check(plan["command"], plan["args"], self.believed, self.chip, self.model)
+        verdict = self._check(plan["command"], plan["args"], self.current_step)
         self._log("safety", f"{verdict.status}: recovery back-flush", safety=verdict.to_dict(), explanation=explanation)
         if verdict.status == "blocked":
             return {"status": "blocked", "reasons": verdict.reasons}
@@ -180,14 +231,39 @@ class Controller:
     def distrust_sensor(self, sensor: str, reason: str) -> dict:
         self.record_call("distrust_sensor", {"sensor": sensor}, reason)
         self.trusted.discard(sensor)
+        rolled = self._rollback_fits(sensor)
         for a in self.active_alerts:
             if a["name"] == "sensor_disagreement" and a["evidence"].get("sensor") == sensor:
                 a["resolved_by"] = "distrust_sensor"
         self.active_alerts = [a for a in self.active_alerts
                               if not (a["name"] == "sensor_disagreement" and a["evidence"].get("sensor") == sensor)]
-        self._log("model_update", f"distrusting sensor {sensor}; falling back to the model for it ({reason})",
-                  sensor=sensor)
-        return {"status": "ok", "trusted_sensors": sorted(self.trusted)}
+        self._log("model_update", f"distrusting sensor {sensor}; falling back to the model for it ({reason})"
+                  + (f"; rolled back {len(rolled)} model update(s) that rested on it: "
+                     + ", ".join(rolled) if rolled else ""), sensor=sensor, rolled_back=rolled)
+        return {"status": "ok", "trusted_sensors": sorted(self.trusted), "model_rolled_back": rolled}
+
+    def _rollback_fits(self, sensor: str) -> list[str]:
+        """Undo every model refit that rested on `sensor`, newest first.
+
+        A distrusted sensor's readings were never evidence, so the parameters they moved
+        have to go back. Without this a stuck or wild pressure sensor left mesh_resistance
+        permanently too low, the safety checker went on under-predicting mesh pressure from
+        that moment, and it would approve flows above capsule.escape_pressure_kpa - with
+        the sensor now distrusted, nothing left to catch it.
+        """
+        rolled = []
+        keep = []
+        for fit in reversed(self.fits):
+            if fit["sensor"] != sensor:
+                keep.append(fit)
+                continue
+            getattr(self.model.params, fit["attr"])[fit["key"]] = fit["old"]
+            rolled.append(f"{fit['attr']}[{fit['key']}] back to {fit['old']:.4g}")
+            self._model_update(f"{fit['attr']}[{fit['key']}]", fit["new"], fit["old"], fit["unit"],
+                               f"rolled back: it was fitted from {sensor}, which is no longer trusted",
+                               sensor=sensor, record_fit=False)
+        self.fits = list(reversed(keep))
+        return rolled
 
     # ------------------------------------------------------------------ execution
 
@@ -202,6 +278,18 @@ class Controller:
             return f"{command} {args.get('volume_ul', 0):g} uL at {args.get('flow_ul_min', 0):g} uL/min"
         if command == "hold_temp":
             return f"hold {args['temp_c']:g} C for {args['duration_s']:g} s (ramp {args.get('ramp_c_per_s', 1):g} C/s)"
+        if command == "culture":
+            return (f"culture {', '.join(args.get('targets', []))} at {args['temp_c']:g} C for "
+                    f"{args['duration_s']:g} s, {args['volume_ul']:g} uL of medium every "
+                    f"{args['exchange_interval_s']:g} s at {args['flow_ul_min']:g} uL/min")
+        if command == "collect":
+            return f"collect {args['volume_ul']:g} uL from {', '.join(args.get('targets', []))}"
+        if command == "harvest":
+            return f"harvest {', '.join(args.get('targets', []))} with {args.get('reagent')}"
+        if command == "split":
+            return f"split {args.get('source')} into {', '.join(args.get('targets', []))}"
+        if command == "pool":
+            return f"pool {', '.join(args.get('sources', []))} into {args.get('target')}"
         return command
 
     def _true(self) -> ChipState | None:
@@ -315,19 +403,28 @@ class Controller:
             self._anchor["volume"] += sl["volume_ul"]
         pred_state, pred = self.model.predict(before, command, sl)
         self.adapter.send(command, sl, wash_start=wash_start)
-        meas = {k: v for k, v in self.adapter.read_sensors().items() if k in self.trusted}
+        readings = self.adapter.read_sensors()
+        predicted_readings = readings if self.readings_are_predictions else {}
+        meas = {} if self.readings_are_predictions else {k: v for k, v in readings.items() if k in self.trusted}
         self.last_measurement = meas
         true = self._true()
         believed = self._fuse(pred_state, pred, meas, command, sl, target, before)
         errors = self._errors(pred, meas, before, target)
-        updates = self._update_model(command, sl, pred, meas, before, target, errors)
         self.believed = believed
-        if updates:  # re-predict this slice's end state with the corrected model, keeping measurements
-            for u in updates:
-                seg["model_updates"].append(u)
+
+        # The monitor runs BEFORE the model is refitted. It used to run after, so a stuck or
+        # wild sensor had already been fitted into mesh_resistance by the time the
+        # disagreement was raised, and nothing ever took that back.
         alerts = self.monitor.check(self, command, sl, pred, meas, target) if self.monitor else []
         for a in alerts:
             seg["alerts"].append(a)
+        doubted = {a["evidence"].get("sensor") for a in alerts if a["name"] == "sensor_disagreement"}
+        fit_meas = {k: v for k, v in meas.items() if k not in doubted and k in self.trusted}
+        fit_errors = {k: v for k, v in errors.items() if k not in doubted}
+        updates = self._update_model(command, sl, pred, fit_meas, before, target, fit_errors)
+        if updates:  # re-predict this slice's end state with the corrected model, keeping measurements
+            for u in updates:
+                seg["model_updates"].append(u)
         if command in ("exchange", "load", "release"):
             seg["volume_done"] += sl["volume_ul"]
         t_chamber = true.chambers[target] if (true and target in true.chambers) else None
@@ -336,7 +433,12 @@ class Controller:
             "flow_ul_min": sl.get("flow_ul_min"), "volume_ul": round(sl.get("volume_ul", 0.0), 4),
             "predicted": {"pressure_kpa": round(pred["pressure_kpa"], 4), "outlet_absorbance": _r(pred["outlet_absorbance"]),
                           "temp_c": _r(pred["temp_c"])},
+            # "measured" holds readings from instruments only. An adapter that answers with
+            # the model's own predictions (the dry run) gets its own, clearly named field:
+            # printing those under "measured" was the model agreeing with itself.
             "measured": {k: v for k, v in meas.items()},
+            "readings_source": "model_prediction" if self.readings_are_predictions else "sensors",
+            **({"model_readings": dict(predicted_readings)} if predicted_readings else {}),
             "true": None if t_chamber is None else {"pressure_kpa": round(t_chamber.pressure_kpa, 4),
                                                     "outlet_absorbance": round(t_chamber.concentration, 4),
                                                     "temp_c": round(t_chamber.temp_c, 3)},
@@ -367,15 +469,36 @@ class Controller:
             else:
                 s.waste_ul -= delta
         if "capsules_counted" in meas:
+            # A counter correction can only MOVE capsules between compartments: it cannot
+            # make them, and it cannot take out more than a compartment holds. Unclamped,
+            # one noisy count pushed capsules_lost negative or collected more capsules than
+            # were ever loaded, and the recovery percentage in the report was then
+            # arithmetic on an impossible chip.
             counted = meas["capsules_counted"]
             if command == "release":
-                s.capsules_collected += counted - pred["capsules_out_collection"]
-                ch.capsules_suspended -= counted - pred["capsules_out_collection"]
+                delta = counted - pred["capsules_out_collection"]
+                delta = max(-s.capsules_collected, min(delta, ch.capsules_suspended))
+                s.capsules_collected += delta
+                ch.capsules_suspended -= delta
             elif command in ("exchange", "load"):
                 extra = counted - pred["capsules_out_waste"]
+                extra = max(-s.capsules_lost, min(extra, ch.capsules_on_mesh))
                 s.capsules_lost += extra
-                ch.capsules_on_mesh = max(0.0, ch.capsules_on_mesh - extra)
+                ch.capsules_on_mesh -= extra
+        self._enforce_conservation(s, command)
         return s
+
+    def _enforce_conservation(self, s: ChipState, command: str) -> None:
+        """Keep the believed chip possible: loaded == on a mesh + suspended + collected + lost."""
+        fixes = s.enforce_conservation()
+        problem = s.conservation_problem()
+        if fixes or problem:
+            entry = {"t_s": round(s.clock_s, 2), "command": command, "fixes": fixes, "problem": problem}
+            self.conservation_fixes.append(entry)
+            message = ("capsule count would not add up after " + command
+                       + (f": {problem}" if problem else "")
+                       + (f"; corrected {', '.join(fixes)}" if fixes else ""))
+            self._log("model_update", message, **entry)
 
     def _errors(self, pred: dict, meas: dict, before: ChipState, target: str) -> dict:
         err = {}
@@ -410,7 +533,8 @@ class Controller:
                 p.mesh_resistance[target] = new
                 updates.append(self._model_update(f"mesh_resistance[{target}]", old, new, "kPa per uL/min",
                                                   f"pressure {meas['pressure_kpa']:.2f} kPa vs predicted {pred['pressure_kpa']:.2f} "
-                                                  f"({100 * errors['pressure_kpa']:+.0f}%)"))
+                                                  f"({100 * errors['pressure_kpa']:+.0f}%)",
+                                                  sensor="pressure_kpa", attr="mesh_resistance", key=target))
         a = self._anchor
         if command == "exchange" and a and "outlet_absorbance" in errors and abs(errors["outlet_absorbance"]) > self.error_threshold:
             c0, c1, v = a["c0"], meas["outlet_absorbance"], a["volume"]
@@ -422,26 +546,36 @@ class Controller:
                     p.chamber_volume_ul[target] = new
                     updates.append(self._model_update(f"chamber_volume_ul[{target}]", old, new, "uL",
                                                       f"outlet absorbance {c1:.3f} after {v:.0f} uL: leftover old liquid "
-                                                      f"{100 * errors['outlet_absorbance']:+.0f}% vs the model since the exchange began"))
+                                                      f"{100 * errors['outlet_absorbance']:+.0f}% vs the model since the exchange began",
+                                                      sensor="outlet_absorbance", attr="chamber_volume_ul", key=target))
         return updates
 
-    def _model_update(self, param: str, old: float, new: float, unit: str, reason: str) -> dict:
+    def _model_update(self, param: str, old: float, new: float, unit: str, reason: str,
+                      sensor: str | None = None, attr: str | None = None, key: str | None = None,
+                      record_fit: bool = True) -> dict:
         u = {"t_s": round(self.believed.clock_s, 2), "param": param, "old": round(old, 5), "new": round(new, 5),
              "unit": unit, "reason": reason}
+        if sensor:
+            u["sensor"] = sensor
         self.model_updates.append(u)
+        if record_fit and sensor and attr and key is not None:
+            # Keep what this refit rested on, so distrusting that sensor can undo it.
+            self.fits.append({"sensor": sensor, "attr": attr, "key": key, "old": old, "new": new, "unit": unit})
         self._log("model_update", f"{param}: {old:.4g} -> {new:.4g} {unit} ({reason})", **u)
         return u
 
     def _replan(self, step_no: int, plan: dict):
         """Re-plan the rest of a step after a model update. False = keep going; None = no safe plan."""
         goal = plan["goal"]
-        new = optimizer.plan_step(goal, self.believed, self.model, self.chip)
+        new = optimizer.plan_step(goal, self.believed, self.model, self.chip, run_params=self.run_params,
+                                  lyse_ahead=self._lyse_ahead(step_no, goal.get("args") or goal))
         if not new["feasible"]:
             self._log("blocked", f"step {step_no}: after the model update no safe plan meets the goal", step_no)
             return None
         old_a, new_a = plan["args"], new["args"]
         same = (new_a.get("flow_ul_min") == old_a.get("flow_ul_min")
-                and abs(new_a["volume_ul"] * new_a.get("washes", 1) - old_a["volume_ul"] * old_a.get("washes", 1)) < 1e-6)
+                and abs((new_a.get("volume_ul") or 0) * (new_a.get("washes") or 1)
+                        - (old_a.get("volume_ul") or 0) * (old_a.get("washes") or 1)) < 1e-6)
         if same:
             return False
         new["replanned_from"] = {k: old_a.get(k) for k in ("flow_ul_min", "volume_ul", "washes")}
@@ -461,7 +595,9 @@ class Controller:
     def _step_result(self, step_no: int) -> dict:
         step = self.steps[step_no]
         t = self._true()
-        target = step["target"]
+        # A step names its chamber in "target" or in "targets" (culture, collect, harvest):
+        # indexing "target" alone raised KeyError on every step of the second kind.
+        target = step.get("target") or (list(step.get("targets") or []) or [self._main_chamber()])[0]
         out = {"believed": self.believed.summary(target)}
         if t:
             out["true"] = t.summary(target)
@@ -473,10 +609,25 @@ class Controller:
         b = self.believed
         wash_steps = [n for n, s in self.steps.items() if s["operation"] == "exchange" and s.get("direction") != "backflush"]
         last_wash = max([n for n in wash_steps if n in self.step_results], default=None)
+        counted = "capsules_counted" in self.trusted
         res = {"status": self.status, "status_reason": self.status_reason, "loop": self.loop,
                "duration_s": round(b.clock_s, 1), "alerts": len(self.alerts), "recoveries": self.recoveries,
                "model_updates": len(self.model_updates),
-               "alert_names": sorted({a["name"] for a in self.alerts})}
+               "alert_names": sorted({a["name"] for a in self.alerts}),
+               "trusted_sensors": sorted(self.trusted),
+               # Where the believed column comes from, so a reader never has to guess
+               # whether a number was measured. In an open-loop run nothing was.
+               "believed_basis": ("model only: no sensor was on, so every believed number is a PREDICTION"
+                                  if not self.trusted else
+                                  "model corrected by " + ", ".join(sorted(self.trusted))),
+               "capsule_recovery_basis": (
+                   "ASSUMED: the denominator is the capsules the chip spec says were loaded "
+                   "(capsule.count - they were never counted), and the numerator is "
+                   + ("the outlet counter's count" if counted else
+                      "the MODEL's prediction of how many came out (no capsule counter was on)")),
+               "conservation": {"checks_failed": len(self.conservation_fixes),
+                                "believed_unaccounted": round(b.conservation_error(), 2),
+                                "invariant": "capsules_loaded == on a mesh + suspended + collected + lost"}}
 
         def side(state: ChipState | None) -> dict | None:
             if state is None:
@@ -485,8 +636,11 @@ class Controller:
             used = {r: round(self.initial_reservoirs.get(r, 0) - v, 2) for r, v in state.reservoirs_ul.items()
                     if r in self.initial_reservoirs}
             return {"capsule_recovery_pct": round(100 * state.capsules_collected / loaded, 2) if state.capsules_loaded else None,
+                    "capsule_recovery_is_assumed": state.label != "true",
                     "capsules_collected": round(state.capsules_collected), "capsules_lost": round(state.capsules_lost),
                     "capsules_on_mesh": round(state.chambers[cid].capsules_on_mesh),
+                    "capsules_loaded": round(state.capsules_loaded),
+                    "capsules_unaccounted": round(state.conservation_error(), 2),
                     "reagent_used_ul": used, "waste_ul": round(state.waste_ul, 2), "collection_ul": round(state.collection_ul, 2)}
 
         res["believed"] = side(b)

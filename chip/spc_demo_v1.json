@@ -159,8 +159,13 @@
         0.15
       ],
       "mesh_pore_um": null,
-      "volume_ul": 21.5,
-      "note": "Serpentine residence and observation line. The footprint is 11 x 13 mm; the folded path inside it is about 104 mm of 0.3 mm channel at 0.7 mm pitch (0.4 mm wall between 0.3 mm lanes, the wall floor), which is about 20 s at the design flow. This is the window you film: even spacing and even size is the whole result. It is NOT a cure window, and on this board there is nothing to cure - it is run with dye.",
+      "volume_ul": 4.68,
+      "mixer": {
+        "kind": "serpentine",
+        "channel_width_mm": 0.3,
+        "length_mm": 104
+      },
+      "note": "Serpentine residence and observation line. The footprint is 11 x 13 mm; the folded path inside it is 104 mm of 0.3 mm channel at 0.7 mm pitch (0.4 mm wall between 0.3 mm lanes, the wall floor). FOOTPRINT IS NOT CROSS-SECTION, and this chamber had both of its numbers wrong because of that. volume_ul was 21.5 uL, which is the 11 x 13 x 0.15 mm BOUNDING BOX; the walls between the lanes are solid, so the liquid only ever occupies the lane, and 104 x 0.3 x 0.15 mm is 4.68 uL - 4.6x less. Wall shear was taken on the 13 mm footprint width instead of the 0.3 mm lane as well, and tau = 6*mu*Q/(w*h^2) goes as 1/w, so it read 43x low and the flow derived from it was 43x too high. The lane is now declared as a mixer block so a tool can read it instead of parsing this note: protocols/build_spc_demo.py takes both the volume and the shear width from there. This is the window you film: even spacing and even size is the whole result. It is NOT a cure window, and on this board there is nothing to cure - it is run with dye.",
       "block": "serpentine_channel"
     }
   ],

@@ -173,7 +173,8 @@ def build() -> dict:
         step["ports"] = port_state
         steps.append(step)
 
-    sweep_ul = round(V * SWEEP_CV, 3)
+    # rounded UP, never down: a sweep rounded down sits below the goal it was derived from
+    sweep_ul = math.ceil(V * SWEEP_CV * 1000) / 1000
 
     load_ul = round(V * LOAD_CV, 3)
     add("load",

@@ -175,8 +175,17 @@ class CrossChipFilter(unittest.TestCase):
 class Pipeline(unittest.TestCase):
     def test_m1b_is_superseded_and_the_pipeline_has_no_bench_step(self):
         self.assertEqual(M1B["module"]["status"], "superseded")
-        self.assertEqual(M1B["module"]["superseded_by"], "chip/module1_v1.json")
+        # The successor is read from the pipeline, not pinned: m1b was automated CELL PREP,
+        # so what replaced it is whatever chip the pipeline now runs cell prep on. Pinning a
+        # path here made this test fail when the chain was corrected from chip/module1_v1.json
+        # (culture, a different job) to the cell-prep chip.
+        successor = M1B["module"]["superseded_by"]
+        self.assertTrue((ROOT / successor).is_file(), successor)
+        self.assertNotEqual(schema_io.load_json(ROOT / successor).get("module", {}).get("status"), "superseded",
+                            f"{successor} is superseded too: the chain does not end at a shipped chip")
         (path, pipe), = schema_io.pipelines()
+        pipeline_chips = {schema_io.pipeline_chip(m)[0] for m in pipe["modules"]}
+        self.assertIn(successor, pipeline_chips, f"{successor} replaced m1b but is not in the pipeline")
         self.assertEqual(schema_io.schema_errors("pipeline", pipe), [])
         self.assertNotIn("m1b", [m["module"] for m in pipe["modules"]])
         self.assertNotIn("bench_step", path.read_text())

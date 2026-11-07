@@ -3,7 +3,7 @@
   "name": "Sublibrary split, index PCR, release and cleanup, library out (steps 15-17) - module4_v1",
   "source": "Capsule workflow: Baronas et al., Science 391, 1138 (2026), doi:10.1126/science.ady7227 (CapSeq). Split-pool barcoding with a final indexing PCR: Rosenberg AB et al., Science 2018;360:176, doi:10.1126/science.aam8999 (SPLiT-seq). Chip geometry, the interleaved fill order, the dead-volume accounting and the flows are ours.",
   "placeholder": false,
-  "description": "Steps 15: interleaved split and index pcr, on chip/module4_v1.json. Second half of a two-chip run; see protocols/build_library_out.py. Runs across two chips: module4_v1 for the interleaved split, the index PCR and the collection of the four sublibraries, then module5_v1 for the collagenase release, the bead cleanup and the library outlet. Built in the protocol sheet's order (PCR before release); published practice releases first, so that order is contested and the reasoning is in protocols/build_library_out.py. Four chambers are filled one at a time by an off-chip rotary valve in the order A B C D D C B A, twice, to keep the sublibraries even. The PCR is written out cycle by cycle. The amplified sublibraries then leave module 4 one at a time through out_sub along a shared collection spine that stays dry until amplification is over, each pushed by air rather than a chase liquid so nothing is diluted; p_vent is capped so the spine is one-way, and the worst-case carry-over from one pass to the next is 0.045 uL, 1.1% of a sublibrary. Each one then crosses to module 5's in_lib by tubing. Module 5 runs one pass per sublibrary, with an explicit dilution before the beads, no ethanol wash on chip, and ratio-based size selection left as an off-chip tube step. Reagent names are generic and the volumes, setpoints and cycle count are round placeholders to be fitted. Flows are computed from chamber geometry so that wall shear stays at or below 0.01 dyn/cm2, and every volume is a fraction of its chamber's volume_ul.",
+  "description": "Steps 15: interleaved split and index pcr, on chip/module4_v1.json. Second half of a two-chip run; see protocols/build_library_out.py. Runs across two chips: module4_v1 for the interleaved split, the index PCR and the collection of the four sublibraries, then module5_v1 for the collagenase release, the bead cleanup and the library outlet. Built in the protocol sheet's order (PCR before release); published practice releases first, so that order is contested and the reasoning is in protocols/build_library_out.py. Four chambers are filled one at a time by an off-chip rotary valve in the order A B C D D C B A, twice, to keep the sublibraries even. The PCR is written out cycle by cycle. The amplified sublibraries then leave module 4 one at a time through out_sub along a shared collection spine that stays dry until amplification is over, each pushed by air rather than a chase liquid so nothing is diluted; p_vent is capped so the spine is one-way, and the worst-case carry-over from one pass to the next is 0.045 uL, 1.1% of a sublibrary. Each one then crosses to module 5's in_lib by tubing. Module 5 runs one pass per sublibrary, with an explicit dilution before the beads, no ethanol wash on chip, and ratio-based size selection left as an off-chip tube step. Reagent names are generic and the volumes, setpoints and cycle count are round placeholders to be fitted. Every volume is a fraction of its chamber's volume_ul, and every exchange declares what it is FOR in its exchange_kind field: the index primer and the PCR mix are FILLs into a part-air-filled chamber behind a capillary stop and are bounded above by the chamber, the dilution and the bead buffer exchange are SWEEPs sized from exchange.target_fraction, and the elution is a PARTIAL because a small eluate is the point. Neither chip holds a cell attached to anything, so shear.culture_ceiling_dyn_cm2 - which contracts/parameters.json reserves for chambers of adherent cells - applies to nothing here: the capsule steps are bounded by capsule.escape_pressure_kpa across a packed bed (59.49 uL/min, against the 3.44 uL/min the culture ceiling used to impose), and the bead steps run at kinetics placeholders to be fitted on real eluates.",
   "steps": [
     {
       "step": 1,
@@ -11,10 +11,10 @@
       "target": "sub_1",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 1 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -37,10 +37,10 @@
       "target": "sub_2",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 2 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -63,10 +63,10 @@
       "target": "sub_3",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 3 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -89,10 +89,10 @@
       "target": "sub_4",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 4 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -115,10 +115,10 @@
       "target": "sub_4",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 5 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -141,10 +141,10 @@
       "target": "sub_3",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 6 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -167,10 +167,10 @@
       "target": "sub_2",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 7 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -193,10 +193,10 @@
       "target": "sub_1",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 8 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -219,10 +219,10 @@
       "target": "sub_1",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 9 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -245,10 +245,10 @@
       "target": "sub_2",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 10 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -271,10 +271,10 @@
       "target": "sub_3",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 11 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -297,10 +297,10 @@
       "target": "sub_4",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 12 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -323,10 +323,10 @@
       "target": "sub_4",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 13 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -349,10 +349,10 @@
       "target": "sub_3",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 14 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -375,10 +375,10 @@
       "target": "sub_2",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 15 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -401,10 +401,10 @@
       "target": "sub_1",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 20,
+      "duration_s": 6,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15, fill pulse 16 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
       "ports": {
         "feed": [
@@ -427,11 +427,12 @@
       "target": "sub_1",
       "reagent": "index_primer_1",
       "volume_ul": 0.6,
-      "duration_s": 15,
+      "duration_s": 1,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 3.44,
-      "note": "Step 15: one index primer into sub_1 through in_s1. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
+      "flow_ul_min": 59.49,
+      "note": "Step 15: one index primer into sub_1 through in_s1. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber. FILL, not a sweep: sub_1 is part air at this point, behind its capillary stop, and nothing drains - this adds 7.5% of the chamber's 8 uL on top of the suspension already in it, on the way to 70% full. A fill is bounded ABOVE by the chamber, never below: sweeping a chamber you are still filling would wash the index straight out of it.",
+      "exchange_kind": "fill",
       "ports": {
         "feed": [
           "in_s1"
@@ -453,11 +454,12 @@
       "target": "sub_2",
       "reagent": "index_primer_2",
       "volume_ul": 0.6,
-      "duration_s": 15,
+      "duration_s": 1,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 3.44,
-      "note": "Step 15: one index primer into sub_2 through in_s2. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
+      "flow_ul_min": 59.49,
+      "note": "Step 15: one index primer into sub_2 through in_s2. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber. FILL, not a sweep: sub_2 is part air at this point, behind its capillary stop, and nothing drains - this adds 7.5% of the chamber's 8 uL on top of the suspension already in it, on the way to 70% full. A fill is bounded ABOVE by the chamber, never below: sweeping a chamber you are still filling would wash the index straight out of it.",
+      "exchange_kind": "fill",
       "ports": {
         "feed": [
           "in_s2"
@@ -479,11 +481,12 @@
       "target": "sub_3",
       "reagent": "index_primer_3",
       "volume_ul": 0.6,
-      "duration_s": 15,
+      "duration_s": 1,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 3.44,
-      "note": "Step 15: one index primer into sub_3 through in_s3. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
+      "flow_ul_min": 59.49,
+      "note": "Step 15: one index primer into sub_3 through in_s3. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber. FILL, not a sweep: sub_3 is part air at this point, behind its capillary stop, and nothing drains - this adds 7.5% of the chamber's 8 uL on top of the suspension already in it, on the way to 70% full. A fill is bounded ABOVE by the chamber, never below: sweeping a chamber you are still filling would wash the index straight out of it.",
+      "exchange_kind": "fill",
       "ports": {
         "feed": [
           "in_s3"
@@ -505,11 +508,12 @@
       "target": "sub_4",
       "reagent": "index_primer_4",
       "volume_ul": 0.6,
-      "duration_s": 15,
+      "duration_s": 1,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 3.44,
-      "note": "Step 15: one index primer into sub_4 through in_s4. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
+      "flow_ul_min": 59.49,
+      "note": "Step 15: one index primer into sub_4 through in_s4. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber. FILL, not a sweep: sub_4 is part air at this point, behind its capillary stop, and nothing drains - this adds 7.5% of the chamber's 8 uL on top of the suspension already in it, on the way to 70% full. A fill is bounded ABOVE by the chamber, never below: sweeping a chamber you are still filling would wash the index straight out of it.",
+      "exchange_kind": "fill",
       "ports": {
         "feed": [
           "in_s4"
@@ -531,11 +535,12 @@
       "target": "sub_1",
       "reagent": "pcr_mix",
       "volume_ul": 3.68,
-      "duration_s": 90,
+      "duration_s": 6,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 3.44,
-      "note": "Step 15: PCR mix into sub_1. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
+      "flow_ul_min": 59.49,
+      "note": "Step 15: PCR mix into sub_1. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated. FILL: this is the last of the three additions and it brings the chamber to 70% of its 8 uL. Nothing leaves, so there is nothing to sweep; the bound is the chamber volume above, not the exchange goal below.",
+      "exchange_kind": "fill",
       "ports": {
         "feed": [
           "in_s1"
@@ -557,11 +562,12 @@
       "target": "sub_2",
       "reagent": "pcr_mix",
       "volume_ul": 3.68,
-      "duration_s": 90,
+      "duration_s": 6,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 3.44,
-      "note": "Step 15: PCR mix into sub_2. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
+      "flow_ul_min": 59.49,
+      "note": "Step 15: PCR mix into sub_2. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated. FILL: this is the last of the three additions and it brings the chamber to 70% of its 8 uL. Nothing leaves, so there is nothing to sweep; the bound is the chamber volume above, not the exchange goal below.",
+      "exchange_kind": "fill",
       "ports": {
         "feed": [
           "in_s2"
@@ -583,11 +589,12 @@
       "target": "sub_3",
       "reagent": "pcr_mix",
       "volume_ul": 3.68,
-      "duration_s": 90,
+      "duration_s": 6,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 3.44,
-      "note": "Step 15: PCR mix into sub_3. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
+      "flow_ul_min": 59.49,
+      "note": "Step 15: PCR mix into sub_3. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated. FILL: this is the last of the three additions and it brings the chamber to 70% of its 8 uL. Nothing leaves, so there is nothing to sweep; the bound is the chamber volume above, not the exchange goal below.",
+      "exchange_kind": "fill",
       "ports": {
         "feed": [
           "in_s3"
@@ -609,11 +616,12 @@
       "target": "sub_4",
       "reagent": "pcr_mix",
       "volume_ul": 3.68,
-      "duration_s": 90,
+      "duration_s": 6,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 3.44,
-      "note": "Step 15: PCR mix into sub_4. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
+      "flow_ul_min": 59.49,
+      "note": "Step 15: PCR mix into sub_4. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated. FILL: this is the last of the three additions and it brings the chamber to 70% of its 8 uL. Nothing leaves, so there is nothing to sweep; the bound is the chamber volume above, not the exchange goal below.",
+      "exchange_kind": "fill",
       "ports": {
         "feed": [
           "in_s4"
@@ -1571,10 +1579,10 @@
       "target": "sub_1",
       "reagent": "air_chase",
       "volume_ul": 5.6,
-      "duration_s": 264,
+      "duration_s": 72,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15b, collection 1 of 4: send sublibrary A out of sub_1 through out_sub, driven by AIR at in_s1 with out_sub vented and p_vent CAPPED. Air, not a chase liquid: the sublibrary is not diluted, and it arrives at module 5 at the volume it left at. The push bursts this chamber's capillary stop and runs ch_tap_1 -> ch_spine_12 -> ch_spine_23 -> ch_spine_34 -> ch_out (2.73 uL of channel); the other three stops are untouched and dry, so the other three sublibraries stay sealed in their chambers, and the spine only ever flows toward out_sub. The spine was dry for the whole thermal profile, so no index met another while there was anything to cross-prime. What stays behind is the wetted film, not the bore: about 0.068 uL lost to the spine, and at most 0.045 uL of this pass handed to the next (1.1% of a sublibrary). That is the cross-contamination bound; it shows up as index hopping at that rate and is measurable in the reads rather than invisible. Hold the air on for 60 s after the liquid has left to clear the route.",
       "ports": {
         "feed": [
@@ -1597,10 +1605,10 @@
       "target": "sub_2",
       "reagent": "air_chase",
       "volume_ul": 5.6,
-      "duration_s": 245,
+      "duration_s": 71,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15b, collection 2 of 4: send sublibrary B out of sub_2 through out_sub, driven by AIR at in_s2 with out_sub vented and p_vent CAPPED. Air, not a chase liquid: the sublibrary is not diluted, and it arrives at module 5 at the volume it left at. The push bursts this chamber's capillary stop and runs ch_tap_2 -> ch_spine_23 -> ch_spine_34 -> ch_out (1.938 uL of channel); the other three stops are untouched and dry, so the other three sublibraries stay sealed in their chambers, and the spine only ever flows toward out_sub. The spine was dry for the whole thermal profile, so no index met another while there was anything to cross-prime. What stays behind is the wetted film, not the bore: about 0.048 uL lost to the spine, and at most 0.045 uL of this pass handed to the next (1.1% of a sublibrary). That is the cross-contamination bound; it shows up as index hopping at that rate and is measurable in the reads rather than invisible. Hold the air on for 60 s after the liquid has left to clear the route.",
       "ports": {
         "feed": [
@@ -1623,10 +1631,10 @@
       "target": "sub_3",
       "reagent": "air_chase",
       "volume_ul": 5.6,
-      "duration_s": 225,
+      "duration_s": 70,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15b, collection 3 of 4: send sublibrary C out of sub_3 through out_sub, driven by AIR at in_s3 with out_sub vented and p_vent CAPPED. Air, not a chase liquid: the sublibrary is not diluted, and it arrives at module 5 at the volume it left at. The push bursts this chamber's capillary stop and runs ch_tap_3 -> ch_spine_34 -> ch_out (1.146 uL of channel); the other three stops are untouched and dry, so the other three sublibraries stay sealed in their chambers, and the spine only ever flows toward out_sub. The spine was dry for the whole thermal profile, so no index met another while there was anything to cross-prime. What stays behind is the wetted film, not the bore: about 0.029 uL lost to the spine, and at most 0.045 uL of this pass handed to the next (1.1% of a sublibrary). That is the cross-contamination bound; it shows up as index hopping at that rate and is measurable in the reads rather than invisible. Hold the air on for 60 s after the liquid has left to clear the route.",
       "ports": {
         "feed": [
@@ -1649,10 +1657,10 @@
       "target": "sub_4",
       "reagent": "air_chase",
       "volume_ul": 5.6,
-      "duration_s": 206,
+      "duration_s": 69,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 3.44,
+      "flow_ul_min": 59.49,
       "note": "Step 15b, collection 4 of 4: send sublibrary D out of sub_4 through out_sub, driven by AIR at in_s4 with out_sub vented and p_vent CAPPED. Air, not a chase liquid: the sublibrary is not diluted, and it arrives at module 5 at the volume it left at. The push bursts this chamber's capillary stop and runs ch_tap_4 -> ch_out (0.354 uL of channel); the other three stops are untouched and dry, so the other three sublibraries stay sealed in their chambers, and the spine only ever flows toward out_sub. The spine was dry for the whole thermal profile, so no index met another while there was anything to cross-prime. What stays behind is the wetted film, not the bore: about 0.009 uL lost to the spine, and at most 0.045 uL of this pass handed to the next (1.1% of a sublibrary). That is the cross-contamination bound; it shows up as index hopping at that rate and is measurable in the reads rather than invisible. Hold the air on for 60 s after the liquid has left to clear the route.",
       "ports": {
         "feed": [

@@ -11,9 +11,10 @@ Every rule in this file had no test, and most have no checker either:
                       contracts/blocks.json are read by no other code and no other test.
   PORT PITCH          tools/check_chip_spec.py only WARNS, and it exits 0 on warnings, so
                       nothing fails on it. Here it is an assertion.
-  PROTOCOL VOLUMES    a LOAD must fit the chamber; an EXCHANGE must SWEEP it (at least
-                      about one chamber volume, uncapped above), and the whole protocol
-                      must fit the reagent reservoirs and the waste bottle.
+  PROTOCOL VOLUMES    a LOAD must fit the chamber, and an exchange is held to the rule for
+                      the job it declares in `exchange_kind` (sweep / partial / fill), with
+                      sweep as the strict default when the field is absent. The whole
+                      protocol must also fit the reagent reservoirs and the waste bottle.
   WALL SHEAR          against the ceiling that belongs to what the chamber HOLDS:
                       shear.culture_ceiling_dyn_cm2 for adherent cells, 
                       shear.prelysis_rinse_ceiling_dyn_cm2 for a rinse before a deliberate
@@ -28,7 +29,9 @@ here.
     python -m unittest discover -s tests -v
 """
 
+import copy
 import math
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -66,11 +69,25 @@ GAP_FACTOR_HIGH = param("trap.gap_factor_high")
 DEFAULT_DIAMETER_UM = param("capsule.diameter_um")
 RESERVOIR_UL = param("reservoir.default_ul")
 WASTE_UL = param("waste.capacity_ul")
+EXCHANGE_TARGET = param("exchange.target_fraction")
+BACKFLUSH_TARGET = param("backflush.target_fraction")
+# A well-mixed chamber keeps exp(-V) of its old liquid after V chamber volumes, so reaching
+# exchange.target_fraction takes -ln(1 - target) chamber volumes in total. Derived, not stated.
+SWEEP_VOLUMES = -math.log(1 - EXCHANGE_TARGET)
 
 # A chamber volume is often rounded DOWN when it is written into a protocol (e.g. 3.1 uL
 # into a 3.132 uL chamber), so "about one chamber volume" allows 2%. 0.5 chamber volumes
 # is not about one chamber volume.
 SWEEP_TOL = 0.02
+# What an exchange is FOR, from contracts/schemas/protocol.schema.json. ABSENCE MEANS SWEEP:
+# the strict case, so a step that forgets to declare itself is still held to the floor.
+DEFAULT_EXCHANGE_KIND = "sweep"
+EXCHANGE_KINDS = set(schema_io.load_json(ROOT / "contracts" / "schemas" / "protocol.schema.json")
+                     ["$defs"]["step"]["properties"]["exchange_kind"]["enum"])
+# A partial has to say what fraction it replaces: a percentage, a number of chamber volumes,
+# or the word half.
+FRACTION_IN_NOTE = re.compile(r"\d+(?:\.\d+)?\s*%|\d*\.?\d+\s*(?:of\s+(?:a|the)\s+)?chamber\s+volume|\bhalf\b", re.I)
+
 LYSE_WORDS = ("lysis", "lyse", "quench", "solubilisation")
 RINSE_WORDS = ("rinse",)
 CAPSULE_WORDS = ("capsule", "emulsion", "droplet", "bead")
@@ -95,6 +112,16 @@ def etch_depth_um(chip: dict) -> float:
 
 def pair_protocols(chip: dict) -> list:
     return ccs.paired_protocols(chip, [])
+
+
+def is_superseded(chip: dict) -> bool:
+    """A retired design, by its own declaration. The only shape this test file reads."""
+    return (chip.get("module") or {}).get("status") == "superseded"
+
+
+def exchange_kind(step: dict) -> str:
+    """What the step declares it is for. Absence is SWEEP, the strict default."""
+    return step.get("exchange_kind") or DEFAULT_EXCHANGE_KIND
 
 
 def first_lyse_step(steps: list) -> dict[str, int]:
@@ -146,13 +173,65 @@ class PerChip(unittest.TestCase):
                 check_chip(chip)
 
     def for_every_protocol(self, check_pair) -> None:
+        """Protocol rules run on SHIPPED chips only: a retired design's volumes describe a
+        chip we are not building, so holding its protocol to the rules buys nothing.
+
+        The decision is made from the spec's own `module.status`, never from an id or a file
+        name, it is reported as a skip rather than passing quietly, and
+        PipelineIsShipped.test_no_chip_in_the_pipeline_is_superseded stops the exemption
+        becoming a way to dodge a rule.
+        """
         pairs = 0
         for path, chip in SPECS.items():
             for proto_path, proto in pair_protocols(chip):
                 pairs += 1
                 with self.subTest(chip=str(path.relative_to(ROOT)), protocol=str(proto_path.relative_to(ROOT))):
+                    if is_superseded(chip):
+                        self.skipTest(f"{chip['id']} is module.status == 'superseded' "
+                                      f"(superseded_by {chip['module'].get('superseded_by', 'unstated')}): "
+                                      f"a retired reference design, not something we ship")
                     check_pair(chip, proto)
         self.assertTrue(pairs, "no chip/protocol pair found: the pairing through runs/ is broken")
+
+
+class PipelineIsShipped(unittest.TestCase):
+    """The guard on the superseded exemption in PerChip.for_every_protocol.
+
+    Skipping a retired design is only safe while "retired" cannot be claimed for a chip we
+    are actually building. So: every chip the pipeline names must NOT be superseded. Mark a
+    pipeline chip superseded to dodge a volume or shear rule and this fails instead.
+    """
+
+    def pipeline_chips(self):
+        (path, pipe), = schema_io.pipelines()
+        out = []
+        for m in pipe["modules"]:
+            chip_path = schema_io.pipeline_chip(m)[0]
+            if chip_path:
+                out.append((m["module"], chip_path, schema_io.load_json(ROOT / chip_path)))
+        return path, out
+
+    def test_no_chip_in_the_pipeline_is_superseded(self):
+        _, chips = self.pipeline_chips()
+        self.assertTrue(chips, "the pipeline names no chip, so nothing is being checked")
+        for module, chip_path, chip in chips:
+            with self.subTest(module=module, chip=chip_path):
+                self.assertFalse(is_superseded(chip),
+                                 f"{chip_path} is in the pipeline as {module} but declares "
+                                 f"module.status == 'superseded', which would exempt its protocol from "
+                                 f"every rule in ProtocolVolumes and ShearAndEscapePressure")
+
+    def test_every_skipped_chip_names_what_replaced_it(self):
+        # A retired design has to point at its replacement, or the skip hides a gap instead
+        # of recording a decision.
+        retired = {path: chip for path, chip in SPECS.items() if is_superseded(chip)}
+        for path, chip in retired.items():
+            with self.subTest(chip=str(path.relative_to(ROOT))):
+                successor = chip["module"].get("superseded_by")
+                self.assertTrue(successor, "superseded, but nothing says what replaced it")
+                self.assertTrue((ROOT / successor).is_file(), f"superseded_by {successor} does not exist")
+                self.assertFalse(is_superseded(schema_io.load_json(ROOT / successor)),
+                                 f"{successor} is superseded too: the chain does not end at a shipped chip")
 
 
 class OneEtchDepth(PerChip):
@@ -319,7 +398,14 @@ class FabricationFloors(PerChip):
 
 
 class ProtocolVolumes(PerChip):
-    """A LOAD fills a chamber; an EXCHANGE sweeps it. Nothing related either to volume_ul."""
+    """A LOAD fills a chamber. An exchange is held to the rule for the job it DECLARES.
+
+    `exchange_kind` (contracts/schemas/protocol.schema.json) carries what used to live only
+    in English inside `note`, where no rule could read it: a routine culture half-change and
+    a wash that failed to clear the chamber are both "half a chamber volume" to a checker
+    that cannot tell them apart. The field is optional and ABSENCE MEANS SWEEP - the strict
+    case - so an unclassified exchange is still held to the floor.
+    """
 
     def steps_with_volume(self, chip, proto, operation):
         chambers = {c["id"]: c for c in chip.get("chambers", [])}
@@ -331,6 +417,10 @@ class ProtocolVolumes(PerChip):
                 if c and c.get("volume_ul"):
                     yield s, t, float(s["volume_ul"]), float(c["volume_ul"])
 
+    def exchanges(self, chip, proto, kind):
+        """Exchange steps of one declared kind, as (step, target, volume_ul, chamber volume)."""
+        return [row for row in self.steps_with_volume(chip, proto, "exchange") if exchange_kind(row[0]) == kind]
+
     def test_no_load_overfills_its_chamber(self):
         def one(chip, proto):
             bad = [f"step {s['step']} loads {v:g} uL into '{t}' ({vc:g} uL): {v / vc:.2f} chamber volumes"
@@ -338,16 +428,77 @@ class ProtocolVolumes(PerChip):
             self.assertEqual(bad, [], f"{len(bad)} LOAD step(s) push more liquid in than the chamber holds")
         self.for_every_protocol(one)
 
-    def test_every_exchange_is_at_least_about_one_chamber_volume(self):
-        # NOT capped above: an exchange is meant to sweep several chamber volumes. But below
-        # about one, the planner cannot reach exchange.target_fraction at any wash count it
-        # will consider, so the step cannot do what it says.
+    def test_every_sweep_moves_at_least_one_chamber_volume(self):
+        # Below one chamber volume a sweep cannot clear the chamber however many times it is
+        # repeated, so this floor applies to sweeps and to undeclared exchanges. A partial is
+        # a deliberate fractional change and a fill is not clearing anything, so neither is
+        # held to it - nothing is exempted by id or by protocol name.
         def one(chip, proto):
-            bad = [f"step {s['step']} exchanges '{t}' with {v:g} uL of its {vc:g} uL ({v / vc:.2f} chamber volumes)"
-                   for s, t, v, vc in self.steps_with_volume(chip, proto, "exchange") if v < vc * (1 - SWEEP_TOL)]
-            self.assertEqual(bad[:6], [], f"{len(bad)} EXCHANGE step(s) are under one chamber volume, so they cannot "
-                                          f"sweep the chamber (target {param('exchange.target_fraction'):.0%})")
+            bad = [f"step {s['step']} sweeps '{t}' with {v:g} uL of its {vc:g} uL ({v / vc:.2f} chamber volumes); "
+                   f"exchange_kind is {s.get('exchange_kind', 'absent')!r} "
+                   f"({'absent, which means sweep' if 'exchange_kind' not in s else 'sweep'})"
+                   for s, t, v, vc in self.exchanges(chip, proto, "sweep") if v < vc * (1 - SWEEP_TOL)]
+            self.assertEqual(bad[:6], [], f"{len(bad)} sweep step(s) are under one chamber volume")
         self.for_every_protocol(one)
+
+    def test_every_sweep_reaches_the_exchange_target(self):
+        # washes x volume must be at least -ln(1 - exchange.target_fraction) chamber volumes.
+        # A backflush is excluded because its goal is a different contract value
+        # (backflush.target_fraction: lifting the capsule bed off the weir, not clearing the
+        # liquid); the one-chamber-volume floor above still applies to it.
+        def one(chip, proto):
+            bad = []
+            for s, t, v, vc in self.exchanges(chip, proto, "sweep"):
+                if s.get("direction") == "backflush":
+                    continue
+                total = v * int(s.get("washes") or 1)
+                if total < SWEEP_VOLUMES * vc * (1 - SWEEP_TOL):
+                    bad.append(f"step {s['step']} sweeps '{t}' with {s.get('washes') or 1} x {v:g} = {total:g} uL "
+                               f"({total / vc:.2f} chamber volumes), short of the {SWEEP_VOLUMES:.2f} "
+                               f"({SWEEP_VOLUMES * vc:.2f} uL) that reaches {EXCHANGE_TARGET:.0%}")
+            self.assertEqual(bad[:6], [], f"{len(bad)} sweep step(s) cannot reach exchange.target_fraction")
+        self.for_every_protocol(one)
+
+    def test_no_fill_exceeds_the_chamber_volume(self):
+        # A fill puts the reagent in, so it is bounded ABOVE by the chamber volume and has no
+        # lower bound: it is not trying to get the old liquid out.
+        def one(chip, proto):
+            bad = [f"step {s['step']} fills '{t}' with {v:g} uL of its {vc:g} uL ({v / vc:.2f} chamber volumes)"
+                   for s, t, v, vc in self.exchanges(chip, proto, "fill") if v > vc * (1 + SWEEP_TOL)]
+            self.assertEqual(bad[:6], [], f"{len(bad)} fill step(s) put in more than the chamber holds")
+        self.for_every_protocol(one)
+
+    def test_every_partial_states_the_fraction_it_replaces(self):
+        # A partial escapes the sweep floor BECAUSE it is deliberate, so it has to say what
+        # it replaces; otherwise "partial" becomes the loophole the floor was there to close.
+        def one(chip, proto):
+            bad = [f"step {s['step']} ('{t}', {v:g} of {vc:g} uL = {v / vc:.2f} chamber volumes) is partial but its "
+                   f"note names no fraction"
+                   for s, t, v, vc in self.exchanges(chip, proto, "partial")
+                   if not FRACTION_IN_NOTE.search(s.get("note") or "")]
+            self.assertEqual(bad[:6], [], f"{len(bad)} partial step(s) do not say what fraction they replace")
+        self.for_every_protocol(one)
+
+    def test_exchange_kind_is_declared_only_on_exchange_steps(self):
+        def one(chip, proto):
+            for s in proto.get("steps", []):
+                if "exchange_kind" in s:
+                    self.assertEqual(s["operation"], "exchange", f"step {s['step']}")
+                    self.assertIn(s["exchange_kind"], EXCHANGE_KINDS, f"step {s['step']}")
+        self.for_every_protocol(one)
+
+    def test_the_schema_rejects_exchange_kind_on_a_step_that_is_not_an_exchange(self):
+        """The data assertion above only holds while nobody writes it; this is the schema
+        constraint itself, so a hold_temp labelled "sweep" cannot be committed."""
+        path, proto = next((p, pr) for chip in SPECS.values() for p, pr in pair_protocols(chip)
+                           if any(s["operation"] != "exchange" for s in pr["steps"]))
+        proto = copy.deepcopy(proto)
+        victim = next(s for s in proto["steps"] if s["operation"] != "exchange")
+        for kind in sorted(EXCHANGE_KINDS):
+            victim["exchange_kind"] = kind
+            self.assertTrue(schema_io.schema_errors("protocol", proto),
+                            f"{path.name} step {victim['step']} is a {victim['operation']}, not an exchange, "
+                            f"but the schema accepts exchange_kind={kind!r} on it")
 
     def test_every_protocol_fits_the_reservoirs_and_the_waste_bottle(self):
         # reservoir.default_ul and waste.capacity_ul are contract numbers the operator
@@ -385,6 +536,7 @@ class ShearAndEscapePressure(PerChip):
     def test_the_three_ceilings_are_distinct_contract_values(self):
         self.assertLess(CULTURE_CEILING, RINSE_CEILING)
         self.assertGreater(ESCAPE_KPA, 0)
+        self.assertGreater(BACKFLUSH_TARGET, 0)
 
     def test_cells_stay_under_the_ceiling_that_applies_to_their_step(self):
         def one(chip, proto):
