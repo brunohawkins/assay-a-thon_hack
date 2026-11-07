@@ -4,7 +4,7 @@
   "chip_id": "cell_prep_v1",
   "chip_spec": "chip/cell_prep_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T16:28:01Z",
+  "created_at": "2026-11-07T16:30:52Z",
   "placeholder": false,
   "sizing": {
     "capsule_count": null,
