@@ -64,7 +64,7 @@ export function stepMode(ev) {
   return { mode: 'grow', states, flows };
 }
 
-export function createModule1View({ ctx, ui, overlays, root }) {
+export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['llm', 'scripted'] }) {
   let chip = null;
   let net = null;
   let attached = false;
@@ -80,6 +80,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
   let idleT = 0;
   let decisions = [];
   let measured = {};
+  let flagged = null;      // presenter: { ids, t } parts pulsing red (a refused request)
   const bench = Object.fromEntries(PORTS.map((p) => [p, BENCH_DEFAULT]));
   const group = new THREE.Group();
   const objs = { arrows: null, cells: null, portIcons: {}, m2: null, disc: null, discLabel: null };
@@ -120,7 +121,14 @@ export function createModule1View({ ctx, ui, overlays, root }) {
       l.element.remove();
       return false;
     });
-    chip.loadStls(`${root}cad/exports/${CHIP_ID}/`);
+    // The chamber STLs are drawn over the liquid; keep them nearly clear so the dye colours read true.
+    chip.loadStls(`${root}cad/exports/${CHIP_ID}/`).then(() => {
+      if (chip !== c) return;
+      for (const ch of c.spec.chambers) {
+        const stl = c.parts.get(ch.id)?.stl;
+        if (stl) { stl.material.opacity = 0.07; stl.material.emissiveIntensity = 0; }
+      }
+    });
     buildOverlays();
     attached = true;
     panel.hidden = false;
@@ -134,6 +142,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
 
   function detach() {
     if (!attached) return;
+    setFlag(null);
     attached = false;
     panel.hidden = true;
     tooltip.hidden = true;
@@ -152,7 +161,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
   async function loadDecisions() {
     let listing = '';
     try { listing = await (await fetch(`${root}runs/module1_v1/`, { cache: 'no-store' })).text(); } catch { return; }
-    for (const kind of ['llm', 'scripted']) {
+    for (const kind of operatorKinds) {
       if (!listing.includes(`operator_${kind}.json`)) continue;
       try {
         const res = await fetch(`${root}runs/module1_v1/operator_${kind}.json`, { cache: 'no-store' });
@@ -428,6 +437,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
     if (simDt > 0) advance(simDt);
     if (stopwatch.running) stopwatch.t += dt * (demo ? 1 : speed);
     draw();
+    if (flagged) pulseFlagged(dt);
     overlays.setStopwatch?.(demo ? { t: stopwatch.t, running: stopwatch.running } : null);
   }
 
@@ -438,6 +448,23 @@ export function createModule1View({ ctx, ui, overlays, root }) {
   }
 
   const following = (playing) => follow && playing;
+
+  // Presenter: parts named in a refused request pulse red until cleared.
+  function pulseFlagged(dt) {
+    flagged.t += dt;
+    const k = 0.5 + 0.5 * Math.sin(flagged.t * 5);
+    for (const id of flagged.ids) {
+      const part = chip?.parts.get(id);
+      if (!part?.glow) continue;
+      part.glow.visible = true;
+      part.glowMaterial.color.setRGB(0.97, 0.2, 0.2);
+      part.glowMaterial.opacity = 0.25 + 0.4 * k;
+    }
+  }
+  function setFlag(ids) {
+    for (const id of flagged?.ids ?? []) { const part = chip?.parts.get(id); if (part?.glow) part.glow.visible = false; }
+    flagged = ids?.length ? { ids, t: 0 } : null;
+  }
 
   // Protocol playback: the player says which step and how far into it.
   let lastEv = -1;
@@ -489,7 +516,9 @@ export function createModule1View({ ctx, ui, overlays, root }) {
       part.fluid.scale.z = Math.max(part.size.z * 0.96, 0.0001);
       dyeColor(conc, part.fluidMaterial.color).lerp(new THREE.Color(0x9fb4d1), 1 - a);
       part.fluidMaterial.emissive.copy(part.fluidMaterial.color);
-      part.fluidMaterial.opacity = 0.25 + 0.55 * a;
+      // A low glow keeps the dye saturated: brighter, the tone mapping washes yellow out to white.
+      part.fluidMaterial.emissiveIntensity = 0.18;
+      part.fluidMaterial.opacity = 0.3 + 0.62 * a;
     }
     // port icons
     for (const pid of PORTS) {
@@ -661,5 +690,12 @@ export function createModule1View({ ctx, ui, overlays, root }) {
     setMode: (m, flow = PROTOCOL_FEED) => { follow = false; setMode(m, flow); },
     snapSteady, advance: (s) => advance(s), setDemo(on) { demo = on; if (on) speed = 1; renderPanel(); },
     chamberColor: (id) => sim?.node[id]?.c.slice(),
+    // presenter view (twin/presenter.js)
+    reset() { if (net) { sim = newSim(); simT = 0; idleT = 0; } },   // clear medium everywhere: dye starts at the feeds
+    setSpeed(x) { speed = x; demo = false; renderPanel(); },
+    flag: setFlag,
+    check: (mode, states, flows) => safetyCheck(net, mode, states, flows, { cells: true }),
+    get decisions() { return decisions; },
+    dyeCss: (k) => `rgb(${DYE_RGB[k].map((x) => Math.round(x * 255)).join(',')})`,
   };
 }

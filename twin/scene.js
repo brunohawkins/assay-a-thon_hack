@@ -53,12 +53,13 @@ export function createScene(container) {
   // The part of the screen not covered by the header, narration panel and
   // controls. The chip is centred and fitted in there.
   function freeRect(w, h) {
-    const box = (sel) => document.querySelector(sel)?.getBoundingClientRect();
+    // Hidden elements (display: none, e.g. in the presenter view) have an all-zero box: skip them.
+    const box = (sel) => { const r = document.querySelector(sel)?.getBoundingClientRect(); return r && r.width > 0 && r.height > 0 ? r : null; };
     const top = box('.topbar')?.bottom ?? 0;
     const panel = box('.narration');
-    const controlsBox = box('.controls');
+    const controlsBox = box('.controls') ?? box('.pr-caption'); // the presenter's caption sits where the controls were
     // Any visible left-hand panel (the control-loop panel, Module 1 v1's flow panel).
-    const left = [...document.querySelectorAll('.control')].map((e) => e.getBoundingClientRect()).find((r) => r.width > 0);
+    const left = [...document.querySelectorAll('.control, .pr-card')].map((e) => e.getBoundingClientRect()).find((r) => r.width > 0);
     let leftEdge = 0;
     if (left && left.width > 0 && left.left < w / 2) leftEdge = left.right;
     let right = w;

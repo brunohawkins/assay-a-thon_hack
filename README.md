@@ -9,6 +9,17 @@ laser-cut and 3D-printed parts for the physical chip. Closed-loop runs use a
 **virtual chip** and are labelled **SIMULATED HARDWARE** everywhere; what to buy to
 run them for real is in [docs/hardware_roadmap.md](docs/hardware_roadmap.md).
 
+## Sunday demo: one command
+
+```
+python tools/demo.py        # serves the repo, opens http://localhost:8000/twin/?present
+```
+
+The **presenter view**: a guided sequence with big Next / Back buttons (a clicker, the arrow
+keys or Space work too; F for full screen), fully offline. If the laptop misbehaves, play the
+backup video [docs/demo/presenter_backup.webm](docs/demo/presenter_backup.webm). Details and
+screenshots: [docs/demo/README.md](docs/demo/README.md).
+
 ## Pipeline
 
 ```

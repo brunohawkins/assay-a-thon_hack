@@ -10,8 +10,13 @@ import { createPipeline } from './pipeline.js';
 import { createOverlays } from './overlays.js';
 import { createModule1View, CHIP_ID as M1V1 } from './module1.js';
 import { createLibraryView, LIB_CHIPS } from './library_modules.js';
+import { createPresenter } from './presenter.js';
 
 const ROOT = '../'; // serve the repo root: python -m http.server, then open /twin/
+// twin/?present: the presenter view (twin/presenter.js), also what `python tools/demo.py` opens.
+const PRESENT = new URLSearchParams(location.search).has('present');
+if (PRESENT) document.body.classList.add('presenter');
+const setUrl = (hash) => { if (!PRESENT) history.replaceState(null, '', hash); }; // the presenter keeps its own #step=N
 
 const ctx = createScene(document.getElementById('viewport'));
 let chip = null;
@@ -71,7 +76,8 @@ const control = createControlPanel({
 });
 
 const overlays = createOverlays();
-const m1 = createModule1View({ ctx, ui, overlays, root: ROOT });
+// The presenter uses the scripted operator only (a recorded LLM run is skipped): no API involved.
+const m1 = createModule1View({ ctx, ui, overlays, root: ROOT, operatorKinds: PRESENT ? ['scripted'] : ['llm', 'scripted'] });
 m1.setHandlers({ onManual: () => player.setPlaying(false) });
 const lib = createLibraryView({ panel: document.getElementById('lib-panel') });
 
@@ -216,7 +222,7 @@ async function showModule(m, file = null) {
     ui.setSizing(null);
     pipeline.refresh();
     ui.setPlaying(pipeline.playing);
-    history.replaceState(null, '', '#view=pipeline');
+    setUrl('#view=pipeline');
     return;
   }
   pipeline.hide();
@@ -336,7 +342,7 @@ async function selectRun(file) {
     // and Szonja's chips, whose own design notes size them).
     ui.setSizing(m1.isChip(chip.spec) || lib.isChip(chip.spec) || run.synthetic ? null : run.sizing ?? null);
     player.refresh(); // re-send the current event now the timeline exists
-    history.replaceState(null, '', `#run=${encodeURIComponent(entry.file)}`);
+    setUrl(`#run=${encodeURIComponent(entry.file)}`);
   } finally {
     busy = false;
     if (pendingFile) {
@@ -354,6 +360,19 @@ async function start() {
     if (!runs.length) throw new Error('runs/index.json lists no runs. Generate some: python operator/run.py --all');
     runs.push(M3_ENTRY);
     try { await loadPipelineData(); } catch (err) { console.warn(err); } // badges only: module views work without it
+    if (PRESENT) {
+      const presenter = createPresenter({
+        showModule: (m, file) => showModule(m, file),
+        pipeline, player, m1, lib, ctx,
+        get chip() { return chip; },
+        frame: () => { if (chip && !inPipeline()) ctx.frameChip(chip.footprint); },
+        preload: () => loadPipelineData(),
+      });
+      window.__presenter = presenter;
+      window.__twin.ready = true;
+      await presenter.start();
+      return;
+    }
     const params = new URLSearchParams(location.hash.slice(1));
     const wanted = decodeURIComponent(params.get('run') ?? '');
     const entry = runs.find((r) => r.file === wanted);

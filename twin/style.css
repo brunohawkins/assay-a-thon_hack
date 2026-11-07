@@ -671,3 +671,78 @@ body[data-module="pipeline"] #viewport canvas { visibility: hidden; }
 .lib-order span.done { color: var(--text); background: rgba(94, 234, 212, 0.12); }
 .lib-order span.now { color: #0b1020; background: #5eead4; }
 .pl-meta, .pl-out, .pl-conn, .pl-note, .pl-mj { overflow-wrap: anywhere; }
+
+/* ---------------------------------------------------------------- presenter view (twin/?present) */
+.pr-root { display: none; }
+body.presenter .pr-root { display: block; }
+/* No debug panels, no run picker, no playback bar: the presenter's buttons drive everything. */
+body.presenter #module-tabs, body.presenter .picker, body.presenter .topbar .views, body.presenter .controls,
+body.presenter .narration, body.presenter #m1-panel, body.presenter #m1-tooltip, body.presenter #control,
+body.presenter #toast, body.presenter #day-counter, body.presenter #stopwatch, body.presenter #alert-banner,
+body.presenter #nozzle-inset, body.presenter #operator-badge, body.presenter .pl-caption, body.presenter .pl-meta,
+body.presenter .pl-legend-note { display: none !important; }
+body.presenter .brand h1 { font-size: 24px; }
+body.presenter .topbar .badge { font-size: 15px; padding: 5px 12px; }
+body.presenter .topbar .badge.sim { font-size: 18px; padding: 6px 14px; }
+body.presenter.pr-idle, body.presenter.pr-idle * { cursor: none !important; }
+
+.pr-caption {
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 30;
+  display: flex; gap: 28px; align-items: flex-end; padding: 20px 28px;
+}
+.pr-main { flex: 1 1 auto; min-width: 0; }
+.pr-head { margin: 0 0 6px; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; font-size: 18px; color: var(--muted); }
+.pr-count { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--accent); }
+.pr-sim { text-transform: uppercase; letter-spacing: 0.08em; color: #fca5a5; font-size: 15px; font-weight: 700; }
+.pr-title { margin: 0; font-size: clamp(26px, 2.35vw, 46px); line-height: 1.15; }
+.pr-text { margin: 10px 0 0; font-size: clamp(18px, 1.42vw, 28px); line-height: 1.38; max-width: 68ch; }
+.pr-extra { margin-top: 12px; font-size: clamp(16px, 1.15vw, 22px); }
+.pr-extra:empty { display: none; }
+.pr-legend { margin: 0; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; }
+.pr-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.pr-legend i { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
+.pr-faint { color: var(--muted); }
+.pr-nav { flex: none; display: grid; grid-template-columns: auto auto; gap: 12px; }
+.pr-nav button { font-size: clamp(20px, 1.6vw, 30px); padding: 14px 30px; border-radius: 16px; min-width: 150px; }
+.pr-nav button:disabled { opacity: 0.35; cursor: default; }
+.pr-dots { grid-column: 1 / -1; list-style: none; margin: 4px 0 0; padding: 0; display: flex; gap: 10px; justify-content: center; }
+.pr-dots li { width: 14px; height: 14px; border-radius: 50%; background: rgba(148, 178, 255, 0.25); cursor: pointer; }
+.pr-dots li.done { background: rgba(94, 234, 212, 0.5); }
+.pr-dots li.now { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.pr-card { position: fixed; left: 24px; top: calc(var(--panels-top) + 8px); width: min(720px, 44vw); z-index: 30;
+  padding: 22px 26px; font-size: clamp(18px, 1.35vw, 26px); }
+.pr-card[hidden] { display: none; }
+.pr-who { margin: 0 0 4px; font-size: 0.68em; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.pr-who.pr-op { margin-top: 18px; color: var(--accent); }
+.pr-who .pr-faint { text-transform: none; letter-spacing: 0; }
+.pr-ask, .pr-answer { margin: 0; line-height: 1.38; }
+.pr-tag { margin: 16px 0 0; display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 0.78em; font-weight: 700;
+  border: 1px solid var(--panel-border); }
+.pr-tag[hidden] { display: none; }
+.pr-tag.blocked { color: #fca5a5; border-color: rgba(248, 113, 113, 0.7); background: rgba(127, 29, 29, 0.35); }
+.pr-loading { position: fixed; inset: 0; display: grid; place-items: center; font-size: 32px; color: var(--muted);
+  background: var(--bg-0); z-index: 40; }
+.pr-loading[hidden] { display: none; }
+
+/* Readable from the back of the room: labels on the chip and the Module 4 / 5 panel. */
+body.presenter .part-label { font-size: 15px; }
+body.presenter .part-label.m2-box-label { font-size: 15px; }
+body.presenter .port-icon { font-size: 15px; }
+body.presenter .port-icon svg { width: 20px; height: 20px; }
+body.presenter .temp-label { font-size: 16px; }
+body.presenter .lib-panel { width: min(440px, 30vw); bottom: calc(var(--pr-caption-h, 220px) + 32px); font-size: 17px; }
+body.presenter .lib-panel h2 { font-size: 17px; }
+body.presenter .lib-sub { display: none; }
+body.presenter .lib-stages, body.presenter .lib-detail { font-size: 18px; }
+body.presenter .lib-order { font-size: 16px; }
+
+/* The pipeline, scaled up to fill the screen above the caption (pipeline.js keeps the dots on track). */
+body.presenter .pipeline {
+  --s: 1;
+  transform: scale(var(--s)); transform-origin: 0 0;
+  right: auto; bottom: auto; overflow: hidden;
+  width: calc((100vw - 32px) / var(--s));
+  height: calc((100vh - var(--panels-top) - var(--pr-caption-h, 220px) - 32px) / var(--s));
+}
+@media (min-width: 1500px) { body.presenter .pipeline { --s: 1.1; } }
+@media (min-width: 1800px) { body.presenter .pipeline { --s: 1.2; } }

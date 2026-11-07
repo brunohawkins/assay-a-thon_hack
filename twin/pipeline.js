@@ -193,12 +193,15 @@ export function createPipeline(root, handlers = {}) {
 
   // ---------------------------------------------------------------- drawing
 
+  // Dot position of an anchor, in the view's own (unscaled) pixels: the presenter view scales
+  // the whole pipeline up with a CSS transform, and the dots move inside that transform.
   function anchor(name) {
     const a = root.querySelector(`[data-anchor="${name}"]`);
     if (!a) return null;
     const r = a.getBoundingClientRect();
     const o = root.getBoundingClientRect();
-    return { x: r.left + r.width / 2 - o.left + root.scrollLeft, y: r.top + r.height / 2 - o.top + root.scrollTop };
+    const s = root.offsetWidth ? o.width / root.offsetWidth : 1;
+    return { x: (r.left + r.width / 2 - o.left) / s + root.scrollLeft, y: (r.top + r.height / 2 - o.top) / s + root.scrollTop };
   }
 
   function along(points, f) {
@@ -309,6 +312,16 @@ export function createPipeline(root, handlers = {}) {
     },
     seek(x) { t = Math.min(Math.max(x, 0), total); stopAt = null; render(); },
     seekToPhase(i) { this.seek(starts[Math.max(0, Math.min(i, starts.length - 1))] ?? 0); },
+    phaseIndex(id) { return phases.findIndex((ph) => ph.id === id); },
+    // Play phases i0..i1 (inclusive) and stop: the presenter's hand-off from Module 1 to Module 2.
+    playRange(i0, i1) {
+      t = starts[i0] ?? 0;
+      stopAt = (starts[i1] ?? total) + (phases[i1]?.play ?? 0) - 1e-3; // end inside phase i1, not on the next one's first frame
+      playing = true;
+      current = -2;
+      handlers.onPlayState?.(true);
+      render();
+    },
     setSpeed(x) { speed = x; },
     update,
     timeline() { return phases.map((ph, i) => ({ ev: ph.event, start: starts[i], duration: ph.play })); },
