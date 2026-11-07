@@ -150,6 +150,22 @@
       "loop": null,
       "faults": [],
       "status": null
+    },
+    {
+      "file": "ipsc_to_mgl_v1__ipsc_to_mgl_chip_v1.json",
+      "protocol_id": "ipsc_to_mgl_v1",
+      "protocol_name": "iPSC to microglia-like cells, end to end on chip",
+      "chip_id": "ipsc_to_mgl_chip_v1",
+      "chip_spec": "chip/ipsc_to_mgl_chip_v1.json",
+      "operator": "planner",
+      "events": 109,
+      "total_duration_s": 4064304.0,
+      "placeholder": false,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null
     }
   ]
 }
