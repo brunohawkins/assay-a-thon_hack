@@ -1,0 +1,114 @@
+{
+  "protocol_id": "spc_demo_v1",
+  "protocol_name": "Capsule generation, demo run",
+  "chip_id": "spc_demo_v1",
+  "chip_spec": "chip/spc_demo_v1.json",
+  "operator": "planner",
+  "created_at": "2026-11-07T17:08:48Z",
+  "placeholder": false,
+  "sizing": {
+    "capsule_count": null,
+    "capsule_count_note": "not in chip spec; sheet default 100,000 used",
+    "capsule_diameter_um": 70.0,
+    "cells_expected": 7696.9,
+    "trap_chambers": [
+      "delay_1"
+    ],
+    "monolayer_area_mm2_needed": 490.0,
+    "trap_area_mm2": 143,
+    "packed_volume_ul_needed": 28.062,
+    "trap_volume_ul": 21.5,
+    "channel_width_um": [
+      300.0,
+      300.0
+    ],
+    "channel_width_um_recommended": [
+      105.0,
+      140.0
+    ],
+    "trap_gap_um_recommended": [
+      21.0,
+      28.0
+    ],
+    "swollen_diameter_um": 140.0
+  },
+  "total_duration_s": 1560.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 300.0,
+      "command": "exchange",
+      "args": {
+        "target": "delay_1",
+        "reagent": "carrier_oil",
+        "volume_ul": 21.5,
+        "washes": 1,
+        "flow_ul_min": 11.0
+      },
+      "narration": "Prime the board with oil before anything aqueous goes in. Do this first and always: the walls have to be oil-wetted for water-in-oil to work at all, and an aqueous stream that touches a dry wall first will wet it and keep wetting it.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 300.0,
+      "duration_s": 180.0,
+      "command": "load",
+      "args": {
+        "target": "aq_merge",
+        "volume_ul": 20
+      },
+      "narration": "Start the two aqueous streams. Cells ride in the core stream at about 310 cells/uL, which gives a mean of 0.2 cells per capsule. That figure belongs to a 135 um capsule and falls as the cube of diameter, so do not reuse it if the orifice changes.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 480.0,
+      "duration_s": 180.0,
+      "command": "exchange",
+      "args": {
+        "target": "xj_1",
+        "reagent": "carrier_oil",
+        "volume_ul": 20,
+        "washes": 1,
+        "flow_ul_min": 11.0
+      },
+      "narration": "Bring the oil up to rate and let the junction settle. Expect a minute or two of ragged, uneven droplets before it locks into a steady drip: that is normal, and it is the syringe pump and the tubing settling rather than the chip.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 660.0,
+      "duration_s": 120.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "delay_1",
+        "temp_c": 22,
+        "duration_s": 120
+      },
+      "narration": "FILM THIS. At about 39 droplets per second the serpentine shows a regular train of 135 um capsules. Even spacing and even size is the whole result: if droplets vary in size the flow ratio is off, and if they merge the surfactant or the surface treatment is wrong.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 780.0,
+      "duration_s": 180.0,
+      "command": "exchange",
+      "args": {
+        "target": "delay_1",
+        "reagent": "carrier_oil",
+        "volume_ul": 23.617904521065515,
+        "washes": 1,
+        "flow_ul_min": 11.0
+      },
+      "narration": "Run for the demo batch: 5,000 capsules in about 2 min. A real run is ten times this and changes nothing about the chip.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 960.0,
+      "duration_s": 600.0,
+      "command": "release",
+      "args": {
+        "target": "delay_1",
+        "reagent": "photoinitiator"
+      },
+      "narration": "Collect into a tube on ice. Let the two aqueous polymers demix for a few minutes, which is what puts the shell on the outside, then flood-cure at 405 nm. Curing is off-chip on purpose: demixing takes minutes, and a serpentine holding minutes at this flow would be longer than the board.",
+      "protocol_step": 6
+    }
+  ]
+}

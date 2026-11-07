@@ -318,7 +318,8 @@ def is_embossed(chip):
 def lanes_of(chip):
     """Rows of >=2 non-pool chambers sharing an id prefix: one differentiation lane.
 
-    Pool chambers are excluded because a pool is shared by every lane by definition.
+    Pool and junction chambers are excluded: a pool is shared by every lane by
+    definition, and a junction is plumbing.
     A serial train (one row, mixed prefixes) yields no lanes, which is correct. So does a
     row of parallel reactors that merely share a prefix: a lane is a CHAIN, so
     neighbours in the row must be joined by a channel.
@@ -326,7 +327,8 @@ def lanes_of(chip):
     linked = {frozenset((ch["from"], ch["to"])) for ch in chip["channels"]}
     rows: dict[float, list] = {}
     for c in chip["chambers"]:
-        if c.get("type") == "pool":
+        # A pool is shared by every lane, and a junction is plumbing, not a lane.
+        if c.get("type") in ("pool", "junction"):
             continue
         rows.setdefault(round(c["center"][1], 3), []).append(c)
     lanes = []

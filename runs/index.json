@@ -20,6 +20,24 @@
       "module": null
     },
     {
+      "file": "spc_demo_v1__spc_demo_v1.json",
+      "protocol_id": "spc_demo_v1",
+      "protocol_name": "Capsule generation, demo run",
+      "chip_id": "spc_demo_v1",
+      "chip_spec": "chip/spc_demo_v1.json",
+      "operator": "planner",
+      "events": 6,
+      "total_duration_s": 1560.0,
+      "placeholder": false,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null,
+      "variant": null,
+      "module": null
+    },
+    {
       "file": "cell_prep_v1__cell_prep_v1.json",
       "protocol_id": "cell_prep_v1",
       "protocol_name": "Cell detachment, neutralisation and QC",
