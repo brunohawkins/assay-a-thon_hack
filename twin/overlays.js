@@ -41,7 +41,21 @@ export function createOverlays() {
     draw(g, canvas, info.p, info.args);
   }
 
-  return { setDay, setNozzle };
+  // Physical demo stopwatch (Module 1 v1).
+  const watch = $('stopwatch');
+  let lastWatch = '';
+  function setStopwatch(info) {
+    if (!info) { watch.hidden = true; lastWatch = ''; return; }
+    const s = info.t;
+    const text = `${Math.floor(s / 60)}:${(s % 60).toFixed(1).padStart(4, '0')}`;
+    const key = `${text}|${info.running}`;
+    if (key === lastWatch) return;
+    lastWatch = key;
+    watch.hidden = false;
+    watch.innerHTML = `<span class="lbl">stopwatch${info.running ? '' : ' (stopped)'}</span><span class="t">${text}</span>`;
+  }
+
+  return { setDay, setNozzle, setStopwatch };
 }
 
 // ------------------------------------------------------------------ drawing

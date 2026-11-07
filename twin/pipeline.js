@@ -45,7 +45,8 @@ export function createPipeline(root, handlers = {}) {
   function load(d) {
     data = d;
     const { specs, runs } = d;
-    const m1Days = Math.round((runs.m1_control?.total_duration_s ?? 0) / 86400);
+    const m1Run = runs.m1v1 ?? runs.m1_control;
+    const m1Days = Math.round((m1Run?.total_duration_s ?? 0) / 86400);
     const s1b = runs.m1b?.summary ?? {};
     const qc = s1b.counted ? `${s1b.counted.cells_per_ul.toLocaleString()} cells/µL · ${(s1b.counted.viability * 100).toFixed(0)}% viable` : '–';
     const p2 = specs.m2?.generator?.params ?? {};
@@ -54,10 +55,14 @@ export function createPipeline(root, handlers = {}) {
     const trap3 = specs.m3?.chambers?.find((c) => c.id === 'm3_trap_1');
 
     phases = [
-      { id: 'pl_m1', module: 'm1', play: 6, proto: runs.m1_control?.total_duration_s ?? 1,
-        narration: `Module 1: both chips seed, split and differentiate three cell types (${m1Days} days, compressed). Only the interaction chip opens its pair valves; the control stays isolated.` },
+      { id: 'pl_m1', module: 'm1', play: 6, proto: m1Run?.total_duration_s ?? 1,
+        narration: specs.m1v1
+          ? `Module 1 v1 (MJ's chip): three lineages grow apart in separate-growth mode, then each chamber's medium crosses to the other two in turn (${m1Days} days, compressed). No valves: routing is FEED / VENT / CAP.`
+          : `Module 1: both chips seed, split and differentiate three cell types (${m1Days} days, compressed). Only the interaction chip opens its pair valves; the control stays isolated.` },
       { id: 'pl_m1_out', module: 'm1', play: 2.5, proto: 300,
-        narration: 'Harvest: cells leave m1_out_1/2/3 of both chips (labelled per chamber) for Module 1b\'s three inlets.' },
+        narration: specs.m1v1
+          ? 'Harvest: the three chambers are swept into j_mid and the pooled, barcoded cells leave through p_mid.'
+          : 'Harvest: cells leave m1_out_1/2/3 of both chips (labelled per chamber) for Module 1b\'s three inlets.' },
       { id: 'pl_m1b', module: 'm1b', play: 6.5, proto: runs.m1b?.total_duration_s ?? 1,
         narration: `Module 1b (automated, simulated): merge, quench, wash, filter, count, resuspend. Counter: ${qc}; the operator dilutes ${s1b.dilution ?? '–'}× so Module 2 gets ${s1b.mean_cells_per_capsule ?? '–'} cells per capsule; safety: ${s1b.verdict?.result ?? '–'}.` },
       { id: 'pl_m1b_out', module: 'm1b', play: 2, proto: 60,
@@ -95,8 +100,16 @@ export function createPipeline(root, handlers = {}) {
       <div class="pl-row">
         <section class="pl-col pl-m1" aria-label="Module 1">
           <h3>Module 1 · Culture</h3><div class="pl-badges">${badges(specs.m1)}</div>
+          ${specs.m1v1 ? `<article class="pl-card pl-v1" data-open="m1v1" data-file="${esc(d.files.m1v1 ?? '')}" tabindex="0">
+            <header><b>Module 1 v1 · MJ's chip</b><span class="badge printed">being laser-cut</span></header>
+            <ul class="pl-lanes">${LANES.map((l) => `<li class="pl-lane"><span class="sw" data-fate="${esc(fateCss(l.id))}"></span>${l.name}</li>`).join('')}</ul>
+            <p class="pl-note">${esc(specs.m1v1.chambers.map((c) => c.id).join(' · '))} · no valves: FEED / VENT / CAP at 6 ports
+              <span class="pl-day" data-day="v1">day 0</span></p>
+            <p class="pl-out">harvest → p_mid<span class="pl-anchor out" data-anchor="m1v1_out"></span></p>
+          </article>
+          <p class="pl-note">Earlier brief design (valves; control + interaction chips):</p>` : ''}
           <div class="pl-pair">${m1card('control', d.files.m1_control)}${m1card('interaction', d.files.m1_interaction)}</div>
-          <p class="pl-note">One chip, printed twice: control and interaction.</p>
+          ${specs.m1v1 ? '' : '<p class="pl-note">One chip, printed twice: control and interaction.</p>'}
         </section>
         <div class="pl-arrow" aria-hidden="true"></div>
         <section class="pl-col pl-m1b" aria-label="Module 1b">
@@ -111,6 +124,7 @@ export function createPipeline(root, handlers = {}) {
         <div class="pl-arrow" aria-hidden="true"></div>
         <section class="pl-col pl-m2" aria-label="Module 2">
           <h3>Module 2 · Encapsulation</h3><div class="pl-badges">${badges(specs.m2)}</div>
+          <p class="pl-mj">Module 2 (encapsulation) – in progress by MJ</p>
           <article class="pl-card" data-open="m2" data-file="${esc(d.files.m2 ?? '')}" tabindex="0">
             <span class="pl-anchor in" data-anchor="m2_in"></span>
             <ol class="pl-stages">${M2_STAGES.map((name, k) => `<li data-stage="m2:${k}">${name}<span class="pl-anchor" data-anchor="m2_${k}"></span></li>`).join('')}</ol>
@@ -262,7 +276,9 @@ export function createPipeline(root, handlers = {}) {
     highlight('m3', k3);
 
     // The dots: cells, then capsules, following the hand-offs.
-    const outs = ['control', 'interaction'].flatMap((v) => LANES.map((l) => anchor(`m1_${v}_${l.n}`)));
+    const v1out = data.specs.m1v1 ? anchor('m1v1_out') : null;
+    const outs = v1out ? Array.from({ length: DOTS }, () => v1out)
+      : ['control', 'interaction'].flatMap((v) => LANES.map((l) => anchor(`m1_${v}_${l.n}`)));
     const m1b = M1B_STAGES.map((_, k) => anchor(`m1b_${k}`));
     const m2 = M2_STAGES.map((_, k) => anchor(`m2_${k}`));
     const m3 = M3_STAGES.map((_, k) => anchor(`m3_${k}`));

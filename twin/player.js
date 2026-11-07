@@ -522,9 +522,16 @@ export class Player {
     const i = done ? n : this.#indexAt(this.t);
     const p = done ? 1 : clamp01((this.t - this.starts[i]) / playDuration(this.events[i]));
 
-    this.#drawState(i);
-    if (!done) this.#animate(i, p);
-    this.#flushCapsules();
+    if (this.chip.flowOwned) {
+      // Module 1 v1: twin/module1.js draws the liquid from the network solver; the player
+      // only keeps time and narration.
+      this.cap.shell.visible = false;
+      if (this.cap.core) this.cap.core.visible = false;
+    } else {
+      this.#drawState(i);
+      if (!done) this.#animate(i, p);
+      this.#flushCapsules();
+    }
 
     const shown = done ? n - 1 : i;
     if (shown !== this.currentIndex) {

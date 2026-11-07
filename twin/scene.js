@@ -57,7 +57,8 @@ export function createScene(container) {
     const top = box('.topbar')?.bottom ?? 0;
     const panel = box('.narration');
     const controlsBox = box('.controls');
-    const left = box('.control');
+    // Any visible left-hand panel (the control-loop panel, Module 1 v1's flow panel).
+    const left = [...document.querySelectorAll('.control')].map((e) => e.getBoundingClientRect()).find((r) => r.width > 0);
     let leftEdge = 0;
     if (left && left.width > 0 && left.left < w / 2) leftEdge = left.right;
     let right = w;
