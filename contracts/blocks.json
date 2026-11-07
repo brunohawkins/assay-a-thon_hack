@@ -136,7 +136,7 @@
       "flow distribution across a wide weir"
     ],
     "standard": "ANSI/SLAS 1-2004 microplate footprint",
-    "max_allowed_x_mm": 350,
+    "max_allowed_x_mm": 290,
     "max_allowed_y_mm": 190,
     "_why_sbs": [
       "No mainstream cell-culture microfluidic device is larger. Mimetas OrganoPlate puts 40 three-lane chips on ONE SBS plate; Emulate runs 12 chips per array. The field repeats small units inside a standard outline rather than making one big chip.",
@@ -145,6 +145,11 @@
       "It is inside the hot-embossing comfort zone (rigid platens are fine to about 200 mm; 300 mm is the hard edge)."
     ],
     "_caveat": "ANSI/SLAS fixes the outline and well positions, NOT well-bottom height, so SBS size alone does not guarantee a plate reader or imager will focus on the chip. Check working distance.",
-    "_ceiling": "350 x 190 mm is the agreed MAXIMUM chip size, chosen to fit the largest desktop resin build area (Formlabs Form 4L, 353 x 196 mm) with a few mm of margin, so prototyping stays on a desktop machine. It is 66,500 mm2, 111x the demo. CONSEQUENCE: at 350 mm the part is past the rigid-platen hot-embossing edge (comfortable to about 200 mm, hard edge about 300 mm), so embossing at full size needs a large-platen press (Collin P500S class, 496 mm, 785 kN - the part needs only 66-200 kN) or gas-pressure tooling. Note Obducat's large-area gas tool caps at 160 C, below the ~170 C used for some COC grades. Nothing in the current design needs this size: three lanes require 3,600 mm2, which is 33% of an SBS plate."
+    "_ceiling": "290 x 190 mm is the agreed MAXIMUM chip size (55,100 mm2, 92x the demo). It was chosen so BOTH prototyping routes stay standard: it fits the largest desktop resin build (Formlabs Form 4L, 353 x 196 mm) AND a 296 mm square hot-embossing platen (Collin P300S class, 296 mm, 300 kN - the part needs only 55-165 kN). 300 x 190 was considered and dropped because it misses the 296 mm platen by 4 mm and would force a 500 mm press. NOTE round wafer tools (EVG 540/750, 300 mm) take a rectangle by its DIAGONAL, and this part's is 347 mm, so they are out regardless; use a square-platen press. Nothing in the current design needs this size: three lanes require 3,600 mm2, 33% of an SBS plate.",
+    "fabrication_routes_at_ceiling": {
+      "resin_prototype": "Formlabs Form 4L, 353 x 196 mm build. Fits with 63 x 6 mm margin.",
+      "embossing": "296 mm square platen (Collin P300S class). Fits with 6 x 106 mm margin.",
+      "not_usable": "300 mm ROUND wafer tools: a 290 x 190 rectangle has a 346 mm diagonal."
+    }
   }
 }
