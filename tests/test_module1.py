@@ -109,7 +109,8 @@ class Checks(unittest.TestCase):
 
     def test_demo_chip_has_no_unprintable_microgrooves_or_crossings(self):
         f = self.check(CHIP)
-        self.assertEqual(f.errors, [])
+        # port overlap is its own rule (tests/test_port_overlap.py): MJ's CAD stops channels at the port edge
+        self.assertEqual([e for e in f.errors if not e.startswith("port overlap:")], [])
         ids = {c["id"] for c in CHIP["chambers"]} | {c["id"] for c in CHIP["channels"]}
         self.assertFalse({i for i in ids if "sig" in i or "groove" in i}, "signals-only microgrooves were removed")
         self.assertFalse([w for w in f.warnings if "cross" in w], "single layer: nothing may cross")
