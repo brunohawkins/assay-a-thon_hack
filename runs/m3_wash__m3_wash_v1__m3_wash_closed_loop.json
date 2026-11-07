@@ -4,12 +4,12 @@
   "chip_id": "m3_wash_v1",
   "chip_spec": "cad/m3_wash_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T14:49:56Z",
+  "created_at": "2026-11-07T15:17:11Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": 10000,
     "capsule_count_note": "from chip spec",
-    "capsule_diameter_um": 70.0,
+    "capsule_diameter_um": 70,
     "cells_expected": 769.7,
     "trap_chambers": [
       "m3_trap_1"
@@ -30,7 +30,7 @@
       21.0,
       28.0
     ],
-    "swollen_diameter_um": 140.0
+    "swollen_diameter_um": 150.00300000000001
   },
   "simulated_hardware": true,
   "adapter": "virtual_chip",

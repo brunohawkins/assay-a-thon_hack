@@ -139,7 +139,25 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1
     print(f"wrote {genlib.rel(out)}: {len(spec['chambers'])} stages, {len(spec['channels'])} channels, {len(spec['ports'])} ports")
-    return 0
+    return genlib.finish(out, summary(spec), args)
+
+
+def summary(spec: dict) -> list[str]:
+    import safety
+    import schema_io
+
+    m2 = schema_io.load_json(genlib.ROOT / "cad" / "m2_encapsulation_spec.json")
+    t = safety.cell_prep_target(m2)
+    return [
+        "Module 1b summary (cells, not capsules):",
+        "  stages                      " + " -> ".join(c["id"].removeprefix("m1b_") for c in spec["chambers"]),
+        f"  cell filter                 {spec['cell_filter']['gap_um']:g} um (Module 2 nozzle: "
+        f"{m2['encapsulation']['nozzle_um']:g} um)",
+        f"  Module 2 needs              ~{t['target_cells_per_ul']:,.0f} cells/uL for {t['target_mean']:g} cells per capsule "
+        f"({t['capsules_per_hour']:,.0f} capsules/h from {t['core_flow_ul_h']:g} uL/h of core stream); accepted "
+        f"{t['mean_low']:.3f}-{t['mean_high']:.3f}; viability >= {t['viability_min']:.0%}",
+        "  runs                        python operator/run.py --scenario scenarios/m1b_cellprep_demo.json (simulated counter)",
+    ]
 
 
 if __name__ == "__main__":

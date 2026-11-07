@@ -190,7 +190,22 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     print(f"wrote {genlib.rel(out)}: {len(spec['chambers'])} chambers, {len(spec['channels'])} channels, "
           f"{len(spec['ports'])} ports, {len(spec['valves'])} valves, {len(spec['features'])} features")
-    return 0
+    return genlib.finish(out, summary(spec), args, [(genlib.ROOT / "protocols" / "m1_culture.json", OUT)])
+
+
+def summary(spec: dict) -> list[str]:
+    ch = {c["id"]: c for c in spec["chambers"]}
+    cult = [ch[cid] for _, cid, _, _, _ in LANES]
+    return [
+        "Module 1 summary (cells, not capsules: no capsule sizing):",
+        f"  seeding chamber             m1_ipsc_1, {ch['m1_ipsc_1']['volume_ul']:g} uL",
+        "  culture chambers            " + ", ".join(f"{c['id']} {c['volume_ul']:g} uL" for c in cult),
+        f"  bubble traps                {ch['m1_bt_1']['volume_ul']:g} uL each",
+        f"  valves                      {sum(v['kind'] == 'branch' for v in spec['valves'])} branch + "
+        f"{sum(v['kind'] == 'pair' for v in spec['valves'])} pair (normally closed); variants: "
+        f"{', '.join(spec['run_parameters']['variant']['values'])} (pair valves blocked in control)",
+        f"  heat zone                   {spec['features'][1]['temp_c']:g} C under {len(spec['features'][1]['covers'])} chambers",
+    ]
 
 
 if __name__ == "__main__":

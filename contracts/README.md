@@ -65,6 +65,33 @@ starts with its module prefix**: part ids, STL names, spec files, protocol files
 inlet). A module chip says which module it is in its `module` block, and a generated spec
 records the script and parameter values that made it in its `generator` block.
 
+### How to design Module 2 or 3
+
+The generators are the design tool: **don't hand-edit `cad/m*_spec.json`.**
+
+1. **Change parameters.** Every parameter, its default and where the default comes from is
+   in `contracts/schemas/generators/m2_encapsulation.schema.json` (or `m3_wash.schema.json`).
+   `--help` lists them too. The ones you'll touch most:
+   - Module 2: `--nozzle-width-um`, `--core-flow-ul-h` / `--shell-flow-ul-h` / `--oil-flow-ul-h`,
+     `--y-junction-angle-deg`, `--coflow-length-mm`, `--separation-length-mm`, `--capsule-count`,
+     `--inlet-filters`, `--cell-filter-gap-um`, `--footprint-x-mm`.
+   - Module 3: `--capsule-count`, `--capsule-diameter-um`, `--swollen-diameter-um`,
+     `--mesh-opening-um`, `--chamber-height-um`, `--channel-width-factor`, `--inlets`, `--backflush`.
+2. **Run one command:**
+   ```bash
+   python cad/generators/m2_encapsulation.py --nozzle-width-um 50 --oil-flow-ul-h 800
+   python cad/generators/m3_wash.py --capsule-count 25000 --inlets 2
+   ```
+   It writes the spec (and the module's protocol), runs `tools/check_chip_spec.py`, prints the
+   sizing summary, exports the display-model STLs to `cad/display/<chip_id>/` and regenerates
+   the module's runs. A design that breaks a hard rule (e.g. a mesh >= 0.4 x capsule diameter)
+   is refused with the reason; anything the checker flags is printed. `--out path.json` tries a
+   design without touching the repo's files.
+3. **Look at the twin** (`python -m http.server 8000`, then `http://localhost:8000/twin/`): the
+   module's view shows the new chip and its parameters panel shows the values used.
+
+The natural-language tool calls the same generators: `chip/nl_to_spec/generators.py`.
+
 ## `placeholder: true`
 
 Every file has a `"placeholder"` field. Set it to `true` while the file holds fake

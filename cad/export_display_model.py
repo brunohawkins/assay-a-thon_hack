@@ -12,10 +12,13 @@ binary STLs to cad/display/<chip_id>/:
 
 How parts are shown, so the model reads from across a room:
   - base: the bottom layer, as a solid plate (the lid is left out so you can see inside)
-  - chambers: a rim at the chamber's real (scaled) height; a mesh floor becomes a raised
-    lattice with a coarse pitch, so it reads as a mesh from a distance
-  - channels: raised ribs along the channel path, at the channel's scaled width and depth
+  - chambers: a rim at the chamber's real (scaled) height (round for cylinder chambers); a
+    mesh floor becomes a raised lattice with a coarse pitch, so it reads as a mesh from a distance
+  - channels: raised ribs along the channel path (the spec's explicit path when it has one),
+    at the channel's scaled width and depth
   - ports: hollow tubes; tall for ports on top, short for ports under the mesh
+  - valves: small discs on their channel; features (windows, heated zones): thin frames
+  - module chips: every file is named by a module-prefixed id (m2_base.stl, m2_label.stl ...)
   - label plate in front, with raised lettering "Display model – <scale>× scale" (label_text.stl)
 
 Standard library only. The real working dimensions stay in the chip spec and the twin.
@@ -206,8 +209,11 @@ def build_parts(chip: dict, scale: float) -> list[dict]:
         x0, x1, y0, y1 = cx - sx / 2, cx + sx / 2, cy - sy / 2, cy + sy / 2
         z0, z1 = base_t, base_t + h
         w = RIM_WALL
-        tris = (box(x0 - w, y0 - w, z0, x1 + w, y0, z1) + box(x0 - w, y1, z0, x1 + w, y1 + w, z1) +
-                box(x0 - w, y0, z0, x0, y1, z1) + box(x1, y0, z0, x1 + w, y1, z1))
+        if c.get("shape") == "cylinder":
+            tris = tube(cx, cy, z0, z1, sx / 2 + w, sx / 2)
+        else:
+            tris = (box(x0 - w, y0 - w, z0, x1 + w, y0, z1) + box(x0 - w, y1, z0, x1 + w, y1 + w, z1) +
+                    box(x0 - w, y0, z0, x0, y1, z1) + box(x1, y0, z0, x1 + w, y1, z1))
         ret = c.get("retention") or ({"type": "mesh"} if c.get("mesh_pore_um") else None)
         if ret and ret["type"] == "mesh":
             lz = z0 + min(LATTICE_HEIGHT, h * 0.8)
@@ -224,7 +230,7 @@ def build_parts(chip: dict, scale: float) -> list[dict]:
     for ch in chip["channels"]:
         a = {"id": ch["from"]}
         b = {"id": ch["to"]}
-        path = channel_route(a, b, chambers)
+        path = [tuple(pt) for pt in ch["path"]] if ch.get("path") else channel_route(a, b, chambers)
         w = max(ch["width_mm"] * s, MIN_FEATURE)
         h = max(ch["depth_mm"] * s, MIN_FEATURE)
         tris: list[Tri] = []
@@ -241,6 +247,17 @@ def build_parts(chip: dict, scale: float) -> list[dict]:
         z1 = base_t + LOW_PORT_HEIGHT if bottom else top
         parts.append({"id": p["id"], "kind": "port_bottom" if bottom else "port_top",
                       "tris": tube(px, py, base_t, z1, r_out, r_in)})
+
+    for v in chip.get("valves", []):
+        vx, vy, _ = [c * s for c in v["position"]]
+        rv = max(0.6 * s, 2 * MIN_FEATURE)
+        parts.append({"id": v["id"], "kind": "valve", "tris": tube(vx, vy, base_t, base_t + max(0.3 * s, 2.0), rv, 0.0001)})
+    for f in chip.get("features", []):
+        (fcx, fcy, _), (fsx, fsy, _) = [v * s for v in f["center"]], [v * s for v in f["size"]]
+        fx0, fx1, fy0, fy1, fw, fz = fcx - fsx / 2, fcx + fsx / 2, fcy - fsy / 2, fcy + fsy / 2, MIN_FEATURE, base_t + 0.6
+        tris = (box(fx0, fy0, base_t, fx1, fy0 + fw, fz) + box(fx0, fy1 - fw, base_t, fx1, fy1, fz) +
+                box(fx0, fy0, base_t, fx0 + fw, fy1, fz) + box(fx1 - fw, fy0, base_t, fx1, fy1, fz))
+        parts.append({"id": f["id"], "kind": "feature", "tris": tris})
 
     label = f"Display model – {scale:g}× scale"
     px = min(1.6, (fx - 12) / (len(label) * 6))

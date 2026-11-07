@@ -4,9 +4,14 @@ A generator's parameters are defined ONCE, in contracts/schemas/generators/<name
 (names, types, defaults, units, sources). This module turns that schema into command-line
 flags, so
 
-    python cad/generators/m2_encapsulation.py --nozzle-um 50 --oil-flow-ul-h 800
+    python cad/generators/m2_encapsulation.py --nozzle-width-um 50 --oil-flow-ul-h 800
 
 and Yuvraj's natural-language tool (which reads the same schema) set the same parameters.
+
+Every generator then finishes the same way (finish()): write the spec, run
+tools/check_chip_spec.py on it, print the sizing summary, export the display-model STLs
+(module-prefixed, at cad/fabrication.json's display_scale) to cad/display/<chip_id>/, and
+regenerate the module's runs so the twin shows the new design (--no-runs to skip).
 Standard library + jsonschema only.
 """
 
@@ -68,6 +73,7 @@ def parse_params(name: str, argv: list[str] | None, description: str) -> tuple[d
     ap.add_argument("--params-json", help="all parameters as a JSON object, or a path to a .json file holding one")
     ap.add_argument("--out", type=Path, help="where to write the spec (default: the module's cad/*_spec.json)")
     ap.add_argument("--no-export", action="store_true", help="skip the display-model STL export")
+    ap.add_argument("--no-runs", action="store_true", help="don't regenerate this module's runs for the twin")
     args = ap.parse_args(argv)
     params: dict = {}
     if args.params_json:
@@ -106,6 +112,45 @@ def write_spec(spec: dict, out: Path) -> None:
         raise ParamError("generated spec breaks contracts/schemas/chip_spec.schema.json:\n" + "\n".join(
             f"  {schema_io.path_str(e)}: {schema_io.describe(e)}" for e in errors[:10]))
     schema_io.write_json(out, spec)
+
+
+PRINT_BED_MM = 250   # rough size of a desktop print bed
+
+
+def finish(spec_path: Path, summary_lines: list[str], args, run_targets: list[tuple[Path, Path]] = ()) -> int:
+    """Shared end of every generator. Returns the design check's exit code (1 = errors)."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    sys.path.insert(0, str(ROOT / "cad"))
+    import check_chip_spec
+    import export_display_model
+
+    print("\n".join(summary_lines))
+    print("\nDesign check (tools/check_chip_spec.py):")
+    code = check_chip_spec.main([str(spec_path)])
+    if not args.no_export:
+        m = export_display_model.export(spec_path)
+        x, y, z = m["overall_mm"]
+        line = (f"Display model: cad/display/{m['chip_id']}/ ({len(m['parts'])} module-prefixed part STLs, "
+                f"{m['display_scale']:g}x = {x:g} x {y:g} x {z:g} mm; print {m['print_file']})")
+        if max(x, y) > PRINT_BED_MM:
+            fit = max(1, int(m["display_scale"] * PRINT_BED_MM / max(x, y)))
+            line += (f"\n  that is bigger than most print beds: for a print, run python cad/export_display_model.py "
+                     f"{rel(spec_path)} --scale {fit}")
+        print(line)
+    if not args.no_runs and not args.out:
+        sys.path.insert(0, str(ROOT / "operator"))
+        import run as run_cli
+
+        print("\nRuns for the twin (operator/run.py):")
+        for protocol_path, chip_path in run_targets:
+            run_cli.generate(protocol_path, chip_path)
+        for scn in sorted((ROOT / "scenarios").glob("*.json")):
+            data = schema_io.load_json(scn)
+            if (ROOT / data.get("chip", "")).resolve() == spec_path.resolve():
+                run_cli.closed_loop(scn, None, None)
+        run_cli.rebuild_index()
+        print("Reload the twin (python -m http.server 8000, then http://localhost:8000/twin/) to see it.")
+    return code
 
 
 def rel(path: Path) -> str:

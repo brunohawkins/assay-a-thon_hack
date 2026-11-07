@@ -252,8 +252,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1
     print(f"wrote {genlib.rel(out)}" + ("" if args.out else f", {genlib.rel(PROTOCOL_OUT)} and {genlib.rel(DYE_TEST)}"))
-    print("\n".join(summary(params, spec)))
-    return 0
+    return genlib.finish(out, summary(params, spec), args, [(PROTOCOL_OUT, OUT)])
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@
 - Sensors: none (open loop)
 - Faults injected: none
 - Status: **done** · Protocol time: 286.4 s
-- Created: 2026-11-07T14:49:57Z
+- Created: 2026-11-07T15:17:11Z
 
 ## Outcome
 
