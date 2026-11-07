@@ -1,0 +1,70 @@
+{
+  "id": "hello_world_plate",
+  "name": "Hello world plate",
+  "description": "Two open-top wells joined by one open-top channel; Ayrton's first 3D print. GENERATED from cad/hello_world_dims.json by cad/hello_world_spec.py; edit the dims, not this file.",
+  "placeholder": true,
+  "units": "mm",
+  "footprint": {
+    "x": 30,
+    "y": 12
+  },
+  "layers": [
+    {
+      "id": "floor",
+      "material": "pla",
+      "thickness_mm": 2
+    },
+    {
+      "id": "body",
+      "material": "pla",
+      "thickness_mm": 5
+    }
+  ],
+  "chambers": [
+    {
+      "id": "well_1",
+      "type": "well",
+      "center": [
+        6.0,
+        6.0,
+        4.5
+      ],
+      "size": [
+        8,
+        8,
+        5
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 251.3,
+      "open_top": true
+    },
+    {
+      "id": "well_2",
+      "type": "well",
+      "center": [
+        24.0,
+        6.0,
+        4.5
+      ],
+      "size": [
+        8,
+        8,
+        5
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 251.3,
+      "open_top": true
+    }
+  ],
+  "channels": [
+    {
+      "id": "channel_1",
+      "from": "well_1",
+      "to": "well_2",
+      "width_mm": 1,
+      "depth_mm": 1,
+      "open_top": true
+    }
+  ],
+  "ports": []
+}

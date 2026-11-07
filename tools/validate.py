@@ -3,12 +3,13 @@
     python tools/validate.py
 
 Checks
-  - protocols/*.json, chip/*.json, runs/*.json against their schemas
+  - protocols/*.json, chip/*.json, cad/*_spec.json, runs/*.json against their schemas
   - every protocol target exists as a chamber or port in the chip spec it's run against
-    (the chips named by its runs; a protocol with no run yet is checked against every chip)
+    (the chips named by its runs; a protocol with no run yet is checked against the chip
+    spec that fits it best)
   - chip specs: unique ids, channels connect real chambers/ports, parts inside the footprint
   - runs: protocol, chip and every chamber id exist; events in time order; index.json up to date
-  - cad/exports/*.stl whose name isn't a chamber or port id (warning)
+  - cad/exports/*.stl whose name isn't a chamber, port, channel or chip id (warning)
 
 Exit code 0 when there are no errors (warnings are fine), 1 otherwise.
 """
@@ -182,7 +183,7 @@ def check_run(path: Path, run: dict, protocols: dict[str, tuple[Path, dict]],
     if proto is None:
         report.error(f"{where}: protocol_id '{run.get('protocol_id')}' has no file in protocols/")
     if chip_entry is None:
-        report.error(f"{where}: chip_id '{run.get('chip_id')}' has no file in chip/")
+        report.error(f"{where}: chip_id '{run.get('chip_id')}' has no chip spec in chip/ or cad/")
 
     spec_path = run.get("chip_spec")
     if spec_path:
@@ -238,21 +239,34 @@ def check_index(run_files: dict[Path, dict], report: Report) -> None:
 
 
 def check_cad(chips: dict[str, tuple[Path, dict]], report: Report) -> int:
-    known = set()
+    # An STL may be one part (named by chamber, port or channel id) or a whole
+    # one-piece print (named by the chip spec id, e.g. hello_world_plate.stl).
+    known = set(chips)
     for _, chip in chips.values():
         known |= commands.chamber_ids(chip) | commands.port_ids(chip)
+        known |= {ch["id"] for ch in chip.get("channels", []) if isinstance(ch, dict) and "id" in ch}
     stls = [p for p in sorted((ROOT / "cad" / "exports").glob("*")) if p.suffix.lower() == ".stl"]
     for p in stls:
         if p.stem not in known:
-            report.warn(f"{rel(p)}: '{p.stem}' is not a chamber or port id in any chip spec, "
-                        f"so the twin won't use it (name STLs exactly by id, e.g. exchange_1.stl)")
+            report.warn(f"{rel(p)}: '{p.stem}' is not a chamber, port, channel or chip id in any chip spec "
+                        f"(name STLs exactly by id, e.g. exchange_1.stl, or by chip id for a one-piece print)")
     return len(stls)
+
+
+def best_chip(protocol: dict, candidates: list[tuple[Path, dict]]) -> tuple[Path, dict]:
+    """The chip spec containing the most of this protocol's targets."""
+    steps = protocol.get("steps") if isinstance(protocol.get("steps"), list) else []
+    wanted = {s.get("target") for s in steps if isinstance(s, dict)}
+    return min(candidates, key=lambda pc: len(wanted - (commands.chamber_ids(pc[1]) | commands.port_ids(pc[1]))))
 
 
 def main() -> int:
     report = Report()
     protocol_files, bad_protocols = load_folder("protocols/*.json", "protocol", report)
     chip_files, bad_chips = load_folder("chip/*.json", "chip_spec", report)
+    cad_specs, bad_cad_specs = load_folder("cad/*_spec.json", "chip_spec", report)  # e.g. the hello world plate
+    chip_files.update(cad_specs)
+    bad_chips |= bad_cad_specs
     run_files, bad_runs = load_folder("runs/*.json", "run", report, skip=("index.json",))
 
     # Only files that passed their schema take part in cross-file checks.
@@ -268,15 +282,20 @@ def main() -> int:
     for path, chip in ok_chips.items():
         check_chip(path, chip, report)
 
-    # Which chips is each protocol run against? From the runs; else every chip.
+    # Which chips is each protocol run against? From its runs; with no run yet, the chip
+    # spec that fits it best (so a protocol isn't flagged for every other chip in the repo).
     pairs: dict[str, set[str]] = {}
     for run in ok_runs.values():
         pairs.setdefault(run["protocol_id"], set()).add(run["chip_id"])
+    usable = [chips[c] for c in sorted(chips) if chips[c][0] in ok_chips]
     for path, protocol in protocol_files.items():
-        chip_ids = pairs.get(protocol.get("id")) or set(chips)
-        for cid in sorted(chip_ids):
-            if cid in chips and chips[cid][0] in ok_chips:
-                check_protocol_on_chip(path, protocol, chips[cid][1], report, path in ok_protocols)
+        paired = pairs.get(protocol.get("id"))
+        if paired:
+            against = [chips[c] for c in sorted(paired) if c in chips and chips[c][0] in ok_chips]
+        else:
+            against = [best_chip(protocol, usable)] if usable else []
+        for _, chip in against:
+            check_protocol_on_chip(path, protocol, chip, report, path in ok_protocols)
         if path in ok_protocols and protocol["id"] not in pairs:
             report.warn(f"{rel(path)}: no run yet (python operator/run.py --protocol {rel(path)} --chip <chip spec>)")
 
@@ -287,7 +306,7 @@ def main() -> int:
 
     print("capsule-processor contract check")
     print(f"  protocols/    {len(protocol_files)} file(s)")
-    print(f"  chip/         {len(chip_files)} file(s)")
+    print(f"  chip specs    {len(chip_files)} file(s) (chip/ and cad/*_spec.json)")
     print(f"  runs/         {len(run_files)} file(s)")
     print(f"  cad/exports/  {n_stl} STL file(s)")
     print()

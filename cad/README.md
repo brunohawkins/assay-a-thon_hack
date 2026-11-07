@@ -35,6 +35,24 @@ export parts one at a time.
 If a part shows up in the wrong place, the usual cause is a different origin or
 units (inches, or centred on the part). Re-export in place in mm.
 
+## Hello world plate (first print)
+
+Two open-top wells joined by one open-top channel.
+
+- **Edit dimensions only in `cad/hello_world_dims.json`**: well diameter and depth,
+  channel width, depth and length (well edge to well edge), wall thickness, and the
+  smallest clean printed feature, all in mm. Every value starts as a TODO placeholder;
+  once you've measured one on the print, remove its name from `todo`. When `todo` is
+  empty, set `placeholder` to `false`.
+- Then run `python cad/hello_world_spec.py`. It regenerates `cad/hello_world_plate_spec.json`
+  (`well_1` and `well_2` of type `well`, plus `channel_1`, all `open_top: true`). Don't edit
+  that spec by hand.
+- Export **either** `cad/exports/hello_world_plate.stl` (one piece) **or** `well_1.stl`,
+  `channel_1.stl` and `well_2.stl`, in place, in mm, with the plate's bottom-left corner at 0,0,0
+  and z up. The script reads each STL's bounding box and warns if it's more than 10% off the dims,
+  with a hint if it looks rotated, in inches or off-origin. It never changes the STL or the dims.
+- The floor under the wells is assumed to be as thick as the walls. Tell Bruno if it isn't.
+
 ## What goes in this folder
 
 - `exports/`: STL/GLB files the twin reads (commit these)

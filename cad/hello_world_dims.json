@@ -1,0 +1,23 @@
+{
+  "_about": "Single place to edit the hello world plate. Run: python cad/hello_world_spec.py. Every name listed in 'todo' is a PLACEHOLDER until Ayrton confirms it from the print; remove it from 'todo' once confirmed, and set placeholder to false when 'todo' is empty.",
+  "placeholder": true,
+  "units": "mm",
+  "well_diameter_mm": 8,
+  "well_depth_mm": 5,
+  "channel_width_mm": 1,
+  "channel_depth_mm": 1,
+  "channel_length_mm": 10,
+  "wall_thickness_mm": 2,
+  "min_feature_mm": 0.5,
+  "material": "pla",
+  "todo": [
+    "well_diameter_mm",
+    "well_depth_mm",
+    "channel_width_mm",
+    "channel_depth_mm",
+    "channel_length_mm",
+    "wall_thickness_mm",
+    "min_feature_mm",
+    "material"
+  ]
+}
