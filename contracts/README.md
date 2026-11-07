@@ -92,7 +92,7 @@ numbers, and to `false` only when it holds the real thing. The twin shows a
 | Operation | What happens | Must fill in |
 |---|---|---|
 | `load` | capsules come in through the inlet and settle in `target` | `volume_ul` |
-| `exchange` | a reagent flows through `target` and drains, `washes` times; capsules stay on the mesh | `reagent`, `volume_ul`, `washes`, `flow_ul_min` |
+| `exchange` | a reagent flows through `target` and drains, `washes` times; capsules stay on the mesh. Optional `"direction": "backflush"` pushes liquid up through the mesh instead, lifting the capsules off it | `reagent`, `volume_ul`, `washes`, `flow_ul_min` |
 | `hold_temp` | `target` is held at a temperature | `temp_c`, `duration_s` > 0 |
 | `split` | capsules leave `target` and are shared between the split chambers it connects to | nothing extra |
 | `pool` | capsules from every chamber connected into `target` come together in `target` | nothing extra |
@@ -183,7 +183,7 @@ This is everything the chip can do:
 | Command | Arguments |
 |---|---|
 | `load` | `target`, `volume_ul` |
-| `exchange` | `target`, `reagent`, `volume_ul`, `washes`, `flow_ul_min` |
+| `exchange` | `target`, `reagent`, `volume_ul`, `washes`, `flow_ul_min`, optional `direction` (`forward`/`backflush`) |
 | `hold_temp` | `target`, `temp_c`, `duration_s` |
 | `split` | `source`, `targets` (a list) |
 | `pool` | `sources` (a list), `target` |

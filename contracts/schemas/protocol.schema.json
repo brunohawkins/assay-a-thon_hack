@@ -95,6 +95,10 @@
           "type": "string",
           "minLength": 1,
           "description": "Plain-English description. Shown as narration in the twin."
+        },
+        "direction": {
+          "enum": ["forward", "backflush"],
+          "description": "Optional, exchange only. backflush pushes liquid up through the mesh to lift capsules off it."
         }
       },
       "allOf": [

@@ -2,6 +2,17 @@
   "generated_by": "operator/run.py",
   "runs": [
     {
+      "file": "placeholder_capsule_wash_mvp__wash_mvp_v1.json",
+      "protocol_id": "placeholder_capsule_wash_mvp",
+      "protocol_name": "Placeholder capsule wash (MVP)",
+      "chip_id": "wash_mvp_v1",
+      "chip_spec": "cad/wash_mvp_spec.json",
+      "operator": "planner",
+      "events": 4,
+      "total_duration_s": 360.0,
+      "placeholder": true
+    },
+    {
       "file": "placeholder_culture_then_scrnaseq__placeholder_chip_v1.json",
       "protocol_id": "placeholder_culture_then_scrnaseq",
       "protocol_name": "Placeholder culture, then scRNA-seq",

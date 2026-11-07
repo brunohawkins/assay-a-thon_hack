@@ -58,7 +58,11 @@
         "reagent": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Generic reagent name, snake_case." },
         "volume_ul": { "type": "number", "exclusiveMinimum": 0, "description": "Volume per wash, in microlitres." },
         "washes": { "type": "integer", "minimum": 1, "description": "Number of fill-and-drain cycles." },
-        "flow_ul_min": { "type": "number", "exclusiveMinimum": 0, "description": "Flow rate, in microlitres per minute." }
+        "flow_ul_min": { "type": "number", "exclusiveMinimum": 0, "description": "Flow rate, in microlitres per minute." },
+        "direction": {
+          "enum": ["forward", "backflush"],
+          "description": "Optional. forward (default): in from the inlet, out through the retention to waste. backflush: in from below the retention, lifting capsules off it."
+        }
       }
     },
     "hold_temp": {

@@ -76,8 +76,11 @@ def step_to_command(step: dict, chip: dict) -> tuple[str, dict]:
     if op == "load":
         return "load", {"target": target, "volume_ul": step["volume_ul"]}
     if op == "exchange":
-        return "exchange", {"target": target, "reagent": step["reagent"], "volume_ul": step["volume_ul"],
-                            "washes": step["washes"], "flow_ul_min": step["flow_ul_min"]}
+        args = {"target": target, "reagent": step["reagent"], "volume_ul": step["volume_ul"],
+                "washes": step["washes"], "flow_ul_min": step["flow_ul_min"]}
+        if step.get("direction"):
+            args["direction"] = step["direction"]
+        return "exchange", args
     if op == "hold_temp":
         return "hold_temp", {"target": target, "temp_c": step["temp_c"], "duration_s": step["duration_s"]}
     if op == "split":

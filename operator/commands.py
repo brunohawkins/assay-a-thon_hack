@@ -164,7 +164,9 @@ def tool_definitions() -> list[dict]:
             "type": "integer",
             "description": "The protocol step number this command carries out.",
         }
-        input_schema["required"] = list(input_schema["required"]) + ["reason", "protocol_step"]
+        # Strict tool use: list every property as required (optional args like
+        # exchange.direction then always get a value, e.g. "forward").
+        input_schema["required"] = list(input_schema["properties"])
         tools.append({
             "name": name,
             "description": f"{defs[name]['title']}. {defs[name]['description']}",
