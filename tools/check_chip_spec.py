@@ -128,6 +128,8 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
     # --- capsule-carrying channels and outlets ------------------------------------------
     min_w = CHANNEL_MIN_FACTOR * d
     for ch in chip.get("channels", []):
+        if ch.get("capsule_passable") is False:
+            continue  # deliberately too small for capsules (e.g. a microgroove barrier)
         ends = [ports.get(ch["from"]), ports.get(ch["to"])]
         if any(p is not None and p.get("capsule_passable") is False for p in ends):
             continue  # behind a trap (e.g. waste below a mesh): no capsules here
