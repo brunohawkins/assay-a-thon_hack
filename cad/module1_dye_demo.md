@@ -1,10 +1,17 @@
 # Module 1 v1: food-dye demo (Sunday)
 
+> **Check before cutting.** In `cad/exports/module1_v1/module1_v1.dxf` every channel stops
+> at the edge of its 2 mm port square, and the spacer cut path has nothing under the lid
+> holes. As drawn, each lid hole sits on solid 0.3 mm spacer and only touches its channel
+> along an edge, so no liquid can get in or out. MJ needs to add a 2 mm port pad in the
+> spacer under each hole (or run each channel to the port centre) before Ayrton cuts.
+
 Run food dye through the laser-cut chip (`chip/module1_v1.json`) next to the twin, and
 check that the liquid goes where the design says. No cells, so flow rates can be higher
 than the protocol's (shear only matters with cells).
 
 **Predicted times** below come from `operator/network.py` and `operator/module1_operator.py`
+(on branch `bruno/module1-twin`)
 (flows solved on the DXF geometry; dye moved through each channel, chamber and the
 2 × 2 × 3 mm inlet hole). Each is a range: **first tint** (the fast centre of the stream,
 ~2/3 of the mean) to **fully coloured** (plug flow). Start the stopwatch when the dye
