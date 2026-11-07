@@ -1,12 +1,11 @@
-"""Adapters turn commands into action. They all share one interface:
+"""Adapters turn commands into action. The interface is in base.py:
 
-    adapter.send(command: str, args: dict, **meta) -> dict
+    adapter.capabilities(), adapter.send(command, args, **meta), adapter.read_sensors()
 
-- sim.SimAdapter         records commands into a run file (the default)
-- serial_pump.SerialPumpAdapter   talks to real hardware (stub for now)
+- virtual_chip.VirtualChip   SIMULATED HARDWARE for the closed loop (default with a scenario)
+- sim.SimAdapter             records commands into a run file (simple runs, no scenario)
 
-`meta` is optional context (narration, protocol_step, duration_s) that the sim adapter
-records and hardware adapters may ignore.
+`meta` is optional context that recording adapters keep and hardware adapters may ignore.
 """
 
 import sys
