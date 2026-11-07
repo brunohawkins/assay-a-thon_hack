@@ -75,6 +75,7 @@
     "waste.capacity_ul": {"value": 2000, "units": "uL", "source": ["Assumption"], "assumption": true},
     "collection.capacity_ul": {"value": 500, "units": "uL", "source": ["Assumption"], "assumption": true},
     "exchange.target_fraction": {"value": 0.99, "units": "fraction", "source": ["Assumption"], "assumption": true, "note": "Default goal for an exchange step"},
+    "exchange.interior_target_fraction": {"value": 0.95, "units": "fraction", "source": ["Assumption"], "assumption": true, "note": "Goal inside the capsules (diffusion lag): the optimizer adds a no-flow soak until the capsule interior reaches this"},
     "backflush.target_fraction": {"value": 0.95, "units": "fraction of capsules lifted", "source": ["Assumption"], "assumption": true},
     "release.target_fraction": {"value": 0.98, "units": "fraction of suspended capsules recovered", "source": ["Assumption"], "assumption": true},
     "control.pressure_margin": {"value": 0.7, "units": "fraction of escape pressure", "source": ["Assumption"], "assumption": true, "note": "Plans must keep predicted pressure below this fraction of the escape pressure"},
