@@ -152,6 +152,17 @@
       "status": null
     },
     {
+      "file": "tri_culture_v1__tri_culture_v1.json",
+      "protocol_id": "tri_culture_v1",
+      "protocol_name": "Three-lineage differentiation, interaction and barcoded collection",
+      "chip_id": "tri_culture_v1",
+      "chip_spec": "chip/tri_culture_v1.json",
+      "operator": "planner",
+      "events": 180,
+      "total_duration_s": 7569709.0,
+      "placeholder": false
+    },
+    {
       "file": "ipsc_to_mgl_v1__ipsc_to_mgl_chip_v1.json",
       "protocol_id": "ipsc_to_mgl_v1",
       "protocol_name": "iPSC to microglia-like cells, end to end on chip",

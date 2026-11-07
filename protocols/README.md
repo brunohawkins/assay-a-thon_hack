@@ -13,6 +13,9 @@ The format is explained, with examples, in [`contracts/README.md`](../contracts/
 | `ipsc_to_mgl_v1.json` | **Real.** iPSC to microglia-like cells, 109 steps, 47 days, end to end on `chip/ipsc_to_mgl_chip_v1.json` with nothing handled off-chip |
 | `build_ipsc_to_mgl.py` | Generates the above. Computes every flow rate from chamber geometry; `--report` prints the shear table |
 | `ipsc_to_mgl_design.md` | Why that protocol, why those chamber sizes, the physics, and the honest limits |
+| `tri_culture_v1.json` | **Real.** Three lineages in three isolated lanes of `chip/tri_culture_v1.json`, linked by microgroove barriers, barcoded per lane and pooled. 180 steps, 87 days |
+| `build_tri_culture.py` | Generates the above. Staggers the three seeding days so lineages of 80, 40 and 35 days finish together; `--report` prints the schedule |
+| `tri_culture_design.md` | What changed from the hand sketch and why: Tesla valves can't rectify at Re < 1, the barriers are microgrooves rather than valves, and the three lineages don't finish together |
 | `placeholder_scrnaseq.json` | Generic scRNA-seq shape, 14 steps |
 | `placeholder_scdnaseq.json` | Generic scDNA-seq shape with two heat steps, 15 steps |
 | `placeholder_culture_then_scrnaseq.json` | Long media perfusion and culture first, then scRNA-seq, 15 steps |
