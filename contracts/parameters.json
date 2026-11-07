@@ -723,6 +723,15 @@
       ],
       "assumption": true,
       "note": "Capsule-handling steps are bounded by escape pressure, not by the culture shear ceiling. Published adherent-cell detachment is around 0.6 dyn/cm2 (see protocols/retention_audit.md), so the 0.01 ceiling already carries a 60x margin for the chips that do hold cells."
+    },
+    "shear.prelysis_rinse_ceiling_dyn_cm2": {
+      "value": 0.3,
+      "units": "dyn/cm2",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Rinse immediately before a deliberate lyse/quench, NOT a culture step. The 0.01 culture ceiling exists to keep adherent cells attached for weeks; held to it, a pre-quench rinse takes about 12 MINUTES, which perturbs metabolism for roughly 700x longer than the ~1 s quench we engineered the comb geometry to achieve. That defeats the whole point. Published adherent-cell detachment is near 0.6 dyn/cm2 (protocols/retention_audit.md), so 0.3 is half of it, applied for about 20 s to cells that are about to be killed anyway. Losing a few cells here costs nothing; a 12-minute perturbation costs the measurement."
     }
   }
 }
