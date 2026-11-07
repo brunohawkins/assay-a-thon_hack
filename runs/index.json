@@ -429,7 +429,7 @@
       "chip_spec": "chip/module1_v1.json",
       "operator": "planner",
       "events": 182,
-      "total_duration_s": 7570875.0,
+      "total_duration_s": 7569609.0,
       "placeholder": false,
       "simulated_hardware": false,
       "scenario": null,

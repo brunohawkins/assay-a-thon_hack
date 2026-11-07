@@ -4,7 +4,7 @@
   "chip_id": "placeholder_chip_v1",
   "chip_spec": "chip/placeholder_chip_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T12:25:59Z",
+  "created_at": "2026-11-07T19:00:23Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": null,
@@ -20,12 +20,12 @@
       "pool_1"
     ],
     "monolayer_area_mm2_needed": 490.0,
-    "trap_area_mm2": 256,
+    "trap_area_mm2": 38.801,
     "packed_volume_ul_needed": 28.062,
-    "trap_volume_ul": 512,
+    "trap_volume_ul": 11.641,
     "channel_width_um": [
-      500.0,
-      500.0
+      200.0,
+      200.0
     ],
     "channel_width_um_recommended": [
       105.0,
