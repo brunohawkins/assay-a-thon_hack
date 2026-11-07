@@ -6,7 +6,8 @@
     "10x": {"reference": "10x Genomics CG00054 Rev B (cultured cell lines)", "link": "https://www.10xgenomics.com/support/single-cell-gene-expression/documentation/steps/sample-prep/single-cell-suspensions-from-cultured-cell-lines-for-single-cell-rna-sequencing"},
     "inDrops": {"reference": "Harvard Single Cell Core inDrops sample prep guide", "link": "https://singlecellcore.hms.harvard.edu/resource/samplepreparation6202018pdf"},
     "TIP-seq": {"reference": "Bartlett et al., J Cell Biol 220, e202103078 (2021)", "link": "https://doi.org/10.1083/jcb.202103078"},
-    "Assumption": {"reference": "Design rule of thumb, not from a paper: confirm with Ayrton", "link": null}
+    "Assumption": {"reference": "Design rule of thumb, not from a paper: confirm with Ayrton", "link": null},
+    "Textbook": {"reference": "Standard physics / fluid mechanics values (e.g. water viscosity at 20 C, Sampson orifice flow, rectangular-channel resistance)", "link": null}
   },
   "parameters": {
     "capsule.diameter_um": {"value": 70, "min": 67, "max": 76.5, "units": "um", "source": ["CapSeq", "SPC-NAR"], "assumption": false, "note": "CapSeq typical 70 +/- 3 um; SPC methods paper 75 +/- 1.5 um; tunable 35-260 um"},
@@ -58,6 +59,27 @@
     "pcr.max_temp_c": {"value": 98, "units": "C", "source": ["CapSeq"], "assumption": false, "note": "Index PCR; heater/Peltier capable of ~98 C under sublibrary chambers"},
     "ivt.temp_c": {"value": 37, "units": "C", "source": ["TIP-seq"], "assumption": false},
     "ivt.time_h": {"value": null, "min": 16, "max": 19, "units": "h", "source": ["TIP-seq"], "assumption": false, "note": "Needs a sealed chamber against evaporation"},
-    "target_cells": {"value": 2000, "units": "cells", "source": ["Assumption"], "assumption": true, "note": "Demo target on the sheet"}
+    "target_cells": {"value": 2000, "units": "cells", "source": ["Assumption"], "assumption": true, "note": "Demo target on the sheet"},
+    "fluid.viscosity_pa_s": {"value": 0.001, "units": "Pa s", "source": ["Textbook"], "assumption": false, "note": "Water at ~20 C"},
+    "mesh.open_fraction": {"value": 0.35, "units": "fraction", "source": ["Assumption"], "assumption": true, "note": "TODO: open area of the bought mesh (woven nylon is typically 30-40%); from its datasheet"},
+    "mesh.bed_resistance_kpa_per_ul_min": {"value": 0.05, "units": "kPa per uL/min", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: flow resistance of a full capsule monolayer on the mesh. The clean mesh is negligible (operator/flow_calc.py); the capsule bed dominates. The pressure sensor refits this"},
+    "capsule.escape_pressure_kpa": {"value": 5.0, "units": "kPa", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: pressure across the mesh at which soft capsules start squeezing through the opening; measure on the bench"},
+    "capsule.loss_rate": {"value": 0.2, "units": "fraction per 10 s per unit overpressure", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: how fast capsules escape above the escape pressure (model and virtual chip)"},
+    "capsule.diffusion_time_s": {"value": 60, "units": "s", "source": ["CapSeq", "Assumption"], "assumption": true, "note": "CapSeq: reagents diffuse into capsules within minutes. 60 s first-order lag is a TODO placeholder"},
+    "backflush.lift_flow_ul_min": {"value": 30, "units": "uL/min", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: upward flow that lifts a capsule monolayer off the mesh"},
+    "thermal.tau_s": {"value": 30, "units": "s", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: first-order time constant of a Peltier stage under the chip"},
+    "thermal.max_ramp_c_per_s": {"value": 2, "units": "C/s", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: fastest heating/cooling ramp"},
+    "thermal.ambient_c": {"value": 22, "units": "C", "source": ["Assumption"], "assumption": true, "note": "Room temperature"},
+    "dye.diffusivity_m2_s": {"value": 4e-10, "units": "m2/s", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder for a small-molecule dye in water; confirm from literature. Used by flow_calc's open-channel estimate (APPROXIMATE)"},
+    "reservoir.default_ul": {"value": 1000, "units": "uL", "source": ["Assumption"], "assumption": true, "note": "Starting volume of each reagent reservoir unless a scenario says otherwise"},
+    "waste.capacity_ul": {"value": 2000, "units": "uL", "source": ["Assumption"], "assumption": true},
+    "collection.capacity_ul": {"value": 500, "units": "uL", "source": ["Assumption"], "assumption": true},
+    "exchange.target_fraction": {"value": 0.99, "units": "fraction", "source": ["Assumption"], "assumption": true, "note": "Default goal for an exchange step"},
+    "backflush.target_fraction": {"value": 0.95, "units": "fraction of capsules lifted", "source": ["Assumption"], "assumption": true},
+    "release.target_fraction": {"value": 0.98, "units": "fraction of suspended capsules recovered", "source": ["Assumption"], "assumption": true},
+    "control.pressure_margin": {"value": 0.7, "units": "fraction of escape pressure", "source": ["Assumption"], "assumption": true, "note": "Plans must keep predicted pressure below this fraction of the escape pressure"},
+    "control.error_threshold": {"value": 0.15, "units": "relative error", "source": ["Assumption"], "assumption": true, "note": "Prediction error above this triggers a model update and re-plan"},
+    "control.slices_per_wash": {"value": 5, "units": "slices", "source": ["Assumption"], "assumption": true, "note": "Executor time slices per wash (measure and correct after each)"},
+    "monitor.pressure_alert_fraction": {"value": 0.85, "units": "fraction of escape pressure", "source": ["Assumption"], "assumption": true, "note": "pressure_high alert threshold"}
   }
 }
