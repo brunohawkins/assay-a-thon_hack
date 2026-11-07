@@ -40,6 +40,7 @@ protocol step ─▶ optimizer ─▶ safety ─▶ executor ─▶ adapter (vir
 | `operators.py` | `planner` (deterministic + recovery table) and `scripted` (replays a transcript). |
 | `llm_operator.py` | Claude tool use over the controller (plan_step, execute_plan, back_flush, get_state, get_sensors, get_alerts, pause_for_human, distrust_sensor). Not yet run against the live API. |
 | `report.py` | Builds the run record and the Markdown audit report. |
+| `cellprep.py` | Module 1b's operator: a **simulated** counter at the QC window, the dilution at `m1b_resuspend_1` set from it (with the reason logged), and the safety gate before Module 2 (viability >= 90%, ~0.1 cells per capsule at Module 2's flows via sizing.py). |
 | `run.py` | CLI (below). |
 | `adapters/virtual_chip.py` | **SIMULATED HARDWARE** (default): model physics with different parameters, seeded sensor noise, switchable sensors, faults. |
 | `adapters/dryrun.py` | Prints the exact hardware actions with timestamps; "measurements" = model predictions. |
@@ -50,22 +51,29 @@ protocol step ─▶ optimizer ─▶ safety ─▶ executor ─▶ adapter (vir
 ## Running
 
 ```bash
-python operator/run.py --scenario scenarios/wash_mvp_clog.json                       # closed loop, planner
-python operator/run.py --scenario scenarios/wash_mvp_clog.json --operator llm        # needs ANTHROPIC_API_KEY
-python operator/run.py --scenario scenarios/wash_mvp_clog.json --operator scripted \
-    --transcript runs/transcripts/placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_clog.json
-python operator/run.py --scenario scenarios/wash_mvp_closed_loop.json --adapter dryrun
+python operator/run.py --scenario scenarios/m3_wash_clog.json                       # closed loop, planner
+python operator/run.py --scenario scenarios/m3_wash_clog.json --operator llm        # needs ANTHROPIC_API_KEY
+python operator/run.py --scenario scenarios/m3_wash_clog.json --operator scripted \
+    --transcript runs/transcripts/m3_wash__m3_wash_v1__m3_wash_clog.json
+python operator/run.py --scenario scenarios/m3_wash_closed_loop.json --adapter dryrun
 python operator/run.py --all          # regenerate every planner run
 ```
 
 Each closed-loop run writes `runs/<protocol>__<chip>__<scenario>[__operator].json`, the
 audit report `…_report.md`, and the operator's tool-call transcript in `runs/transcripts/`.
 
-Scenarios (`scenarios/`): `wash_mvp_open_loop` (no sensors), `wash_mvp_closed_loop`
-(pressure + absorbance), `wash_mvp_clog` (clog from wash 2), `wash_mvp_clog_open_loop`
-(the same clog, no sensors), `wash_mvp_sensor_fault` (pressure sensor sticks mid-run).
+Scenarios (`scenarios/`, all on Module 3, the capsule wash): `m3_wash_open_loop` (no sensors),
+`m3_wash_closed_loop` (pressure + absorbance), `m3_wash_clog` (clog from wash 2),
+`m3_wash_clog_open_loop` (the same clog, no sensors), `m3_wash_sensor_fault` (pressure sensor
+sticks mid-run).
 A scenario sets the seed, which sensors exist, how reality differs from the model, and
 which faults to inject.
+
+Module 1b scenarios (`scenarios/m1b_cellprep_*.json`) set what the simulated counter really
+sees: `demo` (concentrated, healthy: the operator dilutes ~2x and the cells go on),
+`low_viability` (blocked: viability under 90%) and `too_dilute` (blocked: concentrate first).
+Module 1 runs come in two variants: `python operator/run.py --protocol protocols/m1_culture.json
+--chip cad/m1_culture_spec.json` writes `__control` and `__interaction`.
 
 ## LLM operator
 

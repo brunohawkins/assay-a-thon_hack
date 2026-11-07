@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/generators/m3_wash.schema.json",
+  "title": "Module 3 capsule wash: generator parameters",
+  "description": "Parameters of cad/generators/m3_wash.py (DRAFT design, from the wash MVP work). Lengths in um unless the name says _mm. x-source: where the default comes from (sheet = contracts/sources/chip_geometry_requirements.xlsx); 'Assumption' marks a placeholder.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "capsule_count": { "type": "integer", "default": 10000, "minimum": 1, "description": "Capsules the trap holds as one layer (sizing.py 'mvp' preset).", "x-source": "sheet (mvp preset)" },
+    "capsule_diameter_um": { "type": "number", "default": 70, "exclusiveMinimum": 0, "description": "Capsule diameter.", "x-source": "CapSeq, SPC-NAR" },
+    "swollen_diameter_um": { "type": "number", "default": 150, "exclusiveMinimum": 0, "description": "Swollen capsule diameter; the chamber must be at least this high.", "x-source": "sheet (chamber height >= ~150 um)" },
+    "mesh_opening_um": { "type": "number", "default": 25, "exclusiveMinimum": 0, "description": "Bought mesh opening; must be < 0.4 x capsule diameter (28 um for 70 um capsules). The brief suggested 30 um, which breaks that rule, so the default stays at the 25 um chosen earlier.", "x-source": "sheet (trap gap ~20-30 um; 0.3-0.4 x diameter)" },
+    "chamber_height_um": { "type": "number", "default": 150, "exclusiveMinimum": 0, "description": "Trap height; must be >= swollen_diameter_um.", "x-source": "sheet (>= ~150 um)" },
+    "channel_width_factor": { "type": "number", "default": 2.0, "minimum": 1.5, "maximum": 2.0, "description": "Channel width as a multiple of the capsule diameter.", "x-source": "sheet (1.5-2 x diameter)" },
+    "inlets": { "type": "integer", "default": 1, "minimum": 1, "maximum": 4, "description": "Inlets above the trap (spread along it).", "x-source": "Assumption" },
+    "backflush": { "type": "boolean", "default": true, "description": "Back-flush inlet below the mesh, to lift the capsules before release.", "x-source": "sheet (back-flush for resuspension)" },
+    "wash_volume_ul": { "type": "number", "default": 20, "exclusiveMinimum": 0, "description": "Volume per wash in the protocol.", "x-source": "Assumption" },
+    "max_flow_ul_min": { "type": "number", "default": 20, "exclusiveMinimum": 0, "description": "Wash flow ceiling; the generator lowers it if flow_calc predicts too much pressure on the capsule bed.", "x-source": "Assumption" },
+    "port_width_um": { "type": "number", "default": 500, "exclusiveMinimum": 0, "description": "Tubing / pipette port opening.", "x-source": "Assumption" },
+    "margin_mm": { "type": "number", "default": 6.5, "exclusiveMinimum": 0, "description": "Plate around the trap (room for ports and channels).", "x-source": "Assumption" }
+  }
+}

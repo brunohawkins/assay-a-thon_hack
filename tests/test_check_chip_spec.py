@@ -75,11 +75,12 @@ class Rules(unittest.TestCase):
         proto = {"steps": [{"step": 1, "operation": "exchange", "target": "trap_1", "reagent": "culture_media"}]}
         self.assertTrue(has(run(chip, [(Path("p.json"), proto)]).errors, "culture happens there"))
 
-    def test_cell_filter_wider_than_nozzle_is_an_error(self):
+    def test_cell_filter_not_smaller_than_nozzle_is_an_error(self):
         chip = copy.deepcopy(GOOD)
-        chip["cell_filter"] = {"gap_um": 45}
         chip["encapsulation"] = {"nozzle_um": 40}
-        self.assertTrue(has(run(chip).errors, "cell_filter.gap_um 45 > encapsulation nozzle 40"))
+        for gap, bad in ((45, True), (40, True), (30, False)):
+            chip["cell_filter"] = {"gap_um": gap}
+            self.assertEqual(has(run(chip).errors, f"cell_filter.gap_um {gap} >= encapsulation nozzle 40"), bad, gap)
 
     def test_hot_thermal_zone_is_an_error(self):
         chip = copy.deepcopy(GOOD)

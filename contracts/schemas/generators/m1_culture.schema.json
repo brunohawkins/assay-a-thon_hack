@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/generators/m1_culture.schema.json",
+  "title": "Module 1 culture chip: generator parameters",
+  "description": "Parameters of cad/generators/m1_culture.py. Module 1 is DESIGNED: the defaults are the design (part positions are fixed by the design brief); these only let you resize the parts. Lengths in mm unless the name says _um.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "footprint_x_mm": { "type": "number", "default": 75, "exclusiveMinimum": 0, "description": "Chip width (a 75 x 25 mm slide).", "x-source": "design brief" },
+    "footprint_y_mm": { "type": "number", "default": 25, "exclusiveMinimum": 0, "description": "Chip depth.", "x-source": "design brief" },
+    "seed_chamber_diameter_mm": { "type": "number", "default": 6, "exclusiveMinimum": 0, "description": "m1_ipsc_1 diameter.", "x-source": "design brief" },
+    "culture_chamber_diameter_mm": { "type": "number", "default": 5, "exclusiveMinimum": 0, "description": "Neuron, microglia and astrocyte chamber diameter.", "x-source": "design brief" },
+    "chamber_depth_mm": { "type": "number", "default": 0.5, "exclusiveMinimum": 0, "description": "Depth of every chamber.", "x-source": "design brief" },
+    "channel_width_mm": { "type": "number", "default": 0.2, "exclusiveMinimum": 0, "description": "Seed, feed, medium and outlet channel width.", "x-source": "design brief" },
+    "channel_depth_mm": { "type": "number", "default": 0.1, "exclusiveMinimum": 0, "description": "Channel depth.", "x-source": "design brief" },
+    "bubble_trap_diameter_mm": { "type": "number", "default": 2, "exclusiveMinimum": 0, "description": "Bubble trap diameter (~2 mm).", "x-source": "design brief" },
+    "microgroove_width_um": { "type": "number", "default": 10, "exclusiveMinimum": 0, "description": "PLACEHOLDER. Signals-only microgroove width: too small to fabricate here.", "x-source": "Assumption" },
+    "microgroove_depth_um": { "type": "number", "default": 3, "exclusiveMinimum": 0, "description": "PLACEHOLDER. Signals-only microgroove depth.", "x-source": "Assumption" },
+    "culture_temp_c": { "type": "number", "default": 37, "description": "m1_heat_zone_1 set point.", "x-source": "CapSeq / SPC-NAR (culture.temp_c)" }
+  }
+}

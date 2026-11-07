@@ -37,6 +37,7 @@
     "adapter": { "type": "string", "description": "virtual_chip, dryrun, syringe_pump, sim ..." },
     "loop": { "enum": ["open", "closed"], "description": "closed: sensors corrected the model during the run." },
     "scenario": { "type": "object", "description": "The scenario file this run used (sensors, reality, faults)." },
+    "run_parameters": { "type": "object", "description": "Values of the chip's run parameters for this run, e.g. {\"variant\": \"control\"}." },
     "status": { "type": "string", "description": "done, paused_for_human or stopped." },
     "summary": { "type": "object", "description": "Final exchange %, capsule recovery, reagent used, alerts, recoveries and belief-vs-truth drift." },
     "transcript": { "type": "string", "description": "Repo-relative path of the operator's tool-call transcript (for scripted replay)." },
@@ -49,7 +50,7 @@
         "required": ["t_s", "kind", "message"],
         "properties": {
           "t_s": { "type": "number" },
-          "kind": { "enum": ["plan", "safety", "alert", "model_update", "replan", "blocked", "pause", "stop", "note"] },
+          "kind": { "enum": ["plan", "safety", "alert", "model_update", "replan", "blocked", "pause", "stop", "note", "skip", "measurement", "decision"] },
           "step": { "type": ["integer", "null"] },
           "message": { "type": "string" },
           "data": { "type": "object" }
@@ -96,7 +97,8 @@
           "items": { "type": "object", "required": ["t_s", "predicted", "measured"] }
         },
         "model_updates": { "type": "array", "items": { "type": "object", "required": ["param", "old", "new"] } },
-        "alerts": { "type": "array", "items": { "type": "object", "required": ["name", "severity"] } }
+        "alerts": { "type": "array", "items": { "type": "object", "required": ["name", "severity"] } },
+        "measured": { "type": "object", "description": "Readings taken during this command (e.g. Module 1b's counter: cells_per_ul, viability)." }
       },
       "unevaluatedProperties": false
     }

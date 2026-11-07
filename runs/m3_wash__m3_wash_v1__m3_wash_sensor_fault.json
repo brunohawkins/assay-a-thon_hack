@@ -1,0 +1,4468 @@
+{
+  "protocol_id": "m3_wash",
+  "protocol_name": "Module 3: capsule wash",
+  "chip_id": "m3_wash_v1",
+  "chip_spec": "cad/m3_wash_spec.json",
+  "operator": "planner",
+  "created_at": "2026-11-07T15:17:11Z",
+  "placeholder": true,
+  "sizing": {
+    "capsule_count": 10000,
+    "capsule_count_note": "from chip spec",
+    "capsule_diameter_um": 70,
+    "cells_expected": 769.7,
+    "trap_chambers": [
+      "m3_trap_1"
+    ],
+    "monolayer_area_mm2_needed": 49.0,
+    "trap_area_mm2": 49.0,
+    "packed_volume_ul_needed": 2.806,
+    "trap_volume_ul": 7.35,
+    "channel_width_um": [
+      140.0,
+      140.0
+    ],
+    "channel_width_um_recommended": [
+      105.0,
+      140.0
+    ],
+    "trap_gap_um_recommended": [
+      21.0,
+      28.0
+    ],
+    "swollen_diameter_um": 150.00300000000001
+  },
+  "simulated_hardware": true,
+  "adapter": "virtual_chip",
+  "loop": "closed",
+  "status": "done",
+  "scenario": {
+    "name": "m3_wash_sensor_fault",
+    "protocol": "protocols/m3_wash.json",
+    "chip": "cad/m3_wash_spec.json",
+    "seed": 7,
+    "reality": {
+      "mesh_resistance_factor": 1.3,
+      "chamber_volume_factor": 0.9
+    },
+    "sensors": {
+      "pump_volume_ul": false,
+      "pressure_kpa": true,
+      "outlet_absorbance": true,
+      "temperature_c": false,
+      "capsules_counted": false
+    },
+    "faults": [
+      {
+        "type": "sensor_fault",
+        "sensor": "pressure_kpa",
+        "mode": "stuck",
+        "start_t_s": 90
+      }
+    ],
+    "file": "scenarios/m3_wash_sensor_fault.json",
+    "description": "Closed loop, but the pressure sensor sticks mid-run: detected as sensor_disagreement, distrusted, model takes over."
+  },
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 30.0,
+      "command": "load",
+      "args": {
+        "target": "m3_trap_1",
+        "volume_ul": 20.0
+      },
+      "narration": "Load 10,000 capsules through the top inlet; they settle in a single layer on the mesh.",
+      "protocol_step": 1,
+      "operator": "planner",
+      "explanation": "Fastest safe option of 3 simulated (0 rejected): load 20 uL at 40 uL/min, predicted 30 s, 93.4% exchanged, peak 2.00 kPa.",
+      "safety": {
+        "result": "approved",
+        "reasons": []
+      },
+      "recovery": false,
+      "plan_args": {
+        "target": "m3_trap_1",
+        "volume_ul": 20.0,
+        "flow_ul_min": 40,
+        "capsules": 10000.0
+      },
+      "slices": [
+        {
+          "t_s": 6.0,
+          "dt_s": 6.0,
+          "command": "load",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 0.4,
+            "outlet_absorbance": 0.4197,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 0.5354,
+            "outlet_absorbance": 0.4526
+          },
+          "true": {
+            "pressure_kpa": 0.52,
+            "outlet_absorbance": 0.4538,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.3384,
+            "outlet_absorbance": -0.0567
+          },
+          "believed": {
+            "clock_s": 6.0,
+            "waste_ul": 4.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 2000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 996.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 1000.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.35,
+            "reagent": "capsule_suspension",
+            "exchange_pct": 45.26,
+            "capsule_exchange_pct": 2.0,
+            "capsules_on_mesh": 2000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.535
+          },
+          "true_state": {
+            "clock_s": 6.0,
+            "waste_ul": 4.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 2000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 996.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 1000.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "capsule_suspension",
+            "exchange_pct": 45.38,
+            "capsule_exchange_pct": 2.16,
+            "capsules_on_mesh": 2000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.52
+          }
+        },
+        {
+          "t_s": 12.0,
+          "dt_s": 6.0,
+          "command": "load",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 0.8,
+            "outlet_absorbance": 0.6823,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 1.0734,
+            "outlet_absorbance": 0.7037
+          },
+          "true": {
+            "pressure_kpa": 1.04,
+            "outlet_absorbance": 0.7016,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.3417,
+            "outlet_absorbance": -0.0672
+          },
+          "believed": {
+            "clock_s": 12.0,
+            "waste_ul": 8.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 4000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 992.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 1000.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.35,
+            "reagent": "capsule_suspension",
+            "exchange_pct": 70.37,
+            "capsule_exchange_pct": 7.21,
+            "capsules_on_mesh": 4000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.073
+          },
+          "true_state": {
+            "clock_s": 12.0,
+            "waste_ul": 8.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 4000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 992.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 1000.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "capsule_suspension",
+            "exchange_pct": 70.16,
+            "capsule_exchange_pct": 7.45,
+            "capsules_on_mesh": 4000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.04
+          }
+        },
+        {
+          "t_s": 18.0,
+          "dt_s": 6.0,
+          "command": "load",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 1.2,
+            "outlet_absorbance": 0.8281,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 1.5656,
+            "outlet_absorbance": 0.8287
+          },
+          "true": {
+            "pressure_kpa": 1.56,
+            "outlet_absorbance": 0.837,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.3046,
+            "outlet_absorbance": -0.0037
+          },
+          "believed": {
+            "clock_s": 18.0,
+            "waste_ul": 12.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 6000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 988.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 1000.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.35,
+            "reagent": "capsule_suspension",
+            "exchange_pct": 82.87,
+            "capsule_exchange_pct": 13.81,
+            "capsules_on_mesh": 6000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.566
+          },
+          "true_state": {
+            "clock_s": 18.0,
+            "waste_ul": 12.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 6000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 988.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 1000.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "capsule_suspension",
+            "exchange_pct": 83.7,
+            "capsule_exchange_pct": 14.06,
+            "capsules_on_mesh": 6000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.56
+          }
+        },
+        {
+          "t_s": 24.0,
+          "dt_s": 6.0,
+          "command": "load",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 1.6,
+            "outlet_absorbance": 0.9006,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.0293,
+            "outlet_absorbance": 0.9022
+          },
+          "true": {
+            "pressure_kpa": 2.08,
+            "outlet_absorbance": 0.911,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.2683,
+            "outlet_absorbance": -0.0161
+          },
+          "believed": {
+            "clock_s": 24.0,
+            "waste_ul": 16.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 8000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 984.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 1000.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.35,
+            "reagent": "capsule_suspension",
+            "exchange_pct": 90.22,
+            "capsule_exchange_pct": 20.72,
+            "capsules_on_mesh": 8000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.029
+          },
+          "true_state": {
+            "clock_s": 24.0,
+            "waste_ul": 16.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 8000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 984.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 1000.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "capsule_suspension",
+            "exchange_pct": 91.1,
+            "capsule_exchange_pct": 21.04,
+            "capsules_on_mesh": 8000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.08
+          }
+        },
+        {
+          "t_s": 30.0,
+          "dt_s": 6.0,
+          "command": "load",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.0,
+            "outlet_absorbance": 0.9432,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.5987,
+            "outlet_absorbance": 0.954
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.9514,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.2993,
+            "outlet_absorbance": -0.1895
+          },
+          "believed": {
+            "clock_s": 30.0,
+            "waste_ul": 20.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 1000.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.35,
+            "reagent": "capsule_suspension",
+            "exchange_pct": 95.4,
+            "capsule_exchange_pct": 27.53,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.599
+          },
+          "true_state": {
+            "clock_s": 30.0,
+            "waste_ul": 20.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 1000.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "capsule_suspension",
+            "exchange_pct": 95.14,
+            "capsule_exchange_pct": 27.9,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        }
+      ],
+      "model_updates": [],
+      "alerts": []
+    },
+    {
+      "t_s": 30.0,
+      "duration_s": 24.0,
+      "command": "exchange",
+      "args": {
+        "target": "m3_trap_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 16.0,
+        "washes": 1,
+        "flow_ul_min": 40
+      },
+      "narration": "Wash three times: buffer flows down through the mesh to waste while the capsules stay on top.",
+      "protocol_step": 2,
+      "operator": "planner",
+      "explanation": "Fastest safe option of 16 simulated (7 rejected): exchange 4 x 20 uL wash_buffer at 40 uL/min + 72 s soak, predicted 192 s, 100.0% exchanged, peak 2.00 kPa.",
+      "safety": {
+        "result": "approved",
+        "reasons": []
+      },
+      "recovery": false,
+      "plan_args": {
+        "target": "m3_trap_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 20.0,
+        "washes": 4,
+        "flow_ul_min": 40,
+        "soak_s": 72.3
+      },
+      "slices": [
+        {
+          "t_s": 36.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.0,
+            "outlet_absorbance": 0.4197,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.5802,
+            "outlet_absorbance": 0.4623
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.4538,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.2901,
+            "outlet_absorbance": -0.0734
+          },
+          "believed": {
+            "clock_s": 36.0,
+            "waste_ul": 24.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 996.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.35,
+            "reagent": "wash_buffer",
+            "exchange_pct": 46.23,
+            "capsule_exchange_pct": 2.0,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.58
+          },
+          "true_state": {
+            "clock_s": 36.0,
+            "waste_ul": 24.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 996.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 45.38,
+            "capsule_exchange_pct": 2.16,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        },
+        {
+          "t_s": 42.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.4642,
+            "outlet_absorbance": 0.688,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.5779,
+            "outlet_absorbance": 0.6999
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.7016,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.0462,
+            "outlet_absorbance": -0.1088
+          },
+          "believed": {
+            "clock_s": 42.0,
+            "waste_ul": 28.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 992.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.35,
+            "reagent": "wash_buffer",
+            "exchange_pct": 69.99,
+            "capsule_exchange_pct": 7.28,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.578
+          },
+          "true_state": {
+            "clock_s": 42.0,
+            "waste_ul": 28.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 992.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 70.16,
+            "capsule_exchange_pct": 7.45,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        },
+        {
+          "t_s": 48.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.4642,
+            "outlet_absorbance": 0.8259,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.5866,
+            "outlet_absorbance": 0.8322
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.837,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.0497,
+            "outlet_absorbance": -0.1413
+          },
+          "believed": {
+            "clock_s": 48.0,
+            "waste_ul": 32.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 988.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.35,
+            "reagent": "wash_buffer",
+            "exchange_pct": 83.22,
+            "capsule_exchange_pct": 13.85,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.587
+          },
+          "true_state": {
+            "clock_s": 48.0,
+            "waste_ul": 32.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 988.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 83.7,
+            "capsule_exchange_pct": 14.06,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        },
+        {
+          "t_s": 54.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.4642,
+            "outlet_absorbance": 0.9026,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.6074,
+            "outlet_absorbance": 0.9131
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.911,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.0581,
+            "outlet_absorbance": -0.2337
+          },
+          "believed": {
+            "clock_s": 54.0,
+            "waste_ul": 36.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 984.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.35,
+            "reagent": "wash_buffer",
+            "exchange_pct": 91.31,
+            "capsule_exchange_pct": 20.78,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.607
+          },
+          "true_state": {
+            "clock_s": 54.0,
+            "waste_ul": 36.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 984.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 91.1,
+            "capsule_exchange_pct": 21.04,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        }
+      ],
+      "model_updates": [
+        {
+          "t_s": 30.0,
+          "param": "mesh_resistance[m3_trap_1]",
+          "old": 0.05,
+          "new": 0.0616,
+          "unit": "kPa per uL/min",
+          "reason": "pressure 2.58 kPa vs predicted 2.00 (+29%)"
+        },
+        {
+          "t_s": 48.0,
+          "param": "chamber_volume_ul[m3_trap_1]",
+          "old": 7.35,
+          "new": 6.78953,
+          "unit": "uL",
+          "reason": "outlet absorbance 0.913 after 16 uL: leftover old liquid -23% vs the model since the exchange began"
+        }
+      ],
+      "alerts": []
+    },
+    {
+      "t_s": 54.0,
+      "duration_s": 48.0,
+      "command": "exchange",
+      "args": {
+        "target": "m3_trap_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 16.0,
+        "washes": 2,
+        "flow_ul_min": 40
+      },
+      "narration": "Wash three times: buffer flows down through the mesh to waste while the capsules stay on top. (re-planned)",
+      "protocol_step": 2,
+      "operator": "planner",
+      "explanation": "Re-planned after a model update: Fastest safe option of 16 simulated (4 rejected): exchange 3 x 20 uL wash_buffer at 40 uL/min + 77 s soak, predicted 167 s, 100.0% exchanged, peak 2.46 kPa.",
+      "safety": {
+        "result": "approved",
+        "reasons": []
+      },
+      "recovery": false,
+      "plan_args": {
+        "target": "m3_trap_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 20.0,
+        "washes": 3,
+        "flow_ul_min": 40,
+        "soak_s": 77.1
+      },
+      "slices": [
+        {
+          "t_s": 60.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.4642,
+            "outlet_absorbance": 0.9518,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.5396,
+            "outlet_absorbance": 0.9498
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.9514,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.0306,
+            "outlet_absorbance": -0.045
+          },
+          "believed": {
+            "clock_s": 60.0,
+            "waste_ul": 40.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 980.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.79,
+            "reagent": "wash_buffer",
+            "exchange_pct": 94.98,
+            "capsule_exchange_pct": 27.68,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.54
+          },
+          "true_state": {
+            "clock_s": 60.0,
+            "waste_ul": 40.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 980.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 95.14,
+            "capsule_exchange_pct": 27.9,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        },
+        {
+          "t_s": 66.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.4642,
+            "outlet_absorbance": 0.9721,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.5982,
+            "outlet_absorbance": 0.9661
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.9734,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.0544,
+            "outlet_absorbance": 0.1624
+          },
+          "believed": {
+            "clock_s": 66.0,
+            "waste_ul": 44.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 976.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.79,
+            "reagent": "wash_buffer",
+            "exchange_pct": 96.61,
+            "capsule_exchange_pct": 34.19,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.598
+          },
+          "true_state": {
+            "clock_s": 66.0,
+            "waste_ul": 44.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 976.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 97.34,
+            "capsule_exchange_pct": 34.4,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        },
+        {
+          "t_s": 72.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.4642,
+            "outlet_absorbance": 0.9809,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.6433,
+            "outlet_absorbance": 0.9873
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.9855,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.0727,
+            "outlet_absorbance": -0.2813
+          },
+          "believed": {
+            "clock_s": 72.0,
+            "waste_ul": 48.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 972.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 98.73,
+            "capsule_exchange_pct": 40.2,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.643
+          },
+          "true_state": {
+            "clock_s": 72.0,
+            "waste_ul": 48.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 972.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 98.55,
+            "capsule_exchange_pct": 40.45,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        },
+        {
+          "t_s": 78.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.4642,
+            "outlet_absorbance": 0.9928,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.5817,
+            "outlet_absorbance": 0.9898
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.9921,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.0477,
+            "outlet_absorbance": -0.0075
+          },
+          "believed": {
+            "clock_s": 78.0,
+            "waste_ul": 52.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 968.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 98.98,
+            "capsule_exchange_pct": 45.8,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.582
+          },
+          "true_state": {
+            "clock_s": 78.0,
+            "waste_ul": 52.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 968.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 99.21,
+            "capsule_exchange_pct": 46.01,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        },
+        {
+          "t_s": 84.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.4642,
+            "outlet_absorbance": 0.9942,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.6387,
+            "outlet_absorbance": 0.9855
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.9957,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.0708,
+            "outlet_absorbance": 0.4328
+          },
+          "believed": {
+            "clock_s": 84.0,
+            "waste_ul": 56.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 964.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 98.55,
+            "capsule_exchange_pct": 50.88,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.639
+          },
+          "true_state": {
+            "clock_s": 84.0,
+            "waste_ul": 56.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 964.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 99.57,
+            "capsule_exchange_pct": 51.09,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        },
+        {
+          "t_s": 90.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.4642,
+            "outlet_absorbance": 0.9918,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.6174,
+            "outlet_absorbance": 0.9881
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.9976,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.0622,
+            "outlet_absorbance": 0.43
+          },
+          "believed": {
+            "clock_s": 90.0,
+            "waste_ul": 60.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 960.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 98.81,
+            "capsule_exchange_pct": 55.45,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.617
+          },
+          "true_state": {
+            "clock_s": 90.0,
+            "waste_ul": 60.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 960.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 99.76,
+            "capsule_exchange_pct": 55.71,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        },
+        {
+          "t_s": 96.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.4642,
+            "outlet_absorbance": 0.9933,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.6174,
+            "outlet_absorbance": 1.0036
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.9987,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.0622,
+            "outlet_absorbance": -0.2732
+          },
+          "believed": {
+            "clock_s": 96.0,
+            "waste_ul": 64.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 956.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 59.6,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.617
+          },
+          "true_state": {
+            "clock_s": 96.0,
+            "waste_ul": 64.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 956.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 99.87,
+            "capsule_exchange_pct": 59.91,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        },
+        {
+          "t_s": 102.0,
+          "dt_s": 6.0,
+          "command": "exchange",
+          "flow_ul_min": 40,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 2.4642,
+            "outlet_absorbance": 1.0,
+            "temp_c": null
+          },
+          "measured": {
+            "pressure_kpa": 2.6174,
+            "outlet_absorbance": 1.0073
+          },
+          "true": {
+            "pressure_kpa": 2.6,
+            "outlet_absorbance": 0.9993,
+            "temp_c": 22.0
+          },
+          "error": {
+            "pressure_kpa": 0.0622,
+            "outlet_absorbance": -0.4176
+          },
+          "believed": {
+            "clock_s": 102.0,
+            "waste_ul": 68.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 952.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 63.44,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.617
+          },
+          "true_state": {
+            "clock_s": 102.0,
+            "waste_ul": 68.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 952.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 99.93,
+            "capsule_exchange_pct": 63.72,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 2.6
+          }
+        }
+      ],
+      "model_updates": [
+        {
+          "t_s": 60.0,
+          "param": "chamber_volume_ul[m3_trap_1]",
+          "old": 6.78953,
+          "new": 7.0009,
+          "unit": "uL",
+          "reason": "outlet absorbance 0.966 after 24 uL: leftover old liquid +16% vs the model since the exchange began"
+        }
+      ],
+      "alerts": [
+        {
+          "t_s": 102.0,
+          "step": 2,
+          "name": "sensor_disagreement",
+          "severity": "critical",
+          "message": "pressure sensor reading is frozen (identical values, no noise)",
+          "evidence": {
+            "sensor": "pressure_kpa",
+            "readings": [
+              2.6174,
+              2.6174,
+              2.6174
+            ],
+            "predicted": [
+              2.4642,
+              2.4642,
+              2.4642
+            ],
+            "mode": "stuck"
+          },
+          "resolved_by": "distrust_sensor"
+        }
+      ]
+    },
+    {
+      "t_s": 102.0,
+      "duration_s": 119.4,
+      "command": "exchange",
+      "args": {
+        "target": "m3_trap_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 20.0,
+        "washes": 1,
+        "flow_ul_min": 20
+      },
+      "narration": "Wash three times: buffer flows down through the mesh to waste while the capsules stay on top.",
+      "protocol_step": 2,
+      "operator": "planner",
+      "explanation": "Fastest safe option of 16 simulated (4 rejected): exchange 1 x 20 uL wash_buffer at 20 uL/min + 59 s soak, predicted 119 s, 100.0% exchanged, peak 1.23 kPa.",
+      "safety": {
+        "result": "approved",
+        "reasons": []
+      },
+      "recovery": false,
+      "plan_args": {
+        "target": "m3_trap_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 20.0,
+        "washes": 1,
+        "flow_ul_min": 20,
+        "soak_s": 59.4
+      },
+      "slices": [
+        {
+          "t_s": 114.0,
+          "dt_s": 12.0,
+          "command": "exchange",
+          "flow_ul_min": 20,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 1.2321,
+            "outlet_absorbance": 1.0,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 1.006
+          },
+          "true": {
+            "pressure_kpa": 1.3,
+            "outlet_absorbance": 0.9996,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.3297
+          },
+          "believed": {
+            "clock_s": 114.0,
+            "waste_ul": 72.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 948.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 70.07,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.232
+          },
+          "true_state": {
+            "clock_s": 114.0,
+            "waste_ul": 72.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 948.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 99.96,
+            "capsule_exchange_pct": 70.28,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.3
+          }
+        },
+        {
+          "t_s": 126.0,
+          "dt_s": 12.0,
+          "command": "exchange",
+          "flow_ul_min": 20,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 1.2321,
+            "outlet_absorbance": 1.0,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 1.004
+          },
+          "true": {
+            "pressure_kpa": 1.3,
+            "outlet_absorbance": 0.9998,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.2168
+          },
+          "believed": {
+            "clock_s": 126.0,
+            "waste_ul": 76.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 944.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 75.49,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.232
+          },
+          "true_state": {
+            "clock_s": 126.0,
+            "waste_ul": 76.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 944.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 99.98,
+            "capsule_exchange_pct": 75.66,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.3
+          }
+        },
+        {
+          "t_s": 138.0,
+          "dt_s": 12.0,
+          "command": "exchange",
+          "flow_ul_min": 20,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 1.2321,
+            "outlet_absorbance": 1.0,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 1.0079
+          },
+          "true": {
+            "pressure_kpa": 1.3,
+            "outlet_absorbance": 0.9999,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.4045
+          },
+          "believed": {
+            "clock_s": 138.0,
+            "waste_ul": 80.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 940.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 79.94,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.232
+          },
+          "true_state": {
+            "clock_s": 138.0,
+            "waste_ul": 80.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 940.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 99.99,
+            "capsule_exchange_pct": 80.07,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.3
+          }
+        },
+        {
+          "t_s": 150.0,
+          "dt_s": 12.0,
+          "command": "exchange",
+          "flow_ul_min": 20,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 1.2321,
+            "outlet_absorbance": 1.0,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 1.0005
+          },
+          "true": {
+            "pressure_kpa": 1.3,
+            "outlet_absorbance": 0.9999,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.0304
+          },
+          "believed": {
+            "clock_s": 150.0,
+            "waste_ul": 84.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 936.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 83.57,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.232
+          },
+          "true_state": {
+            "clock_s": 150.0,
+            "waste_ul": 84.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 936.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 99.99,
+            "capsule_exchange_pct": 83.68,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.3
+          }
+        },
+        {
+          "t_s": 162.0,
+          "dt_s": 12.0,
+          "command": "exchange",
+          "flow_ul_min": 20,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": 1.2321,
+            "outlet_absorbance": 1.0,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 1.0001
+          },
+          "true": {
+            "pressure_kpa": 1.3,
+            "outlet_absorbance": 1.0,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.008
+          },
+          "believed": {
+            "clock_s": 162.0,
+            "waste_ul": 88.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 86.55,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.232
+          },
+          "true_state": {
+            "clock_s": 162.0,
+            "waste_ul": 88.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 86.64,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 1.3
+          }
+        },
+        {
+          "t_s": 191.7,
+          "dt_s": 29.7,
+          "command": "wait",
+          "flow_ul_min": null,
+          "volume_ul": 0.0,
+          "predicted": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": null,
+            "temp_c": null
+          },
+          "measured": {},
+          "true": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 1.0,
+            "temp_c": 22.0
+          },
+          "error": {},
+          "believed": {
+            "clock_s": 191.7,
+            "waste_ul": 88.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 91.8,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          },
+          "true_state": {
+            "clock_s": 191.7,
+            "waste_ul": 88.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 91.85,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          }
+        },
+        {
+          "t_s": 221.4,
+          "dt_s": 29.7,
+          "command": "wait",
+          "flow_ul_min": null,
+          "volume_ul": 0.0,
+          "predicted": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": null,
+            "temp_c": null
+          },
+          "measured": {},
+          "true": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 1.0,
+            "temp_c": 22.0
+          },
+          "error": {},
+          "believed": {
+            "clock_s": 221.4,
+            "waste_ul": 88.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 95.0,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          },
+          "true_state": {
+            "clock_s": 221.4,
+            "waste_ul": 88.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 1000.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "wash_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 95.03,
+            "capsules_on_mesh": 10000,
+            "capsules_suspended": 0,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          }
+        }
+      ],
+      "model_updates": [],
+      "alerts": []
+    },
+    {
+      "t_s": 221.4,
+      "duration_s": 20.0,
+      "command": "exchange",
+      "args": {
+        "target": "m3_trap_1",
+        "reagent": "resuspension_buffer",
+        "volume_ul": 20.0,
+        "washes": 1,
+        "flow_ul_min": 60,
+        "direction": "backflush"
+      },
+      "narration": "Back-flush from below to lift the capsules off the mesh and resuspend them.",
+      "protocol_step": 3,
+      "operator": "planner",
+      "explanation": "Fastest safe option of 8 simulated (5 rejected): exchange back-flush 1 x 20 uL resuspension_buffer at 60 uL/min, predicted 20 s, 94.2% exchanged, peak -3.70 kPa.",
+      "safety": {
+        "result": "approved",
+        "reasons": []
+      },
+      "recovery": false,
+      "plan_args": {
+        "target": "m3_trap_1",
+        "reagent": "resuspension_buffer",
+        "volume_ul": 20.0,
+        "washes": 1,
+        "flow_ul_min": 60,
+        "direction": "backflush"
+      },
+      "slices": [
+        {
+          "t_s": 225.4,
+          "dt_s": 4.0,
+          "command": "exchange",
+          "flow_ul_min": 60,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": -3.6963,
+            "outlet_absorbance": 0.4352,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 0.4498
+          },
+          "true": {
+            "pressure_kpa": -3.9001,
+            "outlet_absorbance": 0.4538,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.0258
+          },
+          "believed": {
+            "clock_s": 225.4,
+            "waste_ul": 92.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 996.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 44.98,
+            "capsule_exchange_pct": 1.4,
+            "capsules_on_mesh": 3190,
+            "capsules_suspended": 6810,
+            "temp_c": 22.0,
+            "pressure_kpa": -3.696
+          },
+          "true_state": {
+            "clock_s": 225.4,
+            "waste_ul": 92.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 996.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 45.38,
+            "capsule_exchange_pct": 1.46,
+            "capsules_on_mesh": 2984,
+            "capsules_suspended": 7016,
+            "temp_c": 22.0,
+            "pressure_kpa": -3.9
+          }
+        },
+        {
+          "t_s": 229.4,
+          "dt_s": 4.0,
+          "command": "exchange",
+          "flow_ul_min": 60,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": -3.6963,
+            "outlet_absorbance": 0.6893,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 0.7023
+          },
+          "true": {
+            "pressure_kpa": -3.9001,
+            "outlet_absorbance": 0.7016,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.0666
+          },
+          "believed": {
+            "clock_s": 229.4,
+            "waste_ul": 96.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 992.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 70.23,
+            "capsule_exchange_pct": 4.99,
+            "capsules_on_mesh": 1017,
+            "capsules_suspended": 8983,
+            "temp_c": 22.0,
+            "pressure_kpa": -3.696
+          },
+          "true_state": {
+            "clock_s": 229.4,
+            "waste_ul": 96.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 992.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 70.16,
+            "capsule_exchange_pct": 5.09,
+            "capsules_on_mesh": 890,
+            "capsules_suspended": 9110,
+            "temp_c": 22.0,
+            "pressure_kpa": -3.9
+          }
+        },
+        {
+          "t_s": 233.4,
+          "dt_s": 4.0,
+          "command": "exchange",
+          "flow_ul_min": 60,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": -3.6963,
+            "outlet_absorbance": 0.8319,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 0.8399
+          },
+          "true": {
+            "pressure_kpa": -3.9001,
+            "outlet_absorbance": 0.837,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.1112
+          },
+          "believed": {
+            "clock_s": 233.4,
+            "waste_ul": 100.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 988.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 83.99,
+            "capsule_exchange_pct": 9.61,
+            "capsules_on_mesh": 324,
+            "capsules_suspended": 9676,
+            "temp_c": 22.0,
+            "pressure_kpa": -3.696
+          },
+          "true_state": {
+            "clock_s": 233.4,
+            "waste_ul": 100.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 988.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 83.7,
+            "capsule_exchange_pct": 9.73,
+            "capsules_on_mesh": 266,
+            "capsules_suspended": 9734,
+            "temp_c": 22.0,
+            "pressure_kpa": -3.9
+          }
+        },
+        {
+          "t_s": 237.4,
+          "dt_s": 4.0,
+          "command": "exchange",
+          "flow_ul_min": 60,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": -3.6963,
+            "outlet_absorbance": 0.9096,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 0.9126
+          },
+          "true": {
+            "pressure_kpa": -3.9001,
+            "outlet_absorbance": 0.911,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.1409
+          },
+          "believed": {
+            "clock_s": 237.4,
+            "waste_ul": 104.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 984.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 91.26,
+            "capsule_exchange_pct": 14.63,
+            "capsules_on_mesh": 103,
+            "capsules_suspended": 9897,
+            "temp_c": 22.0,
+            "pressure_kpa": -3.696
+          },
+          "true_state": {
+            "clock_s": 237.4,
+            "waste_ul": 104.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 984.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 91.1,
+            "capsule_exchange_pct": 14.74,
+            "capsules_on_mesh": 79,
+            "capsules_suspended": 9921,
+            "temp_c": 22.0,
+            "pressure_kpa": -3.9
+          }
+        },
+        {
+          "t_s": 241.4,
+          "dt_s": 4.0,
+          "command": "exchange",
+          "flow_ul_min": 60,
+          "volume_ul": 4.0,
+          "predicted": {
+            "pressure_kpa": -3.6963,
+            "outlet_absorbance": 0.9506,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 0.9497
+          },
+          "true": {
+            "pressure_kpa": -3.9001,
+            "outlet_absorbance": 0.9514,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.1245
+          },
+          "believed": {
+            "clock_s": 241.4,
+            "waste_ul": 108.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 980.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 94.97,
+            "capsule_exchange_pct": 19.7,
+            "capsules_on_mesh": 33,
+            "capsules_suspended": 9967,
+            "temp_c": 22.0,
+            "pressure_kpa": -3.696
+          },
+          "true_state": {
+            "clock_s": 241.4,
+            "waste_ul": 108.0,
+            "collection_ul": 0.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 0,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 980.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 95.14,
+            "capsule_exchange_pct": 19.79,
+            "capsules_on_mesh": 24,
+            "capsules_suspended": 9976,
+            "temp_c": 22.0,
+            "pressure_kpa": -3.9
+          }
+        }
+      ],
+      "model_updates": [],
+      "alerts": []
+    },
+    {
+      "t_s": 241.4,
+      "duration_s": 42.0,
+      "command": "release",
+      "args": {
+        "target": "m3_trap_1",
+        "reagent": "resuspension_buffer"
+      },
+      "narration": "Flush the washed capsules out through the release outlet.",
+      "protocol_step": 4,
+      "operator": "planner",
+      "explanation": "Fastest safe option of 9 simulated (3 rejected): release 28 uL at 40 uL/min, predicted 42 s, 99.9% exchanged.",
+      "safety": {
+        "result": "approved",
+        "reasons": []
+      },
+      "recovery": false,
+      "plan_args": {
+        "target": "m3_trap_1",
+        "reagent": "resuspension_buffer",
+        "volume_ul": 28.0,
+        "flow_ul_min": 40
+      },
+      "slices": [
+        {
+          "t_s": 249.8,
+          "dt_s": 8.4,
+          "command": "release",
+          "flow_ul_min": 40,
+          "volume_ul": 5.6,
+          "predicted": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 0.9774,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 0.9804
+          },
+          "true": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 0.9791,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.6589
+          },
+          "believed": {
+            "clock_s": 249.8,
+            "waste_ul": 108.0,
+            "collection_ul": 5.6,
+            "capsules_loaded": 10000,
+            "capsules_collected": 5488,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 974.4,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 98.04,
+            "capsule_exchange_pct": 29.71,
+            "capsules_on_mesh": 33,
+            "capsules_suspended": 4479,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          },
+          "true_state": {
+            "clock_s": 249.8,
+            "waste_ul": 108.0,
+            "collection_ul": 5.6,
+            "capsules_loaded": 10000,
+            "capsules_collected": 5698,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 974.4,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 97.91,
+            "capsule_exchange_pct": 29.82,
+            "capsules_on_mesh": 24,
+            "capsules_suspended": 4279,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          }
+        },
+        {
+          "t_s": 258.2,
+          "dt_s": 8.4,
+          "command": "release",
+          "flow_ul_min": 40,
+          "volume_ul": 5.6,
+          "predicted": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 0.9912,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 0.9925
+          },
+          "true": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 0.9911,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.8695
+          },
+          "believed": {
+            "clock_s": 258.2,
+            "waste_ul": 108.0,
+            "collection_ul": 11.2,
+            "capsules_loaded": 10000,
+            "capsules_collected": 7954,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 968.8,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 99.25,
+            "capsule_exchange_pct": 38.71,
+            "capsules_on_mesh": 33,
+            "capsules_suspended": 2013,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          },
+          "true_state": {
+            "clock_s": 258.2,
+            "waste_ul": 108.0,
+            "collection_ul": 11.2,
+            "capsules_loaded": 10000,
+            "capsules_collected": 8141,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 968.8,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 99.11,
+            "capsule_exchange_pct": 38.79,
+            "capsules_on_mesh": 24,
+            "capsules_suspended": 1835,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          }
+        },
+        {
+          "t_s": 266.6,
+          "dt_s": 8.4,
+          "command": "release",
+          "flow_ul_min": 40,
+          "volume_ul": 5.6,
+          "predicted": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 0.9966,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 0.9957
+          },
+          "true": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 0.9962,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -0.9252
+          },
+          "believed": {
+            "clock_s": 266.6,
+            "waste_ul": 108.0,
+            "collection_ul": 16.8,
+            "capsules_loaded": 10000,
+            "capsules_collected": 9063,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 963.2,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 99.57,
+            "capsule_exchange_pct": 46.65,
+            "capsules_on_mesh": 33,
+            "capsules_suspended": 904,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          },
+          "true_state": {
+            "clock_s": 266.6,
+            "waste_ul": 108.0,
+            "collection_ul": 16.8,
+            "capsules_loaded": 10000,
+            "capsules_collected": 9189,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 963.2,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 99.62,
+            "capsule_exchange_pct": 46.7,
+            "capsules_on_mesh": 24,
+            "capsules_suspended": 787,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          }
+        },
+        {
+          "t_s": 275.0,
+          "dt_s": 8.4,
+          "command": "release",
+          "flow_ul_min": 40,
+          "volume_ul": 5.6,
+          "predicted": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 0.9981,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 1.0034
+          },
+          "true": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 0.9984,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -1.0592
+          },
+          "believed": {
+            "clock_s": 275.0,
+            "waste_ul": 108.0,
+            "collection_ul": 22.4,
+            "capsules_loaded": 10000,
+            "capsules_collected": 9561,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 957.6,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 53.58,
+            "capsules_on_mesh": 33,
+            "capsules_suspended": 406,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          },
+          "true_state": {
+            "clock_s": 275.0,
+            "waste_ul": 108.0,
+            "collection_ul": 22.4,
+            "capsules_loaded": 10000,
+            "capsules_collected": 9639,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 957.6,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 99.84,
+            "capsule_exchange_pct": 53.63,
+            "capsules_on_mesh": 24,
+            "capsules_suspended": 338,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          }
+        },
+        {
+          "t_s": 283.4,
+          "dt_s": 8.4,
+          "command": "release",
+          "flow_ul_min": 40,
+          "volume_ul": 5.6,
+          "predicted": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 1.0,
+            "temp_c": null
+          },
+          "measured": {
+            "outlet_absorbance": 1.0067
+          },
+          "true": {
+            "pressure_kpa": 0.0,
+            "outlet_absorbance": 0.9993,
+            "temp_c": 22.0
+          },
+          "error": {
+            "outlet_absorbance": -1.1166
+          },
+          "believed": {
+            "clock_s": 283.4,
+            "waste_ul": 108.0,
+            "collection_ul": 28.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 9784,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 952.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 7.001,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 100.0,
+            "capsule_exchange_pct": 59.64,
+            "capsules_on_mesh": 33,
+            "capsules_suspended": 183,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          },
+          "true_state": {
+            "clock_s": 283.4,
+            "waste_ul": 108.0,
+            "collection_ul": 28.0,
+            "capsules_loaded": 10000,
+            "capsules_collected": 9832,
+            "capsules_lost": 0,
+            "reservoirs_ul": {
+              "capsule_suspension": 980.0,
+              "resuspension_buffer": 952.0,
+              "wash_buffer": 932.0
+            },
+            "chamber": "m3_trap_1",
+            "volume_ul": 6.615,
+            "reagent": "resuspension_buffer",
+            "exchange_pct": 99.93,
+            "capsule_exchange_pct": 59.67,
+            "capsules_on_mesh": 24,
+            "capsules_suspended": 145,
+            "temp_c": 22.0,
+            "pressure_kpa": 0.0
+          }
+        }
+      ],
+      "model_updates": [],
+      "alerts": []
+    }
+  ],
+  "log": [
+    {
+      "t_s": 0.0,
+      "kind": "plan",
+      "step": 1,
+      "message": "step 1: chose load 20 uL at 40 uL/min; predicted {'time_s': 30.0, 'reagent_ul': 20.0, 'final_pct': 93.42, 'interior_pct': 26.82, 'peak_kpa': 2.0}",
+      "data": {
+        "plan": {
+          "step": 1,
+          "goal": {
+            "step": 1,
+            "operation": "load",
+            "target": "m3_trap_1",
+            "reagent": null,
+            "volume_ul": 20,
+            "kind": "load",
+            "capsules": 10000.0
+          },
+          "objective": "least time, then least reagent, then lowest peak pressure; peak pressure must stay below the planning margin",
+          "command": "load",
+          "args": {
+            "target": "m3_trap_1",
+            "volume_ul": 20.0,
+            "flow_ul_min": 40,
+            "capsules": 10000.0
+          },
+          "predicted": {
+            "time_s": 30.0,
+            "reagent_ul": 20.0,
+            "final_pct": 93.42,
+            "interior_pct": 26.82,
+            "peak_kpa": 2.0
+          },
+          "candidates": [
+            {
+              "id": 0,
+              "command": "load",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 120.0,
+              "reagent_ul": 20.0,
+              "final_pct": 93.42,
+              "interior_pct": 66.35,
+              "peak_kpa": 0.5,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 1,
+              "command": "load",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 60.0,
+              "reagent_ul": 20.0,
+              "final_pct": 93.42,
+              "interior_pct": 45.07,
+              "peak_kpa": 1.0,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 2,
+              "command": "load",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 30.0,
+              "reagent_ul": 20.0,
+              "final_pct": 93.42,
+              "interior_pct": 26.82,
+              "peak_kpa": 2.0,
+              "soak_s": 0.0,
+              "status": "chosen",
+              "reason": null
+            }
+          ],
+          "feasible": true
+        },
+        "explanation": "Plan step 1 (load): pick the fastest safe settings that meet its goal."
+      }
+    },
+    {
+      "t_s": 0.0,
+      "kind": "safety",
+      "step": 1,
+      "message": "approved: load 20 uL at 40 uL/min",
+      "data": {
+        "safety": {
+          "result": "approved",
+          "reasons": []
+        },
+        "explanation": ""
+      }
+    },
+    {
+      "t_s": 30.0,
+      "kind": "plan",
+      "step": 2,
+      "message": "step 2: chose exchange 4 x 20 uL wash_buffer at 40 uL/min + 72 s soak; predicted {'time_s': 192.3, 'reagent_ul': 80.0, 'final_pct': 100.0, 'interior_pct': 95.0, 'peak_kpa': 2.0}",
+      "data": {
+        "plan": {
+          "step": 2,
+          "goal": {
+            "step": 2,
+            "operation": "exchange",
+            "target": "m3_trap_1",
+            "reagent": "wash_buffer",
+            "volume_ul": 20,
+            "kind": "exchange",
+            "fraction": 0.99,
+            "interior_fraction": 0.95
+          },
+          "objective": "least time, then least reagent, then lowest peak pressure; peak pressure must stay below the planning margin",
+          "command": "exchange",
+          "args": {
+            "target": "m3_trap_1",
+            "reagent": "wash_buffer",
+            "volume_ul": 20.0,
+            "washes": 4,
+            "flow_ul_min": 40,
+            "soak_s": 72.3
+          },
+          "predicted": {
+            "time_s": 192.3,
+            "reagent_ul": 80.0,
+            "final_pct": 100.0,
+            "interior_pct": 95.0,
+            "peak_kpa": 2.0
+          },
+          "candidates": [
+            {
+              "id": 0,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 120.0,
+              "reagent_ul": 20.0,
+              "final_pct": 93.42,
+              "interior_pct": 66.35,
+              "peak_kpa": 0.5,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "predicted exchange 93.4% < goal 99%"
+            },
+            {
+              "id": 1,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 250.6,
+              "reagent_ul": 40.0,
+              "final_pct": 99.57,
+              "interior_pct": 95.0,
+              "peak_kpa": 0.5,
+              "soak_s": 10.6,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 2,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 360.0,
+              "reagent_ul": 60.0,
+              "final_pct": 99.97,
+              "interior_pct": 99.12,
+              "peak_kpa": 0.5,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 3,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 480.0,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 99.87,
+              "peak_kpa": 0.5,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 4,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 60.0,
+              "reagent_ul": 20.0,
+              "final_pct": 93.42,
+              "interior_pct": 45.07,
+              "peak_kpa": 1.0,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "predicted exchange 93.4% < goal 99%"
+            },
+            {
+              "id": 5,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 211.5,
+              "reagent_ul": 40.0,
+              "final_pct": 99.57,
+              "interior_pct": 95.0,
+              "peak_kpa": 1.0,
+              "soak_s": 91.5,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 6,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 208.0,
+              "reagent_ul": 60.0,
+              "final_pct": 99.97,
+              "interior_pct": 95.0,
+              "peak_kpa": 1.0,
+              "soak_s": 28.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 7,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 240.0,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 97.07,
+              "peak_kpa": 1.0,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 8,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 30.0,
+              "reagent_ul": 20.0,
+              "final_pct": 93.42,
+              "interior_pct": 26.82,
+              "peak_kpa": 2.0,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "predicted exchange 93.4% < goal 99%"
+            },
+            {
+              "id": 9,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 197.0,
+              "reagent_ul": 40.0,
+              "final_pct": 99.57,
+              "interior_pct": 95.0,
+              "peak_kpa": 2.0,
+              "soak_s": 137.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 10,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 192.5,
+              "reagent_ul": 60.0,
+              "final_pct": 99.97,
+              "interior_pct": 95.0,
+              "peak_kpa": 2.0,
+              "soak_s": 102.5,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 11,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 192.3,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 2.0,
+              "soak_s": 72.3,
+              "status": "chosen",
+              "reason": null
+            },
+            {
+              "id": 12,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.00 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 15.0,
+              "reagent_ul": 20.0,
+              "final_pct": 93.42,
+              "interior_pct": 14.71,
+              "peak_kpa": 4.0,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "predicted exchange 93.4% < goal 99%"
+            },
+            {
+              "id": 13,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.00 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 190.7,
+              "reagent_ul": 40.0,
+              "final_pct": 99.57,
+              "interior_pct": 95.0,
+              "peak_kpa": 4.0,
+              "soak_s": 160.7,
+              "status": "rejected",
+              "reason": "peak 4.00 kPa above the 3.5 kPa planning margin"
+            },
+            {
+              "id": 14,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.00 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 186.0,
+              "reagent_ul": 60.0,
+              "final_pct": 99.97,
+              "interior_pct": 95.0,
+              "peak_kpa": 4.0,
+              "soak_s": 141.0,
+              "status": "rejected",
+              "reason": "peak 4.00 kPa above the 3.5 kPa planning margin"
+            },
+            {
+              "id": 15,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.00 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 185.7,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 4.0,
+              "soak_s": 125.7,
+              "status": "rejected",
+              "reason": "peak 4.00 kPa above the 3.5 kPa planning margin"
+            }
+          ],
+          "feasible": true
+        },
+        "explanation": "Plan step 2 (exchange): pick the fastest safe settings that meet its goal."
+      }
+    },
+    {
+      "t_s": 30.0,
+      "kind": "safety",
+      "step": 2,
+      "message": "approved: exchange 4 x 20 uL wash_buffer at 40 uL/min + 72 s soak",
+      "data": {
+        "safety": {
+          "result": "approved",
+          "reasons": []
+        },
+        "explanation": ""
+      }
+    },
+    {
+      "t_s": 30.0,
+      "kind": "model_update",
+      "step": 2,
+      "message": "mesh_resistance[m3_trap_1]: 0.05 -> 0.0616 kPa per uL/min (pressure 2.58 kPa vs predicted 2.00 (+29%))",
+      "data": {
+        "t_s": 30.0,
+        "param": "mesh_resistance[m3_trap_1]",
+        "old": 0.05,
+        "new": 0.0616,
+        "unit": "kPa per uL/min",
+        "reason": "pressure 2.58 kPa vs predicted 2.00 (+29%)"
+      }
+    },
+    {
+      "t_s": 48.0,
+      "kind": "model_update",
+      "step": 2,
+      "message": "chamber_volume_ul[m3_trap_1]: 7.35 -> 6.79 uL (outlet absorbance 0.913 after 16 uL: leftover old liquid -23% vs the model since the exchange began)",
+      "data": {
+        "t_s": 48.0,
+        "param": "chamber_volume_ul[m3_trap_1]",
+        "old": 7.35,
+        "new": 6.78953,
+        "unit": "uL",
+        "reason": "outlet absorbance 0.913 after 16 uL: leftover old liquid -23% vs the model since the exchange began"
+      }
+    },
+    {
+      "t_s": 54.0,
+      "kind": "replan",
+      "step": 2,
+      "message": "step 2: re-planned the rest after a model update: exchange 3 x 20 uL wash_buffer at 40 uL/min + 77 s soak",
+      "data": {
+        "plan": {
+          "step": 2,
+          "goal": {
+            "step": 2,
+            "operation": "exchange",
+            "target": "m3_trap_1",
+            "reagent": "wash_buffer",
+            "volume_ul": 20,
+            "kind": "exchange",
+            "fraction": 0.99,
+            "interior_fraction": 0.95
+          },
+          "objective": "least time, then least reagent, then lowest peak pressure; peak pressure must stay below the planning margin",
+          "command": "exchange",
+          "args": {
+            "target": "m3_trap_1",
+            "reagent": "wash_buffer",
+            "volume_ul": 20.0,
+            "washes": 3,
+            "flow_ul_min": 40,
+            "soak_s": 77.1
+          },
+          "predicted": {
+            "time_s": 167.1,
+            "reagent_ul": 60.0,
+            "final_pct": 100.0,
+            "interior_pct": 95.0,
+            "peak_kpa": 2.464
+          },
+          "candidates": [
+            {
+              "id": 0,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 177.6,
+              "reagent_ul": 20.0,
+              "final_pct": 99.54,
+              "interior_pct": 95.0,
+              "peak_kpa": 0.616,
+              "soak_s": 57.6,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 1,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 240.0,
+              "reagent_ul": 40.0,
+              "final_pct": 99.98,
+              "interior_pct": 98.25,
+              "peak_kpa": 0.616,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 2,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 360.0,
+              "reagent_ul": 60.0,
+              "final_pct": 100.0,
+              "interior_pct": 99.76,
+              "peak_kpa": 0.616,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 3,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 480.0,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 99.97,
+              "peak_kpa": 0.616,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 4,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 173.5,
+              "reagent_ul": 20.0,
+              "final_pct": 99.54,
+              "interior_pct": 95.0,
+              "peak_kpa": 1.232,
+              "soak_s": 113.5,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 5,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 169.3,
+              "reagent_ul": 40.0,
+              "final_pct": 99.98,
+              "interior_pct": 95.0,
+              "peak_kpa": 1.232,
+              "soak_s": 49.3,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 6,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 180.0,
+              "reagent_ul": 60.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.83,
+              "peak_kpa": 1.232,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 7,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 240.0,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 98.46,
+              "peak_kpa": 1.232,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 8,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 172.2,
+              "reagent_ul": 20.0,
+              "final_pct": 99.54,
+              "interior_pct": 95.0,
+              "peak_kpa": 2.464,
+              "soak_s": 142.2,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 9,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 167.4,
+              "reagent_ul": 40.0,
+              "final_pct": 99.98,
+              "interior_pct": 95.0,
+              "peak_kpa": 2.464,
+              "soak_s": 107.4,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 10,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 167.1,
+              "reagent_ul": 60.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 2.464,
+              "soak_s": 77.1,
+              "status": "chosen",
+              "reason": null
+            },
+            {
+              "id": 11,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 167.1,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 2.464,
+              "soak_s": 47.1,
+              "status": "ok",
+              "reason": "uses more reagent"
+            },
+            {
+              "id": 12,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.93 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 171.7,
+              "reagent_ul": 20.0,
+              "final_pct": 99.54,
+              "interior_pct": 95.0,
+              "peak_kpa": 4.928,
+              "soak_s": 156.7,
+              "status": "rejected",
+              "reason": "peak 4.93 kPa above the 3.5 kPa planning margin"
+            },
+            {
+              "id": 13,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.93 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 166.6,
+              "reagent_ul": 40.0,
+              "final_pct": 99.98,
+              "interior_pct": 95.0,
+              "peak_kpa": 4.928,
+              "soak_s": 136.6,
+              "status": "rejected",
+              "reason": "peak 4.93 kPa above the 3.5 kPa planning margin"
+            },
+            {
+              "id": 14,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.93 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 166.4,
+              "reagent_ul": 60.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 4.928,
+              "soak_s": 121.4,
+              "status": "rejected",
+              "reason": "peak 4.93 kPa above the 3.5 kPa planning margin"
+            },
+            {
+              "id": 15,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.93 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 166.4,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 4.928,
+              "soak_s": 106.4,
+              "status": "rejected",
+              "reason": "peak 4.93 kPa above the 3.5 kPa planning margin"
+            }
+          ],
+          "feasible": true,
+          "replanned_from": {
+            "flow_ul_min": 40,
+            "volume_ul": 20.0,
+            "washes": 4
+          }
+        }
+      }
+    },
+    {
+      "t_s": 60.0,
+      "kind": "model_update",
+      "step": 2,
+      "message": "chamber_volume_ul[m3_trap_1]: 6.79 -> 7.001 uL (outlet absorbance 0.966 after 24 uL: leftover old liquid +16% vs the model since the exchange began)",
+      "data": {
+        "t_s": 60.0,
+        "param": "chamber_volume_ul[m3_trap_1]",
+        "old": 6.78953,
+        "new": 7.0009,
+        "unit": "uL",
+        "reason": "outlet absorbance 0.966 after 24 uL: leftover old liquid +16% vs the model since the exchange began"
+      }
+    },
+    {
+      "t_s": 102.0,
+      "kind": "alert",
+      "step": 2,
+      "message": "sensor_disagreement: pressure sensor reading is frozen (identical values, no noise)",
+      "data": {
+        "alert": {
+          "t_s": 102.0,
+          "step": 2,
+          "name": "sensor_disagreement",
+          "severity": "critical",
+          "message": "pressure sensor reading is frozen (identical values, no noise)",
+          "evidence": {
+            "sensor": "pressure_kpa",
+            "readings": [
+              2.6174,
+              2.6174,
+              2.6174
+            ],
+            "predicted": [
+              2.4642,
+              2.4642,
+              2.4642
+            ],
+            "mode": "stuck"
+          },
+          "resolved_by": "distrust_sensor"
+        }
+      }
+    },
+    {
+      "t_s": 102.0,
+      "kind": "model_update",
+      "step": 2,
+      "message": "distrusting sensor pressure_kpa; falling back to the model for it (The pressure_kpa sensor disagrees with the model; ignore it and fall back to the model for that quantity.)",
+      "data": {
+        "sensor": "pressure_kpa"
+      }
+    },
+    {
+      "t_s": 102.0,
+      "kind": "plan",
+      "step": 2,
+      "message": "step 2: chose exchange 1 x 20 uL wash_buffer at 20 uL/min + 59 s soak; predicted {'time_s': 119.4, 'reagent_ul': 20.0, 'final_pct': 100.0, 'interior_pct': 95.0, 'peak_kpa': 1.232}",
+      "data": {
+        "plan": {
+          "step": 2,
+          "goal": {
+            "step": 2,
+            "operation": "exchange",
+            "target": "m3_trap_1",
+            "reagent": "wash_buffer",
+            "volume_ul": 20,
+            "kind": "exchange",
+            "fraction": 0.99,
+            "interior_fraction": 0.95
+          },
+          "objective": "least time, then least reagent, then lowest peak pressure; peak pressure must stay below the planning margin",
+          "command": "exchange",
+          "args": {
+            "target": "m3_trap_1",
+            "reagent": "wash_buffer",
+            "volume_ul": 20.0,
+            "washes": 1,
+            "flow_ul_min": 20,
+            "soak_s": 59.4
+          },
+          "predicted": {
+            "time_s": 119.4,
+            "reagent_ul": 20.0,
+            "final_pct": 100.0,
+            "interior_pct": 95.0,
+            "peak_kpa": 1.232
+          },
+          "candidates": [
+            {
+              "id": 0,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 120.0,
+              "reagent_ul": 20.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.05,
+              "peak_kpa": 0.616,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 1,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 240.0,
+              "reagent_ul": 40.0,
+              "final_pct": 100.0,
+              "interior_pct": 99.33,
+              "peak_kpa": 0.616,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 2,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 360.0,
+              "reagent_ul": 60.0,
+              "final_pct": 100.0,
+              "interior_pct": 99.91,
+              "peak_kpa": 0.616,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 3,
+              "command": "exchange",
+              "flow_ul_min": 10,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 480.0,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 99.99,
+              "peak_kpa": 0.616,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 4,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 119.4,
+              "reagent_ul": 20.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 1.232,
+              "soak_s": 59.4,
+              "status": "chosen",
+              "reason": null
+            },
+            {
+              "id": 5,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 120.0,
+              "reagent_ul": 40.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.05,
+              "peak_kpa": 1.232,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 6,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 180.0,
+              "reagent_ul": 60.0,
+              "final_pct": 100.0,
+              "interior_pct": 98.18,
+              "peak_kpa": 1.232,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 7,
+              "command": "exchange",
+              "flow_ul_min": 20,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 240.0,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 99.33,
+              "peak_kpa": 1.232,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 8,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 119.4,
+              "reagent_ul": 20.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 2.464,
+              "soak_s": 89.4,
+              "status": "ok",
+              "reason": "uses more reagent"
+            },
+            {
+              "id": 9,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 119.4,
+              "reagent_ul": 40.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 2.464,
+              "soak_s": 59.4,
+              "status": "ok",
+              "reason": "uses more reagent"
+            },
+            {
+              "id": 10,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 119.4,
+              "reagent_ul": 60.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 2.464,
+              "soak_s": 29.4,
+              "status": "ok",
+              "reason": "uses more reagent"
+            },
+            {
+              "id": 11,
+              "command": "exchange",
+              "flow_ul_min": 40,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 120.0,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.05,
+              "peak_kpa": 2.464,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 12,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.93 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 119.4,
+              "reagent_ul": 20.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 4.928,
+              "soak_s": 104.4,
+              "status": "rejected",
+              "reason": "peak 4.93 kPa above the 3.5 kPa planning margin"
+            },
+            {
+              "id": 13,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 2,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.93 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 119.4,
+              "reagent_ul": 40.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 4.928,
+              "soak_s": 89.4,
+              "status": "rejected",
+              "reason": "peak 4.93 kPa above the 3.5 kPa planning margin"
+            },
+            {
+              "id": 14,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 3,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.93 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 119.4,
+              "reagent_ul": 60.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 4.928,
+              "soak_s": 74.4,
+              "status": "rejected",
+              "reason": "peak 4.93 kPa above the 3.5 kPa planning margin"
+            },
+            {
+              "id": 15,
+              "command": "exchange",
+              "flow_ul_min": 80,
+              "volume_ul": 20.0,
+              "washes": 4,
+              "ramp_c_per_s": null,
+              "safety": {
+                "result": "warning",
+                "reasons": [
+                  "predicted 4.93 kPa is above 70% of the 5 kPa escape pressure"
+                ]
+              },
+              "time_s": 119.4,
+              "reagent_ul": 80.0,
+              "final_pct": 100.0,
+              "interior_pct": 95.0,
+              "peak_kpa": 4.928,
+              "soak_s": 59.4,
+              "status": "rejected",
+              "reason": "peak 4.93 kPa above the 3.5 kPa planning margin"
+            }
+          ],
+          "feasible": true
+        },
+        "explanation": "Re-plan the rest of the step without the distrusted sensor."
+      }
+    },
+    {
+      "t_s": 102.0,
+      "kind": "safety",
+      "step": 2,
+      "message": "approved: exchange 1 x 20 uL wash_buffer at 20 uL/min + 59 s soak",
+      "data": {
+        "safety": {
+          "result": "approved",
+          "reasons": []
+        },
+        "explanation": ""
+      }
+    },
+    {
+      "t_s": 221.4,
+      "kind": "plan",
+      "step": 3,
+      "message": "step 3: chose exchange back-flush 1 x 20 uL resuspension_buffer at 60 uL/min; predicted {'time_s': 20.0, 'reagent_ul': 20.0, 'final_pct': 94.25, 'interior_pct': 19.38, 'peak_kpa': -3.696}",
+      "data": {
+        "plan": {
+          "step": 3,
+          "goal": {
+            "step": 3,
+            "operation": "exchange",
+            "target": "m3_trap_1",
+            "reagent": "resuspension_buffer",
+            "volume_ul": 20,
+            "kind": "backflush",
+            "fraction": 0.95
+          },
+          "objective": "least time, then least reagent, then lowest peak pressure; peak pressure must stay below the planning margin",
+          "command": "exchange",
+          "args": {
+            "target": "m3_trap_1",
+            "reagent": "resuspension_buffer",
+            "volume_ul": 20.0,
+            "washes": 1,
+            "flow_ul_min": 60,
+            "direction": "backflush"
+          },
+          "predicted": {
+            "time_s": 20.0,
+            "reagent_ul": 20.0,
+            "final_pct": 94.25,
+            "interior_pct": 19.38,
+            "peak_kpa": -3.696
+          },
+          "candidates": [
+            {
+              "id": 0,
+              "command": "exchange",
+              "flow_ul_min": 15,
+              "volume_ul": 10.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "lifted_pct": 70.7,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 40.0,
+              "reagent_ul": 10.0,
+              "final_pct": 76.03,
+              "interior_pct": 24.46,
+              "peak_kpa": -0.924,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "lifts 71% of capsules < goal 95%"
+            },
+            {
+              "id": 1,
+              "command": "exchange",
+              "flow_ul_min": 15,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "lifted_pct": 87.5,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 80.0,
+              "reagent_ul": 20.0,
+              "final_pct": 94.25,
+              "interior_pct": 54.87,
+              "peak_kpa": -0.924,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "lifts 88% of capsules < goal 95%"
+            },
+            {
+              "id": 2,
+              "command": "exchange",
+              "flow_ul_min": 30,
+              "volume_ul": 10.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "lifted_pct": 94.3,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 20.0,
+              "reagent_ul": 10.0,
+              "final_pct": 76.03,
+              "interior_pct": 13.71,
+              "peak_kpa": -1.848,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "lifts 94% of capsules < goal 95%"
+            },
+            {
+              "id": 3,
+              "command": "exchange",
+              "flow_ul_min": 30,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "lifted_pct": 99.7,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 40.0,
+              "reagent_ul": 20.0,
+              "final_pct": 94.25,
+              "interior_pct": 34.31,
+              "peak_kpa": -1.848,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 4,
+              "command": "exchange",
+              "flow_ul_min": 45,
+              "volume_ul": 10.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "lifted_pct": 94.3,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 13.3,
+              "reagent_ul": 10.0,
+              "final_pct": 76.03,
+              "interior_pct": 9.51,
+              "peak_kpa": -2.772,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "lifts 94% of capsules < goal 95%"
+            },
+            {
+              "id": 5,
+              "command": "exchange",
+              "flow_ul_min": 45,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "lifted_pct": 99.7,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 26.7,
+              "reagent_ul": 20.0,
+              "final_pct": 94.25,
+              "interior_pct": 24.79,
+              "peak_kpa": -2.772,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 6,
+              "command": "exchange",
+              "flow_ul_min": 60,
+              "volume_ul": 10.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "lifted_pct": 94.3,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 10.0,
+              "reagent_ul": 10.0,
+              "final_pct": 76.03,
+              "interior_pct": 7.28,
+              "peak_kpa": -3.696,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "lifts 94% of capsules < goal 95%"
+            },
+            {
+              "id": 7,
+              "command": "exchange",
+              "flow_ul_min": 60,
+              "volume_ul": 20.0,
+              "washes": 1,
+              "ramp_c_per_s": null,
+              "lifted_pct": 99.7,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 20.0,
+              "reagent_ul": 20.0,
+              "final_pct": 94.25,
+              "interior_pct": 19.38,
+              "peak_kpa": -3.696,
+              "soak_s": 0.0,
+              "status": "chosen",
+              "reason": null
+            }
+          ],
+          "feasible": true
+        },
+        "explanation": "Plan step 3 (exchange): pick the fastest safe settings that meet its goal."
+      }
+    },
+    {
+      "t_s": 221.4,
+      "kind": "safety",
+      "step": 3,
+      "message": "approved: exchange back-flush 1 x 20 uL resuspension_buffer at 60 uL/min",
+      "data": {
+        "safety": {
+          "result": "approved",
+          "reasons": []
+        },
+        "explanation": ""
+      }
+    },
+    {
+      "t_s": 241.4,
+      "kind": "plan",
+      "step": 4,
+      "message": "step 4: chose release 28 uL at 40 uL/min; predicted {'time_s': 42.0, 'reagent_ul': 28.0, 'final_pct': 99.91, 'interior_pct': 59.58, 'peak_kpa': 0.0}",
+      "data": {
+        "plan": {
+          "step": 4,
+          "goal": {
+            "step": 4,
+            "operation": "release",
+            "target": "m3_trap_1",
+            "reagent": "resuspension_buffer",
+            "volume_ul": 20,
+            "kind": "release",
+            "fraction": 0.98
+          },
+          "objective": "least time, then least reagent, then lowest peak pressure; peak pressure must stay below the planning margin",
+          "command": "release",
+          "args": {
+            "target": "m3_trap_1",
+            "reagent": "resuspension_buffer",
+            "volume_ul": 28.0,
+            "flow_ul_min": 40
+          },
+          "predicted": {
+            "time_s": 42.0,
+            "reagent_ul": 28.0,
+            "final_pct": 99.91,
+            "interior_pct": 59.58,
+            "peak_kpa": 0.0
+          },
+          "candidates": [
+            {
+              "id": 0,
+              "command": "release",
+              "flow_ul_min": 10,
+              "volume_ul": 14.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "recovered_pct": 86.5,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 84.0,
+              "reagent_ul": 14.0,
+              "final_pct": 99.32,
+              "interior_pct": 78.86,
+              "peak_kpa": 0.0,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "recovers 86% of suspended capsules < goal 98%"
+            },
+            {
+              "id": 1,
+              "command": "release",
+              "flow_ul_min": 10,
+              "volume_ul": 28.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "recovered_pct": 98.2,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 168.0,
+              "reagent_ul": 28.0,
+              "final_pct": 99.91,
+              "interior_pct": 94.57,
+              "peak_kpa": 0.0,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 2,
+              "command": "release",
+              "flow_ul_min": 10,
+              "volume_ul": 42.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "recovered_pct": 99.8,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 252.0,
+              "reagent_ul": 42.0,
+              "final_pct": 99.99,
+              "interior_pct": 98.62,
+              "peak_kpa": 0.0,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 3,
+              "command": "release",
+              "flow_ul_min": 20,
+              "volume_ul": 14.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "recovered_pct": 86.5,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 42.0,
+              "reagent_ul": 14.0,
+              "final_pct": 99.32,
+              "interior_pct": 59.13,
+              "peak_kpa": 0.0,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "recovers 86% of suspended capsules < goal 98%"
+            },
+            {
+              "id": 4,
+              "command": "release",
+              "flow_ul_min": 20,
+              "volume_ul": 28.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "recovered_pct": 98.2,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 84.0,
+              "reagent_ul": 28.0,
+              "final_pct": 99.91,
+              "interior_pct": 79.53,
+              "peak_kpa": 0.0,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 5,
+              "command": "release",
+              "flow_ul_min": 20,
+              "volume_ul": 42.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "recovered_pct": 99.8,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 126.0,
+              "reagent_ul": 42.0,
+              "final_pct": 99.99,
+              "interior_pct": 89.79,
+              "peak_kpa": 0.0,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            },
+            {
+              "id": 6,
+              "command": "release",
+              "flow_ul_min": 40,
+              "volume_ul": 14.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "recovered_pct": 86.5,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 21.0,
+              "reagent_ul": 14.0,
+              "final_pct": 99.32,
+              "interior_pct": 42.79,
+              "peak_kpa": 0.0,
+              "soak_s": 0.0,
+              "status": "rejected",
+              "reason": "recovers 86% of suspended capsules < goal 98%"
+            },
+            {
+              "id": 7,
+              "command": "release",
+              "flow_ul_min": 40,
+              "volume_ul": 28.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "recovered_pct": 98.2,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 42.0,
+              "reagent_ul": 28.0,
+              "final_pct": 99.91,
+              "interior_pct": 59.58,
+              "peak_kpa": 0.0,
+              "soak_s": 0.0,
+              "status": "chosen",
+              "reason": null
+            },
+            {
+              "id": 8,
+              "command": "release",
+              "flow_ul_min": 40,
+              "volume_ul": 42.0,
+              "washes": null,
+              "ramp_c_per_s": null,
+              "recovered_pct": 99.8,
+              "safety": {
+                "result": "approved",
+                "reasons": []
+              },
+              "time_s": 63.0,
+              "reagent_ul": 42.0,
+              "final_pct": 99.99,
+              "interior_pct": 71.48,
+              "peak_kpa": 0.0,
+              "soak_s": 0.0,
+              "status": "ok",
+              "reason": "slower"
+            }
+          ],
+          "feasible": true
+        },
+        "explanation": "Plan step 4 (release): pick the fastest safe settings that meet its goal."
+      }
+    },
+    {
+      "t_s": 241.4,
+      "kind": "safety",
+      "step": 4,
+      "message": "approved: release 28 uL at 40 uL/min",
+      "data": {
+        "safety": {
+          "result": "approved",
+          "reasons": []
+        },
+        "explanation": ""
+      }
+    }
+  ],
+  "summary": {
+    "status": "done",
+    "status_reason": "",
+    "loop": "closed",
+    "duration_s": 283.4,
+    "alerts": 1,
+    "recoveries": 0,
+    "model_updates": 3,
+    "alert_names": [
+      "sensor_disagreement"
+    ],
+    "believed": {
+      "capsule_recovery_pct": 97.84,
+      "capsules_collected": 9784,
+      "capsules_lost": 0,
+      "capsules_on_mesh": 33,
+      "reagent_used_ul": {
+        "capsule_suspension": 20.0,
+        "resuspension_buffer": 48.0,
+        "wash_buffer": 68.0
+      },
+      "waste_ul": 108.0,
+      "collection_ul": 28.0
+    },
+    "true": {
+      "capsule_recovery_pct": 98.32,
+      "capsules_collected": 9832,
+      "capsules_lost": 0,
+      "capsules_on_mesh": 24,
+      "reagent_used_ul": {
+        "capsule_suspension": 20.0,
+        "resuspension_buffer": 48.0,
+        "wash_buffer": 68.0
+      },
+      "waste_ul": 108.0,
+      "collection_ul": 28.0
+    },
+    "final_exchange_pct": {
+      "step": 2,
+      "believed": 100.0,
+      "true": 100.0
+    },
+    "drift": {
+      "capsules_collected": 48,
+      "capsules_lost": 0,
+      "waste_ul": 0.0,
+      "final_exchange_pct_points": 0.0,
+      "mesh_resistance_error_pct": {
+        "start": -23.1,
+        "end": -5.2
+      },
+      "chamber_volume_ul_error_pct": {
+        "start": 11.1,
+        "end": 5.8
+      }
+    }
+  },
+  "total_duration_s": 283.4,
+  "report": "runs/m3_wash__m3_wash_v1__m3_wash_sensor_fault_report.md",
+  "transcript": "runs/transcripts/m3_wash__m3_wash_v1__m3_wash_sensor_fault.json"
+}

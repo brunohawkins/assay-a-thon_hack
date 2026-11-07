@@ -19,6 +19,11 @@ class SimAdapter:
         self.chip = chip
         self.t_s = float(start_t_s)
         self.events: list[dict] = []
+        self.log: list[dict] = []
+
+    def note(self, kind: str, message: str, step: int | None = None) -> None:
+        """Add an operator-log line (e.g. a step skipped for this variant)."""
+        self.log.append({"t_s": round(self.t_s, 3), "kind": kind, "step": step, "message": message})
 
     def send(self, command: str, args: dict, *, narration: str = "",
              protocol_step: int | None = None, duration_s: float | None = None) -> dict:
@@ -44,6 +49,8 @@ class SimAdapter:
         run = dict(header)
         run["total_duration_s"] = round(self.t_s, 3)
         run["events"] = list(self.events)
+        if self.log:
+            run["log"] = list(self.log)
         return run
 
     def write(self, path: Path | str, header: dict) -> dict:

@@ -2,11 +2,11 @@
 
 Closed-loop runs (the management system; SIMULATED HARDWARE by default):
 
-    python operator/run.py --scenario scenarios/wash_mvp_clog.json
-    python operator/run.py --protocol protocols/placeholder_capsule_wash_mvp.json --chip cad/wash_mvp_spec.json \\
-        --operator planner|llm|scripted --adapter virtual|dryrun|syringe_pump --scenario scenarios/wash_mvp_clog.json
-    python operator/run.py --scenario scenarios/wash_mvp_clog.json --operator llm          # needs ANTHROPIC_API_KEY
-    python operator/run.py --scenario scenarios/wash_mvp_clog.json --operator scripted \\
+    python operator/run.py --scenario scenarios/m3_wash_clog.json
+    python operator/run.py --protocol protocols/m3_wash.json --chip cad/m3_wash_spec.json \\
+        --operator planner|llm|scripted --adapter virtual|dryrun|syringe_pump --scenario scenarios/m3_wash_clog.json
+    python operator/run.py --scenario scenarios/m3_wash_clog.json --operator llm          # needs ANTHROPIC_API_KEY
+    python operator/run.py --scenario scenarios/m3_wash_clog.json --operator scripted \\
         --transcript runs/transcripts/<run>.json                                          # offline replay
 
   writes runs/<protocol>__<chip>__<scenario>[__<operator>].json, the report
@@ -15,6 +15,10 @@ Closed-loop runs (the management system; SIMULATED HARDWARE by default):
 Simple runs (no scenario: one command per step, no simulation):
 
     python operator/run.py --protocol protocols/placeholder_scrnaseq.json --chip chip/placeholder_chip_spec.json
+    python operator/run.py --protocol protocols/m1_culture.json --chip cad/m1_culture_spec.json --variant control
+
+  A chip with run parameters (Module 1: variant = control | interaction) gets one run per
+  variant unless --variant picks one: runs/<protocol>__<chip>__<variant>.json.
 
 Housekeeping:
 
@@ -42,20 +46,33 @@ TRANSCRIPTS = planner.RUNS_DIR / "transcripts"
 # --- simple runs ----------------------------------------------------------------------
 
 
-def generate(protocol_path: Path, chip_path: Path, use_llm: bool = False, runs_dir: Path = planner.RUNS_DIR) -> Path:
+def generate(protocol_path: Path, chip_path: Path, use_llm: bool = False, runs_dir: Path = planner.RUNS_DIR,
+             variant: str | None = None) -> list[Path]:
+    """One simple run, or one per variant when the chip has a variant parameter and none is given."""
     protocol = schema_io.load_json(protocol_path)
     chip = schema_io.load_json(chip_path)
     if use_llm:
         print("The LLM operator drives the closed-loop controller: give a scenario (--scenario). "
               "Falling back to the deterministic planner for this simple run.")
-    adapter = planner.plan(protocol, chip)
-    out = planner.run_path(protocol["id"], chip["id"], "planner", runs_dir)
-    header = planner.run_header(protocol, chip, chip_path, "planner")
-    header["sizing"] = sizing.chip_sizing(chip)
-    run = adapter.write(out, header)
-    print(f"wrote {planner.repo_relative(out)}  ({len(run['events'])} events, "
-          f"{run['total_duration_s']:.0f} s of protocol time, operator=planner)")
-    return out
+    declared = (chip.get("run_parameters") or {}).get("variant")
+    variants = [variant] if variant else (declared["values"] if declared else [None])
+    outs = []
+    for v in variants:
+        run_params = planner.run_params_for(chip, {"variant": v} if v else None)
+        adapter = planner.plan(protocol, chip, run_params=run_params)
+        out = planner.run_path(protocol["id"], chip["id"], "planner", runs_dir, variant=v)
+        header = planner.run_header(protocol, chip, chip_path, "planner")
+        if run_params:
+            header["run_parameters"] = run_params
+        if chip.get("capsule") or not chip.get("module"):   # capsule chips (cell-only modules have no capsule sizing)
+            header["sizing"] = sizing.chip_sizing(chip)
+        run = adapter.write(out, header)
+        skipped = sum(1 for x in run.get("log", []) if x["kind"] == "skip")
+        print(f"wrote {planner.repo_relative(out)}  ({len(run['events'])} events, "
+              f"{run['total_duration_s']:.0f} s of protocol time, operator=planner"
+              + (f", variant={v}, {skipped} step(s) skipped" if v else "") + ")")
+        outs.append(out)
+    return outs
 
 
 # --- closed-loop runs -------------------------------------------------------------------
@@ -92,6 +109,8 @@ def closed_loop(scenario_path: Path, protocol_path: Path | None, chip_path: Path
     problems = planner.check_inputs(protocol, chip)
     if problems:
         raise planner.PlanError("\n".join(problems))
+    if (chip.get("module") or {}).get("id") == "m1b":
+        return cellprep_run(protocol, chip, chip_path, scenario, scenario_path)
     params, _ = safety._contracts()
     reagents = sorted({s["reagent"] for s in protocol["steps"] if s.get("reagent")} | {"capsule_suspension"})
     adapter = make_adapter(adapter_kind, chip, params, scenario, reagents)
@@ -152,7 +171,37 @@ def closed_loop(scenario_path: Path, protocol_path: Path | None, chip_path: Path
     return out
 
 
+def cellprep_run(protocol: dict, chip: dict, chip_path: Path, scenario: dict, scenario_path: Path) -> Path:
+    """Module 1b: the cell-prep operator (simulated counter, operator-set dilution, safety gate)."""
+    import cellprep
+
+    run = cellprep.run(protocol, chip, chip_path, scenario, scenario_path)
+    stem = f"{protocol['id']}__{chip['id']}__{scenario['name']}"
+    out = planner.RUNS_DIR / f"{stem}.json"
+    report_path = planner.RUNS_DIR / f"{stem}_report.md"
+    run["report"] = planner.repo_relative(report_path)
+    errors = schema_io.schema_errors("run", run)
+    if errors:
+        raise ValueError("run does not match run.schema.json: " + "; ".join(
+            f"{schema_io.path_str(e)}: {schema_io.describe(e)}" for e in errors[:5]))
+    schema_io.write_json(out, run)
+    report_path.write_text(cellprep.render_report(run), encoding="utf-8")
+    s = run["summary"]
+    print(f"wrote {planner.repo_relative(out)} + report  [cell prep, simulated counter]  status {run['status']}, "
+          f"dilution {s['dilution']:g}x, {s['mean_cells_per_capsule']} cells per capsule, safety "
+          f"{(s.get('verdict') or {}).get('result')}")
+    return out
+
+
 # --- index and --all ------------------------------------------------------------------
+
+
+def module_of(chip_spec: str | None) -> str | None:
+    """Module id (m1, m1b, m2, m3) of a chip spec, or None."""
+    try:
+        return (schema_io.load_json(ROOT / chip_spec).get("module") or {}).get("id") if chip_spec else None
+    except (ValueError, FileNotFoundError):
+        return None
 
 
 def rebuild_index(runs_dir: Path = planner.RUNS_DIR) -> Path:
@@ -182,6 +231,8 @@ def rebuild_index(runs_dir: Path = planner.RUNS_DIR) -> Path:
             "loop": run.get("loop"),
             "faults": [f.get("type") for f in scn.get("faults", [])],
             "status": run.get("status"),
+            "variant": (run.get("run_parameters") or {}).get("variant"),
+            "module": module_of(run.get("chip_spec")),
         })
     entries.sort(key=lambda e: (str(e["protocol_name"]), str(e["scenario"] or ""), str(e["operator"]), e["file"]))
     out = Path(runs_dir) / INDEX_NAME
@@ -193,7 +244,7 @@ def rebuild_index(runs_dir: Path = planner.RUNS_DIR) -> Path:
 def all_runs(chip: Path | None) -> tuple[list[tuple[Path, Path]], list[Path]]:
     """For --all: (simple (protocol, chip) pairs, scenario files). With --chip: every
     protocol on that chip. Without: every existing planner run again."""
-    protocols = sorted((ROOT / "protocols").glob("*.json"))
+    protocols = [p for p in sorted((ROOT / "protocols").glob("*.json")) if not schema_io.is_pipeline(schema_io.load_json(p))]
     if chip is not None:
         return [(p, chip) for p in protocols], []
     by_id = {schema_io.load_json(p).get("id"): p for p in protocols}
@@ -227,6 +278,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--transcript", type=Path, help="transcript to replay with --operator scripted")
     parser.add_argument("--max-tool-calls", type=int, default=None, help="cap on LLM tool calls per run")
     parser.add_argument("--llm", action="store_true", help="same as --operator llm")
+    parser.add_argument("--variant", help="run parameter 'variant' for chips that have one (Module 1: control | interaction)")
     parser.add_argument("--all", action="store_true", help="regenerate every planner run (simple and scenario)")
     parser.add_argument("--reindex", action="store_true", help="only rebuild runs/index.json")
     args = parser.parse_args(argv)
@@ -251,7 +303,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.protocol and args.chip:
             if operator != "planner":
                 print(f"--operator {operator} needs a scenario (--scenario); running the simple planner instead.")
-            generate(args.protocol, args.chip)
+            generate(args.protocol, args.chip, variant=args.variant)
         else:
             parser.error("give --scenario, or --protocol and --chip, or --all, or --reindex")
         rebuild_index()

@@ -1,0 +1,115 @@
+"""Module 1b (automated cell prep) and the pipeline that chains the modules.
+
+    python -m unittest discover -s tests -v
+"""
+
+import copy
+import sys
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "operator"))
+sys.path.insert(0, str(ROOT / "tools"))
+
+import cellprep  # noqa: E402
+import check_chip_spec as ccs  # noqa: E402
+import safety  # noqa: E402
+import schema_io  # noqa: E402
+
+M1B = schema_io.load_json(ROOT / "cad" / "m1b_cellprep_spec.json")
+M2 = schema_io.load_json(ROOT / "cad" / "m2_encapsulation_spec.json")
+PROTO = schema_io.load_json(ROOT / "protocols" / "m1b_cellprep.json")
+TARGET = safety.cell_prep_target(M2)
+
+
+def scenario(name):
+    path = ROOT / "scenarios" / f"m1b_cellprep_{name}.json"
+    scn = schema_io.load_json(path)
+    return cellprep.run(PROTO, M1B, ROOT / "cad" / "m1b_cellprep_spec.json", scn, path)
+
+
+class SafetyGate(unittest.TestCase):
+    def test_target_comes_from_module_2_flows(self):
+        # 0.1 cells per capsule at 100 uL/h of core stream and ~1.95 M capsules/h -> ~1,950 cells/uL
+        self.assertAlmostEqual(TARGET["target_cells_per_ul"], 1948.8, delta=1)
+
+    def test_on_target_and_viable_is_approved(self):
+        self.assertEqual(safety.check_cell_prep(1950, 0.93, M2).status, "approved")
+
+    def test_low_viability_is_blocked(self):
+        r = safety.check_cell_prep(1950, 0.85, M2)
+        self.assertEqual(r.status, "blocked")
+        self.assertIn("viability 85% is below 90%", r.reasons[0])
+
+    def test_too_concentrated_says_how_much_to_dilute(self):
+        r = safety.check_cell_prep(3900, 0.95, M2)
+        self.assertEqual(r.status, "blocked")
+        self.assertIn("too concentrated - dilute 2.0x", r.reasons[0])
+
+    def test_too_dilute_says_how_much_to_concentrate(self):
+        r = safety.check_cell_prep(975, 0.95, M2)
+        self.assertIn("too dilute - concentrate 2.0x", r.reasons[0])
+
+
+class Operator(unittest.TestCase):
+    def test_operator_dilutes_a_concentrated_sample_itself(self):
+        d, why = cellprep.choose_dilution({"cells_per_ul": 4000, "viability": 0.93}, TARGET)
+        self.assertAlmostEqual(d, 4000 / TARGET["target_cells_per_ul"], places=2)
+        self.assertIn("diluting", why)
+
+    def test_demo_run_reaches_module_2(self):
+        run = scenario("demo")
+        self.assertEqual(run["status"], "done")
+        self.assertEqual(run["events"][-1]["args"]["target"], "m1b_to_module2_1")
+        self.assertTrue(TARGET["mean_low"] <= run["summary"]["mean_cells_per_capsule"] <= TARGET["mean_high"])
+        kinds = [x["kind"] for x in run["log"]]
+        self.assertEqual(kinds, ["measurement", "decision", "safety"])
+        self.assertEqual(schema_io.schema_errors("run", run), [])
+
+    def test_low_viability_stops_before_module_2(self):
+        run = scenario("low_viability")
+        self.assertEqual(run["status"], "stopped")
+        self.assertNotIn("m1b_to_module2_1", [e["args"].get("target") for e in run["events"]])
+        self.assertTrue(any(x["kind"] == "blocked" and "viability" in x["message"] for x in run["log"]))
+
+    def test_too_dilute_stops_with_the_fix(self):
+        run = scenario("too_dilute")
+        self.assertEqual(run["status"], "stopped")
+        self.assertTrue(any("concentrate" in x["message"] for x in run["log"] if x["kind"] == "blocked"))
+
+
+class CrossChipFilter(unittest.TestCase):
+    def check(self, chip, downstream):
+        params = schema_io.load_json(ROOT / "contracts" / "parameters.json")
+        materials = schema_io.load_json(ROOT / "contracts" / "materials.json")["materials"]
+        return ccs.check(chip, [], params, materials, {"laser_kerf_um": None, "min_embossed_feature_um": None}, downstream)
+
+    def test_pipeline_links_m1b_to_the_module_2_nozzle(self):
+        self.assertEqual(ccs.downstream_nozzles(M1B), [(40, "m2_encapsulation_v1", "m1b_to_m2")])
+
+    def test_filter_smaller_than_the_downstream_nozzle_is_confirmed(self):
+        f = self.check(M1B, ccs.downstream_nozzles(M1B))
+        self.assertEqual(f.errors, [])
+        self.assertTrue(any("m1b_filter_1" in o and "< the 40 um nozzle" in o for o in f.ok))
+
+    def test_filter_as_wide_as_the_downstream_nozzle_is_an_error(self):
+        chip = copy.deepcopy(M1B)
+        next(c for c in chip["chambers"] if c["id"] == "m1b_filter_1")["filter"]["gap_um"] = 40
+        f = self.check(chip, [(40, "m2_encapsulation_v1", "m1b_to_m2")])
+        self.assertTrue(any("m1b_filter_1" in e and "m2_encapsulation_v1 downstream" in e for e in f.errors))
+
+
+class Pipeline(unittest.TestCase):
+    def test_pipeline_file_is_valid_and_has_no_bench_step(self):
+        (path, pipe), = schema_io.pipelines()
+        self.assertEqual(schema_io.schema_errors("pipeline", pipe), [])
+        self.assertEqual([m["module"] for m in pipe["modules"]], ["m1", "m1b", "m2", "m3"])
+        self.assertNotIn("bench_step", path.read_text())          # the bridge is Module 1b now, not a bench step
+        self.assertNotIn("pause_for_human", path.read_text())
+        ends = [h[side] for h in pipe["handoffs"] for side in ("from", "to")]
+        self.assertTrue(all("module" in e or "roadmap" in e for e in ends))
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,0 +1,535 @@
+{
+  "chip_id": "m1b_cellprep_v1",
+  "chip_spec": "cad/m1b_cellprep_spec.json",
+  "display_scale": 10.0,
+  "units": "mm",
+  "note": "Display model: real chip geometry x display_scale. Not a working chip. The lid layer is left out.",
+  "print_file": "m1b_cellprep_v1_display_print.stl",
+  "overall_mm": [
+    750.0,
+    268.0,
+    25.0
+  ],
+  "min_mm": [
+    0,
+    -18.0,
+    0
+  ],
+  "real_footprint_mm": [
+    75,
+    25
+  ],
+  "label": "Display model – 10× scale",
+  "parts": [
+    {
+      "id": "m1b_base",
+      "kind": "base",
+      "file": "m1b_base.stl",
+      "bbox_mm": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          750.0,
+          250.0,
+          10.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_merge_1",
+      "kind": "chamber",
+      "file": "m1b_merge_1.stl",
+      "bbox_mm": [
+        [
+          76.4,
+          121.4,
+          10.0
+        ],
+        [
+          83.6,
+          128.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_mix_1",
+      "kind": "chamber",
+      "file": "m1b_mix_1.stl",
+      "bbox_mm": [
+        [
+          98.4,
+          98.4,
+          10.0
+        ],
+        [
+          221.6,
+          151.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_cellwash_1",
+      "kind": "chamber",
+      "file": "m1b_cellwash_1.stl",
+      "bbox_mm": [
+        [
+          248.4,
+          93.4,
+          10.0
+        ],
+        [
+          371.6,
+          156.6,
+          15.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_filter_1",
+      "kind": "chamber",
+      "file": "m1b_filter_1.stl",
+      "bbox_mm": [
+        [
+          398.4,
+          108.4,
+          10.0
+        ],
+        [
+          481.6,
+          141.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_qc_window_1",
+      "kind": "chamber",
+      "file": "m1b_qc_window_1.stl",
+      "bbox_mm": [
+        [
+          508.4,
+          118.4,
+          10.0
+        ],
+        [
+          571.6,
+          131.6,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_resuspend_1",
+      "kind": "chamber",
+      "file": "m1b_resuspend_1.stl",
+      "bbox_mm": [
+        [
+          598.4,
+          115.9,
+          10.0
+        ],
+        [
+          671.6,
+          134.1,
+          12.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_in_1",
+      "kind": "channel",
+      "file": "m1b_ch_in_1.stl",
+      "bbox_mm": [
+        [
+          39.0,
+          124.0,
+          10.0
+        ],
+        [
+          81.0,
+          191.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_in_2",
+      "kind": "channel",
+      "file": "m1b_ch_in_2.stl",
+      "bbox_mm": [
+        [
+          39.0,
+          124.0,
+          10.0
+        ],
+        [
+          81.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_in_3",
+      "kind": "channel",
+      "file": "m1b_ch_in_3.stl",
+      "bbox_mm": [
+        [
+          39.0,
+          59.0,
+          10.0
+        ],
+        [
+          81.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_to_mix",
+      "kind": "channel",
+      "file": "m1b_ch_to_mix.stl",
+      "bbox_mm": [
+        [
+          79.0,
+          124.0,
+          10.0
+        ],
+        [
+          101.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_to_cellwash",
+      "kind": "channel",
+      "file": "m1b_ch_to_cellwash.stl",
+      "bbox_mm": [
+        [
+          219.0,
+          124.0,
+          10.0
+        ],
+        [
+          251.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_to_filter",
+      "kind": "channel",
+      "file": "m1b_ch_to_filter.stl",
+      "bbox_mm": [
+        [
+          369.0,
+          124.0,
+          10.0
+        ],
+        [
+          401.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_to_qc",
+      "kind": "channel",
+      "file": "m1b_ch_to_qc.stl",
+      "bbox_mm": [
+        [
+          479.0,
+          124.0,
+          10.0
+        ],
+        [
+          511.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_to_resuspend",
+      "kind": "channel",
+      "file": "m1b_ch_to_resuspend.stl",
+      "bbox_mm": [
+        [
+          569.0,
+          124.0,
+          10.0
+        ],
+        [
+          601.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_out",
+      "kind": "channel",
+      "file": "m1b_ch_out.stl",
+      "bbox_mm": [
+        [
+          669.0,
+          124.0,
+          10.0
+        ],
+        [
+          711.0,
+          126.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_quench",
+      "kind": "channel",
+      "file": "m1b_ch_quench.stl",
+      "bbox_mm": [
+        [
+          104.0,
+          149.0,
+          10.0
+        ],
+        [
+          106.0,
+          196.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_wash_in",
+      "kind": "channel",
+      "file": "m1b_ch_wash_in.stl",
+      "bbox_mm": [
+        [
+          309.0,
+          154.0,
+          10.0
+        ],
+        [
+          311.0,
+          201.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_waste",
+      "kind": "channel",
+      "file": "m1b_ch_waste.stl",
+      "bbox_mm": [
+        [
+          309.0,
+          49.0,
+          10.0
+        ],
+        [
+          311.0,
+          96.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_ch_buffer",
+      "kind": "channel",
+      "file": "m1b_ch_buffer.stl",
+      "bbox_mm": [
+        [
+          609.0,
+          131.5,
+          10.0
+        ],
+        [
+          611.0,
+          181.0,
+          11.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_cells_in_1",
+      "kind": "port_top",
+      "file": "m1b_cells_in_1.stl",
+      "bbox_mm": [
+        [
+          36.3,
+          186.3,
+          10.0
+        ],
+        [
+          43.7,
+          193.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_cells_in_2",
+      "kind": "port_top",
+      "file": "m1b_cells_in_2.stl",
+      "bbox_mm": [
+        [
+          36.3,
+          121.3,
+          10.0
+        ],
+        [
+          43.7,
+          128.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_cells_in_3",
+      "kind": "port_top",
+      "file": "m1b_cells_in_3.stl",
+      "bbox_mm": [
+        [
+          36.3,
+          56.3,
+          10.0
+        ],
+        [
+          43.7,
+          63.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_quench_in_1",
+      "kind": "port_top",
+      "file": "m1b_quench_in_1.stl",
+      "bbox_mm": [
+        [
+          101.3,
+          191.3,
+          10.0
+        ],
+        [
+          108.7,
+          198.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_wash_in_1",
+      "kind": "port_top",
+      "file": "m1b_wash_in_1.stl",
+      "bbox_mm": [
+        [
+          306.3,
+          196.3,
+          10.0
+        ],
+        [
+          313.7,
+          203.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_waste_1",
+      "kind": "port_top",
+      "file": "m1b_waste_1.stl",
+      "bbox_mm": [
+        [
+          306.3,
+          46.3,
+          10.0
+        ],
+        [
+          313.7,
+          53.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_buffer_in_1",
+      "kind": "port_top",
+      "file": "m1b_buffer_in_1.stl",
+      "bbox_mm": [
+        [
+          606.3,
+          176.3,
+          10.0
+        ],
+        [
+          613.7,
+          183.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_to_module2_1",
+      "kind": "port_top",
+      "file": "m1b_to_module2_1.stl",
+      "bbox_mm": [
+        [
+          706.3,
+          121.3,
+          10.0
+        ],
+        [
+          713.7,
+          128.7,
+          25.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_label",
+      "kind": "label",
+      "file": "m1b_label.stl",
+      "bbox_mm": [
+        [
+          0,
+          -18.0,
+          0
+        ],
+        [
+          750.0,
+          0,
+          3.0
+        ]
+      ]
+    },
+    {
+      "id": "m1b_label_text",
+      "kind": "label_text",
+      "file": "m1b_label_text.stl",
+      "bbox_mm": [
+        [
+          255.0,
+          -14.6,
+          3.0
+        ],
+        [
+          493.4,
+          -3.4,
+          4.2
+        ]
+      ]
+    }
+  ]
+}

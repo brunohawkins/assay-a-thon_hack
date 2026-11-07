@@ -11,6 +11,8 @@ const KIND_COLORS = {
   port_bottom: 0xfb923c,
   label: 0x334155,
   label_text: 0xf8fafc,
+  valve: 0xf87171,
+  feature: 0xa78bfa,
 };
 
 // Look for cad/display/<chip_id>/manifest.json. Uses the folder listing from

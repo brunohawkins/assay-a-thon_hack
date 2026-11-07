@@ -81,7 +81,7 @@ TOOLS = [
     _tool("plan_step", "Plan one protocol step with the optimizer (simulates candidates from the believed state).", STEP),
     _tool("execute_plan", "Execute the current plan for a step in closed loop. Returns done / interrupted (with alerts) / blocked.", STEP),
     _tool("back_flush", "Back-flush a chamber: flow up through the mesh to lift the capsules and clear it.",
-          {"chamber": {"type": "string", "description": "Chamber id, e.g. trap_1."}}),
+          {"chamber": {"type": "string", "description": "Chamber id, e.g. m3_trap_1."}}),
     _tool("get_state", "The believed chip state (what the model thinks)."),
     _tool("get_sensors", "The latest readings from trusted sensors."),
     _tool("get_alerts", "Active alerts with their evidence."),

@@ -25,8 +25,16 @@
         <p>digital twin</p>
       </div>
     </div>
+    <nav id="module-tabs" class="views tabs" aria-label="View">
+      <button data-module="pipeline" aria-pressed="false" title="The whole MVP: Module 1 -> 1b -> 2 -> 3">Pipeline</button>
+      <button data-module="m1" aria-pressed="false" title="Module 1: culture chip">1 Culture</button>
+      <button data-module="m1b" aria-pressed="false" title="Module 1b: automated cell prep (simulated)">1b Cell prep</button>
+      <button data-module="m2" aria-pressed="false" title="Module 2: encapsulation (draft)">2 Encapsulation</button>
+      <button data-module="m3" aria-pressed="false" title="Module 3: capsule wash (draft)">3 Wash</button>
+      <button data-module="other" aria-pressed="false" title="Earlier placeholder runs">Other</button>
+    </nav>
     <label class="picker">
-      <span>Protocol</span>
+      <span>Run</span>
       <select id="run-select"></select>
     </label>
     <div class="views" role="group" aria-label="View">
@@ -40,11 +48,20 @@
     <div class="badges">
       <span class="badge sim" title="No physical pump, valves or sensors: closed-loop runs use a virtual chip">SIMULATED HARDWARE</span>
       <span id="operator-badge" class="badge">planner</span>
+      <span id="print-badge" class="badge printed" hidden>Printed</span>
+      <span id="draft-badge" class="badge draft" hidden>Draft design</span>
       <span id="placeholder-badge" class="badge warn" hidden>placeholder data</span>
     </div>
   </header>
 
   <div id="alert-banner" class="alert-banner" role="alert" hidden></div>
+  <div id="day-counter" class="day-counter" aria-live="polite" hidden></div>
+  <section id="pipeline" class="pipeline" aria-label="Pipeline view" hidden></section>
+  <div id="nozzle-inset" class="panel nozzle-inset" hidden>
+    <h3>Nozzle close-up</h3>
+    <canvas width="720" height="300" aria-label="Co-flow at the Y-junction, droplets pinching off at the nozzle, a ring forming in each droplet"></canvas>
+    <p class="meta"></p>
+  </div>
 
   <aside id="control" class="panel control" hidden aria-label="Control loop">
     <div class="cp-head">
@@ -87,6 +104,11 @@
     <p id="narration">Loading the run…</p>
     <dl id="details"></dl>
     <p id="run-meta" class="meta"></p>
+    <details id="params" class="sizing params" open hidden>
+      <summary>Parameters</summary>
+      <p id="params-meta" class="meta"></p>
+      <dl id="params-body"></dl>
+    </details>
     <details id="sizing" class="sizing" open hidden>
       <summary>Chip sizing</summary>
       <dl id="sizing-body"></dl>

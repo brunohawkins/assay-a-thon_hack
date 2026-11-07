@@ -97,8 +97,8 @@ protocol for that is already written down in `adapters/valves.py` and `adapters/
 ## Buying order, and why
 
 1. **One syringe pump** (or the Poseidon build). Nothing runs without one, and its driver
-   is already written. One pump plus hand-switched stopcocks is enough to run the wash
-   MVP open loop and compare the dry-run adapter's printed actions with real motion.
+   is already written. One pump plus hand-switched stopcocks is enough to run Module 3
+   (the capsule wash) open loop and compare the dry-run adapter's printed actions with real motion.
 2. **Pressure sensor + Pico 2** (about US$30). The cheapest item with the biggest payoff.
    It closes the clog loop, which is what protects the capsules (simulated: 0 vs 2,109
    lost), and it lets us measure the escape pressure that is still a placeholder.
@@ -111,7 +111,7 @@ protocol for that is already written down in `adapters/valves.py` and `adapters/
    routing is the bottleneck.
 6. **Camera.** Measures capsule loss directly, but needs counting software that does not
    exist yet.
-7. **Peltier stage.** Only needed for protocols with `hold_temp`. The wash MVP has none;
+7. **Peltier stage.** Only needed for protocols with `hold_temp`. Module 3 (the capsule wash) has none;
    the three full placeholder protocols do.
 
 | Starter kit (steps 1–3) | Approximate cost |

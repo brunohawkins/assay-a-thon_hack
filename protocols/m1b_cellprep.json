@@ -1,0 +1,23 @@
+{
+  "id": "m1b_cellprep",
+  "name": "Module 1b: cell prep",
+  "source": "PLACEHOLDER, after the sheet's cell-prep rows (contracts/sources/chip_geometry_requirements.xlsx): quench, wash, 30 um filter (10x / inDrops / TIP-seq), viability >= 90% (10x), resuspend in 15% dextran (SPC-NAR) at ~0.1 cells per capsule (SPC-NAR / CapSeq). Volumes, flows and times are placeholders; the cell-wash method is TBC.",
+  "placeholder": true,
+  "description": "Merge the three Module 1 lanes, quench, wash, filter, count, resuspend at the concentration Module 2 needs (the operator sets the dilution from the count), and send the cells to Module 2's core inlet once the safety checker approves.",
+  "steps": [
+    { "step": 1, "operation": "load", "target": "m1b_merge_1", "reagent": null, "volume_ul": 60, "duration_s": 180, "temp_c": null, "washes": null, "flow_ul_min": null,
+      "note": "Cells from m1_out_1/2/3 arrive at m1b_cells_in_1/2/3 and merge. They were labelled per chamber in Module 1, so they can share one line." },
+    { "step": 2, "operation": "mix", "target": "m1b_mix_1", "reagent": "quench_medium", "volume_ul": 60, "duration_s": 180, "temp_c": null, "washes": null, "flow_ul_min": 20,
+      "note": "Quench: medium joins the cells at the T-junction and the serpentine mixes it in, neutralising the detach reagent." },
+    { "step": 3, "operation": "exchange", "target": "m1b_cellwash_1", "reagent": "cell_wash_buffer", "volume_ul": 50, "duration_s": 300, "temp_c": null, "washes": 2, "flow_ul_min": 20, "waste": "m1b_waste_1",
+      "note": "Wash the cells into clean buffer; the old liquid goes to waste. (Method TBC: DLD array, spiral channel or density cushion.)" },
+    { "step": 4, "operation": "transfer", "source": "m1b_cellwash_1", "target": "m1b_qc_window_1", "reagent": null, "volume_ul": null, "duration_s": 120, "temp_c": null, "washes": null, "flow_ul_min": null,
+      "note": "Through the 30 um pillar filter to the QC window: clumps stay behind, single cells go on." },
+    { "step": 5, "operation": "count", "target": "m1b_qc_window_1", "reagent": null, "volume_ul": null, "duration_s": 30, "temp_c": null, "washes": null, "flow_ul_min": null,
+      "note": "Count: the QC window reads the cell concentration and viability." },
+    { "step": 6, "operation": "mix", "target": "m1b_resuspend_1", "reagent": "dextran_buffer", "dilution": "auto", "volume_ul": null, "duration_s": 120, "temp_c": null, "washes": null, "flow_ul_min": 20,
+      "note": "Resuspend in dextran buffer at the dilution that gives about 0.1 cells per capsule in Module 2; the operator sets it from the count." },
+    { "step": 7, "operation": "transfer", "source": "m1b_resuspend_1", "target": "m1b_to_module2_1", "reagent": null, "volume_ul": null, "duration_s": 60, "temp_c": null, "washes": null, "flow_ul_min": null,
+      "note": "Cells out to Module 2's core inlet, once the safety checker approves them." }
+  ]
+}

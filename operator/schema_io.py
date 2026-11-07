@@ -21,7 +21,26 @@ SCHEMA_FILES = {
     "commands": "commands.schema.json",
     "run": "run.schema.json",
     "parameters": "parameters.schema.json",
+    "pipeline": "pipeline.schema.json",
 }
+
+
+def is_pipeline(data: Any) -> bool:
+    """protocols/ holds protocols and pipelines; a pipeline says "kind": "pipeline"."""
+    return isinstance(data, dict) and data.get("kind") == "pipeline"
+
+
+def pipelines() -> list[tuple[Path, dict]]:
+    """Every pipeline file in protocols/."""
+    out = []
+    for path in sorted((ROOT / "protocols").glob("*.json")):
+        try:
+            data = load_json(path)
+        except ValueError:
+            continue
+        if is_pipeline(data):
+            out.append((path, data))
+    return out
 
 _validators: dict[str, Draft202012Validator] | None = None
 _schemas: dict[str, dict] | None = None
