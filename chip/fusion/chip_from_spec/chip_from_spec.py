@@ -1,8 +1,10 @@
 """Fusion 360 script: build a real, printable chip from a chip spec (chip/*.json).
 
 Run it in Fusion: Utilities > Add-Ins > Scripts and Add-Ins (Shift+S) > + > pick this
-folder > Run. It asks for one or more chip specs (it opens in the repo's chip/ folder; Ctrl+A
-picks them all), lays the chips out side by side in a grid, optionally saves STLs to
+folder > Run. It first offers to build every module chip listed in
+protocols/pipeline_mvp.json, in one row in pipeline order (components 01_..., 02_...);
+answer No to pick spec files yourself instead (it opens in the repo's chip/ folder; Ctrl+A
+picks them all). It lays the chips out side by side, optionally saves STLs to
 chip/fusion/stl/ (at the chip's own origin), and builds, per spec, one component named after
 the chip id:
 
@@ -137,7 +139,7 @@ def plan(spec):
 
 # --- Fusion -----------------------------------------------------------------------------------
 
-def _build(p, design, stl_dir=None, offset_mm=(0.0, 0.0)):
+def _build(p, design, stl_dir=None, offset_mm=(0.0, 0.0), name=None):
     """Build one chip as its own component. Exports STLs (chip origin) before moving it to offset_mm."""
     import adsk.core
     import adsk.fusion
@@ -177,7 +179,7 @@ def _build(p, design, stl_dir=None, offset_mm=(0.0, 0.0)):
 
     occ = design.rootComponent.occurrences.addNewComponent(adsk.core.Matrix3D.create())
     comp = occ.component
-    comp.name = p["id"]
+    comp.name = name or p["id"]
     if design.designType == adsk.fusion.DesignTypes.ParametricDesignType:
         base = comp.features.baseFeatures.add()
         base.startEdit()
@@ -218,6 +220,16 @@ def _build(p, design, stl_dir=None, offset_mm=(0.0, 0.0)):
 GRID_COLS = 4
 GRID_GAP_MM = 10.0
 STL_DIR = os.path.join(HERE, "..", "stl")       # chip/fusion/stl/<id>_chip.stl, <id>_lid.stl
+REPO_DIR = os.path.normpath(os.path.join(CHIP_DIR, ".."))
+PIPELINE = os.path.join(REPO_DIR, "protocols", "pipeline_mvp.json")
+
+
+def pipeline_specs():
+    """The module chips of the current pipeline, in pipeline order: [(module name, spec path)]."""
+    with open(PIPELINE, encoding="utf-8") as f:
+        pipe = json.load(f)
+    return [(m.get("name", m["chip"]), os.path.join(REPO_DIR, os.path.normpath(m["chip"])))
+            for m in pipe.get("modules", []) if m.get("chip")]
 
 
 def run(context=None):
@@ -230,14 +242,28 @@ def run(context=None):
         if design is None:
             ui.messageBox("Open a design first (File > New Design, Hybrid).")
             return
-        dlg = ui.createFileDialog()
-        dlg.title = "Pick one or more chip specs (Ctrl+A in chip/ for all)"
-        dlg.filter = "Chip spec (*.json)"
-        dlg.isMultiSelectEnabled = True
-        dlg.initialDirectory = CHIP_DIR
-        if dlg.showOpen() != adsk.core.DialogResults.DialogOK:
+        mods = pipeline_specs() if os.path.exists(PIPELINE) else []
+        ans = adsk.core.DialogResults.DialogNo
+        if mods:
+            ans = ui.messageBox(
+                f"Build all {len(mods)} modules of protocols/pipeline_mvp.json, in one row in pipeline order?\n\n"
+                + "\n".join(f"  {i + 1}. {n}" for i, (n, _) in enumerate(mods))
+                + "\n\nYes = all modules     No = pick spec files myself",
+                "chip_from_spec", adsk.core.MessageBoxButtonTypes.YesNoCancelButtonType)
+        if ans == adsk.core.DialogResults.DialogCancel:
             return
-        files = list(dlg.filenames)
+        all_modules = ans == adsk.core.DialogResults.DialogYes
+        if all_modules:
+            files = [path for _, path in mods]
+        else:
+            dlg = ui.createFileDialog()
+            dlg.title = "Pick one or more chip specs (Ctrl+A in chip/ for all)"
+            dlg.filter = "Chip spec (*.json)"
+            dlg.isMultiSelectEnabled = True
+            dlg.initialDirectory = CHIP_DIR
+            if dlg.showOpen() != adsk.core.DialogResults.DialogOK:
+                return
+            files = list(dlg.filenames)
         ans = ui.messageBox(f"Also save STLs (chip + lid per spec) to\n{os.path.normpath(STL_DIR)} ?",
                             "chip_from_spec", adsk.core.MessageBoxButtonTypes.YesNoButtonType)
         stl_dir = os.path.normpath(STL_DIR) if ans == adsk.core.DialogResults.DialogYes else None
@@ -256,11 +282,13 @@ def run(context=None):
 
         cell_x = max([p["fx"] for p in plans] or [0]) + GRID_GAP_MM
         cell_y = max([p["fy"] for p in plans] or [0]) + GRID_GAP_MM
+        cols = max(len(plans), 1) if all_modules else GRID_COLS   # modules: one row, left to right
         n_stl = 0
         for i, p in enumerate(plans):
-            off = ((i % GRID_COLS) * cell_x, -(i // GRID_COLS) * cell_y)
+            off = ((i % cols) * cell_x, -(i // cols) * cell_y)
+            name = f"{i + 1:02d}_{p['id']}" if all_modules else None
             try:
-                n_stl += len(_build(p, design, stl_dir, off))
+                n_stl += len(_build(p, design, stl_dir, off, name))
                 line = f"OK   {p['id']}: {p['fx']} x {p['fy']} mm, {len(p['cuts'])} cuts, {len(p['holes'])} ports"
                 if p["problems"]:
                     line += f", {len(p['problems'])} to CHECK (e.g. {p['problems'][0]})"
@@ -280,7 +308,10 @@ def run(context=None):
 
 
 if __name__ == "__main__" and "adsk" not in sys.modules:
-    for path in sys.argv[1:]:
+    args = sys.argv[1:]
+    if args == ["--pipeline"]:                     # what "Yes = all modules" will build
+        args = [path for _, path in pipeline_specs()]
+    for path in args:
         with open(path, encoding="utf-8") as f:
             p = plan(json.load(f))
         print(f"{p['id']}: {p['fx']} x {p['fy']} mm, chip {p['chip_t']} + lid {p['lid_t']} mm, "
