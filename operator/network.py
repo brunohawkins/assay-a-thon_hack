@@ -36,7 +36,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FEED, VENT, CAP = "FEED", "VENT", "CAP"
 MU_37C = 0.8e-3            # Pa s: water at 37 C, the value protocols/build_module1.py uses
-PORT_HOLE_MM = 2.0         # cad/make_train_cad.py PORT_SIZE_MM
+def _port_hole_mm() -> float:
+    """Port bore, taken from the same contract cad/make_train_cad.py reads.
+
+    This was a 2.0 mm literal mirroring a 2.0 mm literal in the CAD generator. When the
+    generator started deriving the bore from contracts/blocks.json (0.8 mm) this copy went
+    stale, every port-connected channel stopped matching its own DXF, and the geometry
+    silently fell back to the straight-line estimate.
+    """
+    try:
+        import json
+        b = json.loads((ROOT / "contracts" / "blocks.json").read_text())
+        return float(b["fabrication_floors"]["min_port_mm"])
+    except Exception:
+        return 2.0
+
+
+PORT_HOLE_MM = _port_hole_mm()   # cad/make_train_cad.py PORT_SIZE_MM, same source
 DYN_CM2_PER_PA = 10.0
 
 

@@ -77,5 +77,5 @@
   <text x="334.8" y="700" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8.5" fill="#c0392b" text-anchor="start">5  p_vent</text>
   <text x="44" y="722" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Every chamber and channel is 0.3 mm deep: one embossing depth, a resin-printed tool hot-embossed into the layer, with the tubing ports drilled through the lid.</text>
   <text x="44" y="735" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">This spec has no 'block' fields, so this figure cannot show that it is built from the CAD library.</text>
-  <text x="44" y="748" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Tightest clearance between unconnected features: 6.99 mm, between channels 'ch_in_1' and 'ch_vent_1'. Planar check: no overlaps.</text>
+  <text x="44" y="748" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Tightest clearance between unconnected features: 2.54 mm, between channel 'ch_vent_1' and chamber 'sub_3'. Planar check: no overlaps.</text>
 </svg>

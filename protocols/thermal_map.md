@@ -29,9 +29,7 @@ thermal system per chip.
 | C | **Culture + interaction + harvest** | **37, 5% CO₂** | days–weeks | hold | **incubator** |
 | 3a | Lysis | RT | 5–30 min | hold | none |
 | 3b | Washes | RT / 4 | min | hold | none |
-| 3c | RT + template switch | 42–50 | 10–90 min | hold ⚠️ | dry block |
-| 3d | Ligate BC2, BC3 | 16–25 or 37 | 30 min–o/n | hold | block |
-| 3e | Hairpin ligation | 16–25 or 37 | ≥30 min | hold | block |
+| 3c | Reverse transcription | 42–50 | 10–90 min | hold ⚠️ | dry block |
 | **15** | **Indexing PCR (BC4)** | **98 / 60 / 72** | ~1 h | **THERMOCYCLED, 8–14×, 2–4 °C/s** | **thermocycler or Peltier** |
 | **16a** | Collagenase release | 37 | 30 min–h | hold | incubator/block |
 | 16b | Heat-kill (only if a thermostable enzyme is used) | ~95 | 5–10 min | hold (single) | block |

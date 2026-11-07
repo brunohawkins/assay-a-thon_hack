@@ -296,6 +296,24 @@
       "module": "m3"
     },
     {
+      "file": "module3_v1__module3_v1_translated.json",
+      "protocol_id": "module3_v1",
+      "protocol_name": "Module 3: load capsules, lysis, washes, reverse transcription, wash, release - module3_v1",
+      "chip_id": "module3_v1_translated",
+      "chip_spec": "chip/module3_v1_translated.json",
+      "operator": "planner",
+      "events": 9,
+      "total_duration_s": 12746.0,
+      "placeholder": true,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null,
+      "variant": null,
+      "module": null
+    },
+    {
       "file": "placeholder_culture_then_scrnaseq__placeholder_chip_v1.json",
       "protocol_id": "placeholder_culture_then_scrnaseq",
       "protocol_name": "Placeholder culture, then scRNA-seq",

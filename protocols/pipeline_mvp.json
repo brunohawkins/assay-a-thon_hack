@@ -1,9 +1,9 @@
 {
   "kind": "pipeline",
   "id": "pipeline_mvp",
-  "name": "MVP pipeline: culture -> cell prep -> encapsulation -> load, lysis, wash -> barcoding (HOLE) -> sublibrary PCR -> release and cleanup -> SPRI and QC (off-chip)",
+  "name": "MVP pipeline: culture -> cell prep -> encapsulation -> load, lysis, wash -> reverse transcription -> sublibrary PCR -> release and cleanup -> SPRI and QC (off-chip)",
   "placeholder": true,
-  "description": "One winner per job, all on the 30 x 20 mm, 0.3 mm deep, single-layer envelope (resin print + hot emboss, blocks from contracts/blocks.json). Culture: module1_v1. Cell prep: cell_prep_v1. Encapsulation: spc_demo_v1 (0.2 mm orifice, so capsules of about 260 um, not 135 um; curing off-chip). Load, lysis, wash: module3_v1_translated. Barcoding (reverse transcription, BC2 and BC3 ligations, hairpin ligation) is a HOLE: no chip, no protocol, owner TBC. Module 4 and Module 5 are built. SPRI size selection and QC (Qubit, TapeStation, qPCR) are off-chip and have no protocol yet. Retired, kept for reference only: cad/m1_culture_spec.json, cad/m1b_cellprep_spec.json, cad/m2_encapsulation_spec.json (cannot make capsules at this scale), cad/m3_wash_spec.json, stage A of chip/sctip_spc_v1.json (150 x 100 mm), and dissociation inside module1 (steps 179-182 of protocols/module1_v1.json duplicate cell_prep_v1). Not in the chain: chip/ipsc_to_mgl_chip_v1.json is a separate experiment. Retention features cannot be printed at this floor, so capsule retention needs a bought mesh insert or sedimentation. TBC marks ports nobody has named yet. Map: protocols/pipeline_status.md.",
+  "description": "One winner per job, all on the 30 x 20 mm, 0.3 mm deep, single-layer envelope (resin print + hot emboss, blocks from contracts/blocks.json). Culture: module1_v1. Cell prep: cell_prep_v1. Encapsulation: spc_demo_v1 (0.2 mm orifice, so capsules of about 260 um, not 135 um; curing off-chip). Load, lysis, wash: module3_v1_translated. Reverse transcription is the only step before Module 4 (split-and-pool barcoding is dropped): one isothermal hold at about 42-50 C, plain poly(dT), run on module3_v1_translated. Module 4 and Module 5 are built. SPRI size selection and QC (Qubit, TapeStation, qPCR) are off-chip and have no protocol yet. Retired, kept for reference only: cad/m1_culture_spec.json, cad/m1b_cellprep_spec.json, cad/m2_encapsulation_spec.json (cannot make capsules at this scale), cad/m3_wash_spec.json, stage A of chip/sctip_spc_v1.json (150 x 100 mm), and dissociation inside module1 (steps 179-182 of protocols/module1_v1.json duplicate cell_prep_v1). Not in the chain: chip/ipsc_to_mgl_chip_v1.json is a separate experiment. Retention features cannot be printed at this floor, so capsule retention needs a bought mesh insert or sedimentation. TBC marks ports nobody has named yet. Map: protocols/pipeline_status.md.",
   "modules": [
     {
       "module": "module1", "name": "Module 1: culture (v1)", "status": "final", "owner": "MJ",
@@ -43,11 +43,11 @@
       "note": "The one capsule trap. Wins over m2_trap_1 and m3_wash_v1 (retired). Her file is the source of truth."
     },
     {
-      "module": "barcoding", "name": "Barcoding: RT, BC2 and BC3 ligations, hairpin ligation (library steps 4-12)", "status": "missing",
-      "status_note": "HOLE: no chip, no protocol, nobody owns it", "owner": "TBC",
+      "module": "barcoding", "name": "Reverse transcription (plain poly(dT), no barcode; runs on module3_v1_translated)", "status": "missing",
+      "status_note": "Not a hole: RT runs in the module3_v1_translated trap; protocols/module3_v1.json is being written. No separate chip", "owner": "TBC",
       "build": { "method": "TBC", "connector": "TBC" },
       "built_for_demo": false,
-      "note": "HOLE. Reverse transcription, BC2 ligation, BC3 ligation and hairpin ligation have no chip and no protocol. Module 4's input is the pooled, hairpin-ligated suspension."
+      "note": "Reverse transcription only: one isothermal hold at about 42-50 C, no barcode or UMI added (cells already carry a per-lane barcode). Module 4's input is the RT-treated capsule suspension."
     },
     {
       "module": "module4", "name": "Module 4: sublibrary split + index PCR", "status": "final", "owner": "MJ",
@@ -95,8 +95,8 @@
       "from": { "module": "module3", "port": "to_split_tree" },
       "to": { "module": "barcoding", "port": "TBC" },
       "connector": { "from": "drilled_0_8mm_5mm_pitch", "to": "TBC", "status": "unknown",
-                     "warning": "HOLE: barcoding does not exist, so its inlet and port style are unknown." },
-      "note": "HOLE. After step 11 of Module 3's workflow (back-flush resuspends the bed). Nothing receives the capsules yet."
+                     "warning": "RT has no chip of its own, so its inlet and port style are unknown." },
+      "note": "After step 11 of Module 3's workflow (back-flush resuspends the bed). RT then runs in the same trap."
     },
     {
       "id": "barcoding_to_module4", "carries": "capsules",
@@ -104,8 +104,8 @@
       "to": { "module": "module4", "ports": ["in_s1", "in_s2", "in_s3", "in_s4"],
               "note": "Through the off-chip rotary valve, one chamber at a time." },
       "connector": { "from": "TBC", "to": "drilled_0_8mm_5mm_pitch", "status": "unknown",
-                     "warning": "HOLE: barcoding does not exist, so its outlet is unknown. The rotary valve sits between them, so this is tubing either way." },
-      "note": "HOLE. The pooled, hairpin-ligated capsule suspension that Module 4 expects."
+                     "warning": "RT has no chip of its own, so its outlet is unknown. The rotary valve sits between them, so this is tubing either way." },
+      "note": "The RT-treated capsule suspension that Module 4 expects."
     },
     {
       "id": "module4_to_module5", "carries": "capsules", "after_step": 63,

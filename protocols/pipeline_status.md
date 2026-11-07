@@ -18,10 +18,7 @@ Every chip: 30 × 20 mm, 0.3 mm deep, one fluidic layer, resin print and hot emb
 | Capsule trap, lysis, wash | `module3_v1_translated` | `module3_step1_3.json` (Szonja) | BUILT, wins (needs bought mesh) |
 | Capsule trap | `m2_trap_1` | none | DUPLICATE-RETIRE |
 | Capsule trap | `m3_wash_v1` | `m3_wash.json` | DUPLICATE-RETIRE |
-| Reverse transcription | none | none | HOLE |
-| BC2 ligation | none | none | HOLE |
-| BC3 ligation | none | none | HOLE |
-| Hairpin ligation | none | none | HOLE |
+| Reverse transcription (plain poly(dT), no barcode or UMI) | `module3_v1_translated` | `module3_v1.json` (in progress) | RT ONLY, runs in the capsule trap |
 | Sublibrary split, index PCR | `module4_v1` | `module4_v1.json` | BUILT |
 | Release, bead cleanup | `module5_v1` | `module5_v1.json` | BUILT |
 | SPRI size selection | tube | none | OFF-CHIP, undocumented |
@@ -29,7 +26,8 @@ Every chip: 30 × 20 mm, 0.3 mm deep, one fluidic layer, resin print and hot emb
 
 ## Blunt notes
 
-- **Barcoding has no owner.** Four steps sit between Module 3 and Module 4. Module 4 assumes its input is already barcoded.
+- **Split-and-pool barcoding is dropped.** Reverse transcription is the only step between Module 3 and Module 4: one isothermal hold at about 42-50 °C in the existing capsule trap. Index PCR in Module 4 still adds the sublibrary index (BC4).
+- **CAVEAT, QUESTION FOR THE TEAM: the data is lane-level, not single-cell.** The barcodes the cells now carry are per lane (three, one per lineage), not per cell. With four sublibrary indices that gives about twelve distinguishable groups. If single-cell resolution is still wanted, something must still give each cell its own barcode. Decision needed.
 - **Retention cannot be printed.** The floor is 200 µm, so capsule retention needs a bought mesh insert or sedimentation.
 - **`spc_demo_v1` has a 0.2 mm orifice, not 0.1 mm.** Capsules are larger than the 135 µm downstream sizing assumes.
 - **Module 1's protocol still contains dissociation steps** that duplicate `cell_prep_v1`. MJ owns that change.

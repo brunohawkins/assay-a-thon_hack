@@ -189,10 +189,11 @@
     "barcoding": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Optional. Split-and-pool barcoding scheme.",
+      "description": "Optional. Barcoding scheme. Split-and-pool is no longer used: cells carry a per-lane barcode from module 1 and reverse transcription adds none. See contracts/parameters.json barcoding.scheme.",
       "properties": {
         "rounds": { "type": "integer", "minimum": 1 },
         "chambers_per_round": { "type": "integer", "minimum": 1 },
+        "lanes": { "type": "integer", "minimum": 1, "description": "Per-lane barcodes the cells already carry." },
         "sublibraries": { "type": "integer", "minimum": 1 }
       }
     }

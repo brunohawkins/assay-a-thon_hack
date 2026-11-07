@@ -60,7 +60,7 @@ status and how it is built:
 | Cell prep | `chip/cell_prep_v1.json` | `protocols/cell_prep_v1.json` | TBC | final | resin print + hot emboss, 0.8 mm drilled ports |
 | 2. Encapsulation | `chip/spc_demo_v1.json` | `protocols/spc_demo_v1.json` | TBC | final; the only fabricable encapsulation chip | resin print + hot emboss, 0.8 mm drilled ports |
 | 3. Load, lysis, wash | `chip/module3_v1_translated.json` (from Szonja's `chip/modules/module3_step1_3.json`) | steps in her file | Szonja | translated | resin print + hot emboss; retention gap is a bought mesh insert |
-| Barcoding (RT, BC2, BC3, hairpin ligation) | none | none | TBC | **HOLE**: no chip, no protocol | TBC |
+| Reverse transcription (un-barcoded) | `module3_v1_translated` | `module3_v1.json` | ~42–50 °C hold | Runs in the existing capsule trap after lysis and wash. Split-and-pool (BC1/BC2/BC3) and the hairpin ligation are dropped: cells already carry a per-lane barcode from module 1, so the RT primer is a plain poly(dT) | MJ |
 | 4. Sublibrary + index PCR | `chip/module4_v1.json` | `protocols/module4_v1.json` | MJ | final | hot-embossed COC, 0.8 mm drilled ports |
 | 5. Release + cleanup | `chip/module5_v1.json` | `protocols/module5_v1.json` | MJ | final | hot-embossed COC, 0.8 mm drilled ports |
 
@@ -252,7 +252,7 @@ fields**: they're what `tools/check_chip_spec.py` checks the real-scale design a
 | `trap.gap_um` | Target trap gap; must stay below 0.4 × capsule diameter (sheet: 21–28 µm for 70 µm capsules; unprintable, so a bought mesh). |
 | `capsule_filter.gap_um`, `cell_filter.gap_um` | Pre-filter gaps. The cell filter must be ≤ the encapsulation nozzle (`encapsulation.nozzle_um`). |
 | `thermal_zones[]` | `{id, chambers, max_temp_c, min_temp_c, purpose}`; `purpose: "culture"` means capsules swell there. |
-| `barcoding.rounds`, `.chambers_per_round`, `.sublibraries` | Split-and-pool scheme; used for the barcode-collision check. |
+| `barcoding.lanes`, `.sublibraries` | Barcoding scheme; used for the barcode-collision check. Split-and-pool is dropped, so `.rounds` and `.chambers_per_round` are legacy and ignored: cells arrive carrying a per-lane barcode and reverse transcription adds none. |
 | `chambers[].height_um`, `.sealed` | Internal height in µm; sealed against evaporation. |
 | `chambers[].retention` | `{type: mesh/pillars/weir, opening_um, source: bought/fabricated}`: what holds the capsules. At the 200 µm floor nothing can be `fabricated`: use a bought mesh insert or sedimentation. |
 | `ports[].role`, `.capsule_passable`, `.width_um` | The sheet's `outlets[]`: which ports capsules can pass (a waste line below a mesh can't), and the opening width. |

@@ -276,10 +276,10 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
         inputs = {"capsule_diameter_um": d}
         if "count" in caps:
             inputs["capsule_count"] = caps["count"]
-        if "chambers_per_round" in bc:
-            inputs["split_chambers_per_round"] = bc["chambers_per_round"]
-        if "rounds" in bc:
-            inputs["barcoding_rounds"] = bc["rounds"]
+        # Split-and-pool is dropped. A chip may still carry the old rounds/chambers_per_round
+        # keys, but they no longer describe anything, so they are ignored rather than passed on.
+        if "lanes" in bc:
+            inputs["barcoding_lanes"] = bc["lanes"]
         if "sublibraries" in bc:
             inputs["sublibraries"] = bc["sublibraries"]
         r = sizing.compute(inputs)

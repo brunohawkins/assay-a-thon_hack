@@ -16,7 +16,7 @@ The format is explained, with examples, in [`contracts/README.md`](../contracts/
 | `module1_v1.json` | **Real.** Three lineages (neurons, glia, astrocytes) on `chip/module1_v1.json`, routed only by which port is pressurised: no valves, no barriers |
 | `build_module1.py` | Generates the above |
 | `module1_design.md` | Why this design and the honest limits |
-| `pipeline_status.md` | One table of every pipeline stage: which chip wins, which duplicate is retired, which stages are holes (barcoding) or off-chip. Read this first. |
+| `pipeline_status.md` | One table of every pipeline stage: which chip wins, which duplicate is retired, which stage is RT only (no barcoding) or off-chip. Read this first. |
 | `pipeline_mvp.json` | The pipeline manifest: stages and hand-offs, checked by `tools/validate.py` |
 | `placeholder_scrnaseq.json` | Generic scRNA-seq shape, 14 steps |
 | `placeholder_scdnaseq.json` | Generic scDNA-seq shape with two heat steps, 15 steps |

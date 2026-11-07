@@ -1,66 +1,71 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="892" height="446" viewBox="0 0 892 446" role="img" aria-label="cell_prep_v1: feature sizes against the process floors">
+<svg xmlns="http://www.w3.org/2000/svg" width="892" height="408" viewBox="0 0 892 408" role="img" aria-label="cell_prep_v1: feature sizes against the process floors">
   <title>cell_prep_v1: feature sizes against the process floors</title>
-  <rect width="892" height="446" fill="#ffffff"/>
+  <rect width="892" height="408" fill="#ffffff"/>
   <text x="40" y="24" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="14.5" fill="#1b2026" text-anchor="start" font-weight="bold">Every feature on this chip, against what each process can make</text>
   <text x="40" y="41" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.5" fill="#5a636d" text-anchor="start">chip/cell_prep_v1.json   ·   log scale   ·   micrometres</text>
-  <rect x="232" y="72" width="216.3" height="144" fill="#fdeeec" stroke="none"/>
-  <text x="440.3" y="48" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="end" font-weight="bold">below the open-channel floor</text>
-  <text x="440.3" y="60" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="end">not printable</text>
-  <line x1="448.3" y1="72" x2="448.3" y2="238" stroke="#c0392b" stroke-width="1.3" stroke-dasharray="4 3"/>
-  <text x="448.3" y="246" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">200 µm</text>
-  <text x="448.3" y="258" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#c0392b" text-anchor="middle">min open channel</text>
-  <line x1="476.59" y1="72" x2="476.59" y2="264" stroke="#bf7b2f" stroke-width="1.3" stroke-dasharray="4 3"/>
-  <text x="476.59" y="272" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#bf7b2f" text-anchor="middle" font-weight="bold">400 µm</text>
-  <text x="476.59" y="284" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#bf7b2f" text-anchor="middle">min wall</text>
-  <line x1="485.7" y1="72" x2="485.7" y2="290" stroke="#6b5bb0" stroke-width="1.3" stroke-dasharray="4 3"/>
-  <text x="485.7" y="298" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#6b5bb0" text-anchor="middle" font-weight="bold">500 µm</text>
-  <text x="485.7" y="310" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#6b5bb0" text-anchor="middle">min enclosed printed channel</text>
-  <line x1="504.89" y1="72" x2="504.89" y2="316" stroke="#1f7a6d" stroke-width="1.3" stroke-dasharray="4 3"/>
-  <text x="504.89" y="324" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#1f7a6d" text-anchor="middle" font-weight="bold">800 µm</text>
-  <text x="504.89" y="336" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#1f7a6d" text-anchor="middle">min port</text>
-  <line x1="464.85" y1="72" x2="464.85" y2="342" stroke="#2f6fb0" stroke-width="1.3" stroke-dasharray="4 3"/>
-  <text x="464.85" y="350" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="middle" font-weight="bold">300 µm</text>
-  <text x="464.85" y="362" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#2f6fb0" text-anchor="middle">max depth (build limit)</text>
-  <line x1="232" y1="216" x2="232" y2="221" stroke="#8b949e" stroke-width="0.8"/>
-  <text x="232" y="233" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">1 µm</text>
-  <line x1="326" y1="216" x2="326" y2="221" stroke="#8b949e" stroke-width="0.8"/>
-  <text x="326" y="233" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">10 µm</text>
-  <line x1="420" y1="216" x2="420" y2="221" stroke="#8b949e" stroke-width="0.8"/>
-  <text x="420" y="233" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">100 µm</text>
-  <line x1="514" y1="216" x2="514" y2="221" stroke="#8b949e" stroke-width="0.8"/>
-  <text x="514" y="233" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">1 mm</text>
-  <line x1="608" y1="216" x2="608" y2="221" stroke="#8b949e" stroke-width="0.8"/>
-  <text x="608" y="233" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">10 mm</text>
-  <line x1="702" y1="216" x2="702" y2="221" stroke="#8b949e" stroke-width="0.8"/>
-  <text x="702" y="233" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">100 mm</text>
-  <line x1="232" y1="216" x2="702" y2="216" stroke="#8b949e" stroke-width="1"/>
-  <line x1="232" y1="86" x2="436.55" y2="86" stroke="#eaeef2" stroke-width="1"/>
-  <circle cx="436.55" cy="86" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
-  <text x="220" y="89.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">chamber depth</text>
-  <text x="220" y="100" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">set by the spacer</text>
-  <text x="447.55" y="89.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">150 µm</text>
-  <line x1="232" y1="112" x2="436.55" y2="112" stroke="#eaeef2" stroke-width="1"/>
-  <circle cx="436.55" cy="112" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
-  <text x="220" y="115.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">channel depth</text>
-  <text x="220" y="126" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">6 channels</text>
-  <text x="447.55" y="115.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">150 µm</text>
-  <line x1="232" y1="138" x2="448.3" y2="138" stroke="#eaeef2" stroke-width="1"/>
-  <circle cx="448.3" cy="138" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
-  <text x="220" y="141.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">channel width</text>
-  <text x="220" y="152" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">6 channels</text>
-  <text x="459.3" y="141.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">200 µm</text>
-  <line x1="232" y1="164" x2="504.89" y2="164" stroke="#eaeef2" stroke-width="1"/>
-  <circle cx="504.89" cy="164" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
-  <text x="220" y="167.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">tubing port</text>
-  <text x="220" y="178" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">drilled in the lid</text>
-  <text x="515.89" y="167.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">800 µm</text>
-  <line x1="232" y1="190" x2="541.2" y2="190" stroke="#eaeef2" stroke-width="1"/>
-  <circle cx="541.2" cy="190" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
-  <text x="220" y="193.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">chamber, smallest side</text>
-  <text x="220" y="204" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">mix_1</text>
-  <text x="552.2" y="193.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">1947 µm  (1.947 mm)</text>
-  <line x1="40" y1="376" x2="852" y2="376" stroke="#eaeef2" stroke-width="1"/>
-  <text x="40" y="390" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.5" fill="#1b2026" text-anchor="start" font-weight="bold">Smallest feature we have to make: 150 µm. Every in-plane feature clears the printable floors.</text>
-  <text x="40" y="406" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Hollow markers are bought parts. A 5 µm mesh pore is far below any floor too, but nobody has to make it: it arrives as a sheet.</text>
-  <text x="40" y="420" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#8b949e" text-anchor="start">Floors are the fabrication-review numbers in contracts/blocks.json (resin print + hot embossing). Depth is checked against the build limit.</text>
+  <rect x="232" y="86" width="70.74" height="144" fill="#fdeeec" stroke="none"/>
+  <text x="294.74" y="62" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="end" font-weight="bold">below the open-channel floor</text>
+  <text x="294.74" y="74" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="end">not printable</text>
+  <line x1="302.74" y1="86" x2="302.74" y2="252" stroke="#c0392b" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="302.74" y="260" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">200 µm</text>
+  <text x="302.74" y="272" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#c0392b" text-anchor="middle">min open channel</text>
+  <line x1="373.48" y1="86" x2="373.48" y2="252" stroke="#bf7b2f" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="373.48" y="260" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#bf7b2f" text-anchor="middle" font-weight="bold">400 µm</text>
+  <text x="373.48" y="272" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#bf7b2f" text-anchor="middle">min wall</text>
+  <line x1="396.26" y1="86" x2="396.26" y2="278" stroke="#6b5bb0" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="396.26" y="286" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#6b5bb0" text-anchor="middle" font-weight="bold">500 µm</text>
+  <text x="396.26" y="298" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#6b5bb0" text-anchor="middle">min enclosed channel</text>
+  <line x1="444.23" y1="86" x2="444.23" y2="252" stroke="#1f7a6d" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="444.23" y="260" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#1f7a6d" text-anchor="middle" font-weight="bold">800 µm</text>
+  <text x="444.23" y="272" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#1f7a6d" text-anchor="middle">min port</text>
+  <line x1="344.12" y1="86" x2="344.12" y2="304" stroke="#2f6fb0" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <text x="344.12" y="312" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="middle" font-weight="bold">300 µm</text>
+  <text x="344.12" y="324" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#2f6fb0" text-anchor="middle">max depth (build limit)</text>
+  <line x1="232" y1="230" x2="232" y2="235" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="232" y="247" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">100 µm</text>
+  <line x1="302.74" y1="230" x2="302.74" y2="235" stroke="#8b949e" stroke-width="0.8"/>
+  <line x1="396.26" y1="230" x2="396.26" y2="235" stroke="#8b949e" stroke-width="0.8"/>
+  <line x1="467" y1="230" x2="467" y2="235" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="467" y="247" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">1 mm</text>
+  <line x1="537.74" y1="230" x2="537.74" y2="235" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="537.74" y="247" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">2 mm</text>
+  <line x1="631.26" y1="230" x2="631.26" y2="235" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="631.26" y="247" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">5 mm</text>
+  <line x1="702" y1="230" x2="702" y2="235" stroke="#8b949e" stroke-width="0.8"/>
+  <text x="702" y="247" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="middle">10 mm</text>
+  <line x1="232" y1="230" x2="702" y2="230" stroke="#8b949e" stroke-width="1"/>
+  <line x1="232" y1="100" x2="273.38" y2="100" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="273.38" cy="100" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="103.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">chamber depth</text>
+  <text x="220" y="114" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">set by the spacer</text>
+  <rect x="282.38" y="96.26" width="32.56" height="9.86" fill="#ffffff" stroke="none"/>
+  <text x="284.38" y="103.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">150 µm</text>
+  <line x1="232" y1="126" x2="273.38" y2="126" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="273.38" cy="126" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="129.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">channel depth</text>
+  <text x="220" y="140" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">6 channels</text>
+  <rect x="282.38" y="122.26" width="32.56" height="9.86" fill="#ffffff" stroke="none"/>
+  <text x="284.38" y="129.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">150 µm</text>
+  <line x1="232" y1="152" x2="302.74" y2="152" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="302.74" cy="152" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="155.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">channel width</text>
+  <text x="220" y="166" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">6 channels</text>
+  <rect x="311.74" y="148.26" width="32.56" height="9.86" fill="#ffffff" stroke="none"/>
+  <text x="313.74" y="155.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">200 µm</text>
+  <line x1="232" y1="178" x2="444.23" y2="178" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="444.23" cy="178" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="181.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">tubing port</text>
+  <text x="220" y="192" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">drilled in the lid</text>
+  <rect x="453.23" y="174.26" width="32.56" height="9.86" fill="#ffffff" stroke="none"/>
+  <text x="455.23" y="181.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">800 µm</text>
+  <line x1="232" y1="204" x2="535" y2="204" stroke="#eaeef2" stroke-width="1"/>
+  <circle cx="535" cy="204" r="5" fill="#2f6fb0" stroke="#ffffff" stroke-width="1.4"/>
+  <text x="220" y="207.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#1b2026" text-anchor="end">chamber, smallest side</text>
+  <text x="220" y="218" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#8b949e" text-anchor="end">mix_1</text>
+  <rect x="544" y="200.26" width="94.44" height="9.86" fill="#ffffff" stroke="none"/>
+  <text x="546" y="207.4" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f6fb0" text-anchor="start" font-weight="bold">1947 µm  (1.947 mm)</text>
+  <line x1="40" y1="338" x2="852" y2="338" stroke="#eaeef2" stroke-width="1"/>
+  <text x="40" y="352" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.5" fill="#1b2026" text-anchor="start" font-weight="bold">Smallest feature we have to make: 150 µm. Every in-plane feature clears the printable floors.</text>
+  <text x="40" y="368" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Hollow markers are bought parts. A 5 µm mesh pore is far below any floor too, but nobody has to make it: it arrives as a sheet.</text>
+  <text x="40" y="382" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#8b949e" text-anchor="start">Floors are the fabrication-review numbers in contracts/blocks.json (resin print + hot embossing). Depth is checked against the build limit.</text>
 </svg>

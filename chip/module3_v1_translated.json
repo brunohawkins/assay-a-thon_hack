@@ -1,7 +1,7 @@
 {
   "id": "module3_v1_translated",
   "name": "Module 3: load, lysis, wash (translated from Szonja's file)",
-  "description": "DEMO SCALE: scaled uniformly x0.4 in x and y (fit_chip.py, 64 x 48 mm -> 30 x 20 mm) for the 30 x 20 mm, 0.3 mm deep, single-layer resin-print and hot-emboss envelope. Depths: trap 0.35 -> 0.3 mm, channels 0.15 mm. Volumes recomputed (trap 38.4 uL). Channel widths were clamped from 0.056 mm to the 0.2 mm floor, which changed the aspect ratio, so flow resistances no longer match the source and any flow numbers must be re-derived; the 25 um trap gap and 100 um prefilter gap are below the 0.2 mm floor and cannot be printed. fit_chip.py does not move channel paths, valves or thermal zones, so the layout was redrawn by hand at demo scale with no channel crossings. PORT MERGES, 13 -> 6: lysis_buffer + wash_buffer -> reagent_in (off-chip rotary valve; lost: independent or overlapped lysis and wash feeds); wash_buffer's backflush branch -> backflush_in (own port, outlet side); capsule_in, waste, lysis_waste, to_split_tree unchanged; ctrl_v_capsule_in, ctrl_v_lysis_buffer, ctrl_v_wash_buffer, ctrl_v_waste, ctrl_v_lysis_waste, ctrl_v_backflush, ctrl_v_to_split_tree removed together with the 7 on-chip valves v_*: pneumatic membrane valves need a second layer, so isolation moves to off-chip rotary or selector valves (lost: on-chip dead-volume-free isolation, so every line has tubing dead volume and capsule_in and to_split_tree must be closed off-chip). Ids kept: main_trap, capsule_prefilter, capsule_in, waste, lysis_waste, to_split_tree. This file no longer matches tools/convert_module3.py output. Originally translated by tools/convert_module3.py from chip/modules/module3_step1_3.json (Step 3, substeps 1\u20133: load, lysis, wash (main capsule trap); inputs: chip_geometry_requirements.xlsx (Sizing Calculator, Step 3 rows 1\u20133), 7 Nov 2026). ",
+  "description": "DEMO SCALE: scaled uniformly x0.4 in x and y (fit_chip.py, 64 x 48 mm -> 30 x 20 mm) for the 30 x 20 mm, 0.3 mm deep, single-layer resin-print and hot-emboss envelope. Depths: trap 0.35 -> 0.3 mm, channels 0.15 mm. Volumes recomputed (trap 38.4 uL). Channel widths were clamped from 0.056 mm to the 0.2 mm floor, which changed the aspect ratio, so flow resistances no longer match the source and any flow numbers must be re-derived; the 25 um trap gap and 100 um prefilter gap are below the 0.2 mm floor and cannot be printed. fit_chip.py does not move channel paths, valves or thermal zones, so the layout was redrawn by hand at demo scale with no channel crossings. PORT MERGES, 13 -> 6: lysis_buffer + wash_buffer -> reagent_in (off-chip rotary valve; lost: independent or overlapped lysis and wash feeds); wash_buffer's backflush branch -> backflush_in (own port, outlet side); capsule_in, waste, lysis_waste, to_split_tree unchanged; ctrl_v_capsule_in, ctrl_v_lysis_buffer, ctrl_v_wash_buffer, ctrl_v_waste, ctrl_v_lysis_waste, ctrl_v_backflush, ctrl_v_to_split_tree removed together with the 7 on-chip valves v_*: pneumatic membrane valves need a second layer, so isolation moves to off-chip rotary or selector valves (lost: on-chip dead-volume-free isolation, so every line has tubing dead volume and capsule_in and to_split_tree must be closed off-chip). Ids kept: main_trap, capsule_prefilter, capsule_in, waste, lysis_waste, to_split_tree. This file no longer matches tools/convert_module3.py output. Originally translated by tools/convert_module3.py from chip/modules/module3_step1_3.json (Step 3, substeps 1\u20133: load, lysis, wash (main capsule trap); inputs: chip_geometry_requirements.xlsx (Sizing Calculator, Step 3 rows 1\u20133), 7 Nov 2026).  REVERSE TRANSCRIPTION (added 7 Nov 2026): split-and-pool barcoding is dropped (no BC2 or BC3 ligation, no hairpin ligation), so the only step left after the washes is reverse transcription with a plain poly(dT) primer; cells already carry a per-lane lipid-anchored barcode from module 1, so nothing is barcoded here. That is one isothermal hold at about 42-50 C, so it runs in main_trap straight after lysis and the washes and no new chip is needed. The chip schema supports thermal_zones, so main_trap_zone now spans 4-50 C (purpose rt; max 50 C is the printed-resin working limit in contracts/materials.json). The trap is a sealed 0.3 mm chamber under the lid with all six ports closable off-chip, so the hold runs with every port capped; evaporation and bubbles in a 0.3 mm chamber at 42 C are untested. No ports, channels or chambers were added or moved. Protocol: protocols/module3_v1.json. Every feature is now a single 0.3 mm etch depth: one fluidic layer means one depth, and anything shallower would read as a second process we cannot run.",
   "placeholder": true,
   "translated_from": "chip/modules/module3_step1_3.json",
   "units": "mm",
@@ -64,7 +64,7 @@
         "opening_um": 25,
         "source": "fabricated"
       },
-      "note": "Demo scale (x0.4). Source: square, wide, flat, 650,000 capsules in ~4 layers. At 0.4 scale and 0.3 mm depth the bed holds 38.4 uL, about 140,000 capsules at fill 0.65, roughly a fifth of the source figure. Retention opening is still 25 um (source) and CANNOT be printed: floor is 0.2 mm, so a 25 um pillar row or mesh needs a bought mesh bonded under the lid, or the chamber must be re-thought; block set to trap_chamber, with pillar_array or pillar_funnel_trap as the in-chamber alternatives. Retention is on the outlet (right) side. Must tolerate 4 M guanidinium thiocyanate. Size, height, volume and gap from the source; position inferred.",
+      "note": "Demo scale (x0.4). Source: square, wide, flat, 650,000 capsules in ~4 layers. At 0.4 scale and 0.3 mm depth the bed holds 38.4 uL, about 140,000 capsules at fill 0.65, roughly a fifth of the source figure. Retention opening is still 25 um (source) and CANNOT be printed: floor is 0.2 mm, so a 25 um pillar row or mesh needs a bought mesh bonded under the lid, or the chamber must be re-thought; block set to trap_chamber, with pillar_array or pillar_funnel_trap as the in-chamber alternatives. Retention is on the outlet (right) side. Must tolerate 4 M guanidinium thiocyanate. Size, height, volume and gap from the source; position inferred. Also hosts the reverse-transcription hold (see thermal_zones and protocols/module3_v1.json).",
       "placeholder": true,
       "block": "trap_chamber"
     },
@@ -80,9 +80,9 @@
       "size": [
         1.2,
         0.8,
-        0.15
+        0.3
       ],
-      "volume_ul": 0.144,
+      "volume_ul": 0.288,
       "filter": {
         "type": "pillars",
         "gap_um": 100,
@@ -99,7 +99,7 @@
       "from": "capsule_in",
       "to": "capsule_prefilter",
       "width_mm": 0.2,
-      "depth_mm": 0.15,
+      "depth_mm": 0.3,
       "carries": "capsules",
       "capsule_passable": true,
       "block": "straight_channel",
@@ -121,7 +121,7 @@
       "from": "capsule_prefilter",
       "to": "main_trap",
       "width_mm": 0.2,
-      "depth_mm": 0.15,
+      "depth_mm": 0.3,
       "carries": "capsules",
       "capsule_passable": true,
       "block": "straight_channel",
@@ -143,7 +143,7 @@
       "from": "reagent_in",
       "to": "main_trap",
       "width_mm": 0.2,
-      "depth_mm": 0.15,
+      "depth_mm": 0.3,
       "carries": "liquid",
       "capsule_passable": false,
       "block": "straight_channel",
@@ -157,7 +157,7 @@
           6.0
         ]
       ],
-      "note": "MERGED ch_lysis_buffer + ch_wash_buffer: one reagent line to the trap inlet side, selected off-chip.",
+      "note": "MERGED ch_lysis_buffer + ch_wash_buffer: one reagent line to the trap inlet side, selected off-chip. It also carries the reverse-transcription mix.",
       "placeholder": true
     },
     {
@@ -165,7 +165,7 @@
       "from": "backflush_in",
       "to": "main_trap",
       "width_mm": 0.2,
-      "depth_mm": 0.15,
+      "depth_mm": 0.3,
       "carries": "liquid",
       "capsule_passable": false,
       "block": "straight_channel",
@@ -187,7 +187,7 @@
       "from": "main_trap",
       "to": "waste",
       "width_mm": 0.2,
-      "depth_mm": 0.15,
+      "depth_mm": 0.3,
       "carries": "liquid",
       "capsule_passable": false,
       "block": "channel_corner",
@@ -213,7 +213,7 @@
       "from": "main_trap",
       "to": "lysis_waste",
       "width_mm": 0.2,
-      "depth_mm": 0.15,
+      "depth_mm": 0.3,
       "carries": "liquid",
       "capsule_passable": false,
       "block": "channel_corner",
@@ -239,7 +239,7 @@
       "from": "main_trap",
       "to": "to_split_tree",
       "width_mm": 0.2,
-      "depth_mm": 0.15,
+      "depth_mm": 0.3,
       "carries": "capsules",
       "capsule_passable": true,
       "block": "straight_channel",
@@ -253,7 +253,7 @@
           18.5
         ]
       ],
-      "note": "Resuspended capsules out to the barcoding split tree. Open at all times, so close it off-chip during steps 1-3.",
+      "note": "Resuspended capsules out of the trap, on to module 4. Open at all times, so close it off-chip until the release step.",
       "placeholder": true
     }
   ],
@@ -281,7 +281,7 @@
         2.3
       ],
       "role": "reagent",
-      "note": "MERGED lysis_buffer + wash_buffer: an off-chip rotary valve selects lysis or wash. Lost: lysis and wash can no longer be fed independently or overlapped; the shared line needs flushing between them.",
+      "note": "MERGED lysis_buffer + wash_buffer: an off-chip rotary valve selects lysis, wash or reverse-transcription mix. Lost: lysis and wash can no longer be fed independently or overlapped; the shared line needs flushing between them.",
       "placeholder": true
     },
     {
@@ -333,7 +333,7 @@
       "role": "release",
       "capsule_passable": true,
       "width_um": 1600,
-      "note": "capsule outlet to the barcoding split tree (step 3 #4). Kept unchanged.",
+      "note": "capsule outlet, to module 4 now that split-and-pool barcoding is dropped (no BC2, BC3 or hairpin round in between). Id and position kept. Open at all times, so close it off-chip until the release step.",
       "placeholder": true
     }
   ],
@@ -344,8 +344,8 @@
         "main_trap"
       ],
       "min_temp_c": 4,
-      "max_temp_c": 37,
-      "purpose": "wash"
+      "max_temp_c": 50,
+      "purpose": "rt"
     }
   ]
 }
