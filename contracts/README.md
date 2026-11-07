@@ -93,7 +93,7 @@ numbers, and to `false` only when it holds the real thing. The twin shows a
 | Field | Meaning |
 |---|---|
 | `step` | 1, 2, 3 … in order |
-| `operation` | one of `load`, `exchange`, `hold_temp`, `split`, `pool`, `release`, `valve`, `culture`, `collect`, `harvest` |
+| `operation` | one of `load`, `exchange`, `hold_temp`, `split`, `pool`, `release`, `valve`, `culture`, `collect`, `harvest`, `encapsulate`, `cure` |
 | `target` | the chamber ID the step acts on (see below for split and pool). Or give `targets`, a list, to act on several at once (an `exchange` with `targets` runs once per target; `reagents` gives one reagent per target) |
 | `reagent` | generic reagent name, or `null` |
 | `volume_ul` | µL, or `null` |
@@ -117,6 +117,11 @@ numbers, and to `false` only when it holds the real thing. The twin shows a
 | `culture` | the chambers in `targets` stay in culture: every `exchange_interval_s` a batch of fresh medium (`volume_ul` at `flow_ul_min`) flows through each, then the flow stops until the next change | `targets`, `reagents` (one medium per target), `exchange_interval_s`, `duration_s`, `temp_c`; optional `factors` (one per target, through each lane's factor port) |
 | `collect` | supernatant leaves each chamber in `targets` through its outlet; the cells stay | `targets`, `volume_ul` |
 | `harvest` | the cells leave each chamber in `targets` through its outlet | `targets`, `reagent` |
+| `encapsulate` | core and shell streams co-flow into the nozzle `target`; oil pinches off droplets that become core-shell capsules | `flows_ul_h` (`{core, shell, oil}`), `capsules` |
+| `cure` | light-cures the capsules in `target` through a curing window | `wavelength_nm`, `duration_s` > 0 |
+
+An `exchange` can name the port it drains to with `"waste"` (e.g. Module 2's dedicated oil
+waste). `hold_temp` can target an off-chip stage (Module 2's cold delay, `m2_cold_delay_1`).
 
 A step with `"variant": "interaction"` runs only when the run's `variant` is `interaction`
 (Module 1 is one chip spec run twice, as `control` and `interaction`; see `run_parameters`).
@@ -199,6 +204,9 @@ fields**: they're what `tools/check_chip_spec.py` checks the real-scale design a
 | `channels[].path` | Centreline waypoints `[[x, y], …]`; without it, channels are routed automatically. Channels with paths are checked for crossings. |
 | `channels[].capsule_passable`, `.fabricable` | `capsule_passable: false` (MJ's proposal): deliberately too small for capsules or cells, e.g. microgrooves. `fabricable: false`: drawn, but too small to make here. |
 | `valves[]` | `{id, type: normally_closed/normally_open, kind: branch/pair/isolation, channel, position, control_port, connects}`. A `pair` valve can't be opened in a `control` run. Control ports are `ports` with `type: control`. |
+| `chambers[].filter` | For `type: filter`: `{type: pillars/mesh, gap_um, purpose: cells/particles/capsule_aggregates}`. A filter whose purpose is `cells` must have a gap **smaller** than the encapsulation nozzle. |
+| `encapsulation` | `{nozzle_um, nozzle_depth_um, nozzle, core_flow_ul_h, shell_flow_ul_h, oil_flow_ul_h, core_inlet}`: Module 1b uses these flows to set the cell concentration. |
+| `stages[]` | Steps that happen off the chip between two of its ports: `{id, type: cold_delay, from_port, to_port, location: off_chip, temp_c, time_min, volume_ul, note}`. |
 | `features[]` | Parts that aren't chambers, channels or ports: `{id, type: gas_window/heat_zone/cold_zone/curing_window/optical_window, center, size, covers, temp_c, wavelength_nm}`. |
 
 **`contracts/parameters.json`** holds every number from the sheet with its units,
@@ -224,6 +232,8 @@ This is everything the chips can do:
 | `culture` | `targets`, `reagents`, `duration_s`, `exchange_interval_s`, `volume_ul`, `flow_ul_min`, `temp_c`, optional `factors` |
 | `collect` | `targets`, `volume_ul` |
 | `harvest` | `targets`, `reagent` |
+| `encapsulate` | `target` (nozzle), `core_flow_ul_h`, `shell_flow_ul_h`, `oil_flow_ul_h`, `capsules` |
+| `cure` | `target`, `wavelength_nm`, `duration_s` |
 
 Example: `{"command": "split", "args": {"source": "exchange_1", "targets": ["split_1", "split_2", "split_3", "split_4"]}}`
 

@@ -126,7 +126,7 @@ def check_protocol(path: Path, protocol: dict, report: Report) -> None:
 def check_chip(path: Path, chip: dict, report: Report) -> None:
     where = rel(path)
     seen: dict[str, str] = {}
-    for group in ("chambers", "ports", "channels", "valves", "features"):
+    for group in ("chambers", "ports", "channels", "valves", "features", "stages"):
         for item in chip.get(group, []):
             iid = item.get("id")
             if iid in seen:
@@ -135,7 +135,7 @@ def check_chip(path: Path, chip: dict, report: Report) -> None:
     module = chip.get("module")
     if module:
         prefix = module["id"] + "_"
-        named = [(g, i.get("id")) for g in ("chambers", "ports", "channels", "valves", "features", "layers", "thermal_zones")
+        named = [(g, i.get("id")) for g in ("chambers", "ports", "channels", "valves", "features", "stages", "layers", "thermal_zones")
                  for i in chip.get(g, [])]
         bad = [iid for _, iid in named + [("chip", chip["id"])] if not str(iid).startswith(prefix)]
         if bad:
@@ -151,6 +151,10 @@ def check_chip(path: Path, chip: dict, report: Report) -> None:
         for cid in v.get("connects", []):
             if cid not in commands.chamber_ids(chip):
                 report.error(f"{where}: valve '{v.get('id')}' connects '{cid}', which is not a chamber")
+    for st in chip.get("stages", []):
+        for end in ("from_port", "to_port"):
+            if st.get(end) not in ports_by_id:
+                report.error(f"{where}: stage '{st.get('id')}' {end} '{st.get(end)}' is not a port")
     for f in chip.get("features", []):
         for cid in f.get("covers", []):
             if cid not in commands.chamber_ids(chip):
@@ -243,7 +247,7 @@ def check_run(path: Path, run: dict, protocols: dict[str, tuple[Path, dict]],
         report.error(f"{where}: transcript '{run['transcript']}' does not exist")
 
     step_numbers = {s.get("step") for s in proto[1]["steps"]} if proto else set()
-    chambers = commands.chamber_ids(chip_entry[1]) if chip_entry else None
+    chambers = (commands.chamber_ids(chip_entry[1]) | commands.stage_ids(chip_entry[1])) if chip_entry else None
     last_t = -1.0
     for i, ev in enumerate(run.get("events", [])):
         t = ev.get("t_s", 0)

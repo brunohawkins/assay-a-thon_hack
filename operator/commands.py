@@ -10,6 +10,8 @@
     culture(targets[], reagents[], duration_s, exchange_interval_s, volume_ul, flow_ul_min, temp_c)
     collect(targets[], volume_ul)                            supernatant out, cells stay
     harvest(targets[], reagent)                              cells out through each outlet
+    encapsulate(target, core/shell/oil_flow_ul_h, capsules)  Module 2: make capsules at a nozzle
+    cure(target, wavelength_nm, duration_s)                  Module 2: light-cure capsule shells
 
 Each function returns a command dict {"command": ..., "args": {...}} after checking it
 against contracts/schemas/commands.schema.json, and against a chip spec when one is
@@ -24,7 +26,7 @@ from typing import Any
 import schema_io
 
 COMMAND_NAMES = ("load", "exchange", "hold_temp", "split", "pool", "release",
-                 "valve", "culture", "collect", "harvest")
+                 "valve", "culture", "collect", "harvest", "encapsulate", "cure")
 
 # Which args hold chamber ids, per command. Used for chip checks and by the twin.
 ID_ARGS = {
@@ -37,6 +39,8 @@ ID_ARGS = {
     "culture": ("targets",),
     "collect": ("targets",),
     "harvest": ("targets",),
+    "encapsulate": ("target",),
+    "cure": ("target",),
 }
 # Args that hold valve ids.
 VALVE_ARGS = {"valve": ("valves",)}
@@ -104,13 +108,18 @@ def port_ids(chip: dict) -> set[str]:
     return {p["id"] for p in chip.get("ports", [])}
 
 
+def stage_ids(chip: dict) -> set[str]:
+    """Off-chip stages (e.g. a cold delay in tubing). Commands may target them like chambers."""
+    return {s["id"] for s in chip.get("stages", [])}
+
+
 def valve_ids(chip: dict) -> set[str]:
     return {v["id"] for v in chip.get("valves", [])}
 
 
 def place_ids(chip: dict) -> set[str]:
     """Everything a protocol step may name as a target: chambers, ports and valves."""
-    return chamber_ids(chip) | port_ids(chip) | valve_ids(chip)
+    return chamber_ids(chip) | port_ids(chip) | valve_ids(chip) | stage_ids(chip)
 
 
 def step_targets(step: dict) -> list[str]:
@@ -142,11 +151,13 @@ def validate(command: str, args: dict, chip: dict | None = None) -> dict:
         details = "; ".join(schema_io.describe(e) for e in errors)
         raise CommandError(f"{command}: {details}")
     if chip is not None:
-        chambers = chamber_ids(chip)
+        chambers = chamber_ids(chip) | stage_ids(chip)
         for cid in ids_in(command, args):
             if cid not in chambers:
                 hint = " (that is a port; commands act on chambers)" if cid in port_ids(chip) else ""
                 raise CommandError(f"{command}: '{cid}' is not a chamber in chip {chip.get('id')}{hint}")
+        if args.get("waste") and args["waste"] not in port_ids(chip):
+            raise CommandError(f"{command}: waste '{args['waste']}' is not a port in chip {chip.get('id')}")
         valves = valve_ids(chip)
         for vid in ids_in(command, args, VALVE_ARGS):
             if vid not in valves:
@@ -164,6 +175,8 @@ def estimate_duration_s(command: str, args: dict) -> float:
         return float(args["duration_s"])
     if command == "valve":
         return 10.0
+    if command == "cure":
+        return float(args["duration_s"])
     return NOMINAL_DURATION_S
 
 

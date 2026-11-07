@@ -14,7 +14,8 @@ Errors (exit code 1):
     (a channel's "carries" picks the rule: capsules/droplets 1.5 x capsule diameter; cells the
     cell-outlet minimum, dissociation.outlet_min_width_um; liquid, oil, signals none)
   - chamber lower than the swollen capsule diameter where culture happens
-  - cell filter gap wider than the encapsulation nozzle
+  - cell filter gap not smaller than the encapsulation nozzle (cell_filter.gap_um, and every
+    filter chamber whose purpose is cells)
   - thermal zone (or protocol hold_temp) above the chip material's max working temperature
 Warnings:
   - fabricated feature smaller than the fabrication minimum in cad/fabrication.json
@@ -183,8 +184,13 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
     # --- cell filter vs nozzle ----------------------------------------------------------
     nozzle = chip.get("encapsulation", {}).get("nozzle_um", param(params, "encapsulation.nozzle_um"))
     gap = chip.get("cell_filter", {}).get("gap_um")
-    if gap is not None and gap > nozzle:
-        f.error(f"cell_filter.gap_um {gap:g} > encapsulation nozzle {nozzle:g} um: clumps can reach the nozzle")
+    if gap is not None and gap >= nozzle:
+        f.error(f"cell_filter.gap_um {gap:g} >= encapsulation nozzle {nozzle:g} um: clumps can reach the nozzle")
+    for c in chambers.values():
+        flt = c.get("filter") or {}
+        if flt.get("purpose") == "cells" and flt["gap_um"] >= nozzle:
+            f.error(f"filter '{c['id']}' gap {flt['gap_um']:g} um >= encapsulation nozzle {nozzle:g} um: cell clumps "
+                    f"that pass it can block the nozzle")
 
     # --- temperature vs material --------------------------------------------------------
     mats, unknown = resolve_materials(chip, materials)

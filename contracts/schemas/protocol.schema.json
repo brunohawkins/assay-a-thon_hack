@@ -55,8 +55,8 @@
           "description": "Step number, 1, 2, 3... in order."
         },
         "operation": {
-          "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "valve", "culture", "collect", "harvest"],
-          "description": "A chip operation. valve: open or close valves (targets = valve ids). culture: keep chambers in culture with batch medium exchanges and stop-flow between them. collect: take supernatant out through each chamber's outlet. harvest: send the cells out through each chamber's outlet."
+          "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "valve", "culture", "collect", "harvest", "encapsulate", "cure"],
+          "description": "A chip operation. valve: open or close valves (targets = valve ids). culture: keep chambers in culture with batch medium exchanges and stop-flow between them. collect: take supernatant out through each chamber's outlet. harvest: send the cells out through each chamber's outlet. encapsulate: make capsules at a nozzle. cure: light-cure the capsules in a trap."
         },
         "target": {
           "$ref": "#/$defs/snake_id",
@@ -87,6 +87,16 @@
           "exclusiveMinimum": 0,
           "description": "culture only: time between batch medium exchanges (stop-flow in between)."
         },
+        "waste": { "$ref": "#/$defs/snake_id", "description": "exchange only: the outlet port the liquid drains to (e.g. a dedicated oil waste). Default: the chamber's waste outlet." },
+        "flows_ul_h": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["core", "shell", "oil"],
+          "properties": { "core": { "type": "number", "exclusiveMinimum": 0 }, "shell": { "type": "number", "exclusiveMinimum": 0 }, "oil": { "type": "number", "exclusiveMinimum": 0 } },
+          "description": "encapsulate only: core, shell and oil flows in uL/h."
+        },
+        "capsules": { "type": "integer", "minimum": 1, "description": "encapsulate only: how many capsules to make." },
+        "wavelength_nm": { "type": "number", "exclusiveMinimum": 0, "description": "cure only." },
         "variant": {
           "$ref": "#/$defs/snake_id",
           "description": "Optional. Run this step only when the run's variant (a chip run parameter) has this value, e.g. interaction."
@@ -174,6 +184,14 @@
         {
           "if": { "properties": { "operation": { "enum": ["collect", "harvest"] } }, "required": ["operation"] },
           "then": { "required": ["targets"] }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "encapsulate" } }, "required": ["operation"] },
+          "then": { "required": ["flows_ul_h", "capsules"] }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "cure" } }, "required": ["operation"] },
+          "then": { "required": ["wavelength_nm"], "properties": { "duration_s": { "exclusiveMinimum": 0 } } }
         }
       ]
     }

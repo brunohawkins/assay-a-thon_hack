@@ -6,7 +6,7 @@
   "type": "object",
   "required": ["command", "args"],
   "properties": {
-    "command": { "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "valve", "culture", "collect", "harvest"] },
+    "command": { "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "valve", "culture", "collect", "harvest", "encapsulate", "cure"] },
     "args": { "type": "object" }
   },
   "allOf": [
@@ -49,6 +49,14 @@
     {
       "if": { "properties": { "command": { "const": "harvest" } }, "required": ["command"] },
       "then": { "properties": { "args": { "$ref": "#/$defs/harvest" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "encapsulate" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/encapsulate" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "cure" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/cure" } } }
     }
   ],
   "$defs": {
@@ -78,7 +86,8 @@
         "direction": {
           "enum": ["forward", "backflush"],
           "description": "Optional. forward (default): in from the inlet, out through the retention to waste. backflush: in from below the retention, lifting capsules off it."
-        }
+        },
+        "waste": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Optional. Outlet port to drain to (e.g. a dedicated oil waste)." }
       }
     },
     "hold_temp": {
@@ -186,6 +195,32 @@
       "properties": {
         "targets": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" } },
         "reagent": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Buffer that carries the cells out." }
+      }
+    },
+    "encapsulate": {
+      "title": "encapsulate(target, core_flow_ul_h, shell_flow_ul_h, oil_flow_ul_h, capsules)",
+      "description": "Make capsules: core (cells in dextran) and shell (GelMA) streams co-flow into the nozzle, oil from both sides pinches off droplets, and each droplet phase-separates into a core-shell capsule.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "core_flow_ul_h", "shell_flow_ul_h", "oil_flow_ul_h", "capsules"],
+      "properties": {
+        "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Nozzle junction id." },
+        "core_flow_ul_h": { "type": "number", "exclusiveMinimum": 0 },
+        "shell_flow_ul_h": { "type": "number", "exclusiveMinimum": 0 },
+        "oil_flow_ul_h": { "type": "number", "exclusiveMinimum": 0 },
+        "capsules": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "cure": {
+      "title": "cure(target, wavelength_nm, duration_s)",
+      "description": "Light-cure the capsule shells in a trap (single capsule layer under a curing window).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "wavelength_nm", "duration_s"],
+      "properties": {
+        "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" },
+        "wavelength_nm": { "type": "number", "exclusiveMinimum": 0 },
+        "duration_s": { "type": "number", "exclusiveMinimum": 0 }
       }
     }
   }

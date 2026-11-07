@@ -38,6 +38,24 @@
       "module": "m1"
     },
     {
+      "file": "m2_encapsulation__m2_encapsulation_v1.json",
+      "protocol_id": "m2_encapsulation",
+      "protocol_name": "Module 2: encapsulation",
+      "chip_id": "m2_encapsulation_v1",
+      "chip_spec": "cad/m2_encapsulation_spec.json",
+      "operator": "planner",
+      "events": 10,
+      "total_duration_s": 1538.5,
+      "placeholder": true,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null,
+      "variant": null,
+      "module": "m2"
+    },
+    {
       "file": "m3_wash__m3_wash_v1.json",
       "protocol_id": "m3_wash",
       "protocol_name": "Module 3: capsule wash",

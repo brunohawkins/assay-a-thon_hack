@@ -137,6 +137,8 @@ def step_to_command(step: dict, chip: dict) -> tuple[str, dict]:
                 "washes": step["washes"], "flow_ul_min": step["flow_ul_min"]}
         if step.get("direction"):
             args["direction"] = step["direction"]
+        if step.get("waste"):
+            args["waste"] = step["waste"]
         return "exchange", args
     if op == "hold_temp":
         return "hold_temp", {"target": target, "temp_c": step["temp_c"], "duration_s": step["duration_s"]}
@@ -170,6 +172,12 @@ def step_to_command(step: dict, chip: dict) -> tuple[str, dict]:
         return "collect", {"targets": targets, "volume_ul": step["volume_ul"]}
     if op == "harvest":
         return "harvest", {"targets": targets, "reagent": step["reagent"]}
+    if op == "encapsulate":
+        f = step["flows_ul_h"]
+        return "encapsulate", {"target": target, "core_flow_ul_h": f["core"], "shell_flow_ul_h": f["shell"],
+                               "oil_flow_ul_h": f["oil"], "capsules": step["capsules"]}
+    if op == "cure":
+        return "cure", {"target": target, "wavelength_nm": step["wavelength_nm"], "duration_s": step["duration_s"]}
     raise PlanError(f"step {n}: unknown operation {op!r}")
 
 

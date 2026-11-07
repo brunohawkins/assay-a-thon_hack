@@ -130,7 +130,35 @@
       "type": "object",
       "additionalProperties": false,
       "description": "Optional. Droplet encapsulation stage.",
-      "properties": { "nozzle_um": { "type": "number", "exclusiveMinimum": 0 } }
+      "properties": {
+        "nozzle_um": { "type": "number", "exclusiveMinimum": 0 },
+        "nozzle_depth_um": { "type": "number", "exclusiveMinimum": 0 },
+        "nozzle": { "$ref": "#/$defs/snake_id", "description": "Junction chamber where the droplets form." },
+        "core_flow_ul_h": { "type": "number", "exclusiveMinimum": 0, "description": "Cells in dextran." },
+        "shell_flow_ul_h": { "type": "number", "exclusiveMinimum": 0, "description": "GelMA." },
+        "oil_flow_ul_h": { "type": "number", "exclusiveMinimum": 0 },
+        "core_inlet": { "$ref": "#/$defs/snake_id", "description": "Port the cells come in through." }
+      }
+    },
+    "stages": {
+      "type": "array",
+      "description": "Optional. Process stages that are not on the chip, between two of its ports (e.g. a cold delay in tubing on a cold block). Commands can target a stage id.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type", "from_port", "to_port", "location"],
+        "properties": {
+          "id": { "$ref": "#/$defs/snake_id" },
+          "type": { "enum": ["cold_delay", "delay"] },
+          "from_port": { "$ref": "#/$defs/snake_id" },
+          "to_port": { "$ref": "#/$defs/snake_id" },
+          "location": { "enum": ["off_chip", "on_chip"] },
+          "temp_c": { "type": "number" },
+          "time_min": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2, "description": "[shortest, longest] residence time." },
+          "volume_ul": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2, "description": "[smallest, largest] volume at the design flow." },
+          "note": { "type": "string" }
+        }
+      }
     },
     "thermal_zones": {
       "type": "array",
@@ -195,13 +223,24 @@
       "required": ["id", "type", "center", "size", "volume_ul"],
       "properties": {
         "id": { "$ref": "#/$defs/snake_id", "description": "Join key. STL files are named <id>.stl." },
-        "type": { "enum": ["inlet", "exchange", "split", "pool", "outlet", "well", "culture", "junction", "bubble_trap"] },
+        "type": { "enum": ["inlet", "exchange", "split", "pool", "outlet", "well", "culture", "junction", "bubble_trap", "filter"] },
         "shape": {
           "enum": ["box", "cylinder"],
           "default": "box",
           "description": "box (default): size is [x, y, z]. cylinder: a round chamber, size is [diameter, diameter, depth]."
         },
         "note": { "type": "string" },
+        "filter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "gap_um", "purpose"],
+          "description": "For type filter: a pillar (or mesh) filter that particles pass through. Not a capsule trap.",
+          "properties": {
+            "type": { "enum": ["pillars", "mesh"] },
+            "gap_um": { "type": "number", "exclusiveMinimum": 0 },
+            "purpose": { "enum": ["cells", "particles", "capsule_aggregates"], "description": "cells: strains cell clumps (gap must be smaller than the encapsulation nozzle). capsule_aggregates: lets single capsules through, stops clumps." }
+          }
+        },
         "center": { "$ref": "#/$defs/vec3" },
         "size": { "$ref": "#/$defs/size3" },
         "mesh_pore_um": {
@@ -282,7 +321,7 @@
         "type": { "enum": ["inlet", "outlet", "control"], "description": "inlet / outlet for liquid; control for a valve control line." },
         "position": { "$ref": "#/$defs/vec3", "description": "Centre of the opening on the chip surface: on top, z = chip height; on the bottom, z = 0." },
         "role": {
-          "enum": ["load", "reagent", "waste", "release", "backflush", "cells", "medium", "factor", "harvest", "control"],
+          "enum": ["load", "reagent", "waste", "release", "backflush", "cells", "medium", "factor", "harvest", "control", "oil", "transfer"],
           "description": "Optional. What the port is for."
         },
         "capsule_passable": {
