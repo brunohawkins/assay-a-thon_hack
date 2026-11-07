@@ -66,6 +66,8 @@ class VirtualChip(Adapter):
         self.last_command: tuple[str, dict] | None = None
         self.wash_index = 0          # counts forward-exchange washes (faults key off it)
         self.events: list[dict] = []  # fault/reality notes, for the report
+        for f in self.faults:
+            f.on_create(self)
 
     def capabilities(self) -> dict:
         return {"sensors": list(self.sensors_on), "actuators": ["pump", "valves", "heater"], "simulated": True}
