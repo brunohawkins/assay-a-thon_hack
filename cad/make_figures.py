@@ -258,6 +258,9 @@ def geometry_warnings(chip):
     """
     segs = segments_of(chip)
     ports = {p["id"]: p for p in chip["ports"]}
+    # A junction chamber is a place streams are MEANT to converge: a flow-focusing cross
+    # is three channels meeting in a 300 um square. Treat it like a port, not a collision.
+    meeting = set(ports) | {c["id"] for c in chip["chambers"] if c.get("type") == "junction"}
     msgs, tightest = [], (float("inf"), "")
 
     def note(gap, what):
@@ -268,8 +271,8 @@ def geometry_warnings(chip):
     for i, (c1, a1, b1, _) in enumerate(segs):
         for c2, a2, b2, _ in segs[i + 1:]:
             shared = {c1["from"], c1["to"]} & {c2["from"], c2["to"]}
-            # Channels meeting at a port genuinely merge there: that is what a port is.
-            if shared & ports.keys():
+            # Channels meeting at a port or junction genuinely merge there.
+            if shared & meeting:
                 continue
             gap = _seg_seg(a1, b1, a2, b2) - (c1["width_mm"] + c2["width_mm"]) / 2
             what = f"channels '{c1['id']}' and '{c2['id']}'"
