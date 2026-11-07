@@ -1,0 +1,43 @@
+{
+  "id": "ipsc_to_mgl_chip_v1",
+  "name": "iPSC to microglia-like cell train v1",
+  "description": "Five linked culture and fluidics modules on one 150 x 100 mm board, for running a published monolayer iPSC-to-microglia differentiation end to end with no off-chip handling. Left to right: m1_expand (iPSC expansion, lifted as aggregates), m2_hemogenic (adherent hemogenic endothelium; progenitors round up and float off from about day 7), m3_concentrate (30 um filter plus concentrator, which replaces the centrifugation step), mat_1..mat_4 (four parallel maturation chambers, giving n = 4 or four conditions) and m5_harvest (pooling, dissociation and delivery to the encapsulation inlet). Chamber height is set by a 0.3 mm adhesive spacer, so every chamber is a cut-out rectangle in one laser-cut layer. mesh_pore_um is the retention mesh at each chamber outlet, not a floor: cells here are adherent, unlike the capsule chips. Geometry and flow numbers are ours; the step schedule they serve is from the published protocol cited in protocols/ipsc_to_mgl_v1.json.",
+  "placeholder": false,
+  "units": "mm",
+  "footprint": { "x": 150, "y": 100 },
+  "layers": [
+    { "id": "base", "material": "acrylic", "thickness_mm": 3 },
+    { "id": "spacer", "material": "acrylic_psa", "thickness_mm": 0.3 },
+    { "id": "lid", "material": "acrylic", "thickness_mm": 3 }
+  ],
+  "chambers": [
+    { "id": "m1_expand", "type": "exchange", "center": [25, 50, 3.15], "size": [20, 20, 0.3], "mesh_pore_um": 40, "volume_ul": 120 },
+    { "id": "m2_hemogenic", "type": "exchange", "center": [55, 50, 3.15], "size": [20, 20, 0.3], "mesh_pore_um": 40, "volume_ul": 120 },
+    { "id": "m3_concentrate", "type": "exchange", "center": [78, 50, 3.15], "size": [8, 4, 0.3], "mesh_pore_um": 30, "volume_ul": 9.6 },
+    { "id": "mat_1", "type": "split", "center": [100, 14, 3.15], "size": [16, 16, 0.3], "mesh_pore_um": 5, "volume_ul": 76.8 },
+    { "id": "mat_2", "type": "split", "center": [100, 38, 3.15], "size": [16, 16, 0.3], "mesh_pore_um": 5, "volume_ul": 76.8 },
+    { "id": "mat_3", "type": "split", "center": [100, 62, 3.15], "size": [16, 16, 0.3], "mesh_pore_um": 5, "volume_ul": 76.8 },
+    { "id": "mat_4", "type": "split", "center": [100, 86, 3.15], "size": [16, 16, 0.3], "mesh_pore_um": 5, "volume_ul": 76.8 },
+    { "id": "m5_harvest", "type": "pool", "center": [130, 50, 3.15], "size": [20, 10, 0.3], "mesh_pore_um": 5, "volume_ul": 60 }
+  ],
+  "channels": [
+    { "id": "ch_in_m1", "from": "inlet_1", "to": "m1_expand", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_m1_m2", "from": "m1_expand", "to": "m2_hemogenic", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_m2_m3", "from": "m2_hemogenic", "to": "m3_concentrate", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_m3_mat1", "from": "m3_concentrate", "to": "mat_1", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_m3_mat2", "from": "m3_concentrate", "to": "mat_2", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_m3_mat3", "from": "m3_concentrate", "to": "mat_3", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_m3_mat4", "from": "m3_concentrate", "to": "mat_4", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_mat1_m5", "from": "mat_1", "to": "m5_harvest", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_mat2_m5", "from": "mat_2", "to": "m5_harvest", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_mat3_m5", "from": "mat_3", "to": "m5_harvest", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_mat4_m5", "from": "mat_4", "to": "m5_harvest", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_m5_out", "from": "m5_harvest", "to": "outlet_1", "width_mm": 0.8, "depth_mm": 0.3 },
+    { "id": "ch_m2_waste", "from": "m2_hemogenic", "to": "waste_1", "width_mm": 0.8, "depth_mm": 0.3 }
+  ],
+  "ports": [
+    { "id": "inlet_1", "type": "inlet", "position": [6, 50, 6.3] },
+    { "id": "outlet_1", "type": "outlet", "position": [146, 50, 6.3] },
+    { "id": "waste_1", "type": "outlet", "position": [55, 95, 6.3] }
+  ]
+}
