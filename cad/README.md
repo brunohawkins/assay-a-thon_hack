@@ -59,7 +59,7 @@ records that, so the file doesn't need re-exporting.
 
 - `cad/*_spec.json` (and `chip/*.json`) are **real-scale** chip specs: the working dimensions; the twin and `tools/check_chip_spec.py` use these.
 - `cad/display/<chip_id>/` is a **display model**: the same chip scaled up by `display_scale` (`cad/fabrication.json`, default 10×) so people can see it. It's a show piece, not a working chip.
-- Make one with `python cad/export_display_model.py cad/wash_mvp_spec.json`, then print `cad/display/<chip_id>/<chip_id>_display_print.stl` (one file, all parts in place; per-part STLs are alongside if you want colours).
+- Make one with `python cad/export_display_model.py cad/m3_wash_spec.json`, then print `cad/display/<chip_id>/<chip_id>_display_print.stl` (one file, all parts in place; per-part STLs are alongside if you want colours).
 
 ## What goes in this folder
 

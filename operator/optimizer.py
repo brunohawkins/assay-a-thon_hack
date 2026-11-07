@@ -177,12 +177,12 @@ def plan_step(goal: dict, believed: ChipState, model: ProcessModel, chip: dict) 
 if __name__ == "__main__":
     import sys
     from model import ModelParams
-    chip = schema_io.load_json(schema_io.ROOT / "cad" / "wash_mvp_spec.json")
+    chip = schema_io.load_json(schema_io.ROOT / "cad" / "m3_wash_spec.json")
     params, _ = safety._contracts()
     model = ProcessModel(ModelParams.from_chip(chip, params))
     s = ChipState.from_chip_spec(chip, params, reagents=["capsule_suspension", "wash_buffer", "resuspension_buffer"])
-    s.chambers["trap_1"].capsules_on_mesh = 10000
-    step = {"step": 2, "operation": "exchange", "target": "trap_1", "reagent": "wash_buffer", "volume_ul": 20}
+    s.chambers["m3_trap_1"].capsules_on_mesh = 10000
+    step = {"step": 2, "operation": "exchange", "target": "m3_trap_1", "reagent": "wash_buffer", "volume_ul": 20}
     plan = plan_step(goal_for_step(step, chip), s, model, chip)
     print("chosen:", plan["args"], plan["predicted"])
     for r in plan["candidates"]:

@@ -1,0 +1,90 @@
+{
+  "protocol_id": "m3_wash",
+  "protocol_name": "Module 3: capsule wash",
+  "chip_id": "m3_wash_v1",
+  "chip_spec": "cad/m3_wash_spec.json",
+  "operator": "planner",
+  "created_at": "2026-11-07T14:49:56Z",
+  "placeholder": true,
+  "sizing": {
+    "capsule_count": 10000,
+    "capsule_count_note": "from chip spec",
+    "capsule_diameter_um": 70.0,
+    "cells_expected": 769.7,
+    "trap_chambers": [
+      "m3_trap_1"
+    ],
+    "monolayer_area_mm2_needed": 49.0,
+    "trap_area_mm2": 49.0,
+    "packed_volume_ul_needed": 2.806,
+    "trap_volume_ul": 7.35,
+    "channel_width_um": [
+      140.0,
+      140.0
+    ],
+    "channel_width_um_recommended": [
+      105.0,
+      140.0
+    ],
+    "trap_gap_um_recommended": [
+      21.0,
+      28.0
+    ],
+    "swollen_diameter_um": 140.0
+  },
+  "total_duration_s": 360.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 60.0,
+      "command": "load",
+      "args": {
+        "target": "m3_trap_1",
+        "volume_ul": 20
+      },
+      "narration": "Load 10,000 capsules through the top inlet; they settle in a single layer on the mesh.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 60.0,
+      "duration_s": 180.0,
+      "command": "exchange",
+      "args": {
+        "target": "m3_trap_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 20,
+        "washes": 3,
+        "flow_ul_min": 20,
+        "direction": "forward"
+      },
+      "narration": "Wash three times: buffer flows down through the mesh to waste while the capsules stay on top.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 240.0,
+      "duration_s": 60.0,
+      "command": "exchange",
+      "args": {
+        "target": "m3_trap_1",
+        "reagent": "resuspension_buffer",
+        "volume_ul": 20,
+        "washes": 1,
+        "flow_ul_min": 20,
+        "direction": "backflush"
+      },
+      "narration": "Back-flush from below to lift the capsules off the mesh and resuspend them.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 300.0,
+      "duration_s": 60.0,
+      "command": "release",
+      "args": {
+        "target": "m3_trap_1",
+        "reagent": "resuspension_buffer"
+      },
+      "narration": "Flush the washed capsules out through the release outlet.",
+      "protocol_step": 4
+    }
+  ]
+}

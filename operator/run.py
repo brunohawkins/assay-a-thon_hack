@@ -2,11 +2,11 @@
 
 Closed-loop runs (the management system; SIMULATED HARDWARE by default):
 
-    python operator/run.py --scenario scenarios/wash_mvp_clog.json
-    python operator/run.py --protocol protocols/placeholder_capsule_wash_mvp.json --chip cad/wash_mvp_spec.json \\
-        --operator planner|llm|scripted --adapter virtual|dryrun|syringe_pump --scenario scenarios/wash_mvp_clog.json
-    python operator/run.py --scenario scenarios/wash_mvp_clog.json --operator llm          # needs ANTHROPIC_API_KEY
-    python operator/run.py --scenario scenarios/wash_mvp_clog.json --operator scripted \\
+    python operator/run.py --scenario scenarios/m3_wash_clog.json
+    python operator/run.py --protocol protocols/m3_wash.json --chip cad/m3_wash_spec.json \\
+        --operator planner|llm|scripted --adapter virtual|dryrun|syringe_pump --scenario scenarios/m3_wash_clog.json
+    python operator/run.py --scenario scenarios/m3_wash_clog.json --operator llm          # needs ANTHROPIC_API_KEY
+    python operator/run.py --scenario scenarios/m3_wash_clog.json --operator scripted \\
         --transcript runs/transcripts/<run>.json                                          # offline replay
 
   writes runs/<protocol>__<chip>__<scenario>[__<operator>].json, the report

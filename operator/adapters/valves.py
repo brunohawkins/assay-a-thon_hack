@@ -14,7 +14,7 @@ Serial protocol (ASCII, newline-terminated, one request at a time):
                 "ALL 0"                       close everything (safe state)
   mcu -> host   "OK"  |  "STATE <valve_id> <0|1>"  |  "ERR <message>"
 Valve ids and named routes come from a rig file (contracts/hardware/rig_example.json,
-"valves" and "routes"), e.g. "wash_forward": inlet_1 -> trap_1 -> waste_1.
+"valves" and "routes"), e.g. "wash_forward": m3_inlet_1 -> m3_trap_1 -> m3_waste_1.
 On any error, or if the host disconnects, the firmware closes all valves.
 """
 

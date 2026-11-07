@@ -1,6 +1,6 @@
 """Export a printable DISPLAY MODEL of a chip spec (a scaled-up show piece, not a working chip).
 
-    python cad/export_display_model.py cad/wash_mvp_spec.json
+    python cad/export_display_model.py cad/m3_wash_spec.json
     python cad/export_display_model.py chip/placeholder_chip_spec.json --scale 5
 
 Scales every dimension by display_scale (cad/fabrication.json, default 10) and writes
@@ -245,9 +245,10 @@ def build_parts(chip: dict, scale: float) -> list[dict]:
     label = f"Display model – {scale:g}× scale"
     px = min(1.6, (fx - 12) / (len(label) * 6))
     text_w = len(label) * 6 * px
-    parts.append({"id": "label", "kind": "label", "tris": box(0, -LABEL_DEPTH, 0, fx, 0, LABEL_THICK), "text": label})
+    prefix = f"{chip['module']['id']}_" if chip.get("module") else ""   # module chips: every file is module-prefixed
+    parts.append({"id": f"{prefix}label", "kind": "label", "tris": box(0, -LABEL_DEPTH, 0, fx, 0, LABEL_THICK), "text": label})
     # Raised lettering as its own part, so it can be printed (and shown) in a second colour.
-    parts.append({"id": "label_text", "kind": "label_text",
+    parts.append({"id": f"{prefix}label_text", "kind": "label_text",
                   "tris": text_boxes(label, (fx - text_w) / 2, -LABEL_DEPTH + (LABEL_DEPTH - 7 * px) / 2,
                                      LABEL_THICK, px, LABEL_TEXT_HEIGHT)})
     return parts
@@ -293,7 +294,7 @@ def export(spec_path: Path, scale: float | None = None) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Export a printable display model of a chip spec.")
-    ap.add_argument("spec", type=Path, help="chip spec, e.g. cad/wash_mvp_spec.json")
+    ap.add_argument("spec", type=Path, help="chip spec, e.g. cad/m3_wash_spec.json")
     ap.add_argument("--scale", type=float, default=None, help="override display_scale from cad/fabrication.json")
     args = ap.parse_args(argv)
     try:

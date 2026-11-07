@@ -84,7 +84,7 @@ export function createUI(actions) {
         ...runs.map((r) => {
           const o = document.createElement('option');
           o.value = r.file;
-          const scn = r.scenario ? ` — ${r.scenario.replace(/^wash_mvp_/, '').replace(/_/g, ' ')}` : '';
+          const scn = r.scenario ? ` — ${r.scenario.replace(/^m3_wash_/, '').replace(/_/g, ' ')}` : '';
           const op = r.operator === 'llm' ? ' · LLM operator' : r.operator === 'scripted' ? ' · scripted replay' : '';
           o.textContent = `${r.protocol_name}${scn}${op}`;
           return o;

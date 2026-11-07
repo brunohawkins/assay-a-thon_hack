@@ -65,7 +65,7 @@ pip install -r requirements.txt     # just jsonschema
 python tools/validate.py            # 1. check every file against the contracts
 python tools/check_chip_spec.py     #    and every chip design against the capsule rules
 python operator/run.py --all        # 2. regenerate every run (simple + closed-loop scenarios)
-python operator/run.py --scenario scenarios/wash_mvp_clog.json   #    or one closed-loop scenario
+python operator/run.py --scenario scenarios/m3_wash_clog.json   #    or one closed-loop scenario
 python -m http.server 8000          # 3. serve the repo root...
 # ...and open http://localhost:8000/twin/
 ```
@@ -83,7 +83,7 @@ replays the same protocol and faults the other way. How the closed loop works:
 [operator/README.md](operator/README.md).
 
 Other tools: `python operator/sizing.py mvp cells:100000` (chip sizing, port of Szonja's
-sheet), `python cad/export_display_model.py cad/wash_mvp_spec.json` (printable display model),
+sheet), `python cad/export_display_model.py cad/m3_wash_spec.json` (printable display model),
 `python -m unittest discover -s tests` (tests).
 
 The twin only reads run files, so a recorded run always works offline. That's the
@@ -98,7 +98,7 @@ Every placeholder file says `"placeholder": true`. To replace one:
 | A real protocol | New file in `protocols/` (copy a placeholder), new `id`, fill in steps → `python tools/validate.py` → `python operator/run.py --protocol protocols/<file>.json --chip chip/<spec>.json`. MJ reviews it first. |
 | A real chip spec | New file in `chip/`, new `id`, **keep the IDs** (`exchange_1`, `split_1`…) → validate → `python operator/run.py --all --chip chip/<file>.json` |
 | CAD parts | `cad/exports/<id>.stl` in mm, same origin as the chip spec → reload the twin; matching parts replace the boxes |
-| An LLM run | `export ANTHROPIC_API_KEY=...` then `python operator/run.py --scenario scenarios/wash_mvp_clog.json --operator llm`; commit the run and its transcript |
+| An LLM run | `export ANTHROPIC_API_KEY=...` then `python operator/run.py --scenario scenarios/m3_wash_clog.json --operator llm`; commit the run and its transcript |
 | Real hardware | See [docs/hardware_roadmap.md](docs/hardware_roadmap.md); pick an adapter with `--adapter` (`dryrun` prints what the hardware would do) |
 
 Set `"placeholder": false` only when a file is real. Read [CONFIDENTIALITY.md](CONFIDENTIALITY.md)

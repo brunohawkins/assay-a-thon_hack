@@ -49,6 +49,22 @@ Rules:
 
 The placeholder chip uses: `inlet_1`, `exchange_1`, `split_1` … `split_4`, `pool_1`, `outlet_1`.
 
+### MVP modules: one prefix per module
+
+The MVP is three chips plus an automated cell-prep bridge. **Every id on a module chip
+starts with its module prefix**: part ids, STL names, spec files, protocol files.
+
+| Module | Prefix | Chip spec | Protocol | Status |
+|---|---|---|---|---|
+| 1. Culture | `m1_` | `cad/m1_culture_spec.json` | `protocols/m1_culture.json` | designed, printed |
+| 1b. Cell prep (bridge) | `m1b_` | `cad/m1b_cellprep_spec.json` | `protocols/m1b_cellprep.json` | designed, simulated, not printed this weekend |
+| 2. Encapsulation | `m2_` | `cad/m2_encapsulation_spec.json` | `protocols/m2_encapsulation.json` | parametric draft, printed |
+| 3. Capsule wash | `m3_` | `cad/m3_wash_spec.json` | `protocols/m3_wash.json` | parametric draft, printed |
+
+`protocols/pipeline_mvp.json` chains them with hand-off events (which outlet feeds which
+inlet). A module chip says which module it is in its `module` block, and a generated spec
+records the script and parameter values that made it in its `generator` block.
+
 ## `placeholder: true`
 
 Every file has a `"placeholder"` field. Set it to `true` while the file holds fake

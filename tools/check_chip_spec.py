@@ -1,7 +1,7 @@
 """Design checks for chip specs, at REAL scale.
 
     python tools/check_chip_spec.py                     # every spec in chip/ and cad/*_spec.json
-    python tools/check_chip_spec.py cad/wash_mvp_spec.json --protocol protocols/placeholder_capsule_wash_mvp.json
+    python tools/check_chip_spec.py cad/m3_wash_spec.json --protocol protocols/m3_wash.json
 
 tools/validate.py checks that files follow the contracts; this checks that the design
 works for capsules. Capsule diameter, swell factor and nozzle width come from the spec

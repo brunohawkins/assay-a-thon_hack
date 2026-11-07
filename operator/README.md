@@ -50,20 +50,21 @@ protocol step ─▶ optimizer ─▶ safety ─▶ executor ─▶ adapter (vir
 ## Running
 
 ```bash
-python operator/run.py --scenario scenarios/wash_mvp_clog.json                       # closed loop, planner
-python operator/run.py --scenario scenarios/wash_mvp_clog.json --operator llm        # needs ANTHROPIC_API_KEY
-python operator/run.py --scenario scenarios/wash_mvp_clog.json --operator scripted \
-    --transcript runs/transcripts/placeholder_capsule_wash_mvp__wash_mvp_v1__wash_mvp_clog.json
-python operator/run.py --scenario scenarios/wash_mvp_closed_loop.json --adapter dryrun
+python operator/run.py --scenario scenarios/m3_wash_clog.json                       # closed loop, planner
+python operator/run.py --scenario scenarios/m3_wash_clog.json --operator llm        # needs ANTHROPIC_API_KEY
+python operator/run.py --scenario scenarios/m3_wash_clog.json --operator scripted \
+    --transcript runs/transcripts/m3_wash__m3_wash_v1__m3_wash_clog.json
+python operator/run.py --scenario scenarios/m3_wash_closed_loop.json --adapter dryrun
 python operator/run.py --all          # regenerate every planner run
 ```
 
 Each closed-loop run writes `runs/<protocol>__<chip>__<scenario>[__operator].json`, the
 audit report `…_report.md`, and the operator's tool-call transcript in `runs/transcripts/`.
 
-Scenarios (`scenarios/`): `wash_mvp_open_loop` (no sensors), `wash_mvp_closed_loop`
-(pressure + absorbance), `wash_mvp_clog` (clog from wash 2), `wash_mvp_clog_open_loop`
-(the same clog, no sensors), `wash_mvp_sensor_fault` (pressure sensor sticks mid-run).
+Scenarios (`scenarios/`, all on Module 3, the capsule wash): `m3_wash_open_loop` (no sensors),
+`m3_wash_closed_loop` (pressure + absorbance), `m3_wash_clog` (clog from wash 2),
+`m3_wash_clog_open_loop` (the same clog, no sensors), `m3_wash_sensor_fault` (pressure sensor
+sticks mid-run).
 A scenario sets the seed, which sensors exist, how reality differs from the model, and
 which faults to inject.
 

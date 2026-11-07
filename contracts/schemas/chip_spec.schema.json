@@ -17,6 +17,29 @@
       "type": "boolean",
       "description": "true while this file holds fake values."
     },
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "status"],
+      "description": "Optional. Which MVP module this chip is. Every part id on a module chip starts with the module prefix (m1_, m1b_, m2_, m3_).",
+      "properties": {
+        "id": { "type": "string", "pattern": "^m[0-9]+[a-z]?$", "description": "Module id, also the part-id prefix: m1, m1b, m2, m3." },
+        "name": { "type": "string" },
+        "status": { "enum": ["designed", "draft"], "description": "draft: parametric draft, not final (the twin shows a 'draft design' badge)." },
+        "printed": { "type": "boolean", "description": "true if this chip is fabricated this weekend; false for designed-and-simulated only." }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["script", "params"],
+      "description": "Optional. The script that wrote this spec and the parameter values it used (the twin's parameters panel shows them). Regenerate instead of hand-editing.",
+      "properties": {
+        "script": { "type": "string", "description": "e.g. cad/generators/m3_wash.py" },
+        "params_schema": { "type": "string", "description": "JSON Schema of the generator's parameters, e.g. contracts/schemas/generators/m3_wash.schema.json" },
+        "params": { "type": "object", "description": "Parameter values used, by name." }
+      }
+    },
     "units": {
       "const": "mm",
       "description": "Always millimetres."
