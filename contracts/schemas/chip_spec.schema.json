@@ -86,7 +86,7 @@
       "required": ["id", "type", "center", "size", "volume_ul"],
       "properties": {
         "id": { "$ref": "#/$defs/snake_id", "description": "Join key. STL files are named <id>.stl." },
-        "type": { "enum": ["inlet", "exchange", "split", "pool", "outlet"] },
+        "type": { "enum": ["inlet", "exchange", "split", "pool", "outlet", "well"] },
         "center": { "$ref": "#/$defs/vec3" },
         "size": { "$ref": "#/$defs/size3" },
         "mesh_pore_um": {
@@ -94,7 +94,12 @@
           "exclusiveMinimum": 0,
           "description": "Pore size of the mesh floor in micrometres, or null for no mesh."
         },
-        "volume_ul": { "type": "number", "exclusiveMinimum": 0, "description": "Chamber volume in microlitres (1 mm^3 = 1 uL)." }
+        "volume_ul": { "type": "number", "exclusiveMinimum": 0, "description": "Chamber volume in microlitres (1 mm^3 = 1 uL)." },
+        "open_top": {
+          "type": "boolean",
+          "default": false,
+          "description": "true if the chamber is open to the air at the top, like a well you pipette into. Default false (sealed under a lid)."
+        }
       }
     },
     "channel": {
@@ -106,7 +111,12 @@
         "from": { "$ref": "#/$defs/snake_id", "description": "Upstream chamber or port id." },
         "to": { "$ref": "#/$defs/snake_id", "description": "Downstream chamber or port id." },
         "width_mm": { "type": "number", "exclusiveMinimum": 0 },
-        "depth_mm": { "type": "number", "exclusiveMinimum": 0 }
+        "depth_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "open_top": {
+          "type": "boolean",
+          "default": false,
+          "description": "true if the channel is an open groove with no lid. Default false (closed channel). Flow estimates for open channels are approximate."
+        }
       }
     },
     "port": {

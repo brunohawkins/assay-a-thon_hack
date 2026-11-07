@@ -124,8 +124,8 @@ Ayrton's CAD uses the same origin, so his parts drop straight in.
 | `units` | always `"mm"` |
 | `footprint` | `{"x": 75, "y": 25}`: a microscope slide |
 | `layers` | material layers **bottom to top**, each `{id, material, thickness_mm}`. The first starts at z = 0, each next one sits on top of the last. |
-| `chambers` | each `{id, type, center: [x,y,z], size: [x,y,z], mesh_pore_um, volume_ul}`; `type` is `inlet`, `exchange`, `split`, `pool` or `outlet` |
-| `channels` | each `{id, from, to, width_mm, depth_mm}`: liquid flows **from → to** |
+| `chambers` | each `{id, type, center: [x,y,z], size: [x,y,z], mesh_pore_um, volume_ul, open_top}`; `type` is `inlet`, `exchange`, `split`, `pool`, `outlet` or `well` |
+| `channels` | each `{id, from, to, width_mm, depth_mm, open_top}`: liquid flows **from → to** |
 | `ports` | where tubing connects: each `{id, type: inlet or outlet, position: [x,y,z]}` on the top surface |
 
 **Worked example:** the exchange chamber of the placeholder chip:
@@ -138,6 +138,14 @@ Ayrton's CAD uses the same origin, so his parts drop straight in.
 Read it as: "A 10 × 8 × 2 mm box centred 17 mm from the left edge, in the middle of
 the slide's width, 3.5 mm up (inside the middle layer); it has a 20 µm mesh floor and
 holds 160 µL."
+
+**Open-top features.** Chambers and channels can set `"open_top": true` when they have no lid:
+a well you pipette into, or a groove printed into the top surface. Leave it out (it defaults
+to `false`) for anything sealed under a lid. Use chamber type `well` for open wells; for a
+round well, `size` is its bounding box (diameter × diameter × depth) and `volume_ul` is the
+real cylinder volume. Liquid in open features has a free surface, so flow there is driven by
+level differences and surface tension rather than a pump. Any flow numbers we compute for
+open features are **approximate**.
 
 **Channels decide split and pool.** The operator works out where `split` sends capsules
 by following the channels out of the protocol's target chamber, and where `pool`
