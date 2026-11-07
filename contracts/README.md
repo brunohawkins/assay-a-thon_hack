@@ -152,6 +152,29 @@ by following the channels out of the protocol's target chamber, and where `pool`
 collects from by following the channels into the pool chamber. So if you add
 `split_5`, connect it with channels and it'll be used automatically.
 
+### Design fields (optional)
+
+These come from Szonja's sheet (`contracts/sources/chip_geometry_requirements.xlsx`).
+All are optional, so older specs stay valid. **Yuvraj's design tool should target these
+fields**: they're what `tools/check_chip_spec.py` checks the real-scale design against.
+
+| Field | Meaning |
+|---|---|
+| `capsule.diameter_um`, `.swell_factor`, `.count` | The capsules the chip is designed for. `count` is **capsules, not cells**; use `operator/sizing.py --cells` to convert. |
+| `trap.gap_um` | Target trap gap; must stay below 0.4 × capsule diameter (sheet: 21–28 µm for 70 µm capsules). |
+| `capsule_filter.gap_um`, `cell_filter.gap_um` | Pre-filter gaps. The cell filter must be ≤ the encapsulation nozzle (`encapsulation.nozzle_um`). |
+| `thermal_zones[]` | `{id, chambers, max_temp_c, min_temp_c, purpose}`; `purpose: "culture"` means capsules swell there. |
+| `barcoding.rounds`, `.chambers_per_round`, `.sublibraries` | Split-and-pool scheme; used for the barcode-collision check. |
+| `chambers[].height_um`, `.sealed` | Internal height in µm; sealed against evaporation. |
+| `chambers[].retention` | `{type: mesh/pillars/weir, opening_um, source: bought/fabricated}`: what holds the capsules. |
+| `ports[].role`, `.capsule_passable`, `.width_um` | The sheet's `outlets[]`: which ports capsules can pass (a waste line below a mesh can't), and the opening width. |
+
+**`contracts/parameters.json`** holds every number from the sheet with its units,
+source keys (CapSeq, SPC-NAR, 10x, inDrops, TIP-seq) and an `assumption` flag for
+rules of thumb that aren't from a paper. The sources table is in the same file.
+**`contracts/materials.json`** lists chip materials (PMMA, printed resin) with their
+max working temperature and a chemical-compatibility map, which is still all `TODO`.
+
 ## 3. commands: the chip's instruction set
 
 The operator (planner or AI) turns each protocol step into one of exactly six commands.

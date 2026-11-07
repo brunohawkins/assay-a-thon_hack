@@ -153,6 +153,11 @@ def check_chip(path: Path, chip: dict, report: Report) -> None:
         px, py, _ = p["position"]
         if not (0 <= px <= fx and 0 <= py <= fy):
             report.warn(f"{where}: port '{p['id']}' is outside the footprint")
+    chamber_set = commands.chamber_ids(chip)
+    for zone in chip.get("thermal_zones", []):
+        for cid in zone.get("chambers", []):
+            if cid not in chamber_set:
+                report.error(f"{where}: thermal zone '{zone.get('id')}' lists '{cid}', which is not a chamber")
 
 
 def check_protocol_on_chip(ppath: Path, protocol: dict, chip: dict, report: Report,
@@ -238,6 +243,30 @@ def check_index(run_files: dict[Path, dict], report: Report) -> None:
             report.error(f"runs/index.json does not list {path.name}, so it won't appear in the twin ({fix})")
 
 
+def check_contract_data(report: Report) -> None:
+    """contracts/parameters.json and contracts/materials.json."""
+    path = ROOT / "contracts" / "parameters.json"
+    if path.exists():
+        data = schema_io.load_json(path)
+        for err in schema_io.schema_errors("parameters", data):
+            report.error(f"contracts/parameters.json {schema_io.path_str(err)}: {schema_io.describe(err)}")
+        sources = set(data.get("sources", {}))
+        for key, prm in data.get("parameters", {}).items():
+            for src in prm.get("source", []) if isinstance(prm, dict) else []:
+                if src not in sources:
+                    report.error(f"contracts/parameters.json {key}: source '{src}' is not in the sources table")
+    path = ROOT / "contracts" / "materials.json"
+    if path.exists():
+        mats = schema_io.load_json(path).get("materials", {})
+        allowed = {"compatible", "limited", "incompatible", "TODO"}
+        for mid, m in mats.items():
+            if not isinstance(m.get("max_working_temp_c"), (int, float)):
+                report.error(f"contracts/materials.json {mid}: max_working_temp_c must be a number")
+            for reagent, verdict in (m.get("chemical_compatibility") or {}).items():
+                if verdict not in allowed:
+                    report.error(f"contracts/materials.json {mid}.{reagent}: '{verdict}' must be one of {', '.join(sorted(allowed))}")
+
+
 def check_cad(chips: dict[str, tuple[Path, dict]], report: Report) -> int:
     # An STL may be one part (named by chamber, port or channel id) or a whole
     # one-piece print (named by the chip spec id, e.g. hello_world_plate.stl).
@@ -302,6 +331,7 @@ def main() -> int:
     for path, run in ok_runs.items():
         check_run(path, run, protocols, chips, report)
     check_index(run_files, report)
+    check_contract_data(report)
     n_stl = check_cad(chips, report)
 
     print("capsule-processor contract check")

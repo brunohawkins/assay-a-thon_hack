@@ -1,0 +1,65 @@
+{
+  "_about": "Chip materials. A layer's 'material' in a chip spec matches a material here by id or alias. max_working_temp_c values are typical datasheet values, marked as assumptions until checked against the exact sheet or resin we use. chemical_compatibility is 'compatible', 'limited', 'incompatible' or 'TODO'; tools/check_chip_spec.py warns on every reagent a protocol uses that is TODO or incompatible.",
+  "materials": {
+    "pmma": {
+      "name": "PMMA (acrylic)",
+      "aliases": ["pmma", "acrylic", "cast_acrylic", "extruded_acrylic"],
+      "max_working_temp_c": 80,
+      "assumption": true,
+      "note": "Typical maximum continuous service temperature for PMMA is roughly 65-90 C depending on grade; glass transition ~105 C. Confirm with the supplier datasheet.",
+      "chemical_compatibility": {
+        "ethanol": "TODO",
+        "isopropanol": "TODO",
+        "guanidine_thiocyanate": "TODO",
+        "fluorinated_oil": "TODO",
+        "trypsin_edta": "TODO",
+        "collagenase": "TODO",
+        "protease": "TODO",
+        "pcr_mix": "TODO",
+        "lap_photoinitiator": "TODO",
+        "dextran": "TODO",
+        "gelma": "TODO",
+        "wash_buffer": "TODO",
+        "lysis_buffer": "TODO",
+        "rt_mix": "TODO",
+        "release_buffer": "TODO",
+        "resuspension_buffer": "TODO",
+        "culture_media": "TODO",
+        "digest_mix": "TODO",
+        "amp_mix": "TODO",
+        "reagent_a": "TODO", "reagent_b": "TODO", "reagent_c": "TODO", "reagent_d": "TODO",
+        "reagent_e": "TODO", "reagent_f": "TODO", "reagent_g": "TODO", "reagent_h": "TODO"
+      }
+    },
+    "printed_resin": {
+      "name": "3D-printed photopolymer resin",
+      "aliases": ["resin", "printed_resin", "sla_resin", "photopolymer"],
+      "max_working_temp_c": 50,
+      "assumption": true,
+      "note": "Standard SLA/DLP resins soften around 45-75 C (heat deflection at 0.45 MPa) depending on resin and post-cure; high-temperature resins go much higher. Confirm for the exact resin.",
+      "chemical_compatibility": {
+        "ethanol": "TODO",
+        "isopropanol": "TODO",
+        "guanidine_thiocyanate": "TODO",
+        "fluorinated_oil": "TODO",
+        "trypsin_edta": "TODO",
+        "collagenase": "TODO",
+        "protease": "TODO",
+        "pcr_mix": "TODO",
+        "lap_photoinitiator": "TODO",
+        "dextran": "TODO",
+        "gelma": "TODO",
+        "wash_buffer": "TODO",
+        "lysis_buffer": "TODO",
+        "rt_mix": "TODO",
+        "release_buffer": "TODO",
+        "resuspension_buffer": "TODO",
+        "culture_media": "TODO",
+        "digest_mix": "TODO",
+        "amp_mix": "TODO",
+        "reagent_a": "TODO", "reagent_b": "TODO", "reagent_c": "TODO", "reagent_d": "TODO",
+        "reagent_e": "TODO", "reagent_f": "TODO", "reagent_g": "TODO", "reagent_h": "TODO"
+      }
+    }
+  }
+}

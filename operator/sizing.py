@@ -51,6 +51,32 @@ DEFAULTS = {
     "target_cells": 2000.0,            # B66 demo target (assumption)
 }
 
+# Where each input lives in contracts/parameters.json (tests check the values agree).
+PARAMETER_KEYS = {
+    "capsule_diameter_um": "capsule.diameter_um",
+    "capsule_count": "capsule.count",
+    "packing_fraction": "capsule.packing_fraction",
+    "swell_factor": "capsule.swell_factor",
+    "channel_width_factor_low": "capsule_channel.width_factor_low",
+    "channel_width_factor_high": "capsule_channel.width_factor_high",
+    "trap_gap_factor_low": "trap.gap_factor_low",
+    "trap_gap_factor_high": "trap.gap_factor_high",
+    "split_chambers_per_round": "barcoding.chambers_per_round",
+    "barcoding_rounds": "barcoding.rounds",
+    "gelma_flow_ul_h": "encapsulation.gelma_flow_ul_h",
+    "cell_flow_ul_h": "encapsulation.cell_flow_ul_h",
+    "oil_flow_ul_h": "encapsulation.oil_flow_ul_h",
+    "cell_conc_per_ul": "encapsulation.cell_conc_per_ul",
+    "nozzle_width_um": "encapsulation.nozzle_um",
+    "cell_filter_gap_um": "cell_filter.gap_um",
+    "common_reagent_lines": "reagents.common_lines",
+    "sublibraries": "sublibraries.count",
+    "chamber_volumes_per_wash": "wash.chamber_volumes_per_wash",
+    "washes_per_exchange": "wash.washes_per_exchange",
+    "exchange_steps_per_run": "wash.exchange_steps_per_run",
+    "target_cells": "target_cells",
+}
+
 PRESETS = {
     "default": {},
     "mvp": {"capsule_count": 10000, "split_chambers_per_round": 8, "barcoding_rounds": 3},

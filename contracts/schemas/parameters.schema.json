@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/parameters.schema.json",
+  "title": "Design parameters",
+  "description": "contracts/parameters.json: parameters from published sources, each with units, source keys and an assumption flag.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["sources", "parameters"],
+  "properties": {
+    "_about": { "type": "string" },
+    "sources": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["reference", "link"],
+        "properties": {
+          "reference": { "type": "string" },
+          "link": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$" },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "units", "source", "assumption"],
+        "properties": {
+          "value": { "type": ["number", "null"] },
+          "min": { "type": "number" },
+          "max": { "type": "number" },
+          "units": { "type": "string" },
+          "source": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "assumption": { "type": "boolean" },
+          "note": { "type": "string" }
+        }
+      }
+    }
+  }
+}

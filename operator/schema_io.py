@@ -20,6 +20,7 @@ SCHEMA_FILES = {
     "chip_spec": "chip_spec.schema.json",
     "commands": "commands.schema.json",
     "run": "run.schema.json",
+    "parameters": "parameters.schema.json",
 }
 
 _validators: dict[str, Draft202012Validator] | None = None

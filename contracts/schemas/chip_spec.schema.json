@@ -48,6 +48,68 @@
     "ports": {
       "type": "array",
       "items": { "$ref": "#/$defs/port" }
+    },
+    "capsule": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional. The capsules this chip is designed for. Checks fall back to contracts/parameters.json when missing.",
+      "properties": {
+        "diameter_um": { "type": "number", "exclusiveMinimum": 0 },
+        "swell_factor": { "type": "number", "exclusiveMinimum": 0, "description": "Diameter multiplier during culture." },
+        "count": { "type": "number", "exclusiveMinimum": 0, "description": "Capsules the chip is sized for (capsules, not cells)." }
+      }
+    },
+    "trap": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional. Design target for capsule traps.",
+      "properties": {
+        "gap_um": { "type": "number", "exclusiveMinimum": 0, "description": "Trap gap; must stay below 0.4 x capsule diameter." }
+      }
+    },
+    "capsule_filter": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional. Pre-filter that removes capsule aggregates.",
+      "properties": { "gap_um": { "type": "number", "exclusiveMinimum": 0 } }
+    },
+    "cell_filter": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional. Pillar filter that strains cell clumps before encapsulation.",
+      "properties": { "gap_um": { "type": "number", "exclusiveMinimum": 0, "description": "Must be <= the encapsulation nozzle width." } }
+    },
+    "encapsulation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional. Droplet encapsulation stage.",
+      "properties": { "nozzle_um": { "type": "number", "exclusiveMinimum": 0 } }
+    },
+    "thermal_zones": {
+      "type": "array",
+      "description": "Optional. Heated or cooled regions. Checks compare max_temp_c with the chip material's max working temperature.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "chambers", "max_temp_c"],
+        "properties": {
+          "id": { "$ref": "#/$defs/snake_id" },
+          "chambers": { "type": "array", "items": { "$ref": "#/$defs/snake_id" }, "description": "Chamber ids inside the zone." },
+          "max_temp_c": { "type": "number" },
+          "min_temp_c": { "type": "number" },
+          "purpose": { "type": "string", "description": "e.g. culture, rt, pcr, gelation. 'culture' triggers the swollen-capsule height check." }
+        }
+      }
+    },
+    "barcoding": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional. Split-and-pool barcoding scheme.",
+      "properties": {
+        "rounds": { "type": "integer", "minimum": 1 },
+        "chambers_per_round": { "type": "integer", "minimum": 1 },
+        "sublibraries": { "type": "integer", "minimum": 1 }
+      }
     }
   },
   "$defs": {
@@ -99,6 +161,26 @@
           "type": "boolean",
           "default": false,
           "description": "true if the chamber is open to the air at the top, like a well you pipette into. Default false (sealed under a lid)."
+        },
+        "height_um": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Optional. Internal height in micrometres, when it differs from size[2] or needs um precision."
+        },
+        "sealed": {
+          "type": "boolean",
+          "description": "Optional. true for a chamber sealed against evaporation (e.g. long incubations)."
+        },
+        "retention": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "opening_um", "source"],
+          "description": "Optional. What holds capsules in the chamber.",
+          "properties": {
+            "type": { "enum": ["mesh", "pillars", "weir"] },
+            "opening_um": { "type": "number", "exclusiveMinimum": 0, "description": "Mesh pore, pillar gap or weir gap, in micrometres." },
+            "source": { "enum": ["bought", "fabricated"], "description": "bought (e.g. a mesh sheet) or fabricated by us (checked against cad/fabrication.json)." }
+          }
         }
       }
     },
@@ -126,7 +208,20 @@
       "properties": {
         "id": { "$ref": "#/$defs/snake_id", "description": "e.g. inlet_1, outlet_1" },
         "type": { "enum": ["inlet", "outlet"] },
-        "position": { "$ref": "#/$defs/vec3", "description": "Centre of the opening on the top surface of the chip." }
+        "position": { "$ref": "#/$defs/vec3", "description": "Centre of the opening on the chip surface: on top, z = chip height; on the bottom, z = 0." },
+        "role": {
+          "enum": ["load", "reagent", "waste", "release", "backflush"],
+          "description": "Optional. What the port is for."
+        },
+        "capsule_passable": {
+          "type": "boolean",
+          "description": "Optional (Szonja's outlets[].capsule_passable). true if capsules go through this port; false for ports behind a trap, like a waste line below a mesh."
+        },
+        "width_um": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Optional. Opening width in micrometres. Capsule-passable outlets must be >= 1.5 x capsule diameter."
+        }
       }
     }
   }

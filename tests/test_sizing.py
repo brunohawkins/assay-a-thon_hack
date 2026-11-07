@@ -99,5 +99,16 @@ class Collisions(unittest.TestCase):
         self.assertFalse(any("barcode collisions" in w for w in few["warnings"]))
 
 
+class ParametersFile(unittest.TestCase):
+    def test_parameters_json_matches_sizing_defaults(self):
+        import json
+        params = json.loads((ROOT / "contracts" / "parameters.json").read_text(encoding="utf-8"))["parameters"]
+        for name, key in sizing.PARAMETER_KEYS.items():
+            with self.subTest(input=name, parameter=key):
+                self.assertIn(key, params)
+                self.assertEqual(float(params[key]["value"]), float(sizing.DEFAULTS[name]))
+        self.assertEqual(set(sizing.PARAMETER_KEYS), set(sizing.DEFAULTS))
+
+
 if __name__ == "__main__":
     unittest.main()
