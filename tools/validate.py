@@ -11,8 +11,10 @@ Checks
     valves sit on real channels with a control port, module chips use their prefix on every id
   - runs: protocol, chip and every chamber id exist; events in time order; index.json up to date
   - cad/exports/*.stl whose name isn't a chamber, port, channel or chip id (warning)
-  - pipelines (protocols/*.json with "kind": "pipeline"): files exist, module ids match the
-    chips, hand-off ports exist and go from an outlet to an inlet, after_step exists
+  - pipelines (protocols/*.json with "kind": "pipeline"): files exist, no superseded chip,
+    hand-off ports exist and go from an outlet to an inlet (TBC ports are listed as
+    warnings), after_step exists, each hand-off's connector block agrees with the two
+    modules' build.connector (mismatches are listed as warnings: the demo needs adapters)
 
 Exit code 0 when there are no errors (warnings are fine), 1 otherwise.
 """
@@ -144,6 +146,10 @@ def check_chip(path: Path, chip: dict, report: Report) -> None:
         bad = [iid for _, iid in named + [("chip", chip["id"])] if not str(iid).startswith(prefix)]
         if bad:
             report.error(f"{where}: module {module['id']} chip, but these ids don't start with '{prefix}': {', '.join(bad)}")
+        if module.get("superseded_by") and not (ROOT / module["superseded_by"]).is_file():
+            report.error(f"{where}: superseded_by '{module['superseded_by']}' does not exist")
+    if chip.get("translated_from") and not (ROOT / chip["translated_from"]).is_file():
+        report.error(f"{where}: translated_from '{chip['translated_from']}' does not exist")
     ports_by_id = {pt["id"]: pt for pt in chip.get("ports", [])}
     channel_ids = {ch.get("id") for ch in chip.get("channels", [])}
     for v in chip.get("valves", []):
@@ -341,55 +347,105 @@ def check_scenarios(report: Report) -> int:
     return len(paths)
 
 
+def connector_status(a: str | None, b: str | None) -> str:
+    """match / mismatch / unknown (either side not decided) for two build.connector values."""
+    if a in (None, "TBC") or b in (None, "TBC"):
+        return "unknown"
+    return "match" if a == b else "mismatch"
+
+
 def check_pipelines(report: Report) -> int:
     found = schema_io.pipelines()
     for path, pipe in found:
-        where = rel(path)
-        errs = schema_io.schema_errors("pipeline", pipe)
-        for err in errs:
-            report.error(f"{where} {schema_io.path_str(err)}: {schema_io.describe(err)}")
-        if errs:
+        check_pipeline(rel(path), pipe, report)
+    return len(found)
+
+
+def check_pipeline(where: str, pipe: dict, report: Report, root: Path = ROOT) -> None:
+    errs = schema_io.schema_errors("pipeline", pipe)
+    for err in errs:
+        report.error(f"{where} {schema_io.path_str(err)}: {schema_io.describe(err)}")
+    if errs:
+        return
+    # module id -> (entry, chip or None, protocol or None, switched automatically?)
+    mods: dict[str, tuple[dict, dict | None, dict | None, bool]] = {}
+    for m in pipe["modules"]:
+        name = m["module"]
+        chip_path, status, _ = schema_io.pipeline_chip(m, root)
+        switched = chip_path != m.get("chip")
+        if switched:
+            report.warn(f"{where}: module {name} now uses {chip_path} (found by {m['prefer']['glob']}) instead of "
+                        f"{m.get('chip')}; check its hand-off ports and build block")
+        for key in ("protocol", "scenario", "source"):
+            if m.get(key) and not (root / m[key]).is_file():
+                report.error(f"{where}: module {name}: {key} '{m[key]}' does not exist")
+        chip = proto = None
+        if status == "missing":
+            if chip_path:
+                report.error(f"{where}: module {name} is missing but names a chip ({chip_path})")
+        elif not (root / chip_path).is_file():
+            report.error(f"{where}: module {name}: chip '{chip_path}' does not exist")
             continue
-        mods: dict[str, tuple[dict, dict]] = {}
-        for m in pipe["modules"]:
-            files = {k: ROOT / m[k] for k in ("chip", "protocol", "scenario") if m.get(k)}
-            missing = [f"{k} '{m[k]}'" for k, f in files.items() if not f.is_file()]
-            if missing:
-                report.error(f"{where}: module {m['module']}: {', '.join(missing)} does not exist")
-                continue
-            chip, proto = schema_io.load_json(files["chip"]), schema_io.load_json(files["protocol"])
-            if (chip.get("module") or {}).get("id") != m["module"]:
-                report.error(f"{where}: module {m['module']} uses {m['chip']}, which is module "
-                             f"{(chip.get('module') or {}).get('id')}")
+        else:
+            chip = schema_io.load_json(root / chip_path)
+            block = chip.get("module") or {}
+            if block.get("status") == "superseded":
+                report.error(f"{where}: module {name} uses {chip_path}, which is superseded by "
+                             f"{block.get('superseded_by')}; superseded designs stay out of the pipeline")
+            if status == "translated" and not chip.get("translated_from"):
+                report.error(f"{where}: module {name} is 'translated' but {chip_path} has no translated_from")
             for inst in m.get("instances", []):
                 try:
                     planner.run_params_for(chip, inst["run_parameters"])
                 except planner.PlanError as e:
-                    report.error(f"{where}: module {m['module']} instance '{inst['name']}': {e}")
-            mods[m["module"]] = (chip, proto)
-        roadmap = {r["id"] for r in pipe.get("roadmap", [])}
-        for h in pipe["handoffs"]:
-            for side, want in (("from", "outlet"), ("to", "inlet")):
-                end = h[side]
-                if "roadmap" in end:
-                    if end["roadmap"] not in roadmap:
-                        report.error(f"{where}: hand-off '{h['id']}' {side} roadmap '{end['roadmap']}' is not in roadmap")
-                    continue
-                if end.get("module") not in mods:
-                    report.error(f"{where}: hand-off '{h['id']}' {side} module '{end.get('module')}' is not in modules")
-                    continue
-                ports = {p["id"]: p for p in mods[end["module"]][0].get("ports", [])}
-                port = ports.get(end.get("port"))
-                if port is None:
-                    report.error(f"{where}: hand-off '{h['id']}' {side} port '{end.get('port')}' is not in {end['module']}'s chip")
-                elif port["type"] != want:
-                    report.error(f"{where}: hand-off '{h['id']}' {side} '{port['id']}' is an {port['type']}, not an {want}")
-            src = h["from"].get("module")
-            if "after_step" in h and src in mods:
-                steps = {s.get("step") for s in mods[src][1].get("steps", [])}
-                if h["after_step"] not in steps:
-                    report.error(f"{where}: hand-off '{h['id']}' after_step {h['after_step']} is not a step of {src}'s protocol")
-    return len(found)
+                    report.error(f"{where}: module {name} instance '{inst['name']}': {e}")
+        if m.get("protocol") and (root / m["protocol"]).is_file():
+            proto = schema_io.load_json(root / m["protocol"])
+        mods[name] = (m, chip, proto, switched)
+    roadmap = {r["id"] for r in pipe.get("roadmap", [])}
+    tbc: list[str] = []
+    for h in pipe["handoffs"]:
+        for side, want in (("from", "outlet"), ("to", "inlet")):
+            end = h[side]
+            if "roadmap" in end:
+                if end["roadmap"] not in roadmap:
+                    report.error(f"{where}: hand-off '{h['id']}' {side} roadmap '{end['roadmap']}' is not in roadmap")
+                continue
+            if end["module"] not in mods:
+                report.error(f"{where}: hand-off '{h['id']}' {side} module '{end['module']}' is not in modules")
+                continue
+            _, chip, _, switched = mods[end["module"]]
+            known = {p["id"]: p for p in (chip or {}).get("ports", [])}
+            for pid in ([end["port"]] if "port" in end else end["ports"]):
+                if pid == "TBC":
+                    tbc.append(f"{h['id']} ({side} {end['module']})")
+                elif chip is None:
+                    report.error(f"{where}: hand-off '{h['id']}' {side} port '{pid}': module {end['module']} has "
+                                 f"no chip yet, so its ports must be TBC")
+                elif pid not in known:
+                    (report.warn if switched else report.error)(
+                        f"{where}: hand-off '{h['id']}' {side} port '{pid}' is not in {end['module']}'s chip")
+                elif known[pid]["type"] != want:
+                    report.error(f"{where}: hand-off '{h['id']}' {side} '{pid}' is an {known[pid]['type']}, not an {want}")
+        src = h["from"].get("module")
+        if "after_step" in h and src in mods and mods[src][2] is not None:
+            steps = {s.get("step") for s in mods[src][2].get("steps", [])}
+            if h["after_step"] not in steps:
+                report.error(f"{where}: hand-off '{h['id']}' after_step {h['after_step']} is not a step of {src}'s protocol")
+        dst = h["to"].get("module")
+        if src in mods and dst in mods:
+            a = (mods[src][0].get("build") or {}).get("connector", "TBC")
+            b = (mods[dst][0].get("build") or {}).get("connector", "TBC")
+            want_status, c = connector_status(a, b), h.get("connector")
+            if c is None:
+                report.error(f"{where}: hand-off '{h['id']}' has no connector block (expected {want_status}: {a} -> {b})")
+            elif (c["from"], c["to"], c["status"]) != (a, b, want_status):
+                report.error(f"{where}: hand-off '{h['id']}' connector says {c['from']} -> {c['to']} {c['status']}, "
+                             f"but the modules' build blocks give {a} -> {b} {want_status}")
+            elif want_status != "match":
+                report.warn(f"{where}: hand-off '{h['id']}' connector {want_status} ({a} -> {b}): {c.get('warning', '')}")
+    if tbc:
+        report.warn(f"{where}: ports to be confirmed (TBC): {'; '.join(tbc)}")
 
 
 def check_cad(chips: dict[str, tuple[Path, dict]], report: Report) -> int:

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://capsule-processor.local/schemas/pipeline.schema.json",
   "title": "Pipeline",
-  "description": "Chains module protocols into one workflow: which chip and protocol each module uses, its instances (run parameters), and the hand-offs between them (which outlet feeds which inlet). Lives in protocols/ next to the protocols it chains; told apart by \"kind\": \"pipeline\".",
+  "description": "Chains the modules into one workflow: which chip and protocol each module uses, who owns it and how far along it is, how it is built and what its ports look like, and the hand-offs between modules (which outlet feeds which inlet). Lives in protocols/ next to the protocols it chains; told apart by \"kind\": \"pipeline\".",
   "type": "object",
   "additionalProperties": false,
   "required": ["kind", "id", "name", "placeholder", "modules", "handoffs"],
@@ -15,18 +15,39 @@
     "modules": {
       "type": "array",
       "minItems": 1,
+      "description": "In process order (the twin draws them left to right).",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["module", "chip", "protocol"],
+        "required": ["module", "name", "status"],
         "properties": {
-          "module": { "type": "string", "pattern": "^m[0-9]+[a-z]?$", "description": "Module id: must match the chip spec's module.id." },
-          "chip": { "type": "string", "description": "Chip spec path, e.g. cad/m1_culture_spec.json." },
-          "protocol": { "type": "string", "description": "Protocol path." },
-          "scenario": { "type": "string", "description": "Optional scenario path (Module 1b's simulated counter)." },
+          "module": { "$ref": "#/$defs/snake_id", "description": "Pipeline id of this module, used by the hand-offs (e.g. module1, barcoding). Not necessarily the chip's id or part prefix." },
+          "name": { "type": "string" },
+          "status": {
+            "enum": ["final", "draft", "translated", "missing"],
+            "description": "final: the owner's finished design. draft: a stand-in until the owner's design lands. translated: converted by a script from another format (the chip's translated_from names the source). missing: not designed yet; no chip, every port TBC."
+          },
+          "status_note": { "type": "string", "description": "Shown next to the badge, e.g. 'draft – being redesigned by MJ'." },
+          "owner": { "type": "string" },
+          "chip": { "type": "string", "description": "Chip spec path. Required unless status is missing." },
+          "protocol": { "type": "string", "description": "Protocol path, if the module has one in protocol format." },
+          "protocol_note": { "type": "string", "description": "Where the steps live when they are not in protocol format yet." },
+          "source": { "type": "string", "description": "The owner's original file when chip is a translation of it." },
+          "prefer": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["glob"],
+            "description": "Switch automatically: if a file matching glob exists (newest by name wins), use it as the chip instead of chip, with this status. For a draft standing in for a design that is still being made.",
+            "properties": {
+              "glob": { "type": "string", "description": "Relative to the repo root, e.g. chip/module2*.json." },
+              "status": { "enum": ["final", "draft", "translated"] },
+              "status_note": { "type": "string" }
+            }
+          },
+          "scenario": { "type": "string", "description": "Optional scenario path." },
           "instances": {
             "type": "array",
-            "description": "Several copies of the same chip, each with its own run parameters (Module 1: control and interaction).",
+            "description": "Several copies of the same chip, each with its own run parameters.",
             "items": {
               "type": "object",
               "additionalProperties": false,
@@ -34,8 +55,23 @@
               "properties": { "name": { "$ref": "#/$defs/snake_id" }, "run_parameters": { "type": "object" } }
             }
           },
+          "build": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["method", "connector"],
+            "description": "How the chip is made and what its ports are, so the hand-offs can flag where tubing needs an adapter.",
+            "properties": {
+              "method": { "type": "string", "description": "e.g. laser-cut acrylic (3 / 0.3 / 3 mm stack)." },
+              "connector": { "anyOf": [{ "$ref": "#/$defs/snake_id" }, { "const": "TBC" }], "description": "Port style as a short id; two modules with different ids need an adapter between them. TBC if not decided." },
+              "ports": { "type": "string", "description": "Port style in words, e.g. 2 mm square holes in the 3 mm lid." },
+              "source": { "type": "string", "description": "Where the method and port style are stated." }
+            }
+          },
+          "built_for_demo": { "type": "boolean", "description": "true if this module is physically built for the dye demo; false if it exists in the twin only." },
           "note": { "type": "string" }
-        }
+        },
+        "if": { "properties": { "status": { "not": { "const": "missing" } } } },
+        "then": { "required": ["chip"] }
       }
     },
     "handoffs": {
@@ -50,13 +86,27 @@
           "to": { "$ref": "#/$defs/end" },
           "carries": { "enum": ["cells", "capsules", "library"] },
           "after_step": { "type": "integer", "minimum": 1, "description": "Step of the upstream module's protocol after which the hand-off happens." },
+          "connector": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to", "status"],
+            "description": "The two modules' build.connector values. tools/validate.py recomputes status and fails if it disagrees.",
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" },
+              "status": { "enum": ["match", "mismatch", "unknown"], "description": "unknown when either side is TBC." },
+              "warning": { "type": "string", "description": "Required for mismatch and unknown: what adapter the demo needs." }
+            },
+            "if": { "properties": { "status": { "enum": ["mismatch", "unknown"] } } },
+            "then": { "required": ["warning"] }
+          },
           "note": { "type": "string" }
         }
       }
     },
     "roadmap": {
       "type": "array",
-      "description": "Later stages, not built yet (the twin draws them as roadmap boxes).",
+      "description": "Destinations after the last module (library out, sequencing). The twin draws them as end boxes.",
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -67,15 +117,23 @@
   },
   "$defs": {
     "snake_id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" },
+    "port": { "anyOf": [{ "$ref": "#/$defs/snake_id" }, { "const": "TBC" }], "description": "A port id on the module's chip, or TBC when it is not known yet." },
     "end": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "module": { "type": "string", "pattern": "^m[0-9]+[a-z]?$" },
-        "port": { "$ref": "#/$defs/snake_id" },
+        "module": { "$ref": "#/$defs/snake_id" },
+        "port": { "$ref": "#/$defs/port" },
+        "ports": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/port" }, "description": "Several ports fed by (or feeding) the same hand-off, e.g. Module 4's four inlets." },
         "instances": { "type": "array", "items": { "$ref": "#/$defs/snake_id" } },
-        "roadmap": { "$ref": "#/$defs/snake_id", "description": "A roadmap stage instead of a module port." }
-      }
+        "roadmap": { "$ref": "#/$defs/snake_id", "description": "A roadmap destination instead of a module port." },
+        "note": { "type": "string" }
+      },
+      "oneOf": [
+        { "required": ["module", "port"], "not": { "anyOf": [{ "required": ["ports"] }, { "required": ["roadmap"] }] } },
+        { "required": ["module", "ports"], "not": { "anyOf": [{ "required": ["port"] }, { "required": ["roadmap"] }] } },
+        { "required": ["roadmap"], "not": { "anyOf": [{ "required": ["module"] }, { "required": ["port"] }, { "required": ["ports"] }] } }
+      ]
     }
   }
 }

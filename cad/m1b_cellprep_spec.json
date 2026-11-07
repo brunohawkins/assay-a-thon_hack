@@ -5,9 +5,11 @@
   "placeholder": true,
   "module": {
     "id": "m1b",
-    "name": "Cell prep",
-    "status": "designed",
-    "printed": false
+    "name": "Cell prep (draft)",
+    "status": "superseded",
+    "printed": false,
+    "superseded_by": "chip/module1_v1.json",
+    "note": "Superseded: Module 1 v1 delivers one counted suspension for encapsulation itself; kept for reference, out of the pipeline."
   },
   "generator": {
     "script": "cad/generators/m1b_cellprep.py",

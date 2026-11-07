@@ -17,6 +17,10 @@
       "type": "boolean",
       "description": "true while this file holds fake values."
     },
+    "translated_from": {
+      "type": "string",
+      "description": "Optional. Set when this spec was translated by a script from another team member's file in a different format (e.g. chip/modules/module3_step1_3.json). Edit the source, not this file, and re-run the converter. Values the source does not give are marked \"placeholder\": true where they appear."
+    },
     "module": {
       "type": "object",
       "additionalProperties": false,
@@ -25,9 +29,13 @@
       "properties": {
         "id": { "type": "string", "pattern": "^m[0-9]+[a-z]?$", "description": "Module id, also the part-id prefix: m1, m1b, m2, m3." },
         "name": { "type": "string" },
-        "status": { "enum": ["designed", "draft"], "description": "draft: parametric draft, not final (the twin shows a 'draft design' badge)." },
-        "printed": { "type": "boolean", "description": "true if this chip is fabricated this weekend; false for designed-and-simulated only." }
-      }
+        "status": { "enum": ["designed", "draft", "superseded"], "description": "draft: parametric draft, not final (the twin shows a 'draft design' badge). superseded: an older design kept for reference; it must not be in a pipeline." },
+        "printed": { "type": "boolean", "description": "true if this chip is fabricated this weekend; false for designed-and-simulated only." },
+        "superseded_by": { "type": "string", "description": "For status superseded: the spec that replaced this one, e.g. chip/module1_v1.json." },
+        "note": { "type": "string", "description": "Shown next to the status badge, e.g. 'draft – being redesigned by MJ'." }
+      },
+      "if": { "properties": { "status": { "const": "superseded" } } },
+      "then": { "required": ["superseded_by"] }
     },
     "generator": {
       "type": "object",
@@ -50,7 +58,9 @@
       "required": ["x", "y"],
       "properties": {
         "x": { "type": "number", "exclusiveMinimum": 0, "description": "Width in mm (75 for a slide)." },
-        "y": { "type": "number", "exclusiveMinimum": 0, "description": "Depth in mm (25 for a slide)." }
+        "y": { "type": "number", "exclusiveMinimum": 0, "description": "Depth in mm (25 for a slide)." },
+        "placeholder": { "$ref": "#/$defs/inferred" },
+        "note": { "type": "string" }
       }
     },
     "layers": {
@@ -188,6 +198,7 @@
     }
   },
   "$defs": {
+    "inferred": { "type": "boolean", "description": "true where this value was inferred, not taken from the source design (see translated_from)." },
     "snake_id": {
       "type": "string",
       "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
@@ -214,6 +225,8 @@
       "properties": {
         "id": { "$ref": "#/$defs/snake_id" },
         "material": { "type": "string", "description": "e.g. acrylic" },
+        "placeholder": { "$ref": "#/$defs/inferred" },
+        "note": { "type": "string" },
         "thickness_mm": { "type": "number", "exclusiveMinimum": 0 }
       }
     },
@@ -230,6 +243,7 @@
           "description": "box (default): size is [x, y, z]. cylinder: a round chamber, size is [diameter, diameter, depth]."
         },
         "note": { "type": "string" },
+        "placeholder": { "$ref": "#/$defs/inferred" },
         "mixer": {
           "type": "object",
           "additionalProperties": false,
@@ -321,7 +335,8 @@
           "type": "boolean",
           "description": "false for a feature we can't make here (e.g. microgrooves). It is drawn, but not checked against our fabrication limits."
         },
-        "note": { "type": "string" }
+        "note": { "type": "string" },
+        "placeholder": { "$ref": "#/$defs/inferred" }
       }
     },
     "port": {
@@ -345,7 +360,8 @@
           "exclusiveMinimum": 0,
           "description": "Optional. Opening width in micrometres. Capsule-passable outlets must be >= 1.5 x capsule diameter."
         },
-        "note": { "type": "string" }
+        "note": { "type": "string" },
+        "placeholder": { "$ref": "#/$defs/inferred" }
       }
     },
     "valve": {
@@ -369,7 +385,8 @@
           "maxItems": 2,
           "description": "For a pair valve: the two chambers it links."
         },
-        "note": { "type": "string" }
+        "note": { "type": "string" },
+        "placeholder": { "$ref": "#/$defs/inferred" }
       }
     },
     "feature": {

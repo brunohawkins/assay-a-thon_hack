@@ -1,44 +1,115 @@
 {
   "kind": "pipeline",
   "id": "pipeline_mvp",
-  "name": "MVP pipeline: culture -> cell prep -> encapsulation -> capsule wash",
+  "name": "MVP pipeline: culture -> encapsulation -> load, lysis, wash -> barcoding -> sublibrary PCR -> release and cleanup",
   "placeholder": true,
-  "description": "Module 1 (two copies of one chip: control and interaction) grows and labels three cell types; Module 1b (automated, simulated) quenches, washes, filters, counts and resuspends them at the concentration Module 2 needs; Module 2 encapsulates them; Module 3 washes the capsules. Library prep and sequencing are roadmap.",
+  "description": "The current modules, in process order. Module 1 (MJ, final) grows the three cell types and delivers one counted suspension through p_mid; Module 2 encapsulates it (a parametric draft until MJ's redesign lands as chip/module2*.json, which the pipeline then picks up by itself); Module 3 (Szonja, translated into the chip-spec format) traps, lyses and washes the capsules; barcoding (split and pool, library steps 4-12) is not designed yet; Module 4 (MJ) splits into four sublibraries and runs index PCR; Module 5 (MJ) releases the DNA and cleans up the library. Older drafts (cad/m1_culture_spec.json, cad/m1b_cellprep_spec.json, cad/m3_wash_spec.json) are superseded and kept for reference only. TBC marks ports nobody has named yet; each hand-off's connector block says where the two modules' ports differ, i.e. where the dye demo needs an adapter.",
   "modules": [
-    { "module": "m1", "chip": "cad/m1_culture_spec.json", "protocol": "protocols/m1_culture.json",
-      "instances": [ { "name": "control", "run_parameters": { "variant": "control" } },
-                     { "name": "interaction", "run_parameters": { "variant": "interaction" } } ],
-      "note": "Designed, printed. One spec, printed twice." },
-    { "module": "m1b", "chip": "cad/m1b_cellprep_spec.json", "protocol": "protocols/m1b_cellprep.json",
-      "scenario": "scenarios/m1b_cellprep_demo.json",
-      "note": "Designed, simulated, not printed this weekend. Replaces the bench step." },
-    { "module": "m2", "chip": "cad/m2_encapsulation_spec.json", "protocol": "protocols/m2_encapsulation.json",
-      "note": "Parametric draft, printed." },
-    { "module": "m3", "chip": "cad/m3_wash_spec.json", "protocol": "protocols/m3_wash.json",
-      "note": "Parametric draft, printed." }
+    {
+      "module": "module1", "name": "Module 1: culture (v1)", "status": "final", "owner": "MJ",
+      "chip": "chip/module1_v1.json", "protocol": "protocols/module1_v1.json",
+      "build": { "method": "laser-cut acrylic: 3 mm base, 0.3 mm spacer (the cut layer), 3 mm lid",
+                 "connector": "square_2mm_lid_hole", "ports": "2 mm square holes through the 3 mm lid",
+                 "source": "cad/make_train_cad.py (PORT_SIZE_MM = 2.0); protocols/module1_design.md" },
+      "built_for_demo": true,
+      "note": "The chip for Sunday's food-dye demo (cad/module1_dye_demo.md). Design note: protocols/module1_design.md."
+    },
+    {
+      "module": "module2", "name": "Module 2: encapsulation", "status": "draft",
+      "status_note": "draft – being redesigned by MJ", "owner": "MJ (redesign); draft by Bruno",
+      "chip": "cad/m2_encapsulation_spec.json", "protocol": "protocols/m2_encapsulation.json",
+      "prefer": { "glob": "chip/module2*.json", "status": "final", "status_note": "MJ's Module 2, picked up automatically" },
+      "build": { "method": "parametric draft (cad/generators/m2_encapsulation.py), PMMA layers; process to be set by the redesign",
+                 "connector": "TBC" },
+      "built_for_demo": false,
+      "note": "Stand-in so the chain is complete. When a chip/module2*.json appears, tools/validate.py and the twin use it instead and warn if the hand-off ports below are not in it."
+    },
+    {
+      "module": "module3", "name": "Module 3: load, lysis, wash", "status": "translated", "owner": "Szonja",
+      "chip": "chip/module3_v1_translated.json", "source": "chip/modules/module3_step1_3.json",
+      "protocol_note": "The steps (11) are in the source file's workflow block; not in protocol format yet.",
+      "build": { "method": "TBC: the 25 um retention gap and 140 x 150 um channels are below laser-cut size",
+                 "connector": "TBC" },
+      "built_for_demo": false,
+      "note": "Translated by tools/convert_module3.py; layout and valve construction are inferred (placeholder). Her file is the source of truth."
+    },
+    {
+      "module": "barcoding", "name": "Barcoding: split and pool (library steps 4-12)", "status": "missing",
+      "status_note": "not yet designed", "owner": "TBC",
+      "build": { "method": "TBC", "connector": "TBC" },
+      "built_for_demo": false,
+      "note": "Module 3 hands its capsules to a split tree into well_01...well_16 described in barcoding_geometry.json, which is not in the repo yet."
+    },
+    {
+      "module": "module4", "name": "Module 4: sublibrary split + index PCR", "status": "final", "owner": "MJ",
+      "chip": "chip/module4_v1.json", "protocol": "protocols/module4_v1.json",
+      "build": { "method": "hot-embossed COC (Tg >= 130 C), thermally bonded; 0.5 / 0.3 / 1.0 mm",
+                 "connector": "drilled_0_8mm_5mm_pitch", "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+                 "source": "protocols/module5_design.md, section 1" },
+      "built_for_demo": false,
+      "note": "Filled one chamber at a time by an off-chip rotary valve (palindromic order), then thermocycled."
+    },
+    {
+      "module": "module5", "name": "Module 5: release + cleanup", "status": "final", "owner": "MJ",
+      "chip": "chip/module5_v1.json", "protocol": "protocols/module5_v1.json",
+      "build": { "method": "hot-embossed COC (Tg >= 130 C), thermally bonded; 0.5 / 0.3 / 1.0 mm",
+                 "connector": "drilled_0_8mm_5mm_pitch", "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+                 "source": "protocols/module5_design.md, section 1" },
+      "built_for_demo": false,
+      "note": "Collagenase release at 37 C, then magnetic bead capture; one sublibrary per pass."
+    }
   ],
   "handoffs": [
-    { "id": "m1_lane_1_to_m1b", "from": { "module": "m1", "port": "m1_out_1", "instances": ["control", "interaction"] },
-      "to": { "module": "m1b", "port": "m1b_cells_in_1" }, "carries": "cells", "after_step": 13,
-      "note": "Labelled neurons from both Module 1 chips; the per-chamber labels keep them apart downstream." },
-    { "id": "m1_lane_2_to_m1b", "from": { "module": "m1", "port": "m1_out_2", "instances": ["control", "interaction"] },
-      "to": { "module": "m1b", "port": "m1b_cells_in_2" }, "carries": "cells", "after_step": 13,
-      "note": "Labelled astrocytes." },
-    { "id": "m1_lane_3_to_m1b", "from": { "module": "m1", "port": "m1_out_3", "instances": ["control", "interaction"] },
-      "to": { "module": "m1b", "port": "m1b_cells_in_3" }, "carries": "cells", "after_step": 13,
-      "note": "Labelled microglia." },
-    { "id": "m1b_to_m2", "from": { "module": "m1b", "port": "m1b_to_module2_1" },
-      "to": { "module": "m2", "port": "m2_core_in_1" }, "carries": "cells", "after_step": 7,
-      "note": "Cells in dextran buffer at ~0.1 cells per capsule, once the safety checker approves them." },
-    { "id": "m2_to_m3", "from": { "module": "m2", "port": "m2_capsule_out_1" },
-      "to": { "module": "m3", "port": "m3_inlet_1" }, "carries": "capsules", "after_step": 10,
-      "note": "Cured capsules through the 100 um aggregate filter." },
-    { "id": "m3_to_library", "from": { "module": "m3", "port": "m3_release_1" },
-      "to": { "roadmap": "library_prep" }, "carries": "capsules", "after_step": 4,
-      "note": "Washed capsules, ready for the next chemistry." }
+    {
+      "id": "module1_to_module2", "carries": "cells", "after_step": 182,
+      "from": { "module": "module1", "port": "p_mid" },
+      "to": { "module": "module2", "port": "m2_core_in_1", "note": "The draft's core (cells) inlet; MJ's redesign may rename it." },
+      "connector": { "from": "square_2mm_lid_hole", "to": "TBC", "status": "unknown",
+                     "warning": "Connector mismatch possible: Module 1 has 2 mm square lid holes; Module 2's ports are not decided. Expect an adapter from the square hole to tubing." },
+      "note": "One counted suspension leaves j_mid through p_mid (Module 1 protocol step 182)."
+    },
+    {
+      "id": "module2_to_module3", "carries": "capsules", "after_step": 10,
+      "from": { "module": "module2", "port": "m2_capsule_out_1", "note": "The draft's capsule outlet; MJ's redesign may rename it." },
+      "to": { "module": "module3", "port": "capsule_in" },
+      "connector": { "from": "TBC", "to": "TBC", "status": "unknown",
+                     "warning": "Neither module's port style is decided; check before joining them with tubing." },
+      "note": "Cured capsules through Module 3's 100 um pre-filter into main_trap."
+    },
+    {
+      "id": "module3_to_barcoding", "carries": "capsules",
+      "from": { "module": "module3", "port": "to_split_tree" },
+      "to": { "module": "barcoding", "port": "TBC" },
+      "connector": { "from": "TBC", "to": "TBC", "status": "unknown",
+                     "warning": "Barcoding is not designed; its inlet and port style are unknown." },
+      "note": "After step 11 of Module 3's workflow (back-flush resuspends the bed) into the split tree."
+    },
+    {
+      "id": "barcoding_to_module4", "carries": "capsules",
+      "from": { "module": "barcoding", "port": "TBC" },
+      "to": { "module": "module4", "ports": ["in_s1", "in_s2", "in_s3", "in_s4"],
+              "note": "Through the off-chip rotary valve, one chamber at a time." },
+      "connector": { "from": "TBC", "to": "drilled_0_8mm_5mm_pitch", "status": "unknown",
+                     "warning": "Module 4 takes 0.8 mm drilled ports at 5 mm pitch; barcoding's outlet is not designed. The rotary valve sits between them, so this is tubing either way." },
+      "note": "The pooled, barcoded capsule suspension."
+    },
+    {
+      "id": "module4_to_module5", "carries": "capsules", "after_step": 63,
+      "from": { "module": "module4", "port": "TBC",
+                "note": "Module 4 has no product outlet (in_s1-in_s4 and a shared vent); which port each sublibrary leaves through is not stated." },
+      "to": { "module": "module5", "port": "in_lib" },
+      "connector": { "from": "drilled_0_8mm_5mm_pitch", "to": "drilled_0_8mm_5mm_pitch", "status": "match" },
+      "note": "One sublibrary per pass, by tubing between the chips (Module 5 protocol steps 1, 9, 17, 25)."
+    },
+    {
+      "id": "module5_to_library_out", "carries": "library", "after_step": 34,
+      "from": { "module": "module5", "port": "out_lib" },
+      "to": { "roadmap": "library_out" },
+      "note": "Four libraries into tubes; pooling and size selection at the bench (Module 5 steps 33-34)."
+    }
   ],
   "roadmap": [
-    { "id": "library_prep", "name": "Library prep", "note": "Roadmap: in-capsule reactions and barcoding (see the earlier placeholder split-and-pool chip)." },
-    { "id": "sequencing", "name": "Sequencing", "note": "Roadmap." }
+    { "id": "library_out", "name": "Library out", "note": "Finished, indexed library in a tube." },
+    { "id": "sequencing", "name": "Sequencing", "note": "Off-chip." }
   ]
 }

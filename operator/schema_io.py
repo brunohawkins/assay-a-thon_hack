@@ -42,6 +42,22 @@ def pipelines() -> list[tuple[Path, dict]]:
             out.append((path, data))
     return out
 
+
+def pipeline_chip(entry: dict, root: Path = ROOT) -> tuple[str | None, str | None, str | None]:
+    """The chip a pipeline module uses right now: (path, status, status_note).
+
+    A module with "prefer": {"glob": ...} switches to the newest matching file as soon as
+    one exists (Module 2's draft gives way to MJ's chip/module2*.json); otherwise its chip.
+    A missing module has no chip: (None, "missing", note).
+    """
+    pref = entry.get("prefer")
+    if pref:
+        hits = sorted(p for p in root.glob(pref["glob"]) if p.is_file() and p.suffix == ".json")
+        if hits:
+            return (hits[-1].relative_to(root).as_posix(), pref.get("status", entry.get("status")),
+                    pref.get("status_note", f"switched automatically from {entry.get('chip')}"))
+    return entry.get("chip"), entry.get("status"), entry.get("status_note")
+
 _validators: dict[str, Draft202012Validator] | None = None
 _schemas: dict[str, dict] | None = None
 

@@ -1,4 +1,4 @@
-"""Module 1b (automated cell prep) and the pipeline that chains the modules.
+"""Module 1b (automated cell prep; superseded by Module 1 v1, kept for reference).
 
     python -m unittest discover -s tests -v
 """
@@ -85,11 +85,13 @@ class CrossChipFilter(unittest.TestCase):
         materials = schema_io.load_json(ROOT / "contracts" / "materials.json")["materials"]
         return ccs.check(chip, [], params, materials, {"laser_kerf_um": None, "min_embossed_feature_um": None}, downstream)
 
-    def test_pipeline_links_m1b_to_the_module_2_nozzle(self):
-        self.assertEqual(ccs.downstream_nozzles(M1B), [(40, "m2_encapsulation_v1", "m1b_to_m2")])
+    def test_m1b_is_out_of_the_pipeline_and_module1_v1_now_feeds_the_nozzle(self):
+        self.assertEqual(ccs.downstream_nozzles(M1B), [])           # superseded: no longer in the pipeline
+        v1 = schema_io.load_json(ROOT / "chip" / "module1_v1.json")
+        self.assertEqual(ccs.downstream_nozzles(v1), [(40, "m2_encapsulation_v1", "module1_to_module2")])
 
     def test_filter_smaller_than_the_downstream_nozzle_is_confirmed(self):
-        f = self.check(M1B, ccs.downstream_nozzles(M1B))
+        f = self.check(M1B, [(40, "m2_encapsulation_v1", "m1b_to_m2")])
         self.assertEqual(f.errors, [])
         self.assertTrue(any("m1b_filter_1" in o and "< the 40 um nozzle" in o for o in f.ok))
 
@@ -101,14 +103,14 @@ class CrossChipFilter(unittest.TestCase):
 
 
 class Pipeline(unittest.TestCase):
-    def test_pipeline_file_is_valid_and_has_no_bench_step(self):
+    def test_m1b_is_superseded_and_the_pipeline_has_no_bench_step(self):
+        self.assertEqual(M1B["module"]["status"], "superseded")
+        self.assertEqual(M1B["module"]["superseded_by"], "chip/module1_v1.json")
         (path, pipe), = schema_io.pipelines()
         self.assertEqual(schema_io.schema_errors("pipeline", pipe), [])
-        self.assertEqual([m["module"] for m in pipe["modules"]], ["m1", "m1b", "m2", "m3"])
-        self.assertNotIn("bench_step", path.read_text())          # the bridge is Module 1b now, not a bench step
+        self.assertNotIn("m1b", [m["module"] for m in pipe["modules"]])
+        self.assertNotIn("bench_step", path.read_text())
         self.assertNotIn("pause_for_human", path.read_text())
-        ends = [h[side] for h in pipe["handoffs"] for side in ("from", "to")]
-        self.assertTrue(all("module" in e or "roadmap" in e for e in ends))
 
 
 if __name__ == "__main__":

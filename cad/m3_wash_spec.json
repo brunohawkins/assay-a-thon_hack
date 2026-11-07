@@ -5,9 +5,11 @@
   "placeholder": true,
   "module": {
     "id": "m3",
-    "name": "Capsule wash",
-    "status": "draft",
-    "printed": true
+    "name": "Capsule wash (draft)",
+    "status": "superseded",
+    "printed": false,
+    "superseded_by": "chip/module3_v1_translated.json",
+    "note": "Superseded by Szonja's Module 3 (load, lysis, wash); kept for reference, out of the pipeline."
   },
   "generator": {
     "script": "cad/generators/m3_wash.py",

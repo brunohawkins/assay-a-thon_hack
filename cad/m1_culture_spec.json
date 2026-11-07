@@ -5,9 +5,11 @@
   "placeholder": true,
   "module": {
     "id": "m1",
-    "name": "Culture",
-    "status": "designed",
-    "printed": true
+    "name": "Culture (brief draft)",
+    "status": "superseded",
+    "printed": false,
+    "superseded_by": "chip/module1_v1.json",
+    "note": "Superseded by MJ's Module 1 v1; kept for reference, out of the pipeline."
   },
   "generator": {
     "script": "cad/generators/m1_culture.py",
