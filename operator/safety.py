@@ -11,6 +11,12 @@ The AI (or planner) PROPOSES, the model SIMULATES, this module APPROVES. Rules:
   4. a reagent reservoir would run dry                                     -> blocked (<10% spare: warning)
   5. temperature above the chip material's max working temperature         -> blocked
   6. release or pool while capsules are still on a mesh (back-flush first)  -> blocked
+  7. opening a pair valve (the link between two culture chambers) in a run  -> blocked
+     whose variant is "control": the control chip must stay isolated
+
+check_static(command, args, chip, run_params) applies the rules that need no chip state
+(ids, temperature, valves); the simple planner calls it for every command, and check()
+includes it.
 Thresholds come from contracts/parameters.json and contracts/materials.json.
 Commands here are whole plans (volume_ul per wash x washes), not time slices.
 """
@@ -83,7 +89,40 @@ def material_limit(chip: dict, materials: dict) -> tuple[float | None, str | Non
     return best, name, unknown
 
 
-def check(command: str, args: dict, believed: ChipState, chip: dict, model: ProcessModel | None = None) -> SafetyResult:
+def check_static(command: str, args: dict, chip: dict, run_params: dict | None = None) -> SafetyResult:
+    """Rules that need no believed state: valve ids, the control-variant pair-valve rule,
+    and temperatures against the chip material."""
+    _, materials = _contracts()
+    blocked: list[str] = []
+    warnings: list[str] = []
+    valves = {v["id"]: v for v in chip.get("valves", [])}
+    if command == "valve":
+        missing = [v for v in args.get("valves", []) if v not in valves]
+        if missing:
+            return Blocked(f"{', '.join(missing)} not a valve in chip {chip['id']}")
+        variant = (run_params or {}).get("variant")
+        pairs = [v for v in args["valves"] if valves[v]["kind"] == "pair"]
+        if args.get("state") == "open" and pairs and variant == "control":
+            blocked.append(f"opening {', '.join(pairs)} is not allowed in the control variant: the control chip's "
+                           f"chambers must stay isolated (pair valves stay closed)")
+    temp = args.get("temp_c") if command in ("hold_temp", "culture") else None
+    if temp is not None:
+        limit, name, unknown = material_limit(chip, materials)
+        if limit is not None and temp > limit:
+            blocked.append(f"{temp:g} C is above {name}'s max working temperature ({limit:g} C)")
+        if unknown:
+            warnings.append(f"material(s) {', '.join(unknown)} not in contracts/materials.json: temperature not checked")
+    if blocked:
+        return SafetyResult("blocked", blocked + warnings)
+    if warnings:
+        return SafetyResult("warning", warnings)
+    return Approved()
+
+
+def check(command: str, args: dict, believed: ChipState, chip: dict, model: ProcessModel | None = None,
+          run_params: dict | None = None) -> SafetyResult:
+    if command == "valve":
+        return check_static(command, args, chip, run_params)
     params, materials = _contracts()
     p = params["parameters"]
     if model is None:

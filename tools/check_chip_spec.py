@@ -11,6 +11,8 @@ run on the chip (runs/), plus any given with --protocol.
 Errors (exit code 1):
   - trap gap or retention opening >= 0.4 x capsule diameter
   - capsule-carrying channel, or capsule-passable outlet, narrower than 1.5 x capsule diameter
+    (a channel's "carries" picks the rule: capsules/droplets 1.5 x capsule diameter; cells the
+    cell-outlet minimum, dissociation.outlet_min_width_um; liquid, oil, signals none)
   - chamber lower than the swollen capsule diameter where culture happens
   - cell filter gap wider than the encapsulation nozzle
   - thermal zone (or protocol hold_temp) above the chip material's max working temperature
@@ -20,6 +22,8 @@ Warnings:
   - barcode collision rate above 5%
   - reagent whose compatibility with the chip material is TODO or incompatible
   - unknown material, channel shallower than a capsule, outlet without a width
+  - two channels with explicit paths that cross in the same layer (they would join)
+TODO lines: fabrication limits still unknown; parts marked fabricable: false (by design).
 """
 
 from __future__ import annotations
@@ -28,9 +32,11 @@ import argparse
 import sys
 from pathlib import Path
 
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "operator"))
 
+import commands  # noqa: E402
 import schema_io  # noqa: E402
 import sizing  # noqa: E402
 
@@ -127,7 +133,16 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
 
     # --- capsule-carrying channels and outlets ------------------------------------------
     min_w = CHANNEL_MIN_FACTOR * d
+    cell_min = param(params, "dissociation.outlet_min_width_um")
     for ch in chip.get("channels", []):
+        carries = ch.get("carries", "capsules")
+        if carries == "cells":
+            if ch["width_mm"] * 1000 < cell_min:
+                f.error(f"channel '{ch['id']}' carries cells but is {ch['width_mm'] * 1000:g} um wide, < {cell_min:g} um "
+                        f"(wide enough for single cells and small clumps)")
+            continue
+        if carries in ("liquid", "oil", "signals") or ch.get("capsule_passable") is False:
+            continue  # no particles to fit, or deliberately too small (e.g. a microgroove barrier)
         ends = [ports.get(ch["from"]), ports.get(ch["to"])]
         if any(p is not None and p.get("capsule_passable") is False for p in ends):
             continue  # behind a trap (e.g. waste below a mesh): no capsules here
@@ -151,9 +166,11 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
                 culture[cid] = f"thermal zone '{z['id']}'"
     for path, proto in protocols:
         for s in proto.get("steps", []):
-            reagent = str(s.get("reagent") or "").lower()
-            if any(w in reagent for w in CULTURE_WORDS):
-                culture.setdefault(s["target"], f"{rel(path)} step {s['step']} ({s['reagent']})")
+            names = [str(x).lower() for x in [s.get("reagent")] + list(s.get("reagents") or []) if x]
+            hit = next((n for n in names if any(w in n for w in CULTURE_WORDS)), None)
+            if hit:
+                for t in commands.step_targets(s):
+                    culture.setdefault(t, f"{rel(path)} step {s['step']} ({hit})")
     for cid, why in culture.items():
         c = chambers.get(cid)
         if not c:
@@ -187,8 +204,13 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
                             f"{mat['name']}'s max working temperature ({tmax:g} C)")
 
     # --- fabrication minimums (warnings only) -------------------------------------------
-    features = [(f"channel '{ch['id']}' width", ch["width_mm"] * 1000) for ch in chip.get("channels", [])]
-    features += [(f"channel '{ch['id']}' depth", ch["depth_mm"] * 1000) for ch in chip.get("channels", [])]
+    made_here = [ch for ch in chip.get("channels", []) if ch.get("fabricable", True)]
+    not_here = [ch for ch in chip.get("channels", []) if not ch.get("fabricable", True)]
+    if not_here:
+        f.todo.append("not fabricable here (by design): " + ", ".join(
+            f"{ch['id']} ({ch['width_mm'] * 1000:g} x {ch['depth_mm'] * 1000:g} um)" for ch in not_here))
+    features = [(f"channel '{ch['id']}' width", ch["width_mm"] * 1000) for ch in made_here]
+    features += [(f"channel '{ch['id']}' depth", ch["depth_mm"] * 1000) for ch in made_here]
     features += [(f"port '{p['id']}' width", p["width_um"]) for p in ports.values() if "width_um" in p]
     features += [(f"chamber '{c['id']}' height", c["height_um"]) for c in chambers.values() if "height_um" in c]
     features += [(f"chamber '{c['id']}' {c['retention']['type']} opening", c["retention"]["opening_um"])
@@ -224,8 +246,14 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
                    f"in {r['capsule_count']:,.0f} capsules share a barcode "
                    f"({r['barcode_combinations_with_sublibraries']:,} combinations)")
 
+    # --- channels that cross (explicit paths only) ---------------------------------------
+    for a, b, (x, y) in crossings(chip):
+        f.warn(f"channels '{a}' and '{b}' cross at ({x:g}, {y:g}): in one layer they would join; "
+               f"needs a bridge (second layer) or a reroute")
+
     # --- reagent compatibility ----------------------------------------------------------
-    reagents = sorted({s["reagent"] for _, proto in protocols for s in proto.get("steps", []) if s.get("reagent")})
+    reagents = sorted({r for _, proto in protocols for s in proto.get("steps", [])
+                       for r in [s.get("reagent")] + list(s.get("reagents") or []) + list(s.get("factors") or []) if r})
     for mat_id, mat in mats:
         compat = mat.get("chemical_compatibility", {})
         todo = [r for r in reagents if compat.get(r, "TODO") == "TODO"]
@@ -235,6 +263,37 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
         if bad:
             f.warn(f"{mat['name']} is incompatible with {', '.join(bad)}")
     return f
+
+
+def _segments(path: list[list[float]]) -> list[tuple[tuple[float, float], tuple[float, float]]]:
+    return [((a[0], a[1]), (b[0], b[1])) for a, b in zip(path[:-1], path[1:])]
+
+
+def _intersect(p1, p2, p3, p4) -> tuple[float, float] | None:
+    """Proper intersection point of segments p1-p2 and p3-p4 (not at their ends), or None."""
+    d = (p2[0] - p1[0]) * (p4[1] - p3[1]) - (p2[1] - p1[1]) * (p4[0] - p3[0])
+    if abs(d) < 1e-12:
+        return None
+    t = ((p3[0] - p1[0]) * (p4[1] - p3[1]) - (p3[1] - p1[1]) * (p4[0] - p3[0])) / d
+    u = ((p3[0] - p1[0]) * (p2[1] - p1[1]) - (p3[1] - p1[1]) * (p2[0] - p1[0])) / d
+    eps = 1e-6
+    if eps < t < 1 - eps and eps < u < 1 - eps:
+        return (round(p1[0] + t * (p2[0] - p1[0]), 3), round(p1[1] + t * (p2[1] - p1[1]), 3))
+    return None
+
+
+def crossings(chip: dict) -> list[tuple[str, str, tuple[float, float]]]:
+    """Pairs of channels (both with an explicit path, no shared end) whose centrelines cross."""
+    chans = [ch for ch in chip.get("channels", []) if ch.get("path")]
+    out = []
+    for i, a in enumerate(chans):
+        for b in chans[i + 1:]:
+            if {a["from"], a["to"]} & {b["from"], b["to"]}:
+                continue
+            hit = next((pt for s1 in _segments(a["path"]) for s2 in _segments(b["path"]) if (pt := _intersect(*s1, *s2))), None)
+            if hit:
+                out.append((a["id"], b["id"], hit))
+    return out
 
 
 def spec_paths(args: list[str]) -> list[Path]:

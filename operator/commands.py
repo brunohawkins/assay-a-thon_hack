@@ -1,4 +1,4 @@
-"""The chip's instruction set: exactly six commands.
+"""The chip's instruction set.
 
     load(target, volume_ul)
     exchange(target, reagent, volume_ul, washes, flow_ul_min)
@@ -6,6 +6,10 @@
     split(source, targets[])
     pool(sources[], target)
     release(target, reagent)
+    valve(valves[], state)                                   Module 1: open / close valves
+    culture(targets[], reagents[], duration_s, exchange_interval_s, volume_ul, flow_ul_min, temp_c)
+    collect(targets[], volume_ul)                            supernatant out, cells stay
+    harvest(targets[], reagent)                              cells out through each outlet
 
 Each function returns a command dict {"command": ..., "args": {...}} after checking it
 against contracts/schemas/commands.schema.json, and against a chip spec when one is
@@ -19,7 +23,8 @@ from typing import Any
 
 import schema_io
 
-COMMAND_NAMES = ("load", "exchange", "hold_temp", "split", "pool", "release")
+COMMAND_NAMES = ("load", "exchange", "hold_temp", "split", "pool", "release",
+                 "valve", "culture", "collect", "harvest")
 
 # Which args hold chamber ids, per command. Used for chip checks and by the twin.
 ID_ARGS = {
@@ -29,7 +34,12 @@ ID_ARGS = {
     "split": ("source", "targets"),
     "pool": ("sources", "target"),
     "release": ("target",),
+    "culture": ("targets",),
+    "collect": ("targets",),
+    "harvest": ("targets",),
 }
+# Args that hold valve ids.
+VALVE_ARGS = {"valve": ("valves",)}
 
 # Nominal time for commands whose duration isn't implied by their args, in seconds.
 NOMINAL_DURATION_S = 60.0
@@ -39,7 +49,7 @@ class CommandError(ValueError):
     """A command that doesn't fit the contract or the chip."""
 
 
-# --- the six commands -------------------------------------------------------------
+# --- commands -------------------------------------------------------------------
 
 
 def load(target: str, volume_ul: float, chip: dict | None = None) -> dict:
@@ -68,6 +78,10 @@ def release(target: str, reagent: str, chip: dict | None = None) -> dict:
     return validate("release", {"target": target, "reagent": reagent}, chip)
 
 
+def valve(valves: list[str], state: str, chip: dict | None = None) -> dict:
+    return validate("valve", {"valves": list(valves), "state": state}, chip)
+
+
 COMMANDS = {
     "load": load,
     "exchange": exchange,
@@ -75,6 +89,7 @@ COMMANDS = {
     "split": split,
     "pool": pool,
     "release": release,
+    "valve": valve,
 }
 
 
@@ -89,10 +104,26 @@ def port_ids(chip: dict) -> set[str]:
     return {p["id"] for p in chip.get("ports", [])}
 
 
-def ids_in(command: str, args: dict) -> list[str]:
-    """Every chamber id a command refers to."""
+def valve_ids(chip: dict) -> set[str]:
+    return {v["id"] for v in chip.get("valves", [])}
+
+
+def place_ids(chip: dict) -> set[str]:
+    """Everything a protocol step may name as a target: chambers, ports and valves."""
+    return chamber_ids(chip) | port_ids(chip) | valve_ids(chip)
+
+
+def step_targets(step: dict) -> list[str]:
+    """The ids a protocol step acts on: its targets list, or its single target."""
+    if step.get("targets"):
+        return list(step["targets"])
+    return [step["target"]] if step.get("target") else []
+
+
+def ids_in(command: str, args: dict, which: dict | None = None) -> list[str]:
+    """Every chamber id a command refers to (valve ids with which=VALVE_ARGS)."""
     out: list[str] = []
-    for key in ID_ARGS.get(command, ()):
+    for key in (which or ID_ARGS).get(command, ()):
         value = args.get(key)
         if isinstance(value, list):
             out.extend(v for v in value if isinstance(v, str))
@@ -104,7 +135,7 @@ def ids_in(command: str, args: dict) -> list[str]:
 def validate(command: str, args: dict, chip: dict | None = None) -> dict:
     """Check one command. Returns {"command", "args"}; raises CommandError with a readable message."""
     if command not in COMMAND_NAMES:
-        raise CommandError(f"unknown command {command!r}; the six commands are {', '.join(COMMAND_NAMES)}")
+        raise CommandError(f"unknown command {command!r}; the commands are {', '.join(COMMAND_NAMES)}")
     cmd = {"command": command, "args": dict(args)}
     errors = schema_io.schema_errors("commands", cmd)
     if errors:
@@ -116,6 +147,10 @@ def validate(command: str, args: dict, chip: dict | None = None) -> dict:
             if cid not in chambers:
                 hint = " (that is a port; commands act on chambers)" if cid in port_ids(chip) else ""
                 raise CommandError(f"{command}: '{cid}' is not a chamber in chip {chip.get('id')}{hint}")
+        valves = valve_ids(chip)
+        for vid in ids_in(command, args, VALVE_ARGS):
+            if vid not in valves:
+                raise CommandError(f"{command}: '{vid}' is not a valve in chip {chip.get('id')}")
     return cmd
 
 
@@ -125,6 +160,10 @@ def estimate_duration_s(command: str, args: dict) -> float:
         return float(args["duration_s"])
     if command == "exchange":
         return float(args["washes"]) * float(args["volume_ul"]) / float(args["flow_ul_min"]) * 60.0
+    if command == "culture":
+        return float(args["duration_s"])
+    if command == "valve":
+        return 10.0
     return NOMINAL_DURATION_S
 
 
@@ -147,7 +186,7 @@ def _strip(schema: Any) -> Any:
 
 
 def tool_definitions() -> list[dict]:
-    """The six commands as Claude API tools, built from commands.schema.json.
+    """The commands as Claude API tools, built from commands.schema.json.
 
     Each tool also takes `reason` (one sentence, shown as narration) and `protocol_step`.
     """

@@ -7,7 +7,8 @@ Checks
   - every protocol target exists as a chamber or port in the chip spec it's run against
     (the chips named by its runs; a protocol with no run yet is checked against the chip
     spec that fits it best)
-  - chip specs: unique ids, channels connect real chambers/ports, parts inside the footprint
+  - chip specs: unique ids, channels connect real chambers/ports, parts inside the footprint,
+    valves sit on real channels with a control port, module chips use their prefix on every id
   - runs: protocol, chip and every chamber id exist; events in time order; index.json up to date
   - cad/exports/*.stl whose name isn't a chamber, port, channel or chip id (warning)
 
@@ -112,7 +113,7 @@ def check_protocol(path: Path, protocol: dict, report: Report) -> None:
                         f"position {i} is numbered {step.get('step')}")
         if step.get("operation") == "exchange":
             try:
-                needed = step["washes"] * step["volume_ul"] / step["flow_ul_min"] * 60
+                needed = step["washes"] * step["volume_ul"] / step["flow_ul_min"] * 60 * max(1, len(step.get("targets") or []))
                 too_short = step["duration_s"] + 1e-9 < needed
             except (TypeError, KeyError, ZeroDivisionError):
                 continue
@@ -125,12 +126,38 @@ def check_protocol(path: Path, protocol: dict, report: Report) -> None:
 def check_chip(path: Path, chip: dict, report: Report) -> None:
     where = rel(path)
     seen: dict[str, str] = {}
-    for group in ("chambers", "ports", "channels"):
+    for group in ("chambers", "ports", "channels", "valves", "features"):
         for item in chip.get(group, []):
             iid = item.get("id")
             if iid in seen:
                 report.error(f"{where}: id '{iid}' is used by both a {seen[iid]} and a {group[:-1]}; ids must be unique")
             seen[iid] = group[:-1]
+    module = chip.get("module")
+    if module:
+        prefix = module["id"] + "_"
+        named = [(g, i.get("id")) for g in ("chambers", "ports", "channels", "valves", "features", "layers", "thermal_zones")
+                 for i in chip.get(g, [])]
+        bad = [iid for _, iid in named + [("chip", chip["id"])] if not str(iid).startswith(prefix)]
+        if bad:
+            report.error(f"{where}: module {module['id']} chip, but these ids don't start with '{prefix}': {', '.join(bad)}")
+    ports_by_id = {pt["id"]: pt for pt in chip.get("ports", [])}
+    channel_ids = {ch.get("id") for ch in chip.get("channels", [])}
+    for v in chip.get("valves", []):
+        if v.get("channel") not in channel_ids:
+            report.error(f"{where}: valve '{v.get('id')}' sits on '{v.get('channel')}', which is not a channel")
+        cp = ports_by_id.get(v.get("control_port"))
+        if cp is None or cp.get("type") != "control":
+            report.error(f"{where}: valve '{v.get('id')}' control_port '{v.get('control_port')}' is not a port of type control")
+        for cid in v.get("connects", []):
+            if cid not in commands.chamber_ids(chip):
+                report.error(f"{where}: valve '{v.get('id')}' connects '{cid}', which is not a chamber")
+    for f in chip.get("features", []):
+        for cid in f.get("covers", []):
+            if cid not in commands.chamber_ids(chip):
+                report.error(f"{where}: feature '{f.get('id')}' covers '{cid}', which is not a chamber")
+    for name, rp in (chip.get("run_parameters") or {}).items():
+        if rp["default"] not in rp["values"]:
+            report.error(f"{where}: run parameter '{name}' default '{rp['default']}' is not one of its values")
     places = commands.chamber_ids(chip) | commands.port_ids(chip)
     for ch in chip.get("channels", []):
         for end in ("from", "to"):
@@ -164,18 +191,22 @@ def check_protocol_on_chip(ppath: Path, protocol: dict, chip: dict, report: Repo
                            schema_ok: bool) -> None:
     """Targets must exist in the chip. Runs even on files with schema errors, so people
     see every problem in one go; the split/pool wiring check needs a valid file."""
-    places = commands.chamber_ids(chip) | commands.port_ids(chip)
+    places = commands.place_ids(chip)
+    variants = ((chip.get("run_parameters") or {}).get("variant") or {}).get("values", [])
     steps = protocol.get("steps") if isinstance(protocol.get("steps"), list) else []
     for i, step in enumerate(steps, start=1):
-        if not isinstance(step, dict) or not isinstance(step.get("target"), str):
+        if not isinstance(step, dict):
             continue
-        target = step["target"]
-        if target not in places:
+        targets = [t for t in commands.step_targets(step) if isinstance(t, str)]
+        missing = [t for t in targets if t not in places]
+        for target in missing:
             report.error(f"{rel(ppath)} step {step.get('step', i)}: target '{target}' not in chip {chip['id']}")
-            continue
-        if schema_ok:
+        if "variant" in step and step["variant"] not in variants:
+            report.error(f"{rel(ppath)} step {step.get('step', i)}: variant '{step['variant']}' is not a variant of chip "
+                         f"{chip['id']} ({', '.join(variants) or 'it has none'})")
+        if schema_ok and targets and not missing:
             try:
-                planner.step_to_command(step, chip)
+                planner.step_to_commands(step, chip)
             except planner.PlanError as e:
                 report.error(f"{rel(ppath)} {e} (chip {chip['id']})")
 
@@ -224,6 +255,9 @@ def check_run(path: Path, run: dict, protocols: dict[str, tuple[Path, dict]],
             for cid in commands.ids_in(ev.get("command"), ev["args"]):
                 if cid not in chambers:
                     report.error(f"{where} event {i} ({ev.get('command')}): '{cid}' not in chip {run.get('chip_id')}")
+            for vid in commands.ids_in(ev.get("command"), ev["args"], commands.VALVE_ARGS):
+                if vid not in commands.valve_ids(chip_entry[1]):
+                    report.error(f"{where} event {i} ({ev.get('command')}): valve '{vid}' not in chip {run.get('chip_id')}")
         step = ev.get("protocol_step")
         if proto and step is not None and step not in step_numbers:
             report.error(f"{where} event {i}: protocol_step {step} is not a step in {proto[1]['id']}")
@@ -304,8 +338,8 @@ def check_cad(chips: dict[str, tuple[Path, dict]], report: Report) -> int:
     # one-piece print (named by the chip spec id, e.g. hello_world_plate.stl).
     known = set(chips)
     for _, chip in chips.values():
-        known |= commands.chamber_ids(chip) | commands.port_ids(chip)
-        known |= {ch["id"] for ch in chip.get("channels", []) if isinstance(ch, dict) and "id" in ch}
+        known |= commands.chamber_ids(chip) | commands.port_ids(chip) | commands.valve_ids(chip)
+        known |= {x["id"] for g in ("channels", "features") for x in chip.get(g, []) if isinstance(x, dict) and "id" in x}
     stls = [p for p in sorted((ROOT / "cad" / "exports").glob("*")) if p.suffix.lower() == ".stl"]
     for p in stls:
         if p.stem not in known:
@@ -317,8 +351,8 @@ def check_cad(chips: dict[str, tuple[Path, dict]], report: Report) -> int:
 def best_chip(protocol: dict, candidates: list[tuple[Path, dict]]) -> tuple[Path, dict]:
     """The chip spec containing the most of this protocol's targets."""
     steps = protocol.get("steps") if isinstance(protocol.get("steps"), list) else []
-    wanted = {s.get("target") for s in steps if isinstance(s, dict)}
-    return min(candidates, key=lambda pc: len(wanted - (commands.chamber_ids(pc[1]) | commands.port_ids(pc[1]))))
+    wanted = {t for s in steps if isinstance(s, dict) for t in commands.step_targets(s)}
+    return min(candidates, key=lambda pc: len(wanted - commands.place_ids(pc[1])))
 
 
 def main() -> int:

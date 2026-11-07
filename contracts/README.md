@@ -93,8 +93,8 @@ numbers, and to `false` only when it holds the real thing. The twin shows a
 | Field | Meaning |
 |---|---|
 | `step` | 1, 2, 3 … in order |
-| `operation` | one of `load`, `exchange`, `hold_temp`, `split`, `pool`, `release` |
-| `target` | the chamber ID the step acts on (see below for split and pool) |
+| `operation` | one of `load`, `exchange`, `hold_temp`, `split`, `pool`, `release`, `valve`, `culture`, `collect`, `harvest` |
+| `target` | the chamber ID the step acts on (see below for split and pool). Or give `targets`, a list, to act on several at once (an `exchange` with `targets` runs once per target; `reagents` gives one reagent per target) |
 | `reagent` | generic reagent name, or `null` |
 | `volume_ul` | µL, or `null` |
 | `duration_s` | seconds the step takes (always a number) |
@@ -113,6 +113,14 @@ numbers, and to `false` only when it holds the real thing. The twin shows a
 | `split` | capsules leave `target` and are shared between the split chambers it connects to | nothing extra |
 | `pool` | capsules from every chamber connected into `target` come together in `target` | nothing extra |
 | `release` | the product leaves the capsules in `target` and flows to the outlet | `reagent` |
+| `valve` | open or close the valves listed in `targets` | `targets`, `valve_state` (`open`/`closed`) |
+| `culture` | the chambers in `targets` stay in culture: every `exchange_interval_s` a batch of fresh medium (`volume_ul` at `flow_ul_min`) flows through each, then the flow stops until the next change | `targets`, `reagents` (one medium per target), `exchange_interval_s`, `duration_s`, `temp_c`; optional `factors` (one per target, through each lane's factor port) |
+| `collect` | supernatant leaves each chamber in `targets` through its outlet; the cells stay | `targets`, `volume_ul` |
+| `harvest` | the cells leave each chamber in `targets` through its outlet | `targets`, `reagent` |
+
+A step with `"variant": "interaction"` runs only when the run's `variant` is `interaction`
+(Module 1 is one chip spec run twice, as `control` and `interaction`; see `run_parameters`).
+Skipped steps are logged in the run file.
 
 **Worked example:** step 2 of `placeholder_scrnaseq.json`:
 
@@ -184,6 +192,14 @@ fields**: they're what `tools/check_chip_spec.py` checks the real-scale design a
 | `chambers[].height_um`, `.sealed` | Internal height in µm; sealed against evaporation. |
 | `chambers[].retention` | `{type: mesh/pillars/weir, opening_um, source: bought/fabricated}`: what holds the capsules. |
 | `ports[].role`, `.capsule_passable`, `.width_um` | The sheet's `outlets[]`: which ports capsules can pass (a waste line below a mesh can't), and the opening width. |
+| `module`, `generator` | Which MVP module the chip is (`{id: m1, name, status: designed/draft, printed}`), and the script + parameter values that generated it. |
+| `run_parameters` | Named run parameters, e.g. `{"variant": {"values": ["control", "interaction"], "default": "control"}}`: one spec, several instances. |
+| `chambers[].shape` | `box` (default) or `cylinder` (round chamber: `size` is `[diameter, diameter, depth]`). Types also include `culture`, `junction` (where channels meet), `bubble_trap`. |
+| `channels[].carries` | `capsules`, `droplets`, `cells`, `liquid`, `oil` or `signals`: picks the design rule (capsules: ≥ 1.5 × diameter; cells: ≥ 50 µm). |
+| `channels[].path` | Centreline waypoints `[[x, y], …]`; without it, channels are routed automatically. Channels with paths are checked for crossings. |
+| `channels[].capsule_passable`, `.fabricable` | `capsule_passable: false` (MJ's proposal): deliberately too small for capsules or cells, e.g. microgrooves. `fabricable: false`: drawn, but too small to make here. |
+| `valves[]` | `{id, type: normally_closed/normally_open, kind: branch/pair/isolation, channel, position, control_port, connects}`. A `pair` valve can't be opened in a `control` run. Control ports are `ports` with `type: control`. |
+| `features[]` | Parts that aren't chambers, channels or ports: `{id, type: gas_window/heat_zone/cold_zone/curing_window/optical_window, center, size, covers, temp_c, wavelength_nm}`. |
 
 **`contracts/parameters.json`** holds every number from the sheet with its units,
 source keys (CapSeq, SPC-NAR, 10x, inDrops, TIP-seq) and an `assumption` flag for
@@ -193,8 +209,8 @@ max working temperature and a chemical-compatibility map, which is still all `TO
 
 ## 3. commands: the chip's instruction set
 
-The operator (planner or AI) turns each protocol step into one of exactly six commands.
-This is everything the chip can do:
+The operator (planner or AI) turns each protocol step into commands.
+This is everything the chips can do:
 
 | Command | Arguments |
 |---|---|
@@ -204,10 +220,14 @@ This is everything the chip can do:
 | `split` | `source`, `targets` (a list) |
 | `pool` | `sources` (a list), `target` |
 | `release` | `target`, `reagent` |
+| `valve` | `valves` (a list), `state` (`open`/`closed`) |
+| `culture` | `targets`, `reagents`, `duration_s`, `exchange_interval_s`, `volume_ul`, `flow_ul_min`, `temp_c`, optional `factors` |
+| `collect` | `targets`, `volume_ul` |
+| `harvest` | `targets`, `reagent` |
 
 Example: `{"command": "split", "args": {"source": "exchange_1", "targets": ["split_1", "split_2", "split_3", "split_4"]}}`
 
-Adding a seventh command means changing `schemas/commands.schema.json`, the operator and the
+Adding a command means changing `schemas/commands.schema.json`, the operator and the
 twin together. Talk to Bruno first.
 
 ## 4. run.json: what the twin plays

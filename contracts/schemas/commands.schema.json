@@ -2,11 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://capsule-processor.local/schemas/commands.schema.json",
   "title": "Command",
-  "description": "One operator command. The chip's whole instruction set is these six commands. Each $defs entry is the argument object for one command; operator/llm_operator.py turns them into Claude API tools.",
+  "description": "One operator command: the chip's whole instruction set. Each $defs entry is the argument object for one command; operator/llm_operator.py turns them into Claude API tools.",
   "type": "object",
   "required": ["command", "args"],
   "properties": {
-    "command": { "enum": ["load", "exchange", "hold_temp", "split", "pool", "release"] },
+    "command": { "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "valve", "culture", "collect", "harvest"] },
     "args": { "type": "object" }
   },
   "allOf": [
@@ -33,6 +33,22 @@
     {
       "if": { "properties": { "command": { "const": "release" } }, "required": ["command"] },
       "then": { "properties": { "args": { "$ref": "#/$defs/release" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "valve" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/valve" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "culture" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/culture" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "collect" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/collect" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "harvest" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/harvest" } } }
     }
   ],
   "$defs": {
@@ -120,6 +136,56 @@
       "properties": {
         "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Chamber holding the capsules." },
         "reagent": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Generic release reagent name." }
+      }
+    },
+    "valve": {
+      "title": "valve(valves[], state)",
+      "description": "Open or close on-chip valves. A pair valve can't be opened in a control run.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["valves", "state"],
+      "properties": {
+        "valves": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" }, "description": "Valve ids." },
+        "state": { "enum": ["open", "closed"] }
+      }
+    },
+    "culture": {
+      "title": "culture(targets[], reagents[], duration_s, exchange_interval_s, volume_ul, flow_ul_min, temp_c)",
+      "description": "Keep chambers in culture: every exchange_interval_s a batch of fresh medium (volume_ul at flow_ul_min) flows through each chamber, then the flow stops until the next change.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targets", "reagents", "duration_s", "exchange_interval_s", "volume_ul", "flow_ul_min", "temp_c"],
+      "properties": {
+        "targets": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" }, "description": "Culture chamber ids." },
+        "reagents": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" }, "description": "Medium for each target, in the same order." },
+        "factors": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" }, "description": "Optional factor per target, added through each lane's factor port." },
+        "duration_s": { "type": "number", "exclusiveMinimum": 0 },
+        "exchange_interval_s": { "type": "number", "exclusiveMinimum": 0 },
+        "volume_ul": { "type": "number", "exclusiveMinimum": 0, "description": "Medium per exchange, per chamber." },
+        "flow_ul_min": { "type": "number", "exclusiveMinimum": 0 },
+        "temp_c": { "type": "number", "minimum": -20, "maximum": 120 }
+      }
+    },
+    "collect": {
+      "title": "collect(targets[], volume_ul)",
+      "description": "Take supernatant out of each chamber through its outlet into a collection tube. The cells stay.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targets", "volume_ul"],
+      "properties": {
+        "targets": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" } },
+        "volume_ul": { "type": "number", "exclusiveMinimum": 0, "description": "Per chamber." }
+      }
+    },
+    "harvest": {
+      "title": "harvest(targets[], reagent)",
+      "description": "Flush the (detached) cells out of each chamber through its outlet.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targets", "reagent"],
+      "properties": {
+        "targets": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" } },
+        "reagent": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Buffer that carries the cells out." }
       }
     }
   }

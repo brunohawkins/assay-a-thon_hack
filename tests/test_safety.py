@@ -1,4 +1,4 @@
-"""Each rule in operator/safety.py, on the wash MVP chip."""
+"""Each rule in operator/safety.py, on the Module 3 wash chip (and Module 1 for valves)."""
 
 import sys
 import unittest

@@ -72,6 +72,30 @@
       "type": "array",
       "items": { "$ref": "#/$defs/port" }
     },
+    "run_parameters": {
+      "type": "object",
+      "description": "Optional. Named run parameters this chip accepts (operator/run.py --variant ...). One spec, several instances: e.g. the same Module 1 chip printed twice and run as 'control' and 'interaction'.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["values", "default"],
+        "properties": {
+          "values": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/snake_id" } },
+          "default": { "$ref": "#/$defs/snake_id" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "valves": {
+      "type": "array",
+      "description": "Optional. On-chip valves. Each sits on a channel and is switched through a control port.",
+      "items": { "$ref": "#/$defs/valve" }
+    },
+    "features": {
+      "type": "array",
+      "description": "Optional. Parts that are not chambers, channels or ports: windows, heated zones. They get STLs and twin overlays like any part.",
+      "items": { "$ref": "#/$defs/feature" }
+    },
     "capsule": {
       "type": "object",
       "additionalProperties": false,
@@ -171,7 +195,13 @@
       "required": ["id", "type", "center", "size", "volume_ul"],
       "properties": {
         "id": { "$ref": "#/$defs/snake_id", "description": "Join key. STL files are named <id>.stl." },
-        "type": { "enum": ["inlet", "exchange", "split", "pool", "outlet", "well"] },
+        "type": { "enum": ["inlet", "exchange", "split", "pool", "outlet", "well", "culture", "junction", "bubble_trap"] },
+        "shape": {
+          "enum": ["box", "cylinder"],
+          "default": "box",
+          "description": "box (default): size is [x, y, z]. cylinder: a round chamber, size is [diameter, diameter, depth]."
+        },
+        "note": { "type": "string" },
         "center": { "$ref": "#/$defs/vec3" },
         "size": { "$ref": "#/$defs/size3" },
         "mesh_pore_um": {
@@ -221,7 +251,26 @@
           "type": "boolean",
           "default": false,
           "description": "true if the channel is an open groove with no lid. Default false (closed channel). Flow estimates for open channels are approximate."
-        }
+        },
+        "capsule_passable": {
+          "type": "boolean",
+          "description": "Optional, same meaning as ports[].capsule_passable (proposed by MJ). false for a channel deliberately too small to pass capsules or cells, such as a microgroove barrier that passes only soluble factors, vesicles and axons. Such a channel is not checked against capsule diameter."
+        },
+        "carries": {
+          "enum": ["capsules", "droplets", "cells", "liquid", "oil", "signals"],
+          "description": "Optional. What flows through it; picks the design rule. capsules / droplets (or unset): width >= 1.5 x capsule diameter. cells: width >= the cell-outlet minimum. liquid / oil / signals: no particle rule."
+        },
+        "path": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+          "description": "Optional. Centreline waypoints [[x, y], ...] in mm, from the 'from' end to the 'to' end. Without it the twin and display model route the channel automatically."
+        },
+        "fabricable": {
+          "type": "boolean",
+          "description": "false for a feature we can't make here (e.g. microgrooves). It is drawn, but not checked against our fabrication limits."
+        },
+        "note": { "type": "string" }
       }
     },
     "port": {
@@ -230,10 +279,10 @@
       "required": ["id", "type", "position"],
       "properties": {
         "id": { "$ref": "#/$defs/snake_id", "description": "e.g. inlet_1, outlet_1" },
-        "type": { "enum": ["inlet", "outlet"] },
+        "type": { "enum": ["inlet", "outlet", "control"], "description": "inlet / outlet for liquid; control for a valve control line." },
         "position": { "$ref": "#/$defs/vec3", "description": "Centre of the opening on the chip surface: on top, z = chip height; on the bottom, z = 0." },
         "role": {
-          "enum": ["load", "reagent", "waste", "release", "backflush"],
+          "enum": ["load", "reagent", "waste", "release", "backflush", "cells", "medium", "factor", "harvest", "control"],
           "description": "Optional. What the port is for."
         },
         "capsule_passable": {
@@ -244,7 +293,47 @@
           "type": "number",
           "exclusiveMinimum": 0,
           "description": "Optional. Opening width in micrometres. Capsule-passable outlets must be >= 1.5 x capsule diameter."
-        }
+        },
+        "note": { "type": "string" }
+      }
+    },
+    "valve": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "kind", "channel", "position", "control_port"],
+      "properties": {
+        "id": { "$ref": "#/$defs/snake_id" },
+        "type": { "enum": ["normally_closed", "normally_open"], "description": "State with no control pressure applied." },
+        "kind": {
+          "enum": ["branch", "pair", "isolation"],
+          "description": "branch: gates a seeding branch. pair: gates the link between two culture chambers (the safety checker blocks opening one in a control run). isolation: anything else."
+        },
+        "channel": { "$ref": "#/$defs/snake_id", "description": "The channel this valve opens or closes." },
+        "position": { "$ref": "#/$defs/vec3" },
+        "control_port": { "$ref": "#/$defs/snake_id", "description": "Port (type control) that switches this valve." },
+        "connects": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/snake_id" },
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "For a pair valve: the two chambers it links."
+        },
+        "note": { "type": "string" }
+      }
+    },
+    "feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "center", "size"],
+      "properties": {
+        "id": { "$ref": "#/$defs/snake_id" },
+        "type": { "enum": ["gas_window", "heat_zone", "cold_zone", "curing_window", "optical_window"] },
+        "center": { "$ref": "#/$defs/vec3" },
+        "size": { "$ref": "#/$defs/size3" },
+        "temp_c": { "type": "number", "description": "heat_zone / cold_zone set point." },
+        "wavelength_nm": { "type": "number", "description": "curing_window light." },
+        "covers": { "type": "array", "items": { "$ref": "#/$defs/snake_id" }, "description": "Chambers under this feature." },
+        "note": { "type": "string" }
       }
     }
   }
