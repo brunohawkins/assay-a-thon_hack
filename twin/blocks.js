@@ -1,7 +1,7 @@
 // Flowmatter block shapes in the twin. A chamber whose spec names a block that Yuvraj's library has
 // ("block": "culture_chamber", "y_junction", "serpentine_channel", ...) is drawn from that block's
-// STL (twin/vendor/flowmatter/, copied from his branch by tools/vendor_flowmatter.py) instead of a
-// plain box, so the chip looks like the Flowmatter design and the printed part.
+// STL (cad/library/, listed in chip/components/catalogue.json by his paper-to-chip tool) instead of
+// a plain box, so the chip looks like the Flowmatter design and the printed part.
 //
 // The STL is fitted to the chamber's box (x, y, depth) and turned (4 rotations x mirror) so its
 // arms point at the chamber's channels, preferring the turn that stretches it least. Channels keep
@@ -11,22 +11,23 @@
 import * as THREE from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 
-const BASE = './vendor/flowmatter/';
+const ROOT = '../';                                        // the repo root, as main.js serves it
+const CATALOGUE = `${ROOT}chip/components/catalogue.json`;
 const loader = new STLLoader();
 const geometries = new Map(); // part -> Promise<BufferGeometry>
 let catalogue = null;         // Promise<Map part -> catalogue entry>
 
 function loadCatalogue() {
-  catalogue ??= fetch(`${BASE}catalogue.json`, { cache: 'no-store' })
+  catalogue ??= fetch(CATALOGUE, { cache: 'no-store' })
     .then((r) => (r.ok ? r.json() : { parts: [] }))
     .then((c) => new Map(c.parts.map((p) => [p.part, p])))
     .catch(() => new Map());
   return catalogue;
 }
 
-function loadGeometry(part) {
-  if (!geometries.has(part)) geometries.set(part, loader.loadAsync(`${BASE}stl/${encodeURIComponent(part)}.stl`));
-  return geometries.get(part);
+function loadGeometry(entry) {
+  if (!geometries.has(entry.part)) geometries.set(entry.part, loader.loadAsync(`${ROOT}${entry.stl}`));
+  return geometries.get(entry.part);
 }
 
 // Unit directions (in the chamber's half-extent units) from its centre to each connected channel.
@@ -87,7 +88,7 @@ export async function applyBlocks(chip) {
     const part = chip.parts.get(c.id);
     if (!entry || !part) return;
     let src;
-    try { src = await loadGeometry(c.block); } catch { return; }
+    try { src = await loadGeometry(entry); } catch { return; }
     const geom = src.clone();
     const pos = geom.attributes.position.array;
     const [sx, sy, sz] = entry.size_mm;

@@ -1,9 +1,0 @@
-{
-  "ref": "origin/chip/flowmatter-paper-to-chip",
-  "commit": "02a670a",
-  "files": [
-    "catalogue.json",
-    "stl/*.stl"
-  ],
-  "note": "Unchanged copies from Yuvraj's branch; refresh with tools/vendor_flowmatter.py."
-}

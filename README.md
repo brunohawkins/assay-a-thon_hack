@@ -98,7 +98,7 @@ step: **BENCH**); off-chip steps are labelled on their tubes. A toggle switches 
 assays (**CapSeq** RNA / **TIP-seq** chromatin DNA; `tools/choose_assay.py` sets the default).
 Click a chip for its own view (tabs along the top: Culture, Cell prep, Encapsulation, Lysis +
 RT, Index PCR, Release). Chambers whose spec names a Flowmatter block are drawn from Yuvraj's
-block STLs (`twin/vendor/flowmatter/`). Module 1 v1 is a flow twin (see below); Modules 4 and 5
+block STLs (`cad/library/`, from his paper-to-chip tool). Module 1 v1 is a flow twin (see below); Modules 4 and 5
 play MJ's protocols with a design-note panel. Superseded drafts and the duplicates the status
 file retires are under **Old drafts**. Generated chips' views show their animations and a
 **Parameters** panel with the generator values used.
