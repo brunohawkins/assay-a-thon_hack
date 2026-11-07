@@ -77,7 +77,7 @@ inlet_1 → m1_expand → m2_hemogenic → m3_concentrate → mat_1..mat_4 → m
 |---|---|---|---|
 | `m1_expand` | −7 to −1 | 4 cm², 120 µL | iPSC expansion; enzyme-free lift as aggregates |
 | `m2_hemogenic` | −1 to 12 | 4 cm², 120 µL | Adherent hemogenic endothelium; progenitors float off from day 7 |
-| `m3_concentrate` | 10 to 12 | 0.3 cm², 9.6 µL | 30 µm filter and concentrator; replaces the spin |
+| `m3_concentrate` | 10 to 12 | 0.3 cm², 9.6 µL | Concentrator; replaces the spin. Fed through a 30 µm in-line filter |
 | `mat_1..mat_4` | 12 to 40 | 2.56 cm² each, 10.2 cm² total | Maturation, four chambers for n = 4 or four conditions |
 | `m5_harvest` | 40 | 2 cm², 60 µL | Pool, cool, dissociate, filter, count, deliver |
 
@@ -92,6 +92,19 @@ inlet_1 → m1_expand → m2_hemogenic → m3_concentrate → mat_1..mat_4 → m
   progenitors at roughly ten times that density, and the kit's own documentation warns
   that plating too sparsely *lowers* the mature marker fraction. The dense end of the
   published range needs **10 cm² instead of 90**.
+
+### Two different openings, which is easy to get wrong
+
+I had these conflated in the first version, and `tools/check_chip_spec.py` caught it.
+
+- **A retention mesh** keeps cells *in* a chamber while liquid drains. It must be well
+  below the cell diameter: 5 µm here, against the ~8 µm critical diameter in
+  `contracts/parameters.json`. `m1_expand` and `m2_hemogenic` have none, because their
+  cells are attached to the floor.
+- **An in-line filter** blocks things that are *too big*. The 30 µm filter on the
+  `ch_m2_m3` line stops detached endothelial sheet while passing 10–20 µm progenitors.
+  That is `cell_filter.gap_um` in the parameters file, and it is a channel feature, not
+  a chamber mesh.
 
 ### Why the suspension stage cannot be designed away
 
@@ -146,8 +159,11 @@ protocol are half-volume for the same reason.
 | Two passes through a 30 µm mesh | Matches the published two-pass strainer |
 | Count, concentrate, deliver | Sets the loading density for encapsulation |
 
-**Interface:** roughly 400,000–600,000 cells at about 1,000 cells/µL, >85% viable, no
-clumps above 30 µm, in a carrier-protein buffer at 4 °C, delivered within minutes.
+**Interface,** matched to `contracts/parameters.json`: roughly 400,000–600,000 cells at
+**1,500 cells/µL** (`encapsulation.cell_conc_per_ul`, range 1,000–2,000), so about 400 µL;
+**>90% viable** (`qc.viability_min`); no clumps above **30 µm** (`cell_filter.gap_um`,
+which must stay at or below the 40 µm encapsulation nozzle); in a carrier-protein buffer
+at 4 °C, delivered within minutes.
 
 **Release gate.** Do not encapsulate on a schedule. Encapsulate when imaging
 (adherent fraction, ramification, death fraction) and supernatant markers both pass.
@@ -179,6 +195,10 @@ If the gate fails, hold and re-test rather than spending an encapsulation run.
 - **The run is 47 days**, which the twin will play as 4,064,304 s. The protocol is
   honest rather than shortened for the demo, so the twin may want a larger speed
   multiplier or a day-scale timeline.
+- **Two open TODOs from `check_chip_spec.py`,** shared with the other chips: the
+  fabrication limits in `cad/fabrication.json` are not filled in yet, and this chip's
+  reagent names have no PMMA compatibility entry in `contracts/materials.json`. Both
+  need owners' input rather than a guess from me.
 - **Call the product "microglia-like cells".** The 2022 field white paper
   (doi 10.1016/j.neuron.2022.10.020) is explicit that marker panels do not make a cell
   bona fide microglia, and no in vitro protocol reproduces the adult homeostatic

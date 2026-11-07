@@ -1,19 +1,19 @@
 {
   "id": "ipsc_to_mgl_chip_v1",
   "name": "iPSC to microglia-like cell train v1",
-  "description": "Five linked culture and fluidics modules on one 150 x 100 mm board, for running a published monolayer iPSC-to-microglia differentiation end to end with no off-chip handling. Left to right: m1_expand (iPSC expansion, lifted as aggregates), m2_hemogenic (adherent hemogenic endothelium; progenitors round up and float off from about day 7), m3_concentrate (30 um filter plus concentrator, which replaces the centrifugation step), mat_1..mat_4 (four parallel maturation chambers, giving n = 4 or four conditions) and m5_harvest (pooling, dissociation and delivery to the encapsulation inlet). Chamber height is set by a 0.3 mm adhesive spacer, so every chamber is a cut-out rectangle in one laser-cut layer. mesh_pore_um is the retention mesh at each chamber outlet, not a floor: cells here are adherent, unlike the capsule chips. Geometry and flow numbers are ours; the step schedule they serve is from the published protocol cited in protocols/ipsc_to_mgl_v1.json.",
+  "description": "Five linked culture and fluidics modules on one 150 x 100 mm board, for running a published monolayer iPSC-to-microglia differentiation end to end with no off-chip handling. Left to right: m1_expand (iPSC expansion, lifted as aggregates), m2_hemogenic (adherent hemogenic endothelium; progenitors round up and float off from about day 7), m3_concentrate (30 um filter plus concentrator, which replaces the centrifugation step), mat_1..mat_4 (four parallel maturation chambers, giving n = 4 or four conditions) and m5_harvest (pooling, dissociation and delivery to the encapsulation inlet). Chamber height is set by a 0.3 mm spacer layer cut from acrylic (or a stack of adhesive film to the same thickness), so every chamber is a cut-out rectangle in one laser-cut layer. These chambers hold adherent cells, not capsules, so mesh_pore_um is the retention mesh that keeps loosely adherent cells in during an exchange (5 um, below the ~8 um critical diameter in contracts/parameters.json); m1_expand and m2_hemogenic have none, because their cells are attached to the floor. Separately, the ch_m2_m3 line carries a 30 um in-line filter (cell_filter.gap_um) that blocks detached endothelial sheet while passing progenitors; that is a channel feature, not a chamber retention mesh. Geometry and flow numbers are ours; the step schedule they serve is from the published protocol cited in protocols/ipsc_to_mgl_v1.json.",
   "placeholder": false,
   "units": "mm",
   "footprint": { "x": 150, "y": 100 },
   "layers": [
     { "id": "base", "material": "acrylic", "thickness_mm": 3 },
-    { "id": "spacer", "material": "acrylic_psa", "thickness_mm": 0.3 },
+    { "id": "spacer", "material": "acrylic", "thickness_mm": 0.3 },
     { "id": "lid", "material": "acrylic", "thickness_mm": 3 }
   ],
   "chambers": [
-    { "id": "m1_expand", "type": "exchange", "center": [25, 50, 3.15], "size": [20, 20, 0.3], "mesh_pore_um": 40, "volume_ul": 120 },
-    { "id": "m2_hemogenic", "type": "exchange", "center": [55, 50, 3.15], "size": [20, 20, 0.3], "mesh_pore_um": 40, "volume_ul": 120 },
-    { "id": "m3_concentrate", "type": "exchange", "center": [78, 50, 3.15], "size": [8, 4, 0.3], "mesh_pore_um": 30, "volume_ul": 9.6 },
+    { "id": "m1_expand", "type": "exchange", "center": [25, 50, 3.15], "size": [20, 20, 0.3], "mesh_pore_um": null, "volume_ul": 120 },
+    { "id": "m2_hemogenic", "type": "exchange", "center": [55, 50, 3.15], "size": [20, 20, 0.3], "mesh_pore_um": null, "volume_ul": 120 },
+    { "id": "m3_concentrate", "type": "exchange", "center": [78, 50, 3.15], "size": [8, 4, 0.3], "mesh_pore_um": 5, "volume_ul": 9.6 },
     { "id": "mat_1", "type": "split", "center": [100, 14, 3.15], "size": [16, 16, 0.3], "mesh_pore_um": 5, "volume_ul": 76.8 },
     { "id": "mat_2", "type": "split", "center": [100, 38, 3.15], "size": [16, 16, 0.3], "mesh_pore_um": 5, "volume_ul": 76.8 },
     { "id": "mat_3", "type": "split", "center": [100, 62, 3.15], "size": [16, 16, 0.3], "mesh_pore_um": 5, "volume_ul": 76.8 },

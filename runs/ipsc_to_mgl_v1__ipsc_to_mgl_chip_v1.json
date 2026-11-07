@@ -4,7 +4,7 @@
   "chip_id": "ipsc_to_mgl_chip_v1",
   "chip_spec": "chip/ipsc_to_mgl_chip_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T14:47:30Z",
+  "created_at": "2026-11-07T14:47:47Z",
   "placeholder": false,
   "sizing": {
     "capsule_count": null,
@@ -12,8 +12,6 @@
     "capsule_diameter_um": 70.0,
     "cells_expected": 7696.9,
     "trap_chambers": [
-      "m1_expand",
-      "m2_hemogenic",
       "m3_concentrate",
       "mat_1",
       "mat_2",
@@ -22,9 +20,9 @@
       "m5_harvest"
     ],
     "monolayer_area_mm2_needed": 490.0,
-    "trap_area_mm2": 2056,
+    "trap_area_mm2": 1256,
     "packed_volume_ul_needed": 28.062,
-    "trap_volume_ul": 616.8,
+    "trap_volume_ul": 376.8,
     "channel_width_um": [
       800.0,
       800.0
