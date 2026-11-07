@@ -1,4 +1,4 @@
-# capsule-processor
+# assay-a-thon_hack: capsule processor
 
 Describe a single-cell assay protocol; AI designs a microfluidic **capsule processor**
 chip for it, and an AI operator runs the protocol on that chip, shown live as a 3D
@@ -52,8 +52,8 @@ with [contracts/README.md](contracts/README.md).
 Needs Python 3.10+.
 
 ```bash
-git clone https://github.com/brunohawkins/capsule-processor.git
-cd capsule-processor
+git clone https://github.com/brunohawkins/assay-a-thon_hack.git
+cd assay-a-thon_hack
 python -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt     # just jsonschema
