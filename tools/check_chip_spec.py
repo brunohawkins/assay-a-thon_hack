@@ -251,10 +251,14 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
     if not_here:
         f.todo.append("not fabricable here (by design): " + ", ".join(
             f"{ch['id']} ({ch['width_mm'] * 1000:g} x {ch['depth_mm'] * 1000:g} um)" for ch in not_here))
+    # IN-PLANE ONLY. The fabrication minimum is a lateral limit: it is what the printer can
+    # resolve in x-y and what the embossing tool can replicate as a standing feature. DEPTH
+    # is set in z by the mould relief or the layer stack and is free below it - that is the
+    # whole reason a depth weir can retain a 70 um capsule when no printable in-plane gap
+    # can. Checking depth against the lateral floor produced ~90 false warnings.
     features = [(f"channel '{ch['id']}' width", ch["width_mm"] * 1000) for ch in made_here]
-    features += [(f"channel '{ch['id']}' depth", ch["depth_mm"] * 1000) for ch in made_here]
     features += [(f"port '{p['id']}' width", p["width_um"]) for p in ports.values() if "width_um" in p]
-    features += [(f"chamber '{c['id']}' height", c["height_um"]) for c in chambers.values() if "height_um" in c]
+    # chamber height is z, like channel depth: not a lateral feature, so not checked here.
     features += [(f"chamber '{c['id']}' {c['retention']['type']} opening", c["retention"]["opening_um"])
                  for c in chambers.values() if c.get("retention", {}).get("source") == "fabricated"]
     known = [v for v in (fab.get("laser_kerf_um"), fab.get("min_embossed_feature_um")) if isinstance(v, (int, float))]

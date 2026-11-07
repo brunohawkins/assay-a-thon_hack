@@ -11,12 +11,12 @@
   "layers": [
     {
       "id": "mould_base",
-      "material": "unknown",
+      "material": "printed_resin",
       "thickness_mm": 0.5
     },
     {
       "id": "relief",
-      "material": "unknown",
+      "material": "printed_resin",
       "thickness_mm": 0.2
     }
   ],
@@ -36,7 +36,8 @@
       ],
       "mesh_pore_um": null,
       "volume_ul": 0.1571,
-      "open_top": true
+      "open_top": true,
+      "block": "polygon_chamber"
     },
     {
       "id": "well_2",
@@ -53,7 +54,8 @@
       ],
       "mesh_pore_um": null,
       "volume_ul": 0.1571,
-      "open_top": true
+      "open_top": true,
+      "block": "polygon_chamber"
     }
   ],
   "channels": [
@@ -63,7 +65,8 @@
       "to": "well_2",
       "width_mm": 0.5,
       "depth_mm": 0.2,
-      "open_top": true
+      "open_top": true,
+      "block": "straight_channel"
     }
   ],
   "ports": []

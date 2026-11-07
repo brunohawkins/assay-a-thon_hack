@@ -5,7 +5,7 @@
 //            (the row whose status says BUILT / wins comes first; other rows for the same chip,
 //            e.g. "RT ONLY, runs in the capsule trap" for Module 3, become extras)
 //   offChip  [{ stage, where, status, after, before }]: OFF-CHIP rows, with the chips either side
-//   retired  Set of chip ids whose every row says DUPLICATE-RETIRE
+//   retired  Set of whole chips the file retires (its retired table, or rows all saying DUPLICATE-RETIRE)
 
 const cells = (line) => line.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
 const code = (s) => /`([^`]+)`/.exec(s)?.[1] ?? null;
@@ -13,6 +13,7 @@ const badgeOf = (status) => status.split(/[,(]/)[0].trim().toUpperCase();
 
 export function parseStatus(md) {
   const rows = [];
+  const retiredRows = [];
   let header = null;
   for (const line of md.split('\n')) {
     if (!line.trim().startsWith('|')) { header = null; continue; }   // a new table starts with its own header
@@ -20,6 +21,10 @@ export function parseStatus(md) {
     if (c.every((x) => /^:?-+:?$/.test(x))) continue;     // the |---| separator
     if (!header) { header = c.map((x) => x.toLowerCase()); continue; }
     const get = (name) => c[header.indexOf(name)] ?? '';
+    if (header.includes('item')) {        // the "Retired and duplicates" table: Item | Replaced by | ...
+      retiredRows.push({ item: get('item'), chip: code(get('item')), whole: /^`[^`]+`$/.test(get('item')), by: code(get('replaced by')) });
+      continue;
+    }
     rows.push({ stage: get('stage'), chipCell: get('chip'), chip: code(get('chip')), protocol: get('protocol'), status: get('status') });
   }
   const byChip = new Map();
@@ -40,7 +45,9 @@ export function parseStatus(md) {
     const i = rows.findIndex((r) => r.stage === o.stage && r.chipCell === o.where);
     o.before = rows.slice(i + 1).find((r) => r.chip && !/DUPLICATE/i.test(r.status))?.chip ?? null;
   }
-  const retired = new Set();
+  // Retired: a whole chip in the retired table (not "`module1_v1` dissociation", which retires
+  // steps), or a chip whose every row says DUPLICATE (the table's earlier layout).
+  const retired = new Set(retiredRows.filter((r) => r.chip && r.whole).map((r) => r.chip));
   for (const [chip, rs] of all) {
     const live = rs.filter((r) => !/DUPLICATE/i.test(r.status));
     if (!live.length) { retired.add(chip); }
@@ -51,7 +58,7 @@ export function parseStatus(md) {
       extras: live.filter((r) => r !== primary).map((r) => ({ stage: r.stage, status: r.status, badge: badgeOf(r.status) })),
     });
   }
-  return { rows, byChip, offChip, retired };
+  return { rows, byChip, offChip, retired, retiredRows };
 }
 
 export async function loadStatus(root) {

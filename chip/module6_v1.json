@@ -1,0 +1,257 @@
+{
+  "id": "module6_v1",
+  "name": "Module 6: omics capture (metabolite flow-through, RNA stays in the capsules)",
+  "description": "Omics capture chip, metabolome plus transcriptome from the same capsules. 30 x 20 mm, ONE fluidic layer at ONE etch depth of 0.3 mm, resin print + hot emboss, geometry only from contracts/blocks.json (trap_chamber, flow_distributor, flow_manifold). Three separate lanes (neurons, glia, astrocytes) that never share a wetted path on the chip: each lane is one inlet, one 3 x 14 x 0.3 mm trap chamber and one outlet, with a depth weir on the outlet edge (gap 25 um, crest 275 um). WHAT IT DOES AND DOES NOT DO. The capsule shell is a nucleic-acid filter, not a protein sieve, so proteins mostly pass through it: the flow-through is NOT a proteome and nothing here claims it is. Mild lysis (native protein) and cold-solvent quench (valid metabolomics) are mutually exclusive on one sample, so this chip does the workable split: flush the held capsules in place with cold acidic organic solvent, collect that flow-through per lane for metabolomics, and the RNA stays in the capsules, which go on to module 4. PORT ALLOCATION (6 of 6). in_n, in_g, in_a, out_n, out_g, out_a. Three lanes x (in + out) already uses all six, so solvent and lane feeds share the inlets: each inlet sits behind its OWN off-chip four-position selector valve (capsule feed for that lane, cold solvent, neutralising wash, hand-off line to module 4), and each outlet behind its own two-way valve (collection vial for that lane, or waste). Nothing that has touched a lane is ever routed to another lane's valve, vial or line. Only clean reagent reservoirs (solvent, neutralising wash) are shared, upstream of the valves, each through a one-way check valve so liquid cannot back up into them. Capsules leave by backflush: out_x is pressurised, in_x drains to the module 4 line, because the weir only passes capsules backwards. CARRY-OVER RISK. Cross-lane: the only shared wetted parts are the clean reagent reservoirs and their header; lane liquid reaches them only if a check valve fails or a valve is switched under reverse pressure. Within a lane: the valve bore, the stub to the port and the on-chip lines hold liquid from the previous step. Flushing 5 wetted lane volumes (70.145 uL here, wetted volume 14.029 uL = chamber 12.6 uL + lines 1.429 uL) through a dead volume no larger than one wetted lane volume leaves at most exp(-5) = 0.7% of the old liquid, assuming ideal mixing. A dead-end bore does not mix ideally, so this is a design bound to be measured with a dye test, not a measured number. The residue that does remain is mostly capsule-suspension medium, which adds extracellular metabolites to that lane's extract. It cannot move another lane's cells, because no path leads there. Untested: the bonded wall between lanes holding under solvent pressure. CAPACITY. Each lane holds about 44,901 capsules of 70 um at 0.64 packing (12.6 uL chamber), 134,703 for the chip. At the sizing sheet's mean occupancy that is about 3,456 cells per lane. Metabolomics needs about 30,000 cells at the bottom of its usable range, so ONE LANE IS ABOUT 9x SHORT. Even three lanes of the largest chamber this envelope allows (about 163,568 capsules, 12,590 cells each) fall below it. The chip only works for metabolomics if the capsules are enriched for occupied ones before loading, or if several loads are pooled into one extract off chip. If the capsules are still swollen to 140 um the count drops about 8-fold. QUENCH SPEED (honest limit). Metabolite pools turn over in about 1 s and diffusion across 0.3 mm takes about 90 s, so the solvent has to arrive by flow. At the shear ceiling the superficial velocity is about 53 um/s whatever the geometry (tau = 6 mu Q / (w h^2)), so the solvent front needs about 20 s to sweep the pore volume of the bed. That is about 20 times slower than the 1 s pool turnover: the quench is in place but NOT fast enough to freeze the metabolome, and the metabolite data from this chip should be treated as unvalidated until the shear ceiling is relaxed for capsule-protected cells or the quench is shown to hold. Cold organic solvent is also more viscous than the 0.8e-3 Pa s used here, so its real shear is higher than computed. Weir equalisation: for the same width the 25 um gap has about 115x the resistance of the open chamber (thin-slit scaling, crest 0.2 mm thick), so the weir sets how the flow spreads across the width. The z tolerance on a 25 um gap in a 300 um layer is the biggest unknown (contracts/blocks.json): run a coupon before committing. Open question for the pipeline: module 4 expects capsules that have already been lysed and reverse-transcribed in module 3, which this hand-off skips.",
+  "placeholder": false,
+  "units": "mm",
+  "footprint": {
+    "x": 30,
+    "y": 20
+  },
+  "layers": [
+    {
+      "id": "base",
+      "material": "coc",
+      "thickness_mm": 0.5
+    },
+    {
+      "id": "fluidic",
+      "material": "coc",
+      "thickness_mm": 0.3
+    },
+    {
+      "id": "lid",
+      "material": "coc",
+      "thickness_mm": 1.0
+    }
+  ],
+  "capsule": {
+    "diameter_um": 70,
+    "count": 134703
+  },
+  "trap": {
+    "gap_um": 25
+  },
+  "chambers": [
+    {
+      "id": "cap_n",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        5.0,
+        10.0,
+        0.65
+      ],
+      "size": [
+        3.0,
+        14.0,
+        0.3
+      ],
+      "height_um": 300.0,
+      "mesh_pore_um": null,
+      "volume_ul": 12.6,
+      "retention": {
+        "type": "weir",
+        "opening_um": 25,
+        "source": "fabricated"
+      },
+      "block": "trap_chamber",
+      "note": "Neurons lane. Flow runs left to right (x), so the width w = 14 mm is the wetted width in the shear formula. Depth weir on the outlet (right) edge: crest 275 um tall in the 300 um layer leaves a 25 um gap under the lid; it retains 70 um capsules and passes liquid. Holds about 44,901 capsules of 70 um at 0.64 packing."
+    },
+    {
+      "id": "cap_g",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        15.0,
+        10.0,
+        0.65
+      ],
+      "size": [
+        3.0,
+        14.0,
+        0.3
+      ],
+      "height_um": 300.0,
+      "mesh_pore_um": null,
+      "volume_ul": 12.6,
+      "retention": {
+        "type": "weir",
+        "opening_um": 25,
+        "source": "fabricated"
+      },
+      "block": "trap_chamber",
+      "note": "Glia lane. Flow runs left to right (x), so the width w = 14 mm is the wetted width in the shear formula. Depth weir on the outlet (right) edge: crest 275 um tall in the 300 um layer leaves a 25 um gap under the lid; it retains 70 um capsules and passes liquid. Holds about 44,901 capsules of 70 um at 0.64 packing."
+    },
+    {
+      "id": "cap_a",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        25.0,
+        10.0,
+        0.65
+      ],
+      "size": [
+        3.0,
+        14.0,
+        0.3
+      ],
+      "height_um": 300.0,
+      "mesh_pore_um": null,
+      "volume_ul": 12.6,
+      "retention": {
+        "type": "weir",
+        "opening_um": 25,
+        "source": "fabricated"
+      },
+      "block": "trap_chamber",
+      "note": "Astrocytes lane. Flow runs left to right (x), so the width w = 14 mm is the wetted width in the shear formula. Depth weir on the outlet (right) edge: crest 275 um tall in the 300 um layer leaves a 25 um gap under the lid; it retains 70 um capsules and passes liquid. Holds about 44,901 capsules of 70 um at 0.64 packing."
+    }
+  ],
+  "channels": [
+    {
+      "id": "ch_in_n",
+      "from": "in_n",
+      "to": "cap_n",
+      "width_mm": 0.6,
+      "depth_mm": 0.3,
+      "carries": "capsules",
+      "block": "flow_distributor",
+      "note": "Neurons feed line: capsule suspension in, cold solvent in, neutralising wash in, and capsules out again on the hand-off. flow_distributor fans the stream across the 14 mm chamber width with matched path lengths so the weir is fed evenly."
+    },
+    {
+      "id": "ch_out_n",
+      "from": "cap_n",
+      "to": "out_n",
+      "width_mm": 0.6,
+      "depth_mm": 0.3,
+      "carries": "liquid",
+      "capsule_passable": false,
+      "block": "flow_manifold",
+      "note": "Neurons collection line, behind the weir: flow_manifold gathers the stream from the 14 mm weir edge into one outlet. Liquid only, never capsules while the weir holds."
+    },
+    {
+      "id": "ch_in_g",
+      "from": "in_g",
+      "to": "cap_g",
+      "width_mm": 0.6,
+      "depth_mm": 0.3,
+      "carries": "capsules",
+      "block": "flow_distributor",
+      "note": "Glia feed line: capsule suspension in, cold solvent in, neutralising wash in, and capsules out again on the hand-off. flow_distributor fans the stream across the 14 mm chamber width with matched path lengths so the weir is fed evenly."
+    },
+    {
+      "id": "ch_out_g",
+      "from": "cap_g",
+      "to": "out_g",
+      "width_mm": 0.6,
+      "depth_mm": 0.3,
+      "carries": "liquid",
+      "capsule_passable": false,
+      "block": "flow_manifold",
+      "note": "Glia collection line, behind the weir: flow_manifold gathers the stream from the 14 mm weir edge into one outlet. Liquid only, never capsules while the weir holds."
+    },
+    {
+      "id": "ch_in_a",
+      "from": "in_a",
+      "to": "cap_a",
+      "width_mm": 0.6,
+      "depth_mm": 0.3,
+      "carries": "capsules",
+      "block": "flow_distributor",
+      "note": "Astrocytes feed line: capsule suspension in, cold solvent in, neutralising wash in, and capsules out again on the hand-off. flow_distributor fans the stream across the 14 mm chamber width with matched path lengths so the weir is fed evenly."
+    },
+    {
+      "id": "ch_out_a",
+      "from": "cap_a",
+      "to": "out_a",
+      "width_mm": 0.6,
+      "depth_mm": 0.3,
+      "carries": "liquid",
+      "capsule_passable": false,
+      "block": "flow_manifold",
+      "note": "Astrocytes collection line, behind the weir: flow_manifold gathers the stream from the 14 mm weir edge into one outlet. Liquid only, never capsules while the weir holds."
+    }
+  ],
+  "ports": [
+    {
+      "id": "in_n",
+      "type": "inlet",
+      "position": [
+        1.5,
+        16.0,
+        1.8
+      ],
+      "role": "load",
+      "capsule_passable": true,
+      "width_um": 800,
+      "note": "Neurons inlet. Behind one off-chip selector valve with four positions: capsule feed n, cold solvent, neutralising wash, hand-off to module 4."
+    },
+    {
+      "id": "out_n",
+      "type": "outlet",
+      "position": [
+        8.5,
+        4.0,
+        1.8
+      ],
+      "role": "release",
+      "capsule_passable": false,
+      "width_um": 800,
+      "note": "Neurons outlet, one per lane. An off-chip two-way valve sends it to collection vial n during the quench flush and to waste otherwise."
+    },
+    {
+      "id": "in_g",
+      "type": "inlet",
+      "position": [
+        11.5,
+        16.0,
+        1.8
+      ],
+      "role": "load",
+      "capsule_passable": true,
+      "width_um": 800,
+      "note": "Glia inlet. Behind one off-chip selector valve with four positions: capsule feed g, cold solvent, neutralising wash, hand-off to module 4."
+    },
+    {
+      "id": "out_g",
+      "type": "outlet",
+      "position": [
+        18.5,
+        4.0,
+        1.8
+      ],
+      "role": "release",
+      "capsule_passable": false,
+      "width_um": 800,
+      "note": "Glia outlet, one per lane. An off-chip two-way valve sends it to collection vial g during the quench flush and to waste otherwise."
+    },
+    {
+      "id": "in_a",
+      "type": "inlet",
+      "position": [
+        21.5,
+        16.0,
+        1.8
+      ],
+      "role": "load",
+      "capsule_passable": true,
+      "width_um": 800,
+      "note": "Astrocytes inlet. Behind one off-chip selector valve with four positions: capsule feed a, cold solvent, neutralising wash, hand-off to module 4."
+    },
+    {
+      "id": "out_a",
+      "type": "outlet",
+      "position": [
+        28.5,
+        4.0,
+        1.8
+      ],
+      "role": "release",
+      "capsule_passable": false,
+      "width_um": 800,
+      "note": "Astrocytes outlet, one per lane. An off-chip two-way valve sends it to collection vial a during the quench flush and to waste otherwise."
+    }
+  ]
+}

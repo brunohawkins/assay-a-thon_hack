@@ -4,7 +4,7 @@
   "variant": "tipseq",
   "name": "TIP-seq (chromatin DNA): culture -> permeabilise + tagment (bench) -> capsules -> barcoding in oil -> release -> index PCR",
   "placeholder": true,
-  "description": "TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + single-copy barcoding chip (read-only); MJ has since retired its own encapsulator (stage A), so its capsules come from spc_demo_v1, the only encapsulation geometry that can be printed. Release (module5_v1) comes BEFORE index PCR (module4_v1), as TIP-seq does; module5_v1's design note says either order works. protocols/pipeline_status.md retires sctip_spc_v1 as a duplicate in the CapSeq plan; it is used here because this variant needs its barcoding in oil.",
+  "description": "TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + single-copy barcoding chip (read-only); its own encapsulator (stage A) is retired, so its capsules come from spc_demo_v1, the only encapsulation geometry that can be printed. Release (module5_v1) comes BEFORE index PCR (module4_v1), as TIP-seq does; module5_v1's design note says either order works. protocols/pipeline_status.md lists sctip_spc_v1 as retired in the CapSeq plan; it is used here because this variant needs its barcoding in oil.",
   "modules": [
     {
       "module": "module1",
@@ -20,7 +20,7 @@
         "source": "contracts/blocks.json (fabrication_floors)"
       },
       "built_for_demo": false,
-      "note": "Rescaled from 140 x 75 mm. Its own dissociation and collect steps (179-182) are retired in favour of cell_prep_v1. The dye-demo doc (cad/module1_dye_demo.md) predates the rescale."
+      "note": "Rescaled from 140 x 75 mm. Its own dissociation (steps 175-178) duplicates cell_prep_v1 and is still in the protocol; the back-flush, pooling and release (179-182) are still the only way cells leave. The dye-demo doc (cad/module1_dye_demo.md) predates the rescale."
     },
     {
       "module": "bench",
@@ -55,7 +55,7 @@
       "module": "sctip",
       "name": "Barcoding in oil (sctip_spc_v1)",
       "status": "draft",
-      "status_note": "MJ's sctip chip (stage B); retired as a duplicate in the CapSeq plan",
+      "status_note": "MJ's sctip chip; listed as retired in the CapSeq plan",
       "owner": "MJ",
       "chip": "chip/sctip_spc_v1.json",
       "protocol": "protocols/sctip_spc_v1.json",
@@ -201,7 +201,7 @@
       "note": "Released DNA split four ways for index PCR."
     },
     {
-      "id": "index_pcr_to_spri_qc",
+      "id": "index_pcr_to_roadmap",
       "carries": "library",
       "from": {
         "module": "module4",
@@ -211,7 +211,7 @@
       "to": {
         "roadmap": "spri_qc"
       },
-      "note": "Indexed sublibraries to SPRI and QC off-chip."
+      "note": "Indexed sublibraries on, off-chip."
     },
     {
       "id": "spri_qc_to_library_out",

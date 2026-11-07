@@ -2,8 +2,8 @@
   "_about": "Module 3 dye test: measured vs predicted. Fill the trap with dye, then wash with clear buffer at flow_ul_min and read the outlet (or the trap) after each volume. Put readings in measured_dye_fraction (1 = all dye left, 0 = clean). cad/generators/m3_wash.py rewrites the predictions and keeps the measurements; operator/model.py uses the same well-mixed model.",
   "chip_id": "m3_wash_v1",
   "chamber": "m3_trap_1",
-  "chamber_volume_ul": 7.35,
-  "flow_ul_min": 20,
+  "chamber_volume_ul": 14.7,
+  "flow_ul_min": 7,
   "model": "well-mixed: dye fraction = exp(-V / Vc)",
   "measured_points": 0,
   "points": [
@@ -15,71 +15,71 @@
       "note": ""
     },
     {
-      "volume_ul": 3.67,
-      "time_s": 11.0,
-      "predicted_dye_fraction": 0.6069,
-      "measured_dye_fraction": null,
-      "note": ""
-    },
-    {
       "volume_ul": 7.35,
-      "time_s": 22.1,
-      "predicted_dye_fraction": 0.3679,
-      "measured_dye_fraction": null,
-      "note": ""
-    },
-    {
-      "volume_ul": 11.02,
-      "time_s": 33.1,
-      "predicted_dye_fraction": 0.2233,
+      "time_s": 63.0,
+      "predicted_dye_fraction": 0.6065,
       "measured_dye_fraction": null,
       "note": ""
     },
     {
       "volume_ul": 14.7,
-      "time_s": 44.1,
-      "predicted_dye_fraction": 0.1353,
-      "measured_dye_fraction": null,
-      "note": ""
-    },
-    {
-      "volume_ul": 18.38,
-      "time_s": 55.1,
-      "predicted_dye_fraction": 0.082,
+      "time_s": 126.0,
+      "predicted_dye_fraction": 0.3679,
       "measured_dye_fraction": null,
       "note": ""
     },
     {
       "volume_ul": 22.05,
-      "time_s": 66.2,
-      "predicted_dye_fraction": 0.0498,
-      "measured_dye_fraction": null,
-      "note": ""
-    },
-    {
-      "volume_ul": 25.72,
-      "time_s": 77.2,
-      "predicted_dye_fraction": 0.0302,
+      "time_s": 189.0,
+      "predicted_dye_fraction": 0.2231,
       "measured_dye_fraction": null,
       "note": ""
     },
     {
       "volume_ul": 29.4,
-      "time_s": 88.2,
-      "predicted_dye_fraction": 0.0183,
-      "measured_dye_fraction": null,
-      "note": ""
-    },
-    {
-      "volume_ul": 33.07,
-      "time_s": 99.2,
-      "predicted_dye_fraction": 0.0111,
+      "time_s": 252.0,
+      "predicted_dye_fraction": 0.1353,
       "measured_dye_fraction": null,
       "note": ""
     },
     {
       "volume_ul": 36.75,
-      "time_s": 110.2,
+      "time_s": 315.0,
+      "predicted_dye_fraction": 0.0821,
+      "measured_dye_fraction": null,
+      "note": ""
+    },
+    {
+      "volume_ul": 44.1,
+      "time_s": 378.0,
+      "predicted_dye_fraction": 0.0498,
+      "measured_dye_fraction": null,
+      "note": ""
+    },
+    {
+      "volume_ul": 51.45,
+      "time_s": 441.0,
+      "predicted_dye_fraction": 0.0302,
+      "measured_dye_fraction": null,
+      "note": ""
+    },
+    {
+      "volume_ul": 58.8,
+      "time_s": 504.0,
+      "predicted_dye_fraction": 0.0183,
+      "measured_dye_fraction": null,
+      "note": ""
+    },
+    {
+      "volume_ul": 66.15,
+      "time_s": 567.0,
+      "predicted_dye_fraction": 0.0111,
+      "measured_dye_fraction": null,
+      "note": ""
+    },
+    {
+      "volume_ul": 73.5,
+      "time_s": 630.0,
       "predicted_dye_fraction": 0.0067,
       "measured_dye_fraction": null,
       "note": ""

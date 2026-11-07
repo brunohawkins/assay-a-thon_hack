@@ -2,7 +2,7 @@
  "chip": "module1_v1",
  "operator": "scripted",
  "flow_ul_min": 2.393,
- "created_at": "2026-11-07T17:49:48+00:00",
+ "created_at": "2026-11-07T18:19:38+00:00",
  "note": "scripted = a fixed decision list (offline demo), not model output",
  "decisions": [
   {
@@ -78,10 +78,10 @@
      },
      "j_mid": {
       "throughput_ul_min": 2.393,
-      "shear_dyn_cm2": 0.017003
+      "shear_dyn_cm2": 0.008863
      }
     },
-    "max_pressure_mbar": 0.023467
+    "max_pressure_mbar": 0.02111
    },
    "applied": true
   },
@@ -160,10 +160,10 @@
      },
      "j_mid": {
       "throughput_ul_min": 7.179,
-      "shear_dyn_cm2": 0.05101
+      "shear_dyn_cm2": 0.026589
      }
     },
-    "max_pressure_mbar": 0.029468
+    "max_pressure_mbar": 0.025572
    },
    "applied": true
   },
@@ -209,7 +209,7 @@
       "direction": "n_cx -> j_mid"
      },
      "ch_g_j": {
-      "flow_ul_min": 0.360402,
+      "flow_ul_min": 0.555325,
       "direction": "g_cx -> j_mid"
      },
      "ch_a_j": {
@@ -217,11 +217,11 @@
       "direction": "a_cx -> j_mid"
      },
      "ch_j_mid": {
-      "flow_ul_min": 5.146402,
+      "flow_ul_min": 5.341325,
       "direction": "j_mid -> p_mid"
      },
      "ch_g_out": {
-      "flow_ul_min": 2.032598,
+      "flow_ul_min": 1.837675,
       "direction": "g_cx -> p_g_out"
      },
      "ch_a_out": {
@@ -243,11 +243,11 @@
       "shear_dyn_cm2": 0.008498
      },
      "j_mid": {
-      "throughput_ul_min": 5.146402,
-      "shear_dyn_cm2": 0.036567
+      "throughput_ul_min": 5.341325,
+      "shear_dyn_cm2": 0.019783
      }
     },
-    "max_pressure_mbar": 0.026919
+    "max_pressure_mbar": 0.023859
    },
    "applied": true
   },
@@ -331,10 +331,10 @@
      },
      "j_mid": {
       "throughput_ul_min": 4.786,
-      "shear_dyn_cm2": 0.034007
+      "shear_dyn_cm2": 0.017726
      }
     },
-    "max_pressure_mbar": 0.068355
+    "max_pressure_mbar": 0.065945
    },
    "applied": false,
    "kept": "grow"
@@ -414,10 +414,10 @@
      },
      "j_mid": {
       "throughput_ul_min": 7.179,
-      "shear_dyn_cm2": 0.05101
+      "shear_dyn_cm2": 0.026589
      }
     },
-    "max_pressure_mbar": 0.029468
+    "max_pressure_mbar": 0.025572
    },
    "applied": true
   },
@@ -459,11 +459,11 @@
       "direction": "n_cx -> j_mid"
      },
      "ch_g_j": {
-      "flow_ul_min": -1.196174,
+      "flow_ul_min": -1.1965,
       "direction": "j_mid -> g_cx"
      },
      "ch_a_j": {
-      "flow_ul_min": -1.196826,
+      "flow_ul_min": -1.1965,
       "direction": "j_mid -> a_cx"
      },
      "ch_j_mid": {
@@ -471,11 +471,11 @@
       "direction": "none"
      },
      "ch_g_out": {
-      "flow_ul_min": 1.196174,
+      "flow_ul_min": 1.1965,
       "direction": "g_cx -> p_g_out"
      },
      "ch_a_out": {
-      "flow_ul_min": 1.196826,
+      "flow_ul_min": 1.1965,
       "direction": "a_cx -> p_a_out"
      }
     },
@@ -485,19 +485,19 @@
       "shear_dyn_cm2": 0.008498
      },
      "g_cx": {
-      "throughput_ul_min": 1.196174,
-      "shear_dyn_cm2": 0.004248
+      "throughput_ul_min": 1.1965,
+      "shear_dyn_cm2": 0.004249
      },
      "a_cx": {
-      "throughput_ul_min": 1.196826,
-      "shear_dyn_cm2": 0.00425
+      "throughput_ul_min": 1.1965,
+      "shear_dyn_cm2": 0.004249
      },
      "j_mid": {
       "throughput_ul_min": 2.393,
-      "shear_dyn_cm2": 0.017003
+      "shear_dyn_cm2": 0.008863
      }
     },
-    "max_pressure_mbar": 0.030097
+    "max_pressure_mbar": 0.028307
    },
    "applied": true
   },
@@ -519,11 +519,11 @@
    "status": "approved",
    "reasons": [],
    "warnings": [],
-   "summary": "Interact G \u2192 N+A: g_cx medium splits at j_mid: 48% to n_cx / 52% to a_cx",
+   "summary": "Interact G \u2192 N+A: g_cx medium splits at j_mid: 50% to n_cx / 50% to a_cx",
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": -1.160047,
+      "flow_ul_min": -1.19573,
       "direction": "n_cx -> p_in"
      },
      "ch_gin_g": {
@@ -535,7 +535,7 @@
       "direction": "none"
      },
      "ch_n_j": {
-      "flow_ul_min": -1.160047,
+      "flow_ul_min": -1.19573,
       "direction": "j_mid -> n_cx"
      },
      "ch_g_j": {
@@ -543,7 +543,7 @@
       "direction": "g_cx -> j_mid"
      },
      "ch_a_j": {
-      "flow_ul_min": -1.232953,
+      "flow_ul_min": -1.19727,
       "direction": "j_mid -> a_cx"
      },
      "ch_j_mid": {
@@ -555,29 +555,29 @@
       "direction": "none"
      },
      "ch_a_out": {
-      "flow_ul_min": 1.232953,
+      "flow_ul_min": 1.19727,
       "direction": "a_cx -> p_a_out"
      }
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 1.160047,
-      "shear_dyn_cm2": 0.00412
+      "throughput_ul_min": 1.19573,
+      "shear_dyn_cm2": 0.004246
      },
      "g_cx": {
       "throughput_ul_min": 2.393,
       "shear_dyn_cm2": 0.008498
      },
      "a_cx": {
-      "throughput_ul_min": 1.232953,
-      "shear_dyn_cm2": 0.004379
+      "throughput_ul_min": 1.19727,
+      "shear_dyn_cm2": 0.004252
      },
      "j_mid": {
       "throughput_ul_min": 2.393,
-      "shear_dyn_cm2": 0.017003
+      "shear_dyn_cm2": 0.008863
      }
     },
-    "max_pressure_mbar": 0.02886
+    "max_pressure_mbar": 0.027458
    },
    "applied": true
   },
@@ -599,11 +599,11 @@
    "status": "approved",
    "reasons": [],
    "warnings": [],
-   "summary": "Interact A \u2192 N+G: a_cx medium splits at j_mid: 48% to n_cx / 52% to g_cx",
+   "summary": "Interact A \u2192 N+G: a_cx medium splits at j_mid: 50% to n_cx / 50% to g_cx",
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": -1.160372,
+      "flow_ul_min": -1.19573,
       "direction": "n_cx -> p_in"
      },
      "ch_gin_g": {
@@ -615,11 +615,11 @@
       "direction": "p_a_in -> a_cx"
      },
      "ch_n_j": {
-      "flow_ul_min": -1.160372,
+      "flow_ul_min": -1.19573,
       "direction": "j_mid -> n_cx"
      },
      "ch_g_j": {
-      "flow_ul_min": -1.232628,
+      "flow_ul_min": -1.19727,
       "direction": "j_mid -> g_cx"
      },
      "ch_a_j": {
@@ -631,7 +631,7 @@
       "direction": "none"
      },
      "ch_g_out": {
-      "flow_ul_min": 1.232628,
+      "flow_ul_min": 1.19727,
       "direction": "g_cx -> p_g_out"
      },
      "ch_a_out": {
@@ -641,12 +641,12 @@
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 1.160372,
-      "shear_dyn_cm2": 0.004121
+      "throughput_ul_min": 1.19573,
+      "shear_dyn_cm2": 0.004246
      },
      "g_cx": {
-      "throughput_ul_min": 1.232628,
-      "shear_dyn_cm2": 0.004377
+      "throughput_ul_min": 1.19727,
+      "shear_dyn_cm2": 0.004252
      },
      "a_cx": {
       "throughput_ul_min": 2.393,
@@ -654,10 +654,10 @@
      },
      "j_mid": {
       "throughput_ul_min": 2.393,
-      "shear_dyn_cm2": 0.017003
+      "shear_dyn_cm2": 0.008863
      }
     },
-    "max_pressure_mbar": 0.028852
+    "max_pressure_mbar": 0.027458
    },
    "applied": true
   },
@@ -734,10 +734,10 @@
      },
      "j_mid": {
       "throughput_ul_min": 2.393,
-      "shear_dyn_cm2": 0.017003
+      "shear_dyn_cm2": 0.008863
      }
     },
-    "max_pressure_mbar": 0.023467
+    "max_pressure_mbar": 0.02111
    },
    "applied": true
   },
@@ -816,10 +816,10 @@
      },
      "j_mid": {
       "throughput_ul_min": 7.179,
-      "shear_dyn_cm2": 0.05101
+      "shear_dyn_cm2": 0.026589
      }
     },
-    "max_pressure_mbar": 0.029468
+    "max_pressure_mbar": 0.025572
    },
    "applied": true
   },

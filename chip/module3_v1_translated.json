@@ -1,7 +1,7 @@
 {
   "id": "module3_v1_translated",
   "name": "Module 3: load, lysis, wash (translated from Szonja's file)",
-  "description": "DEMO SCALE: scaled uniformly x0.4 in x and y (fit_chip.py, 64 x 48 mm -> 30 x 20 mm) for the 30 x 20 mm, 0.3 mm deep, single-layer resin-print and hot-emboss envelope. Depths: trap 0.35 -> 0.3 mm, channels 0.15 mm. Volumes recomputed (trap 38.4 uL). Channel widths were clamped from 0.056 mm to the 0.2 mm floor, which changed the aspect ratio, so flow resistances no longer match the source and any flow numbers must be re-derived; the 25 um trap gap and 100 um prefilter gap are below the 0.2 mm floor and cannot be printed. fit_chip.py does not move channel paths, valves or thermal zones, so the layout was redrawn by hand at demo scale with no channel crossings. PORT MERGES, 13 -> 6: lysis_buffer + wash_buffer -> reagent_in (off-chip rotary valve; lost: independent or overlapped lysis and wash feeds); wash_buffer's backflush branch -> backflush_in (own port, outlet side); capsule_in, waste, lysis_waste, to_split_tree unchanged; ctrl_v_capsule_in, ctrl_v_lysis_buffer, ctrl_v_wash_buffer, ctrl_v_waste, ctrl_v_lysis_waste, ctrl_v_backflush, ctrl_v_to_split_tree removed together with the 7 on-chip valves v_*: pneumatic membrane valves need a second layer, so isolation moves to off-chip rotary or selector valves (lost: on-chip dead-volume-free isolation, so every line has tubing dead volume and capsule_in and to_split_tree must be closed off-chip). Ids kept: main_trap, capsule_prefilter, capsule_in, waste, lysis_waste, to_split_tree. This file no longer matches tools/convert_module3.py output. Originally translated by tools/convert_module3.py from chip/modules/module3_step1_3.json (Step 3, substeps 1\u20133: load, lysis, wash (main capsule trap); inputs: chip_geometry_requirements.xlsx (Sizing Calculator, Step 3 rows 1\u20133), 7 Nov 2026).  REVERSE TRANSCRIPTION (added 7 Nov 2026): split-and-pool barcoding is dropped (no BC2 or BC3 ligation, no hairpin ligation), so the only step left after the washes is reverse transcription with a plain poly(dT) primer; cells already carry a per-lane lipid-anchored barcode from module 1, so nothing is barcoded here. That is one isothermal hold at about 42-50 C, so it runs in main_trap straight after lysis and the washes and no new chip is needed. The chip schema supports thermal_zones, so main_trap_zone now spans 4-50 C (purpose rt; max 50 C is the printed-resin working limit in contracts/materials.json). The trap is a sealed 0.3 mm chamber under the lid with all six ports closable off-chip, so the hold runs with every port capped; evaporation and bubbles in a 0.3 mm chamber at 42 C are untested. No ports, channels or chambers were added or moved. Protocol: protocols/module3_v1.json. Every feature is now a single 0.3 mm etch depth: one fluidic layer means one depth, and anything shallower would read as a second process we cannot run.",
+  "description": "DEMO SCALE: scaled uniformly x0.4 in x and y (fit_chip.py, 64 x 48 mm -> 30 x 20 mm) for the 30 x 20 mm, 0.3 mm deep, single-layer resin-print and hot-emboss envelope. Depths: trap 0.35 -> 0.3 mm, channels 0.15 mm. Volumes recomputed (trap 38.4 uL). Channel widths were clamped from 0.056 mm to the 0.2 mm floor, which changed the aspect ratio, so flow resistances no longer match the source and any flow numbers must be re-derived; the 100 um prefilter gap is below the 0.2 mm floor and cannot be printed; the source 25 um trap gap is replaced by a depth weir. fit_chip.py does not move channel paths, valves or thermal zones, so the layout was redrawn by hand at demo scale with no channel crossings. PORT MERGES, 13 -> 6: lysis_buffer + wash_buffer -> reagent_in (off-chip rotary valve; lost: independent or overlapped lysis and wash feeds); wash_buffer's backflush branch -> backflush_in (own port, outlet side); capsule_in, waste, lysis_waste, to_split_tree unchanged; ctrl_v_capsule_in, ctrl_v_lysis_buffer, ctrl_v_wash_buffer, ctrl_v_waste, ctrl_v_lysis_waste, ctrl_v_backflush, ctrl_v_to_split_tree removed together with the 7 on-chip valves v_*: pneumatic membrane valves need a second layer, so isolation moves to off-chip rotary or selector valves (lost: on-chip dead-volume-free isolation, so every line has tubing dead volume and capsule_in and to_split_tree must be closed off-chip). Ids kept: main_trap, capsule_prefilter, capsule_in, waste, lysis_waste, to_split_tree. This file no longer matches tools/convert_module3.py output. Originally translated by tools/convert_module3.py from chip/modules/module3_step1_3.json (Step 3, substeps 1\u20133: load, lysis, wash (main capsule trap); inputs: chip_geometry_requirements.xlsx (Sizing Calculator, Step 3 rows 1\u20133), 7 Nov 2026).  REVERSE TRANSCRIPTION (added 7 Nov 2026): split-and-pool barcoding is dropped (no BC2 or BC3 ligation, no hairpin ligation), so the only step left after the washes is reverse transcription with a plain poly(dT) primer; cells already carry a per-lane lipid-anchored barcode from module 1, so nothing is barcoded here. That is one isothermal hold at about 42-50 C, so it runs in main_trap straight after lysis and the washes and no new chip is needed. The chip schema supports thermal_zones, so main_trap_zone now spans 4-50 C (purpose rt; max 50 C is the printed-resin working limit in contracts/materials.json). The trap is a sealed 0.3 mm chamber under the lid with all six ports closable off-chip, so the hold runs with every port capped; evaporation and bubbles in a 0.3 mm chamber at 42 C are untested. No ports, channels or chambers were added or moved. Protocol: protocols/module3_v1.json. Every feature is now a single 0.3 mm etch depth: one fluidic layer means one depth, and anything shallower would read as a second process we cannot run. RETENTION: main_trap uses a depth weir (crest 272 um, gap 28 um, retains 70 um capsules, in the 300 um layer), replacing the unbuildable 25 um pillar opening. The weir is UNTESTED, and z tolerance (about +/-20 um on a 25 um gap) is the main risk. Retention is a depth weir (275 um crest, 25 um gap) recorded in each chamber's retention field; the in-plane 200 um floor does not apply in z. UNTESTED: z tolerance of about +/-20 um on a 25 um gap is the main risk.",
   "placeholder": true,
   "translated_from": "chip/modules/module3_step1_3.json",
   "units": "mm",
@@ -12,21 +12,21 @@
   "layers": [
     {
       "id": "base",
-      "material": "tbc",
+      "material": "coc",
       "thickness_mm": 1.0,
       "placeholder": true,
-      "note": "Material not in the source; must tolerate 4 M guanidinium thiocyanate."
+      "note": "COC: compatible with 4 M guanidinium thiocyanate and RT mix in contracts/materials.json, hot-embosses, and 120 C limit covers the 42-50 C hold (no PCR here)."
     },
     {
       "id": "fluidic",
-      "material": "tbc",
+      "material": "coc",
       "thickness_mm": 0.3,
       "placeholder": true,
       "note": "Trap height capped at the 0.3 mm build limit (source: 350 um). All channels are 0.15 mm deep, one fluidic layer; the source's second, shallower depth is kept as 0.15 mm."
     },
     {
       "id": "lid",
-      "material": "tbc",
+      "material": "coc",
       "thickness_mm": 1.0,
       "placeholder": true,
       "note": "Inferred."
@@ -60,11 +60,11 @@
       "height_um": 300,
       "volume_ul": 38.443,
       "retention": {
-        "type": "pillars",
+        "type": "weir",
         "opening_um": 25,
         "source": "fabricated"
       },
-      "note": "Demo scale (x0.4). Source: square, wide, flat, 650,000 capsules in ~4 layers. At 0.4 scale and 0.3 mm depth the bed holds 38.4 uL, about 140,000 capsules at fill 0.65, roughly a fifth of the source figure. Retention opening is still 25 um (source) and CANNOT be printed: floor is 0.2 mm, so a 25 um pillar row or mesh needs a bought mesh bonded under the lid, or the chamber must be re-thought; block set to trap_chamber, with pillar_array or pillar_funnel_trap as the in-chamber alternatives. Retention is on the outlet (right) side. Must tolerate 4 M guanidinium thiocyanate. Size, height, volume and gap from the source; position inferred. Also hosts the reverse-transcription hold (see thermal_zones and protocols/module3_v1.json).",
+      "note": "Demo scale (x0.4). Source: square, wide, flat, 650,000 capsules in ~4 layers. At 0.4 scale and 0.3 mm depth the bed holds 38.4 uL, about 140,000 capsules at fill 0.65, roughly a fifth of the source figure. Retention is a DEPTH WEIR (contracts/blocks.json retention): crest 272 um in the 300 um layer leaves a 28 um gap under the lid, retaining 70 um capsules; the source 25 um pillar opening cannot be printed and was removed. Retention is on the outlet (right) side. Must tolerate 4 M guanidinium thiocyanate. Size, height, volume and gap from the source; position inferred. Also hosts the reverse-transcription hold (see thermal_zones and protocols/module3_v1.json).",
       "placeholder": true,
       "block": "trap_chamber"
     },

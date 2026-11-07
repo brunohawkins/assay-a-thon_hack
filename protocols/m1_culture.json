@@ -7,11 +7,11 @@
   "steps": [
     {
       "reagent": null,
-      "volume_ul": 1.5,
+      "volume_ul": 3.054,
       "duration_s": 120,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 0.75,
+      "flow_ul_min": 3.239,
       "step": 1,
       "operation": "load",
       "target": "m1_ipsc_1",
@@ -36,7 +36,7 @@
       "duration_s": 300,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 1.0,
+      "flow_ul_min": 3.239,
       "step": 2,
       "operation": "split",
       "target": "m1_ipsc_1",
@@ -57,11 +57,11 @@
     },
     {
       "reagent": null,
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 1209600,
       "temp_c": 37,
       "washes": null,
-      "flow_ul_min": 2.0,
+      "flow_ul_min": 3.239,
       "step": 3,
       "operation": "culture",
       "targets": [
@@ -97,11 +97,11 @@
     },
     {
       "reagent": "label_1",
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 1800,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 2.0,
+      "flow_ul_min": 3.239,
       "step": 4,
       "operation": "exchange",
       "targets": [
@@ -131,11 +131,11 @@
     },
     {
       "reagent": null,
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 600,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 1.0,
+      "flow_ul_min": 3.239,
       "step": 5,
       "operation": "collect",
       "targets": [
@@ -158,11 +158,11 @@
     },
     {
       "reagent": null,
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 600,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 1.0,
+      "flow_ul_min": 3.239,
       "step": 6,
       "operation": "collect",
       "targets": [
@@ -185,11 +185,11 @@
     },
     {
       "reagent": null,
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 600,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 1.0,
+      "flow_ul_min": 3.239,
       "step": 7,
       "operation": "collect",
       "targets": [
@@ -212,11 +212,11 @@
     },
     {
       "reagent": null,
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 259200,
       "temp_c": 37,
       "washes": null,
-      "flow_ul_min": 2.0,
+      "flow_ul_min": 3.239,
       "step": 8,
       "operation": "culture",
       "variant": "control",
@@ -248,11 +248,11 @@
     },
     {
       "reagent": null,
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 259200,
       "temp_c": 37,
       "washes": null,
-      "flow_ul_min": 1.5,
+      "flow_ul_min": 3.239,
       "step": 9,
       "operation": "culture",
       "variant": "interaction",
@@ -284,11 +284,11 @@
     },
     {
       "reagent": null,
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 600,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 1.0,
+      "flow_ul_min": 3.239,
       "step": 10,
       "operation": "collect",
       "targets": [
@@ -311,11 +311,11 @@
     },
     {
       "reagent": null,
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 600,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 1.0,
+      "flow_ul_min": 3.239,
       "step": 11,
       "operation": "collect",
       "targets": [
@@ -338,11 +338,11 @@
     },
     {
       "reagent": null,
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 600,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 1.0,
+      "flow_ul_min": 3.239,
       "step": 12,
       "operation": "collect",
       "targets": [
@@ -365,11 +365,11 @@
     },
     {
       "reagent": "detach_reagent",
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 900,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 2.0,
+      "flow_ul_min": 3.239,
       "step": 13,
       "operation": "exchange",
       "targets": [
@@ -399,11 +399,11 @@
     },
     {
       "reagent": "harvest_buffer",
-      "volume_ul": 1.0,
+      "volume_ul": 3.054,
       "duration_s": 300,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 2.0,
+      "flow_ul_min": 3.239,
       "step": 14,
       "operation": "harvest",
       "targets": [

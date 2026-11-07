@@ -1,7 +1,7 @@
 {
   "id": "placeholder_chip_v1",
   "name": "Placeholder capsule processor v1",
-  "description": "PLACEHOLDER - not a real design. Generic layout for development: inlet, one exchange chamber with a mesh floor, a four-way split, a pool chamber and an outlet, left to right. DEMO SCALE: originally 75 x 25 mm, scaled uniformly by 0.389 into the 30 x 20 mm envelope (0.4 mm margin); depth capped at 0.3 mm (was 2-3 mm / 0.5 mm channels) and channels clamped at the 0.2 mm floor. Ports: 2, no merges needed. mesh_pore_um is left at the placeholder 20 um on exchange_1, split_1-4 and pool_1, which CANNOT be printed (floor 200 um); exchange_1 is mapped to pillar_array. All numbers are placeholders.",
+  "description": "PLACEHOLDER - not a real design. Generic layout for development: inlet, one exchange chamber with a mesh floor, a four-way split, a pool chamber and an outlet, left to right. DEMO SCALE: originally 75 x 25 mm, scaled uniformly by 0.389 into the 30 x 20 mm envelope (0.4 mm margin); depth capped at 0.3 mm (was 2-3 mm / 0.5 mm channels) and channels clamped at the 0.2 mm floor. Ports: 2, no merges needed. The old 20 um mesh on exchange_1, split_1-4 and pool_1 CANNOT be printed (in-plane floor 200 um), so mesh_pore_um is now null and those six chambers are trap_chamber blocks that retain by a DEPTH WEIR instead: a 275 um crest in the 300 um layer leaves a 25 um gap under the lid (z is free; see contracts/blocks.json retention), which is 0.4 x a 70 um capsule and so retains capsules of about 70 um and above; each of the six chambers carries this as a structured weir object (crest_height_um 272, gap_um 28, retains_um 70). The weir is UNTESTED, and the z tolerance (about +/-20 um on a 25 um gap, roughly +/-71%) is the biggest unknown: the gap could close or leak outright. Run a 40/60/80 um gap coupon first. A 25 um gap will NOT hold bare cells of 10-15 um, so if the old 20 um mesh was meant to hold cells or small particles rather than capsules, this weir does not do that job. All numbers are placeholders. Retention is a depth weir (275 um crest, 25 um gap) recorded in each chamber's retention field; the in-plane 200 um floor does not apply in z. UNTESTED: z tolerance of about +/-20 um on a 25 um gap is the main risk.",
   "placeholder": true,
   "units": "mm",
   "footprint": {
@@ -39,9 +39,14 @@
         3.115,
         0.3
       ],
-      "mesh_pore_um": 20,
+      "mesh_pore_um": null,
       "volume_ul": 3.638,
-      "block": "pillar_array"
+      "block": "trap_chamber",
+      "retention": {
+        "type": "weir",
+        "opening_um": 25,
+        "source": "fabricated"
+      }
     },
     {
       "id": "split_1",
@@ -56,9 +61,14 @@
         1.557,
         0.3
       ],
-      "mesh_pore_um": 20,
+      "mesh_pore_um": null,
       "volume_ul": 1.273,
-      "block": "polygon_chamber"
+      "block": "trap_chamber",
+      "retention": {
+        "type": "weir",
+        "opening_um": 25,
+        "source": "fabricated"
+      }
     },
     {
       "id": "split_2",
@@ -73,9 +83,14 @@
         1.557,
         0.3
       ],
-      "mesh_pore_um": 20,
+      "mesh_pore_um": null,
       "volume_ul": 1.273,
-      "block": "polygon_chamber"
+      "block": "trap_chamber",
+      "retention": {
+        "type": "weir",
+        "opening_um": 25,
+        "source": "fabricated"
+      }
     },
     {
       "id": "split_3",
@@ -90,9 +105,14 @@
         1.557,
         0.3
       ],
-      "mesh_pore_um": 20,
+      "mesh_pore_um": null,
       "volume_ul": 1.273,
-      "block": "polygon_chamber"
+      "block": "trap_chamber",
+      "retention": {
+        "type": "weir",
+        "opening_um": 25,
+        "source": "fabricated"
+      }
     },
     {
       "id": "split_4",
@@ -107,9 +127,14 @@
         1.557,
         0.3
       ],
-      "mesh_pore_um": 20,
+      "mesh_pore_um": null,
       "volume_ul": 1.273,
-      "block": "polygon_chamber"
+      "block": "trap_chamber",
+      "retention": {
+        "type": "weir",
+        "opening_um": 25,
+        "source": "fabricated"
+      }
     },
     {
       "id": "pool_1",
@@ -124,9 +149,14 @@
         3.115,
         0.3
       ],
-      "mesh_pore_um": 20,
+      "mesh_pore_um": null,
       "volume_ul": 2.911,
-      "block": "polygon_chamber"
+      "block": "trap_chamber",
+      "retention": {
+        "type": "weir",
+        "opening_um": 25,
+        "source": "fabricated"
+      }
     }
   ],
   "channels": [

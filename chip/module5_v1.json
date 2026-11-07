@@ -40,7 +40,8 @@
         0.3
       ],
       "mesh_pore_um": null,
-      "volume_ul": 8.1
+      "volume_ul": 8.1,
+      "block": "polygon_chamber"
     },
     {
       "id": "bead_cx",
@@ -56,7 +57,8 @@
         0.3
       ],
       "mesh_pore_um": null,
-      "volume_ul": 6
+      "volume_ul": 6,
+      "block": "polygon_chamber"
     }
   ],
   "channels": [
@@ -65,42 +67,48 @@
       "from": "in_lib",
       "to": "react_cx",
       "width_mm": 0.6,
-      "depth_mm": 0.3
+      "depth_mm": 0.3,
+      "block": "straight_channel"
     },
     {
       "id": "ch_in_prot",
       "from": "in_prot",
       "to": "react_cx",
       "width_mm": 0.4,
-      "depth_mm": 0.3
+      "depth_mm": 0.3,
+      "block": "straight_channel"
     },
     {
       "id": "ch_react_bead",
       "from": "react_cx",
       "to": "bead_cx",
       "width_mm": 0.6,
-      "depth_mm": 0.3
+      "depth_mm": 0.3,
+      "block": "straight_channel"
     },
     {
       "id": "ch_in_bead",
       "from": "in_bead",
       "to": "bead_cx",
       "width_mm": 0.4,
-      "depth_mm": 0.3
+      "depth_mm": 0.3,
+      "block": "straight_channel"
     },
     {
       "id": "ch_waste",
       "from": "bead_cx",
       "to": "out_waste",
       "width_mm": 0.6,
-      "depth_mm": 0.3
+      "depth_mm": 0.3,
+      "block": "straight_channel"
     },
     {
       "id": "ch_out_lib",
       "from": "bead_cx",
       "to": "out_lib",
       "width_mm": 0.3,
-      "depth_mm": 0.3
+      "depth_mm": 0.3,
+      "block": "straight_channel"
     }
   ],
   "ports": [

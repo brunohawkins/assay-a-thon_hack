@@ -19,6 +19,12 @@ from operators import run_planner, run_scripted, transcript_from  # noqa: E402
 
 CHIP = schema_io.load_json(ROOT / "cad" / "m3_wash_spec.json")
 PROTO = schema_io.load_json(ROOT / "protocols" / "m3_wash.json")
+# The shipped wash steps hold at most one chamber volume each (volume_ul <= the trap's volume_ul, at a shear-limited flow).
+# The scenarios below were tuned for washes of 2.7 chamber volumes (20 uL into the old 7.35 uL trap), and the planner's goals
+# (99% exchange in at most 4 washes, 99% lift on a back-flush) need that much, so they run with the same ratio. They test the
+# operator, not the shipped volumes.
+# The shipped protocol now sizes its own exchanges (cad/generators/m3_wash.py), so the test
+# runs what we actually ship. This override used to hide a protocol that could not complete.
 PARAMS, _ = safety._contracts()
 CLOSED = {"pressure_kpa": True, "outlet_absorbance": True}
 

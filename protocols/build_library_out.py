@@ -24,23 +24,27 @@ capsule suspension handed over from step 14. The output is a sequencing-ready li
       four eluates can be mixed for sequencing in the tube at the end.
   17. LIBRARY OUT through out_lib, then off-chip QC.
 
-Operations. The contract allows only load, exchange, hold_temp, split, pool and release, so:
-a fill pulse, a bead load and a sublibrary transfer are `load`; adding primer, PCR mix, dilution,
-wash and elution buffer are `exchange` (flow-through, nothing is retained, there is no mesh);
-the collagenase digest and the library hand-offs are `release`; the PCR and the digest are
+Operations. A fill pulse, a bead load and a sublibrary transfer are `load`; adding primer, PCR mix,
+dilution, wash and elution buffer are `exchange` (flow-through, nothing is retained, there is no
+mesh); the collagenase digest and the library hand-offs are `release`; the PCR and the digest are
 `hold_temp`. There is no `split` step: the split is done by the valve, not by the chip, and the
-planner's split reads channel topology that module 4 deliberately does not have.
+planner's split reads channel topology that module 4 deliberately does not have. The PCR is written
+out as one `hold_temp` per segment, not with the `cycles` field: the operator sends the step's
+temp_c and duration_s only, and the twin reads the cycle number from each step's narration, so a
+single `cycles` step would drop the thermal profile from the run file. Each step also records its
+port state (`ports`): the chips route by port, and only a capped port is a true block.
 
-Flow and shear. Same maths as build_module1.py: tau = 6*mu*Q/(w*h^2), w the width across the
-flow, tau in dyn/cm2 (1 Pa = 10 dyn/cm2), and duration = washes*volume/flow*60 times a 1.4
-margin. THE 0.01 dyn/cm2 CEILING DOES NOT APPLY HERE. That ceiling comes from cultured cells:
-it is the shear below which adherent, mechanosensitive cells stay unactivated over weeks. These
-chambers hold crosslinked hydrogel capsules, which do not adhere, have no activation state to
-protect and are in the chip for minutes, not weeks. What matters is that they stay suspended
-and intact, so the design limit is set on the narrowest feature of each route at a handling
-shear of 1 dyn/cm2 (an ASSUMPTION, to be replaced by a measured capsule deformation limit). The
-flows actually used are lower still: fills at 10 uL/min, and capture and elution at 1-3 uL/min
-because bead binding kinetics, not shear, set the pace.
+Volumes and flow. Nothing numeric about liquid is typed in here. Each volume is a fraction of a
+chamber's volume_ul (SUSP_FRACTION, PRIMER_FRACTION, BEADS_FRACTION, ...), and `volume_ul` of an
+exchange is per wash, so no step moves more than its chamber holds: a step that wants five chamber
+volumes is five washes of one. Wall shear is tau = 6*mu*Q/(w*h^2) in dyn/cm2 (1 Pa = 10 dyn/cm2),
+w = size[1] and h = size[2] of the chamber the step targets (and of every chamber on the route for
+a through-flow). Every flow is FLOW_FRACTION (85%) of the flow that gives 0.01 dyn/cm2 in the
+tightest chamber, floored to 0.01 uL/min; the capture and elution steps are slowed further
+because bead binding kinetics, not shear, set their pace. Duration = washes*volume/flow*60
+times a 1.4 margin. Capsules do not adhere and would tolerate more, but the project applies the
+0.01 ceiling to every chamber, so it is applied here. Narrow channels see more shear at these
+flows (--report prints them); only chambers are held to the ceiling.
 
 THE DILUTION PROBLEM. Once the shell dissolves it contributes roughly 10,000 times more polymer
 mass than there is DNA. SPRI binding depends on the crowding reagent holding DNA on the bead
@@ -71,10 +75,10 @@ the protocol owners need to decide before this is built as the final run.
 
 Port states, module 5 (no valves; a capped port is the only true block): digest hold, in_lib and
 in_prot and in_bead and both outlets capped. Dilution and capture, in_prot feeds, out_waste
-vented, in_bead and out_lib capped, magnet ON. Buffer exchange, same. Elution, in_bead feeds,
-out_lib vented, out_waste capped, magnet ON until the eluate has left. Reagent names are generic
-and nothing here is a concentration or a recipe: see CONFIDENTIALITY.md. Setpoints, cycle count
-and volumes are round placeholders to be fitted.
+vented, in_bead and out_lib capped, magnet ON. Buffer exchange, in_bead feeds, out_waste vented.
+Elution, in_bead feeds, out_lib vented, out_waste capped, magnet ON until the eluate has left.
+Reagent names are generic and nothing here is a concentration or a recipe: see CONFIDENTIALITY.md.
+Setpoints, cycle count and the fractions are round placeholders to be fitted.
 """
 
 from __future__ import annotations
@@ -99,7 +103,8 @@ SOURCE = (
 )
 
 MU_PA_S = 0.8e-3
-HANDLING_SHEAR = 1.0   # dyn/cm2, assumption; the 0.01 culture ceiling does not apply, see docstring
+SHEAR_CEILING = 0.01   # dyn/cm2, applied to every chamber
+FLOW_FRACTION = 0.85   # run at this fraction of the shear-ceiling flow
 MARGIN = 1.4
 
 # --- split and PCR (module 4) ---
@@ -109,10 +114,9 @@ FILL_ORDER = PALINDROME * PALINDROMES
 SUBS = ["sub_1", "sub_2", "sub_3", "sub_4"]
 VALVE_POS = {s: i + 1 for i, s in enumerate(SUBS)}
 LETTER = {s: "ABCD"[i] for i, s in enumerate(SUBS)}
-PULSE_UL = 0.6                 # per pulse; four pulses per chamber
-SUSP_UL = PULSE_UL * FILL_ORDER.count("sub_1")
-PRIMER_UL = 0.6
-FILL_FLOW = 10.0               # uL/min
+SUSP_FRACTION = 0.3            # of a sub chamber's volume, in capsule suspension over all pulses
+PRIMER_FRACTION = 0.075        # of a sub chamber's volume
+REACTION_FILL = 0.7            # of a sub chamber's volume once suspension, primer and mix are in
 SWITCH_S = 5                   # valve switch and settle between pulses, assumption
 CYCLES = 12                    # 8-14
 RAMP_C_S = 3.0                 # 2-4 C/s
@@ -126,27 +130,31 @@ AMBIENT_C = 25
 # --- release and cleanup (module 5) ---
 PASSES = SUBS
 DIGEST_C, DIGEST_S = 37, 1800
-COLLAGENASE_UL = 1.2
-BEADS_UL = 3.0
-DILUTION_UL = 40.0             # placeholder, see THE DILUTION PROBLEM
-DILUTION_FLOW = 3.0            # kinetics-limited, uL/min
-EXCHANGE_UL, EXCHANGE_WASHES, EXCHANGE_FLOW = 6.0, 2, 3.0
-ELUTE_UL, ELUTE_FLOW = 3.0, 1.0
-BEAD_FLOW = 5.0
-LOAD_FLOW = 5.0
+COLLAGENASE_FRACTION = 0.15    # of react_cx's volume
+BEADS_FRACTION = 0.5           # of bead_cx's volume
+DILUTION_FOLD = 5              # chamber volumes of dilution buffer pushed through react_cx; a placeholder to be fitted
+EXCHANGE_FRACTION, EXCHANGE_WASHES = 1.0, 2   # of bead_cx's volume per wash
+ELUTE_FRACTION = 0.5           # of bead_cx's volume
+CAPTURE_SLOWDOWN = 0.5         # kinetics-limited steps run at this fraction of the shear-ceiling flow
+ELUTE_SLOWDOWN = 0.25
 
-# --- dead volumes that are not geometry (assumptions) ---
-OFFCHIP_LINE_UL = 0.5          # tubing and valve stem per transfer
-HOLDUP_UL = 0.2                # film and corner liquid left when a chamber is drained
+# --- dead volumes that are not chip geometry (assumptions) ---
+TUBE_ID_MM, TUBE_LEN_MM = 0.5, 2.5   # off-chip tubing and valve stem per transfer
+OFFCHIP_LINE_UL = math.pi / 4 * TUBE_ID_MM ** 2 * TUBE_LEN_MM
+HOLDUP_FRACTION = 0.025        # of a chamber's volume: film and corner liquid left when it is drained
 OFFCHIP_S = 20                 # tubing flush between chips
 
 CH4 = {c["id"]: c for c in M4["chambers"]} | {c["id"]: c for c in M4["channels"]}
 CH5 = {c["id"]: c for c in M5["chambers"]} | {c["id"]: c for c in M5["channels"]}
 PORT4 = {p["id"]: p for p in M4["ports"]}
+VENT4 = next(p["id"] for p in M4["ports"] if p["type"] == "outlet")
 PORT5 = {p["id"]: p for p in M5["ports"]}
+WASTE5, LIB5 = "out_waste", "out_lib"
+assert WASTE5 in PORT5 and LIB5 in PORT5, "module 5 lost a port this protocol routes through"
 
 
-def max_flow(width_mm: float, height_mm: float, ceiling: float = HANDLING_SHEAR) -> float:
+def max_flow(width_mm: float, height_mm: float, ceiling: float = SHEAR_CEILING) -> float:
+    """Highest flow in uL/min that keeps wall shear at or below the ceiling."""
     w, h = width_mm * 1e-3, height_mm * 1e-3
     return (ceiling / 10.0) * w * h * h / (6.0 * MU_PA_S) * 60.0 * 1e9
 
@@ -179,17 +187,14 @@ def channel_ul(chip: dict, channel_id: str) -> float:
     return _gap(a, b) * ch["width_mm"] * ch["depth_mm"]
 
 
-def route_flow(chip: dict, features: list[str], nominal: float) -> float:
-    """Nominal flow, held under the handling ceiling (with margin) of the narrowest feature on the route."""
-    dims = {c["id"]: c for c in chip["channels"]}
+def route_flow(chip: dict, chambers: list[str], slowdown: float = 1.0) -> float:
+    """FLOW_FRACTION of the shear-ceiling flow of the tightest chamber on the route, times `slowdown`,
+    floored to 0.01 uL/min. Channels are not held to the ceiling: they are far narrower than any chamber."""
     caps = []
-    for f in features:
-        if f in dims:
-            caps.append(max_flow(dims[f]["width_mm"], dims[f]["depth_mm"]))
-        else:
-            c = next(c for c in chip["chambers"] if c["id"] == f)
-            caps.append(max_flow(c["size"][1], c["size"][2]))
-    return float(min(nominal, math.floor(min(caps) / MARGIN)))
+    for f in chambers:
+        c = next(c for c in chip["chambers"] if c["id"] == f)
+        caps.append(max_flow(c["size"][1], c["size"][2]))
+    return math.floor(FLOW_FRACTION * slowdown * min(caps) * 100) / 100
 
 
 def exchange_s(washes: int, volume_ul: float, flow: float) -> int:
@@ -198,26 +203,49 @@ def exchange_s(washes: int, volume_ul: float, flow: float) -> int:
 
 # --- derived quantities -------------------------------------------------------------------
 
+def vol(chip: dict, chamber_id: str) -> float:
+    return next(c for c in chip["chambers"] if c["id"] == chamber_id)["volume_ul"]
+
+
+V_SUB = min(vol(M4, x) for x in SUBS)      # the four chambers are identical; take the smallest
+V_REACT, V_BEAD = vol(M5, "react_cx"), vol(M5, "bead_cx")
+
+PULSE_UL = round(SUSP_FRACTION * V_SUB / FILL_ORDER.count("sub_1"), 3)   # per pulse, four pulses per chamber
+SUSP_UL = PULSE_UL * FILL_ORDER.count("sub_1")
+PRIMER_UL = round(PRIMER_FRACTION * V_SUB, 3)
+COLLAGENASE_UL = round(COLLAGENASE_FRACTION * V_REACT, 3)
+BEADS_UL = round(BEADS_FRACTION * V_BEAD, 3)
+DILUTION_UL = DILUTION_FOLD * V_REACT      # in total; each wash is one react_cx volume
+EXCHANGE_UL = round(EXCHANGE_FRACTION * V_BEAD, 3)
+ELUTE_UL = round(ELUTE_FRACTION * V_BEAD, 3)
+HOLDUP_SUB, HOLDUP_REACT, HOLDUP_BEAD = (round(HOLDUP_FRACTION * v, 3) for v in (V_SUB, V_REACT, V_BEAD))
+
 LINE_IN = {s: channel_ul(M4, f"ch_in_{s[-1]}") for s in SUBS}
 LINE4 = max(LINE_IN.values())
-MIX_UL = round(SUSP_UL + LINE4, 1)     # the tail left in the fill line is mix, so top it up
+# the tail left in the fill line is mix, so the mix is topped up to bring the chamber to REACTION_FILL
+MIX_UL = round(REACTION_FILL * V_SUB - SUSP_UL - PRIMER_UL + LINE4, 3)
 CONTENT_UL = SUSP_UL + PRIMER_UL + MIX_UL - LINE4   # what actually reaches the chamber
 LINE_LIB = channel_ul(M5, "ch_in_lib")
 LINE_PROT = channel_ul(M5, "ch_in_prot")
 LINE_BEAD = channel_ul(M5, "ch_in_bead")
 LINE_REACT_BEAD = channel_ul(M5, "ch_react_bead")
 LINE_OUT = channel_ul(M5, "ch_out_lib")
-TRANSFER_LOSS = HOLDUP_UL + OFFCHIP_LINE_UL + LINE_LIB
-DELIVERED_UL = round(CONTENT_UL - TRANSFER_LOSS, 1)   # reaches react_cx
-PRODUCT_UL = round(ELUTE_UL - HOLDUP_UL - LINE_OUT, 2)
+TRANSFER_LOSS = HOLDUP_SUB + OFFCHIP_LINE_UL + LINE_LIB
+DELIVERED_UL = round(CONTENT_UL - TRANSFER_LOSS, 2)   # reaches react_cx
+PRODUCT_UL = round(ELUTE_UL - HOLDUP_BEAD - LINE_OUT, 2)
+BEAD_LOAD_UL = round(BEADS_UL + LINE_BEAD, 3)
 
-F_FILL = route_flow(M4, ["ch_in_1"] + ["sub_1"], FILL_FLOW)
-F_LOAD = route_flow(M5, ["ch_in_lib", "react_cx"], LOAD_FLOW)
-F_DIG = route_flow(M5, ["ch_in_prot", "react_cx"], BEAD_FLOW)
-F_DIL = route_flow(M5, ["ch_in_prot", "react_cx", "ch_react_bead", "bead_cx", "ch_waste"], DILUTION_FLOW)
-F_BEADLOAD = route_flow(M5, ["ch_in_bead", "bead_cx"], BEAD_FLOW)
-F_EXCH = route_flow(M5, ["ch_in_bead", "bead_cx", "ch_waste"], EXCHANGE_FLOW)
-F_ELUTE = route_flow(M5, ["ch_in_bead", "bead_cx", "ch_out_lib"], ELUTE_FLOW)
+assert MIX_UL <= V_SUB and PRIMER_UL <= V_SUB and PULSE_UL <= V_SUB, "a module 4 step exceeds sub chamber volume"
+assert DELIVERED_UL + COLLAGENASE_UL <= V_REACT, "digest does not fit react_cx"
+assert BEAD_LOAD_UL <= V_BEAD, "bead load does not fit bead_cx"
+
+F_FILL = route_flow(M4, ["sub_1"])
+F_LOAD = route_flow(M5, ["react_cx"])
+F_DIG = route_flow(M5, ["react_cx"])
+F_DIL = route_flow(M5, ["react_cx", "bead_cx"], CAPTURE_SLOWDOWN)
+F_BEADLOAD = route_flow(M5, ["bead_cx"])
+F_EXCH = route_flow(M5, ["bead_cx"], CAPTURE_SLOWDOWN)
+F_ELUTE = route_flow(M5, ["bead_cx"], ELUTE_SLOWDOWN)
 
 
 def ramp_s(a: float, b: float) -> float:
@@ -241,14 +269,24 @@ def profile() -> list[tuple[str, float, float, float]]:
 # --- protocol -------------------------------------------------------------------------------
 
 
+def ports_for(chip: dict, feed: list[str] = (), vent: list[str] = ()) -> dict:
+    """Port state for a step: every port not fed or vented is capped."""
+    feed, vent = list(feed), list(vent)
+    return {"feed": feed, "vent": vent,
+            "cap": [p["id"] for p in chip["ports"] if p["id"] not in feed + vent]}
+
+
 def build() -> dict:
     steps: list[dict] = []
 
     def emit(operation, target, note, duration_s, reagent=None, volume_ul=None, temp_c=None,
-             washes=None, flow_ul_min=None):
-        steps.append({"step": len(steps) + 1, "operation": operation, "target": target,
-                      "reagent": reagent, "volume_ul": volume_ul, "duration_s": round(duration_s),
-                      "temp_c": temp_c, "washes": washes, "flow_ul_min": flow_ul_min, "note": note})
+             washes=None, flow_ul_min=None, ports=None):
+        step = {"step": len(steps) + 1, "operation": operation, "target": target,
+                "reagent": reagent, "volume_ul": volume_ul, "duration_s": round(duration_s),
+                "temp_c": temp_c, "washes": washes, "flow_ul_min": flow_ul_min, "note": note}
+        if ports is not None:
+            step["ports"] = ports
+        steps.append(step)
 
     # step 15: interleaved fill
     pulse_s = math.ceil(PULSE_UL / F_FILL * 60.0 * MARGIN) + SWITCH_S
@@ -258,7 +296,8 @@ def build() -> dict:
              f"{VALVE_POS[sub]} and sends one {PULSE_UL} uL pulse of the pooled capsule suspension to "
              f"{sub} (sublibrary {LETTER[sub]}). The palindromic order serves every chamber at the same "
              f"mean position, so settling in the reservoir averages out between the four.",
-             pulse_s, reagent="pooled_capsule_suspension", volume_ul=PULSE_UL, flow_ul_min=F_FILL)
+             pulse_s, reagent="pooled_capsule_suspension", volume_ul=PULSE_UL, flow_ul_min=F_FILL,
+             ports=ports_for(M4, [f"in_s{sub[-1]}"], [VENT4]))
     for sub in SUBS:
         n = sub[-1]
         emit("exchange", sub,
@@ -266,13 +305,14 @@ def build() -> dict:
              f"what tells the four sublibraries apart after sequencing. It also pushes the capsules left in "
              f"the fill line into the chamber.",
              exchange_s(1, PRIMER_UL, F_FILL), reagent=f"index_primer_{n}", volume_ul=PRIMER_UL, washes=1,
-             flow_ul_min=F_FILL)
+             flow_ul_min=F_FILL, ports=ports_for(M4, [f"in_s{n}"], [VENT4]))
     for sub in SUBS:
         emit("exchange", sub,
              f"Step 15: PCR mix into {sub}. The fill line keeps its own volume as dead space, so the mix "
              f"volume includes it. Capillary-stop vents let air out and hold the liquid, so the four "
              f"reactions stay isolated.",
-             exchange_s(1, MIX_UL, F_FILL), reagent="pcr_mix", volume_ul=MIX_UL, washes=1, flow_ul_min=F_FILL)
+             exchange_s(1, MIX_UL, F_FILL), reagent="pcr_mix", volume_ul=MIX_UL, washes=1, flow_ul_min=F_FILL,
+             ports=ports_for(M4, [f"in_s{sub[-1]}"], [VENT4]))
 
     for label, temp, dwell, ramp in profile():
         what = "cool down and hold" if label == "hold" else label
@@ -280,7 +320,7 @@ def build() -> dict:
              f"Step 15, thermocycling, {what}: the whole module 4 chip, all four chambers, goes to {temp:g} C "
              f"({dwell:g} s dwell plus {ramp:.1f} s ramp at {RAMP_C_S:g} C/s). The chambers share one heater, "
              f"so one step stands for all four.",
-             dwell + ramp, temp_c=temp)
+             dwell + ramp, temp_c=temp, ports=ports_for(M4))
 
     # steps 16 and 17: four passes through module 5
     for sub in PASSES:
@@ -291,53 +331,56 @@ def build() -> dict:
              f"the chips. Four sublibraries will not fit react_cx together, so each gets its own pass and "
              f"keeps its own index.",
              math.ceil(DELIVERED_UL / F_LOAD * 60.0 * MARGIN) + OFFCHIP_S, reagent="pcr_product_capsules",
-             volume_ul=DELIVERED_UL, flow_ul_min=F_LOAD)
+             volume_ul=DELIVERED_UL, flow_ul_min=F_LOAD,
+             ports=ports_for(M5, ["in_lib"], [WASTE5]))
         emit("load", "bead_cx",
              f"Step 16, pass {n}: load magnetic beads into bead_cx through in_bead with the magnet ON. "
              f"Retention is magnetic only: the beads are about 1 um and no feature can be that small.",
-             math.ceil((BEADS_UL + LINE_BEAD) / F_BEADLOAD * 60.0 * MARGIN), reagent="bead_suspension",
-             volume_ul=round(BEADS_UL + LINE_BEAD, 1), flow_ul_min=F_BEADLOAD)
+             math.ceil(BEAD_LOAD_UL / F_BEADLOAD * 60.0 * MARGIN), reagent="bead_suspension",
+             volume_ul=BEAD_LOAD_UL, flow_ul_min=F_BEADLOAD, ports=ports_for(M5, ["in_bead"], [WASTE5]))
         emit("release", "react_cx",
              f"Step 16, pass {n}: collagenase into react_cx through in_prot, all ports capped. It digests the "
              f"gelatin between crosslinks until the capsule dissolves. Proteinase K would leave these "
              f"capsules intact, and a chelator would stop collagenase, so none is carried in.",
-             math.ceil((COLLAGENASE_UL + LINE_PROT) / F_DIG * 60.0 * MARGIN), reagent="collagenase_solution")
+             math.ceil((COLLAGENASE_UL + LINE_PROT) / F_DIG * 60.0 * MARGIN), reagent="collagenase_solution",
+             ports=ports_for(M5, ["in_prot"]))
         emit("hold_temp", "react_cx",
              f"Step 16, pass {n}: hold react_cx at {DIGEST_C} C while the capsules dissolve and the DNA is "
              f"released into solution.",
-             DIGEST_S, temp_c=DIGEST_C)
+             DIGEST_S, temp_c=DIGEST_C, ports=ports_for(M5))
         emit("exchange", "react_cx",
              f"Step 16, pass {n}: DILUTE, then capture. Dilution buffer is pushed through react_cx into "
-             f"bead_cx at low flow. The dissolved shell carries about 10,000 times more polymer than DNA, "
+             f"bead_cx at low flow, {DILUTION_FOLD} fills of one react_cx volume. The dissolved shell carries about 10,000 times more polymer than DNA, "
              f"and at that level bead binding fails, so the digest must be diluted before it meets the "
              f"beads. The DNA binds to the magnet-held beads as it passes; the liquid leaves by out_waste.",
-             exchange_s(1, DILUTION_UL, F_DIL), reagent="dilution_buffer", volume_ul=DILUTION_UL, washes=1,
-             flow_ul_min=F_DIL)
+             exchange_s(DILUTION_FOLD, V_REACT, F_DIL), reagent="dilution_buffer", volume_ul=V_REACT,
+             washes=DILUTION_FOLD, flow_ul_min=F_DIL, ports=ports_for(M5, ["in_prot"], [WASTE5]))
         emit("exchange", "bead_cx",
              f"Step 16, pass {n}: buffer exchange on the bead pellet with an aqueous, ethanol-free buffer, "
              f"magnet ON. There is no ethanol wash and no drying on chip: a drying meniscus pulls a bead "
              f"about 100,000 times harder than the magnet and wrecks the pellet.",
              exchange_s(EXCHANGE_WASHES, EXCHANGE_UL, F_EXCH), reagent="exchange_buffer",
-             volume_ul=EXCHANGE_UL, washes=EXCHANGE_WASHES, flow_ul_min=F_EXCH)
+             volume_ul=EXCHANGE_UL, washes=EXCHANGE_WASHES, flow_ul_min=F_EXCH,
+             ports=ports_for(M5, ["in_bead"], [WASTE5]))
         emit("exchange", "bead_cx",
              f"Step 16, pass {n}: elute in a small volume through in_bead, out_lib vented and out_waste "
              f"capped, magnet still ON so the beads stay put.",
              exchange_s(1, ELUTE_UL, F_ELUTE), reagent="elution_buffer", volume_ul=ELUTE_UL, washes=1,
-             flow_ul_min=F_ELUTE)
+             flow_ul_min=F_ELUTE, ports=ports_for(M5, ["in_bead"], [LIB5]))
         emit("release", "bead_cx",
              f"Step 17, pass {n}: library {n} leaves through out_lib into a tube, chased with air to recover "
              f"the liquid left in the short out_lib channel.",
-             300, reagent="elution_buffer")
+             300, reagent="elution_buffer", ports=ports_for(M5, ["in_bead"], [LIB5]))
 
     emit("release", "bead_cx",
          "Step 17, hand-off to the bench: mix the four libraries in a tube and do the ratio-based size "
          "selection that removes primer dimers there. It is off chip because it needs an ethanol wash and "
          "dry, which a chip cannot do.",
-         900, reagent="ratio_size_selection")
+         900, reagent="ratio_size_selection", ports=ports_for(M5, [], [LIB5]))
     emit("release", "bead_cx",
          "Step 17, hand-off to the bench through out_lib: off-chip QC on the finished library (size "
          "distribution and quantity) before sequencing.",
-         1800, reagent="off_chip_qc")
+         1800, reagent="off_chip_qc", ports=ports_for(M5, [], [LIB5]))
 
     return {
         "id": "library_out_v1",
@@ -354,8 +397,8 @@ def build() -> dict:
             "sublibrary, with an explicit dilution before the beads, no ethanol wash on chip, and "
             "ratio-based size selection left as an off-chip tube step. Reagent names are generic and the "
             "volumes, setpoints and cycle count are round placeholders to be fitted. Flows are computed "
-            "from chamber geometry against a capsule-handling shear of 1 dyn/cm2; the 0.01 dyn/cm2 "
-            "culture ceiling does not apply to capsules."
+            "from chamber geometry so that wall shear stays at or below 0.01 dyn/cm2, and every volume is a "
+            "fraction of its chamber's volume_ul."
         ),
         "steps": steps,
     }
@@ -363,7 +406,7 @@ def build() -> dict:
 
 def report() -> None:
     print("Interleaved fill order (rotary valve position, chamber, letter), pulse of "
-          f"{PULSE_UL} uL at {F_FILL:g} uL/min:")
+          f"{PULSE_UL:g} uL at {F_FILL:g} uL/min:")
     print("  " + " ".join(LETTER[s] for s in FILL_ORDER[:8]) + "   "
           + " ".join(LETTER[s] for s in FILL_ORDER[8:]))
     for i, s in enumerate(FILL_ORDER, start=1):
@@ -394,12 +437,12 @@ def report() -> None:
         ("fill line in_s -> sub (x4 each, primed once)", LINE4,
          "kept between pulses, pushed into the chamber by the primer and mix, so the mix volume covers it"),
         ("rotary valve stem + tubing (one-off)", OFFCHIP_LINE_UL, "assumption; stays primed after the last pulse"),
-        ("transfer: sub chamber hold-up", HOLDUP_UL, "assumption; film and corners"),
+        ("transfer: sub chamber hold-up", HOLDUP_SUB, "assumption; film and corners"),
         ("transfer: off-chip tubing", OFFCHIP_LINE_UL, "assumption"),
         ("transfer: ch_in_lib", LINE_LIB, "fills with sample and stays"),
-        ("dilution flush: react_cx hold-up", HOLDUP_UL, "assumption; DNA left behind"),
+        ("dilution flush: react_cx hold-up", HOLDUP_REACT, "assumption; DNA left behind"),
         ("dilution flush: ch_react_bead", LINE_REACT_BEAD, "carries sample past the beads, no loss if bound"),
-        ("elution: bead_cx hold-up", HOLDUP_UL, "assumption"),
+        ("elution: bead_cx hold-up", HOLDUP_BEAD, "assumption"),
         ("elution: ch_out_lib", LINE_OUT, "product left in the line unless chased with air"),
         ("reagent only: ch_in_prot", LINE_PROT, "collagenase and dilution line, no product"),
         ("reagent only: ch_in_bead", LINE_BEAD, "bead and elution line, no product"),
@@ -409,14 +452,14 @@ def report() -> None:
         print(f"  {name:<46}{v:>7.2f}  {note}")
     print()
     print(f"  per sublibrary, uL: in chamber {CONTENT_UL:.2f} -> transfer loss {TRANSFER_LOSS:.2f} -> "
-          f"delivered {DELIVERED_UL:.1f} -> eluted {ELUTE_UL:.1f}")
-    print(f"  product per sublibrary {ELUTE_UL:.1f} - {HOLDUP_UL:.1f} hold-up - {LINE_OUT:.2f} line = "
+          f"delivered {DELIVERED_UL:.2f} -> eluted {ELUTE_UL:.1f}")
+    print(f"  product per sublibrary {ELUTE_UL:.1f} - {HOLDUP_BEAD:.2f} hold-up - {LINE_OUT:.2f} line = "
           f"{PRODUCT_UL:.2f} uL; four sublibraries {4 * PRODUCT_UL:.1f} uL")
-    lost = TRANSFER_LOSS + HOLDUP_UL * 2 + LINE_OUT
+    lost = TRANSFER_LOSS + HOLDUP_REACT + HOLDUP_BEAD + LINE_OUT
     print(f"  sample-path dead volume per sublibrary {lost:.2f} uL against {PRODUCT_UL:.2f} uL of product "
           f"({lost / PRODUCT_UL:.1f}x)\n")
 
-    print(f"Shear (dyn/cm2). Handling ceiling {HANDLING_SHEAR:g}, an assumption; the 0.01 culture ceiling does not apply.")
+    print(f"Shear (dyn/cm2). Ceiling {SHEAR_CEILING:g} in every chamber; channels are not held to it.")
     print(f"  {'route':<34}{'flow':>6}  {'chamber':>8}  {'narrowest channel':>18}")
     rows = [
         ("fill, module 4", M4, F_FILL, "sub_1", "ch_in_1"),
@@ -428,7 +471,7 @@ def report() -> None:
     for name, chip, q, cid, chid in rows:
         c = next(x for x in chip["chambers"] if x["id"] == cid)
         ch = next(x for x in chip["channels"] if x["id"] == chid)
-        print(f"  {name:<34}{q:>6.1f}  {shear(q, c['size'][1], c['size'][2]):>8.4f}  "
+        print(f"  {name:<34}{q:>6.2f}  {shear(q, c['size'][1], c['size'][2]):>8.4f}  "
               f"{shear(q, ch['width_mm'], ch['depth_mm']):>18.4f}")
 
 

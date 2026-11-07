@@ -4,7 +4,7 @@
   "chip_id": "m3_wash_v1",
   "chip_spec": "cad/m3_wash_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T17:18:40Z",
+  "created_at": "2026-11-07T17:59:30Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": 10000,
@@ -17,7 +17,7 @@
     "monolayer_area_mm2_needed": 49.0,
     "trap_area_mm2": 49.0,
     "packed_volume_ul_needed": 2.806,
-    "trap_volume_ul": 7.35,
+    "trap_volume_ul": 14.7,
     "channel_width_um": [
       200.0,
       200.0
@@ -32,58 +32,58 @@
     ],
     "swollen_diameter_um": 150.00300000000001
   },
-  "total_duration_s": 360.0,
+  "total_duration_s": 1739.2,
   "events": [
     {
       "t_s": 0.0,
-      "duration_s": 60.0,
+      "duration_s": 340.3,
       "command": "load",
       "args": {
         "target": "m3_trap_1",
-        "volume_ul": 20
+        "volume_ul": 14.7
       },
-      "narration": "Load 10,000 capsules through the top inlet; they settle in a single layer on the mesh.",
+      "narration": "Load 10,000 capsules through the top inlet; they settle in a single layer behind the weir.",
       "protocol_step": 1
     },
     {
-      "t_s": 60.0,
-      "duration_s": 180.0,
+      "t_s": 340.3,
+      "duration_s": 680.6,
       "command": "exchange",
       "args": {
         "target": "m3_trap_1",
         "reagent": "wash_buffer",
-        "volume_ul": 20,
-        "washes": 3,
-        "flow_ul_min": 20,
+        "volume_ul": 39.7,
+        "washes": 2,
+        "flow_ul_min": 7,
         "direction": "forward"
       },
-      "narration": "Wash three times: buffer flows down through the mesh to waste while the capsules stay on top.",
+      "narration": "Wash 2 x 39.7 uL (the volume of three 20 uL washes, cut to fit the chamber): buffer flows past the weir to waste while the capsules stay behind it.",
       "protocol_step": 2
     },
     {
-      "t_s": 240.0,
-      "duration_s": 60.0,
+      "t_s": 1020.9,
+      "duration_s": 340.3,
       "command": "exchange",
       "args": {
         "target": "m3_trap_1",
         "reagent": "resuspension_buffer",
-        "volume_ul": 20,
+        "volume_ul": 39.7,
         "washes": 1,
-        "flow_ul_min": 20,
+        "flow_ul_min": 30,
         "direction": "backflush"
       },
-      "narration": "Back-flush from below to lift the capsules off the mesh and resuspend them.",
+      "narration": "Back-flush from the far side to lift the capsules off the weir and resuspend them.",
       "protocol_step": 3
     },
     {
-      "t_s": 300.0,
-      "duration_s": 60.0,
+      "t_s": 1361.2,
+      "duration_s": 378.0,
       "command": "release",
       "args": {
         "target": "m3_trap_1",
         "reagent": "resuspension_buffer"
       },
-      "narration": "Flush the washed capsules out through the release outlet.",
+      "narration": "Flush the washed capsules out through the release outlet: 44.1 uL at 30 uL/min. The volume is about three trap volumes because a release has to SWEEP the chamber, not just fill it, and the flow is the lift flow because below it the capsule bed does not come off the weir.",
       "protocol_step": 4
     }
   ]
