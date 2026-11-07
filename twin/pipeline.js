@@ -1,32 +1,64 @@
-// Pipeline view: the whole MVP on one screen, from protocols/pipeline_mvp.json and the module
-// runs. Module 1 (control + interaction side by side) -> Module 1b (automated cell prep,
-// simulated) -> Module 2 -> Module 3 -> roadmap. Cells and capsules move card to card as dots,
-// following the pipeline's hand-offs; the bottom timeline is the pipeline's phases.
-import { fateCss, formatDuration } from './player.js';
+// Pipeline view: every current module on one screen, left to right, from
+// protocols/pipeline_mvp.json. Each module shows its status badge (FINAL, DRAFT, TRANSLATED,
+// MISSING), whether it is built for Sunday's dye demo or exists in the twin only, and its
+// outgoing hand-off (ports, TBC, connector warnings). Cells, then capsules, then library
+// move card to card as dots; the bottom timeline is the pipeline's phases. Click a module
+// to open its own view.
+import { formatDuration } from './player.js';
 
-const LANES = [
-  { n: 1, name: 'neuron', id: 'm1_neuron_1' },
-  { n: 2, name: 'astrocyte', id: 'm1_astrocyte_1' },
-  { n: 3, name: 'microglia', id: 'm1_microglia_1' },
-];
-const M1B_STAGES = [['m1b_merge_1', 'merge'], ['m1b_mix_1', 'quench'], ['m1b_cellwash_1', 'wash'], ['m1b_filter_1', 'filter'],
-  ['m1b_qc_window_1', 'QC count'], ['m1b_resuspend_1', 'resuspend']];
-const M2_STAGES = ['co-flow', 'nozzle', 'phase separation', 'cold delay (off-chip, 4 °C)', 'trap: oil out', 'UV cure', 'washes'];
-const M3_STAGES = ['load', 'wash ×3', 'back-flush', 'release'];
+// What each module does, as short stage names for the card (keyed by pipeline module id).
+const STAGES = {
+  module1: ['seed', 'grow apart', 'interaction modes', 'collect → j_mid'],
+  module2: ['co-flow', 'nozzle', 'phase separation', 'cold delay (off-chip)', 'trap: oil out', 'UV cure', 'washes'],
+  module3: ['load (100 µm pre-filter)', 'lysis ×2', 'wash ×3', 'back-flush'],
+  barcoding: ['split', 'barcode', 'pool'],
+  module4: ['fill ABCD DCBA', 'index primer', 'PCR mix', 'thermocycle'],
+  module5: ['collagenase release', 'dilute', 'bead capture', 'elute → out_lib'],
+};
+const STATUS = { final: 'FINAL', draft: 'DRAFT', translated: 'TRANSLATED', missing: 'MISSING' };
+const CARRIES = { cells: 'cells', capsules: 'capsules', library: 'library' };
 const DOTS = 6;
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const ease = (x) => { x = clamp01(x); return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2; };
+const portText = (end) => (end.ports ?? [end.port]).map((p) => (p === 'TBC' ? '<b class="tbc">TBC</b>' : esc(p))).join(', ');
 
-function badges(spec) {
-  const m = spec?.module;
-  if (!m) return '';
-  const out = [m.printed === false
-    ? '<span class="badge sim-only">Designed · simulated · not printed this weekend</span>'
-    : '<span class="badge printed">Printed</span>'];
-  if (m.status === 'draft') out.push('<span class="badge draft">Draft design</span>');
-  return out.join('');
+function summary(e, days) {
+  const s = e.spec;
+  switch (e.module) {
+    case 'module1':
+      return `Three lineages grow apart, then each chamber's medium crosses to the other two in turn (${days} days, compressed). No valves: every route is FEED / VENT / CAP at the ports. This is the chip being laser-cut for Sunday's dye demo.`;
+    case 'module2':
+      return e.switched
+        ? `MJ's Module 2 (${esc(e.chipPath)}), picked up automatically.`
+        : 'Core and shell co-flow into the nozzle and oil pinches off droplets that phase-separate into core-shell capsules; cold delay off-chip, then oil out, UV cure and washes. A stand-in: MJ is redesigning this module.';
+    case 'module3': {
+      const trap = s?.chambers?.find((c) => c.id === 'main_trap');
+      return `Szonja's ${trap ? `${trap.size[0]} × ${trap.size[1]} mm ` : ''}trap holds the capsules behind a ${trap?.retention?.opening_um ?? '–'} µm retention gap: two lysis exchanges to their own waste, three washes, then a back-flush lifts the bed. Translated into the chip-spec format; layout inferred.`;
+    }
+    case 'barcoding':
+      return 'Split-and-pool barcoding (library steps 4–12) is not designed yet: Module 3 points to barcoding_geometry.json, which is not in the repo.';
+    case 'module4':
+      return 'An off-chip rotary valve splits the pooled capsules four ways, one chamber at a time in palindromic order (ABCD DCBA); each chamber gets its own index primer and the whole chip is thermocycled.';
+    case 'module5':
+      return 'One sublibrary per pass: collagenase at 37 °C dissolves the capsules, the eluate is diluted, the DNA is captured on magnetic beads, then eluted through out_lib.';
+    default:
+      return e.name;
+  }
+}
+
+function facts(e) {
+  const s = e.spec;
+  if (!s) return 'no chip yet';
+  const n = (k) => (s[k] ?? []).length;
+  return `${s.footprint.x} × ${s.footprint.y} mm · ${n('chambers')} chambers · ${n('ports')} ports${n('valves') ? ` · ${n('valves')} valves` : ''}`;
+}
+
+function connectorText(c) {
+  if (!c) return '';
+  if (c.status === 'match') return `<p class="pl-conn ok" title="Same port style on both chips">connector match</p>`;
+  return `<p class="pl-conn ${c.status}" title="${esc(c.warning)}">⚠ connector ${c.status === 'mismatch' ? 'mismatch' : 'unknown'}: ${esc(c.from)} → ${esc(c.to)}</p>`;
 }
 
 export function createPipeline(root, handlers = {}) {
@@ -42,40 +74,31 @@ export function createPipeline(root, handlers = {}) {
   let el = {};
   let data = null;
 
+  // d = { pipe, entries: [{ ...pipeline module, chipPath, status, statusNote, switched, spec, view, file }], days }
   function load(d) {
     data = d;
-    const { specs, runs } = d;
-    const m1Run = runs.m1v1 ?? runs.m1_control;
-    const m1Days = Math.round((m1Run?.total_duration_s ?? 0) / 86400);
-    const s1b = runs.m1b?.summary ?? {};
-    const qc = s1b.counted ? `${s1b.counted.cells_per_ul.toLocaleString()} cells/µL · ${(s1b.counted.viability * 100).toFixed(0)}% viable` : '–';
-    const p2 = specs.m2?.generator?.params ?? {};
-    const capVolNl = (4 / 3) * Math.PI * ((p2.capsule_diameter_um ?? 70) / 2) ** 3 / 1e6;
-    const perHour = ((p2.core_flow_ul_h ?? 100) + (p2.shell_flow_ul_h ?? 250)) / capVolNl * 1000;
-    const trap3 = specs.m3?.chambers?.find((c) => c.id === 'm3_trap_1');
+    const { pipe, entries } = d;
+    const col = Object.fromEntries(entries.map((e, k) => [e.module, k]));
+    const outOf = (k) => pipe.handoffs.find((h) => h.from.module === entries[k].module);
+    const days = d.days ?? 0;
+    const stagesOf = (e) => (e.switched ? ['in', 'encapsulate', 'out'] : STAGES[e.module] ?? ['in', 'process', 'out']);
 
-    phases = [
-      { id: 'pl_m1', module: 'm1', play: 6, proto: m1Run?.total_duration_s ?? 1,
-        narration: specs.m1v1
-          ? `Module 1 v1 (MJ's chip): three lineages grow apart in separate-growth mode, then each chamber's medium crosses to the other two in turn (${m1Days} days, compressed). No valves: routing is FEED / VENT / CAP.`
-          : `Module 1: both chips seed, split and differentiate three cell types (${m1Days} days, compressed). Only the interaction chip opens its pair valves; the control stays isolated.` },
-      { id: 'pl_m1_out', module: 'm1', play: 2.5, proto: 300,
-        narration: specs.m1v1
-          ? 'Harvest: the three chambers are swept into j_mid and the pooled, barcoded cells leave through p_mid.'
-          : 'Harvest: cells leave m1_out_1/2/3 of both chips (labelled per chamber) for Module 1b\'s three inlets.' },
-      { id: 'pl_m1b', module: 'm1b', play: 6.5, proto: runs.m1b?.total_duration_s ?? 1,
-        narration: `Module 1b (automated, simulated): merge, quench, wash, filter, count, resuspend. Counter: ${qc}; the operator dilutes ${s1b.dilution ?? '–'}× so Module 2 gets ${s1b.mean_cells_per_capsule ?? '–'} cells per capsule; safety: ${s1b.verdict?.result ?? '–'}.` },
-      { id: 'pl_m1b_out', module: 'm1b', play: 2, proto: 60,
-        narration: 'Cells in dextran buffer go from m1b_to_module2_1 into Module 2\'s core inlet.' },
-      { id: 'pl_m2', module: 'm2', play: 7, proto: runs.m2?.total_duration_s ?? 1,
-        narration: `Module 2: core and shell co-flow into the nozzle, oil pinches off ~${Math.round(perHour / 3600)} droplets a second, each phase-separates into a core-shell capsule; cold delay off-chip at 4 °C; then the trap: oil out, UV cure, washes.` },
-      { id: 'pl_m2_out', module: 'm2', play: 2, proto: 60,
-        narration: 'Cured capsules leave through the 100 µm aggregate filter for Module 3.' },
-      { id: 'pl_m3', module: 'm3', play: 4.5, proto: runs.m3?.total_duration_s ?? 1,
-        narration: `Module 3: ${trap3 ? `${trap3.size[0]} × ${trap3.size[1]} mm trap, ` : ''}three washes down through the mesh, back-flush, release.` },
-      { id: 'pl_roadmap', module: null, play: 2, proto: 1,
-        narration: 'Next, on the roadmap: library prep and sequencing.' },
-    ];
+    phases = [];
+    entries.forEach((e, k) => {
+      phases.push({ id: `pl_${e.module}`, kind: 'module', k, play: e.status === 'missing' ? 3 : 5.5,
+        proto: e.module === 'module1' ? days * 86400 : (e.duration_s ?? 600),
+        narration: `${e.name} · ${STATUS[e.status]}${e.statusNote ? ` (${e.statusNote})` : ''}. ${summary(e, days)}` });
+      const h = outOf(k);
+      if (!h) return;
+      const to = h.to.module !== undefined ? entries[col[h.to.module]] : null;
+      const toName = to ? to.name : (pipe.roadmap ?? []).find((r) => r.id === h.to.roadmap)?.name ?? h.to.roadmap;
+      const tbc = [h.from, h.to].some((x) => (x.ports ?? [x.port]).includes('TBC'));
+      const conn = h.connector
+        ? h.connector.status === 'match' ? ' Same port style on both chips.' : ` Connector ${h.connector.status}: ${h.connector.warning}`
+        : '';
+      phases.push({ id: `pl_${h.id}`, kind: 'handoff', k, to: to ? col[h.to.module] : null, h, play: 2.4, proto: 120,
+        narration: `Hand-off: ${e.name} ${(h.from.ports ?? [h.from.port]).join(', ')} → ${toName}${to ? ` ${(h.to.ports ?? [h.to.port]).join(', ')}` : ''} (${CARRIES[h.carries]}).${tbc ? ' TBC: port not named yet.' : ''}${conn}` });
+    });
     starts = [];
     let acc = 0;
     let proto = 0;
@@ -89,61 +112,42 @@ export function createPipeline(root, handlers = {}) {
     t = 0;
     current = -2;
 
-    const lanes = (variant) => LANES.map((l) => `<li class="pl-lane" data-lane="${l.n}" data-chip="${variant}">
-        <span class="sw" data-fate="${esc(fateCss(l.id))}"></span>${l.name}<span class="pl-anchor out" data-anchor="m1_${variant}_${l.n}"></span></li>`).join('');
-    const m1card = (variant, file) => `<article class="pl-card pl-m1card" data-open="m1" data-file="${esc(file ?? '')}" tabindex="0">
-        <header><b>${variant === 'control' ? 'Control' : 'Interaction'}</b><span class="pl-day" data-day="${variant}">day 0</span></header>
-        <ul class="pl-lanes">${lanes(variant)}</ul>
-        <p class="pl-valves" data-valves="${variant}"><span class="vdot"></span>pair valves closed</p>
-      </article>`;
+    const card = (e, k) => {
+      const h = outOf(k);
+      const stages = stagesOf(e);
+      const demo = e.built_for_demo;
+      return `
+        <section class="pl-col${e.status === 'missing' ? ' pl-missing' : ''}" data-col="${k}" aria-label="${esc(e.name)}">
+          <h3>${esc(e.name)}</h3>
+          <div class="pl-badges">
+            <span class="badge st-${e.status}" title="${esc(e.statusNote ?? '')}">${STATUS[e.status]}</span>
+            <span class="badge ${demo ? 'printed' : 'sim-only'}">${demo ? 'Built for Sunday’s dye demo' : 'Twin only'}</span>
+          </div>
+          ${e.statusNote ? `<p class="pl-mj">${esc(e.statusNote)}</p>` : ''}
+          <article class="pl-card" ${e.view ? `data-open="${esc(e.view)}" data-file="${esc(e.file ?? '')}" tabindex="0" title="Open ${esc(e.name)}"` : 'title="Not designed yet: nothing to open"'}>
+            <span class="pl-anchor in" data-anchor="in_${k}"></span>
+            ${e.module === 'module1' ? '<header><b>MJ’s chip</b><span class="pl-day" data-day>day 0</span></header>' : ''}
+            <ol class="pl-stages">${stages.map((s, j) => `<li data-stage="${k}:${j}">${esc(s)}<span class="pl-anchor" data-anchor="s_${k}_${j}"></span></li>`).join('')}</ol>
+            <p class="pl-note">${esc(facts(e))}</p>
+            ${h ? `<p class="pl-out">out: ${portText(h.from)} → ${h.to.module ? portText(h.to) : esc(h.to.roadmap)}<span class="pl-anchor out" data-anchor="out_${k}"></span></p>` : ''}
+            ${h ? connectorText(h.connector) : ''}
+          </article>
+          <p class="pl-meta">${esc(e.owner ?? '')}${e.build ? ` · ${esc(e.build.method)}` : ''}</p>
+        </section>
+        <div class="pl-arrow" aria-hidden="true"></div>`;
+    };
     root.innerHTML = `
+      <p class="pl-legend">
+        <span class="badge st-final">FINAL</span><span class="badge st-draft">DRAFT</span><span class="badge st-translated">TRANSLATED</span><span class="badge st-missing">MISSING</span>
+        <span class="pl-legend-gap"></span>
+        <span class="badge printed">Built for Sunday’s dye demo</span><span class="badge sim-only">Twin only</span>
+        <span class="pl-legend-gap"></span><span class="pl-legend-note">⚠ = the dye demo needs an adapter between the two chips' ports · <b class="tbc">TBC</b> = port not named yet</span>
+      </p>
       <div class="pl-row">
-        <section class="pl-col pl-m1" aria-label="Module 1">
-          <h3>Module 1 · Culture</h3><div class="pl-badges">${badges(specs.m1)}</div>
-          ${specs.m1v1 ? `<article class="pl-card pl-v1" data-open="m1v1" data-file="${esc(d.files.m1v1 ?? '')}" tabindex="0">
-            <header><b>Module 1 v1 · MJ's chip</b><span class="badge printed">being laser-cut</span></header>
-            <ul class="pl-lanes">${LANES.map((l) => `<li class="pl-lane"><span class="sw" data-fate="${esc(fateCss(l.id))}"></span>${l.name}</li>`).join('')}</ul>
-            <p class="pl-note">${esc(specs.m1v1.chambers.map((c) => c.id).join(' · '))} · no valves: FEED / VENT / CAP at 6 ports
-              <span class="pl-day" data-day="v1">day 0</span></p>
-            <p class="pl-out">harvest → p_mid<span class="pl-anchor out" data-anchor="m1v1_out"></span></p>
-          </article>
-          <p class="pl-note">Earlier brief design (valves; control + interaction chips):</p>` : ''}
-          <div class="pl-pair">${m1card('control', d.files.m1_control)}${m1card('interaction', d.files.m1_interaction)}</div>
-          ${specs.m1v1 ? '' : '<p class="pl-note">One chip, printed twice: control and interaction.</p>'}
-        </section>
-        <div class="pl-arrow" aria-hidden="true"></div>
-        <section class="pl-col pl-m1b" aria-label="Module 1b">
-          <h3>Module 1b · Cell prep</h3><div class="pl-badges">${badges(specs.m1b)}</div>
-          <article class="pl-card" data-open="m1b" data-file="${esc(d.files.m1b ?? '')}" tabindex="0">
-            <span class="pl-anchor in" data-anchor="m1b_in"></span>
-            <ol class="pl-stages">${M1B_STAGES.map(([id, name], k) => `<li data-stage="m1b:${k}" title="${id}">${name}<span class="pl-anchor" data-anchor="m1b_${k}"></span></li>`).join('')}</ol>
-            <p class="pl-qc" data-qc>counter: waiting</p>
-            <p class="pl-verdict" data-verdict></p>
-          </article>
-        </section>
-        <div class="pl-arrow" aria-hidden="true"></div>
-        <section class="pl-col pl-m2" aria-label="Module 2">
-          <h3>Module 2 · Encapsulation</h3><div class="pl-badges">${badges(specs.m2)}</div>
-          <p class="pl-mj">Module 2 (encapsulation) – in progress by MJ</p>
-          <article class="pl-card" data-open="m2" data-file="${esc(d.files.m2 ?? '')}" tabindex="0">
-            <span class="pl-anchor in" data-anchor="m2_in"></span>
-            <ol class="pl-stages">${M2_STAGES.map((name, k) => `<li data-stage="m2:${k}">${name}<span class="pl-anchor" data-anchor="m2_${k}"></span></li>`).join('')}</ol>
-            <p class="pl-note">${Number(p2.capsule_count ?? 0).toLocaleString()} capsules · ${Math.round(perHour / 3600)} Hz · nozzle ${p2.nozzle_width_um ?? '–'} µm</p>
-          </article>
-        </section>
-        <div class="pl-arrow" aria-hidden="true"></div>
-        <section class="pl-col pl-m3" aria-label="Module 3">
-          <h3>Module 3 · Capsule wash</h3><div class="pl-badges">${badges(specs.m3)}</div>
-          <article class="pl-card" data-open="m3" data-file="${esc(d.files.m3 ?? '')}" tabindex="0">
-            <span class="pl-anchor in" data-anchor="m3_in"></span>
-            <ol class="pl-stages">${M3_STAGES.map((name, k) => `<li data-stage="m3:${k}">${name}<span class="pl-anchor" data-anchor="m3_${k}"></span></li>`).join('')}</ol>
-            <p class="pl-note">${trap3 ? `${trap3.size[0]} × ${trap3.size[1]} mm trap · ${trap3.retention?.opening_um} µm mesh` : ''}</p>
-          </article>
-        </section>
-        <div class="pl-arrow" aria-hidden="true"></div>
-        <section class="pl-col pl-road" aria-label="Roadmap">
-          <h3>Roadmap</h3>
-          ${(d.pipe.roadmap ?? []).map((r, k) => `<article class="pl-card pl-roadmap" title="${esc(r.note ?? '')}">${esc(r.name)}<span class="badge">roadmap</span>${k === 0 ? '<span class="pl-anchor in" data-anchor="road_in"></span>' : ''}</article>`).join('')}
+        ${entries.map(card).join('')}
+        <section class="pl-col pl-road" data-col="${entries.length}" aria-label="Library out">
+          <h3>Library out</h3>
+          ${(pipe.roadmap ?? []).map((r, k) => `<article class="pl-card pl-roadmap" title="${esc(r.note ?? '')}">${esc(r.name)}<span class="badge">${k === 0 ? 'output' : 'next'}</span>${k === 0 ? '<span class="pl-anchor in" data-anchor="road_in"></span>' : ''}</article>`).join('')}
         </section>
       </div>
       <p class="pl-caption" data-caption></p>
@@ -151,14 +155,13 @@ export function createPipeline(root, handlers = {}) {
     el = {
       dots: [...root.querySelectorAll('.pl-dot')],
       caption: root.querySelector('[data-caption]'),
-      qc: root.querySelector('[data-qc]'),
-      verdict: root.querySelector('[data-verdict]'),
-      cols: Object.fromEntries(['m1', 'm1b', 'm2', 'm3', 'road'].map((m) => [m, root.querySelector(`.pl-${m}`)])),
+      cols: [...root.querySelectorAll('.pl-col')],
+      stages: entries.map((e) => stagesOf(e).length),
     };
-    root.querySelectorAll('[data-open]').forEach((card) => {
-      const open = () => handlers.onOpenModule?.(card.dataset.open, card.dataset.file || null);
-      card.addEventListener('click', open);
-      card.addEventListener('keydown', (e) => { if (e.key === 'Enter') open(); });
+    root.querySelectorAll('[data-open]').forEach((c) => {
+      const open = () => handlers.onOpenModule?.(c.dataset.open, c.dataset.file || null);
+      c.addEventListener('click', open);
+      c.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') open(); });
     });
     render();
   }
@@ -216,12 +219,12 @@ export function createPipeline(root, handlers = {}) {
     return pts[pts.length - 1];
   }
 
-  function highlight(prefix, k) {
-    root.querySelectorAll(`[data-stage^="${prefix}:"]`).forEach((li) => {
-      const n = Number(li.dataset.stage.split(':')[1]);
-      li.classList.toggle('active', n === k);
-      li.classList.toggle('done', k !== null && n < k);
-    });
+  // What the dots are while module k works: what came in, then (past halfway) what goes out.
+  function carried(k, p) {
+    const { pipe, entries } = data;
+    const inH = pipe.handoffs.find((h) => h.to.module === entries[k]?.module);
+    const outH = pipe.handoffs.find((h) => h.from.module === entries[k]?.module);
+    return (p < 0.5 ? inH?.carries : outH?.carries) ?? inH?.carries ?? outH?.carries ?? 'cells';
   }
 
   function render() {
@@ -235,69 +238,52 @@ export function createPipeline(root, handlers = {}) {
       handlers.onPhase?.(i, ph.event);
       el.caption.textContent = ph.narration;
     }
-    const protoT = ph.event.t_s + p * ph.event.duration_s;
-    handlers.onTick?.({ t, total, protocolT: protoT, index: i, progress: p });
+    handlers.onTick?.({ t, total, protocolT: ph.event.t_s + p * ph.event.duration_s, index: i, progress: p });
 
-    // Columns: active / done.
-    const order = ['m1', 'm1', 'm1b', 'm1b', 'm2', 'm2', 'm3', 'road'];
-    const rank = { m1: 0, m1b: 1, m2: 2, m3: 3, road: 4 };
-    Object.entries(el.cols).forEach(([m, col]) => {
-      col.classList.toggle('active', order[i] === m || (i === 7 && m === 'road'));
-      col.classList.toggle('done', rank[m] < rank[order[i]]);
+    // Columns: the working module (or the hand-off's destination) is active; earlier ones are done.
+    const activeCol = ph.kind === 'module' ? ph.k : ph.to ?? el.cols.length - 1;
+    el.cols.forEach((c, k) => {
+      c.classList.toggle('active', k === activeCol || (ph.kind === 'handoff' && k === ph.k));
+      c.classList.toggle('done', k < (ph.kind === 'module' ? ph.k : ph.k + 1) && !(ph.kind === 'handoff' && k === ph.k));
     });
 
-    // Module 1: day counter, lanes take on their cell type's colour, pair valves.
-    const days = Math.round((phases[0].proto) / 86400);
-    const dayNow = i === 0 ? Math.floor(p * days) : days;
-    const fateK = i === 0 ? ease(p) : 1;
-    root.querySelectorAll('[data-day]').forEach((d) => { d.textContent = `day ${dayNow} of ${days}`; });
-    root.querySelectorAll('.pl-lane .sw').forEach((sw) => {
-      sw.style.background = `color-mix(in srgb, ${sw.dataset.fate} ${Math.round(fateK * 100)}%, #64748b)`;
-    });
-    const open = i > 0 || dayNow >= Math.round(days * 14 / 17);
-    root.querySelectorAll('[data-valves]').forEach((v) => {
-      const isOpen = v.dataset.valves === 'interaction' && open && i <= 1;
-      v.classList.toggle('open', isOpen);
-      v.lastChild.textContent = v.dataset.valves === 'control' ? 'pair valves closed (blocked in control)'
-        : isOpen ? 'pair valves open: signalling' : open ? 'pair valves closed again' : 'pair valves closed';
+    // Stage highlights.
+    el.stages.forEach((n, k) => {
+      const at = ph.kind === 'module' && ph.k === k ? Math.min(n - 1, Math.floor(p * n)) : k < (ph.kind === 'module' ? ph.k : ph.k + 1) ? n : null;
+      root.querySelectorAll(`[data-stage^="${k}:"]`).forEach((li) => {
+        const j = Number(li.dataset.stage.split(':')[1]);
+        li.classList.toggle('active', j === at);
+        li.classList.toggle('done', at !== null && j < at);
+      });
     });
 
-    // Module 1b / 2 / 3 stage highlights and readouts.
-    const s1b = data.runs.m1b?.summary ?? {};
-    const k1b = i === 2 ? Math.min(M1B_STAGES.length - 1, Math.floor(p * M1B_STAGES.length)) : i > 2 ? M1B_STAGES.length : null;
-    highlight('m1b', k1b);
-    const counted = k1b !== null && k1b >= 4 && s1b.counted;
-    el.qc.textContent = counted ? `counter: ${s1b.counted.cells_per_ul.toLocaleString()} cells/µL · ${(s1b.counted.viability * 100).toFixed(0)}% viable` : 'counter: waiting';
-    el.verdict.textContent = k1b !== null && k1b >= 5 ? `diluted ${s1b.dilution}× → ${s1b.mean_cells_per_capsule} cells/capsule · safety ${s1b.verdict?.result ?? '–'}` : '';
-    el.verdict.classList.toggle('ok', s1b.verdict?.result === 'approved');
-    const k2 = i === 4 ? Math.min(M2_STAGES.length - 1, Math.floor(p * M2_STAGES.length)) : i > 4 ? M2_STAGES.length : null;
-    highlight('m2', k2);
-    const k3 = i === 6 ? Math.min(M3_STAGES.length - 1, Math.floor(p * M3_STAGES.length)) : i > 6 ? M3_STAGES.length : null;
-    highlight('m3', k3);
+    // Module 1's day counter.
+    const days = data.days ?? 0;
+    const m1 = data.entries.findIndex((e) => e.module === 'module1');
+    const dayNow = i === 0 && m1 === 0 ? Math.floor(p * days) : days;
+    root.querySelectorAll('[data-day]').forEach((x) => { x.textContent = `day ${dayNow} of ${days}`; });
 
-    // The dots: cells, then capsules, following the hand-offs.
-    const v1out = data.specs.m1v1 ? anchor('m1v1_out') : null;
-    const outs = v1out ? Array.from({ length: DOTS }, () => v1out)
-      : ['control', 'interaction'].flatMap((v) => LANES.map((l) => anchor(`m1_${v}_${l.n}`)));
-    const m1b = M1B_STAGES.map((_, k) => anchor(`m1b_${k}`));
-    const m2 = M2_STAGES.map((_, k) => anchor(`m2_${k}`));
-    const m3 = M3_STAGES.map((_, k) => anchor(`m3_${k}`));
+    // Dots.
     el.dots.forEach((dot, k) => {
-      const stagger = k / DOTS * 0.35;
-      const f = clamp01((p - stagger) / 0.65);
+      const stagger = (k / DOTS) * 0.35;
+      const f = ease(clamp01((p - stagger) / 0.65));
       let pos = null;
-      let capsule = i >= 4 && (i > 4 || p > 1.5 / M2_STAGES.length);
-      if (i === 1) pos = along([outs[k], anchor('m1b_in'), m1b[0]], ease(f));
-      else if (i === 2) pos = along([m1b[0], ...m1b.slice(1)], ease(f));
-      else if (i === 3) pos = along([m1b[m1b.length - 1], anchor('m2_in'), m2[0]], ease(f));
-      else if (i === 4) pos = along(m2, ease(f));
-      else if (i === 5) pos = along([m2[m2.length - 1], anchor('m3_in'), m3[0]], ease(f));
-      else if (i === 6) pos = along(m3, ease(f));
-      else if (i === 7) pos = along([m3[m3.length - 1], anchor('road_in')], ease(f));
+      let kind = 'cells';
+      if (ph.kind === 'module') {
+        const pts = Array.from({ length: el.stages[ph.k] }, (_, j) => anchor(`s_${ph.k}_${j}`));
+        pos = along([anchor(`in_${ph.k}`), ...pts], f);
+        kind = carried(ph.k, f);
+      } else {
+        const last = anchor(`s_${ph.k}_${el.stages[ph.k] - 1}`);
+        const dest = ph.to !== null ? [anchor(`in_${ph.to}`), anchor(`s_${ph.to}_0`)] : [anchor('road_in')];
+        pos = along([last, anchor(`out_${ph.k}`), ...dest], f);
+        kind = ph.h.carries;
+      }
       dot.hidden = !pos;
       if (pos) {
         dot.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
-        dot.classList.toggle('capsule', capsule);
+        dot.classList.toggle('capsule', kind === 'capsules');
+        dot.classList.toggle('library', kind === 'library');
       }
     });
   }
@@ -311,6 +297,7 @@ export function createPipeline(root, handlers = {}) {
     get t() { return t; },
     get total() { return total; },
     get currentIndex() { return current; },
+    get data() { return data; },
     toggle() { setPlaying(!playing); },
     setPlaying,
     step() {

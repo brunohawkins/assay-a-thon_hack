@@ -26,12 +26,13 @@
       </div>
     </div>
     <nav id="module-tabs" class="views tabs" aria-label="View">
-      <button data-module="pipeline" aria-pressed="false" title="The whole MVP: Module 1 -> 1b -> 2 -> 3">Pipeline</button>
-      <button data-module="m1v1" aria-pressed="false" title="Module 1 v1: MJ's final culture chip, being laser-cut. Flow twin.">1 v1 (MJ)</button>
-      <button data-module="m1" aria-pressed="false" title="Module 1 as in the earlier brief (valves, control + interaction chips)">1 Culture (brief)</button>
-      <button data-module="m1b" aria-pressed="false" title="Module 1b: automated cell prep (simulated)">1b Cell prep</button>
-      <button data-module="m2" aria-pressed="false" title="Module 2: encapsulation (draft)">2 Encapsulation</button>
-      <button data-module="m3" aria-pressed="false" title="Module 3: capsule wash (draft)">3 Wash</button>
+      <button data-module="pipeline" aria-pressed="false" title="All current modules, left to right, with status and hand-offs">Pipeline</button>
+      <button data-module="m1v1" aria-pressed="false" title="Module 1 v1: MJ's final culture chip, being laser-cut for Sunday's dye demo. Flow twin.">1 Culture</button>
+      <button data-module="m2" aria-pressed="false" title="Module 2: encapsulation (draft – being redesigned by MJ)">2 Encapsulation</button>
+      <button data-module="m3v1" aria-pressed="false" title="Module 3: load, lysis, wash (Szonja; translated into the chip-spec format)">3 Lysis + wash</button>
+      <button data-module="m4" aria-pressed="false" title="Module 4: sublibrary split + index PCR (MJ)">4 Index PCR</button>
+      <button data-module="m5" aria-pressed="false" title="Module 5: release + cleanup (MJ)">5 Release</button>
+      <button data-module="old" aria-pressed="false" title="Superseded drafts, kept for reference: Module 1 (brief), 1b cell prep, 3 capsule wash">Old drafts</button>
       <button data-module="other" aria-pressed="false" title="Earlier placeholder runs">Other</button>
     </nav>
     <label class="picker">
@@ -59,6 +60,7 @@
   <div id="day-counter" class="day-counter" aria-live="polite" hidden></div>
   <div id="stopwatch" class="stopwatch" aria-live="off" hidden></div>
   <aside id="m1-panel" class="panel control m1-panel" aria-label="Module 1 v1 flow" hidden></aside>
+  <aside id="lib-panel" class="panel control m1-panel lib-panel" aria-label="Module 4 or 5: design-note steps" hidden></aside>
   <div id="m1-tooltip" class="m1-tooltip" role="tooltip" hidden></div>
   <section id="pipeline" class="pipeline" aria-label="Pipeline view" hidden></section>
   <div id="nozzle-inset" class="panel nozzle-inset" hidden>

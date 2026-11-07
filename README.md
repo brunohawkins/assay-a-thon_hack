@@ -76,12 +76,20 @@ Switching protocol replays on the same chip. `#run=<file>` in the URL opens a sp
 **Real scale / Display model** switches between the working chip (true sizes, down to
 70 µm capsules) and the printed show piece; the scale bar works in both. The **Chip
 sizing** panel shows what the sizing calculator says the chip needs next to what it has.
-The twin opens on the **pipeline view**: Module 1 (control + interaction chips side by side) ->
-Module 1b (automated cell prep, simulated) -> Module 2 -> Module 3 -> roadmap, with cells and
-capsules moving between them; click a module for its own view (tabs along the top). Module
-views show the chip with its animations (valves, a day counter while cells differentiate,
-Module 2's nozzle close-up with droplets forming core-shell capsules, the UV flash), a
-**Parameters** panel with the generator values used, and Printed / Draft design badges.
+The twin opens on the **pipeline view**: every current module left to right (from
+`protocols/pipeline_mvp.json`): Module 1 v1 (culture) -> Module 2 (encapsulation, draft) ->
+Module 3 (load, lysis, wash; translated from Szonja's file) -> barcoding (not designed yet) ->
+Module 4 (sublibrary split + index PCR) -> Module 5 (release + cleanup) -> library out. Each card
+has a status badge (FINAL, DRAFT, TRANSLATED, MISSING), says whether it is **built for Sunday's
+dye demo** (Module 1) or **twin only**, and shows its hand-off ports (TBC where not named) with
+a ⚠ where the two chips' ports differ (the demo needs an adapter). Cells, capsules and library
+move between the cards; click a module for its own view (tabs along the top). Module 1 v1 is a
+flow twin (see below); Module 3 plays Szonja's workflow on the translated chip; Modules 4 and 5
+play MJ's protocols with a design-note panel (fill order ABCD DCBA and thermocycle on the whole
+chip; pass k of 4, magnet on/off). The superseded drafts (Module 1 brief, 1b, 3 wash) are under
+**Old drafts**. Generated chips' views show their animations (valves, a day counter while cells
+differentiate, Module 2's nozzle close-up with droplets forming core-shell capsules, the UV
+flash) and a **Parameters** panel with the generator values used.
 Closed-loop runs add the **control loop** panel (believed vs true state, prediction vs
 measurement charts with model-update markers, the optimizer's choices, the event log
 with safety tags), an alert banner, and an **Open loop / Closed loop** toggle that
