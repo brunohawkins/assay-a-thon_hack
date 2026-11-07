@@ -7,7 +7,7 @@
 - Sensors: pressure_kpa, outlet_absorbance
 - Faults injected: sensor_fault {'sensor': 'pressure_kpa', 'mode': 'stuck', 'start_t_s': 90}
 - Status: **done** · Protocol time: 351.33 s
-- Created: 2026-11-07T17:57:49Z
+- Created: 2026-11-07T17:59:31Z
 
 ## Outcome
 

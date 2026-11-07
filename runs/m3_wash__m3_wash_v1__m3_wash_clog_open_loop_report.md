@@ -7,7 +7,7 @@
 - Sensors: none (open loop)
 - Faults injected: clog {'start_wash': 2, 'growth_per_ul': 0.0175, 'backflush_clears': 0.8}
 - Status: **done** · Protocol time: 357.9 s
-- Created: 2026-11-07T17:57:48Z
+- Created: 2026-11-07T17:59:30Z
 
 ## Outcome
 

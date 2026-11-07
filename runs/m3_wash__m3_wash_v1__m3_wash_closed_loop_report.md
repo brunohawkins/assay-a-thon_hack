@@ -7,7 +7,7 @@
 - Sensors: pressure_kpa, outlet_absorbance
 - Faults injected: none
 - Status: **done** · Protocol time: 347.29 s
-- Created: 2026-11-07T17:57:48Z
+- Created: 2026-11-07T17:59:30Z
 
 ## Outcome
 

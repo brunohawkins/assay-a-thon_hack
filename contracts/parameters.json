@@ -705,6 +705,24 @@
       ],
       "assumption": false,
       "note": "Per-lane lipid-oligo barcodes carried by the cells: one per lineage."
+    },
+    "shear.culture_ceiling_dyn_cm2": {
+      "value": 0.01,
+      "units": "dyn/cm2",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Applies to chambers holding ADHERENT CELLS, where the risk is detaching them. It does NOT apply to chambers holding CAPSULES: a capsule is not attached to anything and the limit there is capsule.escape_pressure_kpa, which the planner already enforces. m3_wash runs its back-flush and release at the lift flow, about 0.038 dyn/cm2, deliberately: below the lift flow the capsule bed does not come off the weir. Do not 'fix' that by lowering it."
+    },
+    "shear.capsule_handling_note": {
+      "value": null,
+      "units": "-",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Capsule-handling steps are bounded by escape pressure, not by the culture shear ceiling. Published adherent-cell detachment is around 0.6 dyn/cm2 (see protocols/retention_audit.md), so the 0.01 ceiling already carries a 60x margin for the chips that do hold cells."
     }
   }
 }
