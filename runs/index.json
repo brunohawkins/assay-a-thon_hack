@@ -160,7 +160,12 @@
       "operator": "planner",
       "events": 180,
       "total_duration_s": 7569709.0,
-      "placeholder": false
+      "placeholder": false,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null
     },
     {
       "file": "ipsc_to_mgl_v1__ipsc_to_mgl_chip_v1.json",
