@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import {
   Network, parseDxfChannels, MODES, DESIGN_MODES, modeStates, solverPorts, keyResult, safetyCheck, dyeTimes,
-  diffusionMm, PORT_HOLE_UL,
+  diffusionMm, PORT_HOLE_UL, PORT_HOLE_MM, configure, defaultFeed,
 } from './network.js';
 
 export const CHIP_ID = 'module1_v1';
@@ -24,7 +24,7 @@ const DYE_OF_PORT = { p_in: 0, p_g_in: 1, p_g_out: 1, p_a_in: 2, p_a_out: 2 };
 const DYE_NAMES = ['red', 'yellow', 'blue'];
 const CELLS = 14;                      // cells per channel in the advection grid
 const D_MM2_S = (8.8 ** 2) / (2 * 12 * 3600); // mm^2/s from the design doc's 8.8 mm in 12 h
-const PROTOCOL_FEED = 11;              // uL/min (build_module1.py)
+let PROTOCOL_FEED = 2.4;               // uL/min; prepare() derives it from the chip (operator/network.py DEFAULT_FEED_UL_MIN)
 const BENCH_DEFAULT = 50;              // uL/min, dye demo default (no cells: shear doesn't matter)
 const SPEEDS = [1, 10, 100, 1000, 10000];
 const CHAMBER_INFO = { n_cx: 'neuron chamber', g_cx: 'glia (microglia) chamber', a_cx: 'astrocyte chamber', j_mid: 'junction (not a culture chamber)' };
@@ -95,6 +95,12 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
   // ---------------------------------------------------------------- loading
 
   async function prepare(spec) {
+    // Port bore from contracts/blocks.json, as operator/network.py and the CAD generator read it.
+    try {
+      const blocks = await (await fetch(`${root}contracts/blocks.json`, { cache: 'no-store' })).json();
+      configure({ portHoleMm: blocks.fabrication_floors?.min_port_mm, lidMm: spec.layers.at(-1)?.thickness_mm });
+    } catch { configure({ lidMm: spec.layers.at(-1)?.thickness_mm }); }
+    PROTOCOL_FEED = defaultFeed(spec);
     const res = await fetch(`${root}cad/exports/${CHIP_ID}/${CHIP_ID}.dxf`, { cache: 'no-store' });
     const rects = res.ok ? parseDxfChannels(await res.text()) : [];
     net = new Network(spec, rects);
@@ -105,7 +111,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       const g = net.geometry[ch.id];
       ch.path = [g.a, g.b];
     }
-    for (const p of view.ports) p.width_um = 2000;
+    for (const p of view.ports) p.width_um = PORT_HOLE_MM * 1000;
     view.module = { id: 'm1v1', name: 'Module 1 v1', status: 'designed', printed: true };
     return { view, dxf: rects.length };
   }
@@ -176,6 +182,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     group.clear();
     chip.group.add(group);
     const top = chip.top;
+    const k = Math.min(1, chip.footprint.x / 140); // overlays were drawn for the 140 mm board; scale with the chip
     const zc = chip.floorZ0 + 0.16;
     // Advection cells along every channel: one instance per cell, coloured by its dye.
     const nCh = net.edges.length;
@@ -200,10 +207,10 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     group.add(objs.cells);
 
     // Flow arrows: one cone per channel at its middle, above the lid.
-    const coneGeom = new THREE.ConeGeometry(0.9, 2.4, 18).rotateZ(-Math.PI / 2); // points along +x
+    const coneGeom = new THREE.ConeGeometry(0.9 * k, 2.4 * k, 18).rotateZ(-Math.PI / 2); // points along +x
     objs.arrows = net.edges.map((e) => {
       const mesh = new THREE.Mesh(coneGeom, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x5eead4, emissiveIntensity: 0.5, transparent: true, opacity: 0.9 }));
-      mesh.position.set((e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2, top + 0.9);
+      mesh.position.set((e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2, top + 0.9 * k);
       mesh.renderOrder = 8;
       group.add(mesh);
       return mesh;
@@ -215,30 +222,30 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       el.className = 'port-icon';
       const obj = new CSS2DObject(el);
       obj.center.set(0.5, 1.15);
-      obj.position.set(p.position[0], p.position[1], top + 1.2);
+      obj.position.set(p.position[0], p.position[1], top + 1.2 * k);
       group.add(obj);
       objs.portIcons[p.id] = obj;
     }
 
-    // Module 2 box: where harvest flow from p_mid goes.
+    // Next-module box: where harvest flow from p_mid goes (protocols/pipeline_mvp.json: cell prep).
     const pm = net.chip.ports.find((p) => p.id === 'p_mid').position;
     // Off the board, in front of it (the board's y = 0 edge faces the camera).
-    const boxPos = new THREE.Vector3(pm[0], -16, top + 1);
-    const tubeCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(pm[0], pm[1], top), new THREE.Vector3(pm[0], pm[1], top + 5),
-      new THREE.Vector3(pm[0] + 3, 4, top + 5), boxPos.clone().setY(boxPos.y + 6)]);
+    const boxPos = new THREE.Vector3(pm[0], -16 * k, top + 1 * k);
+    const tubeCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(pm[0], pm[1], top), new THREE.Vector3(pm[0], pm[1], top + 5 * k),
+      new THREE.Vector3(pm[0] + 3 * k, 4 * k, top + 5 * k), boxPos.clone().setY(boxPos.y + 6 * k)]);
     const tubeMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, emissive: 0x334155, emissiveIntensity: 0.4, transparent: true, opacity: 0.7 });
-    const tube = new THREE.Mesh(new THREE.TubeGeometry(tubeCurve, 80, 0.45, 10, false), tubeMat);
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(tubeCurve, 80, Math.max(0.45 * k, PORT_HOLE_MM / 2), 10, false), tubeMat);
     group.add(tube);
     const boxMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, emissive: 0x2dd4bf, emissiveIntensity: 0.12, transparent: true, opacity: 0.75 });
-    const box = new THREE.Mesh(new THREE.BoxGeometry(26, 10, 4), boxMat);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(26 * k, 10 * k, 4 * k), boxMat);
     box.position.copy(boxPos);
     group.add(box);
     const lab = document.createElement('div');
     lab.className = 'part-label m2-box-label';
-    lab.textContent = 'Module 2 (encapsulation) – in progress by MJ';
+    lab.textContent = 'on to cell prep (cell_prep_v1)';
     const labObj = new CSS2DObject(lab);
     labObj.center.set(0.5, 0);
-    labObj.position.copy(boxPos).setY(boxPos.y - 6);
+    labObj.position.copy(boxPos).setY(boxPos.y - 6 * k);
     group.add(labObj);
     objs.m2 = { tubeMat, boxMat };
 
@@ -252,7 +259,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     dl.className = 'part-label diffusion-label';
     objs.discLabel = new CSS2DObject(dl);
     objs.discLabel.center.set(0.5, 0);
-    objs.discLabel.position.set(j.center[0], j.center[1] - 5, top + 0.4);
+    objs.discLabel.position.set(j.center[0], j.center[1] - 5 * k, top + 0.4 * k);
     objs.discLabel.visible = false;
     group.add(objs.discLabel);
 
@@ -262,7 +269,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       const s = part.spec;
       part.box.userData.info = part.kind === 'chamber'
         ? `<b>${s.id}</b> · ${CHAMBER_INFO[s.id] ?? s.type}<br>${s.size[0]} × ${s.size[1]} × ${s.size[2]} mm · ${s.volume_ul} µL${s.mesh_pore_um ? ` · ${s.mesh_pore_um} µm mesh (bought membrane?)` : ' · no mesh'}`
-        : `<b>${s.id}</b> · port: 2 mm hole through the 3 mm lid (${PORT_HOLE_UL} µL)<br>at (${s.position[0]}, ${s.position[1]}) mm`;
+        : `<b>${s.id}</b> · port: ${PORT_HOLE_MM} mm bore through the lid (${PORT_HOLE_UL.toFixed(2)} µL)<br>at (${s.position[0]}, ${s.position[1]}) mm`;
       part.box.userData.port = part.kind === 'port' ? s.id : null;
       hoverTargets.push(part.box);
     }
@@ -604,7 +611,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       </section>
       <section><h3>Dye arrival, predicted <small>first tint – plug flow, at these rates</small></h3>
         <table class="m1-times"><thead><tr><th>dye</th><th>predicted</th><th>measured</th></tr></thead><tbody>${timeRows || '<tr><td colspan="3">no flow</td></tr>'}</tbody></table>
-        <p class="meta">Includes the 2 × 2 × 3 mm inlet hole (${PORT_HOLE_UL} µL); tubing to the chip not included.</p>
+        <p class="meta">Includes the ${PORT_HOLE_MM} mm inlet bore (${PORT_HOLE_UL.toFixed(2)} µL); tubing to the chip not included.</p>
       </section>
       <details><summary>Solver: every channel</summary>
         <table class="m1-solver"><thead><tr><th></th><th>µL/min</th><th>direction</th><th>shear dyn/cm²</th></tr></thead><tbody>${chRows}${chamberRows}</tbody></table>
@@ -696,6 +703,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     flag: setFlag,
     check: (mode, states, flows) => safetyCheck(net, mode, states, flows, { cells: true }),
     get decisions() { return decisions; },
+    get defaultFeed() { return PROTOCOL_FEED; },
     dyeCss: (k) => `rgb(${DYE_RGB[k].map((x) => Math.round(x * 255)).join(',')})`,
   };
 }

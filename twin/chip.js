@@ -555,7 +555,7 @@ export class Chip {
       names.map(async (name) => {
         const id = name.replace(/\.stl$/i, '');
         const part = this.parts.get(id);
-        if (!part) return;
+        if (!part || part.block) return; // a Flowmatter block shape (twin/blocks.js) wins over a plain exported box
         try {
           const geom = await loader.loadAsync(baseUrl + encodeURIComponent(name));
           geom.computeVertexNormals();

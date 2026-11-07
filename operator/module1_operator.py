@@ -39,7 +39,7 @@ PORTS = ["p_in", "p_g_in", "p_a_in", "p_mid", "p_g_out", "p_a_out"]
 CULTURE = ["n_cx", "g_cx", "a_cx"]
 SHEAR_CEILING = 0.01           # dyn/cm2, culture chambers
 BACKPRESSURE_WARN = 0.7        # warn when the rest of the chip pushes back with >= 70% of a feed's own pressure
-PORT_HOLE_UL = 2.0 * 2.0 * 3.0  # 2 x 2 mm hole through the 3 mm lid
+PORT_HOLE_UL = nw.PORT_HOLE_MM * nw.PORT_HOLE_MM * 3.0  # the port bore (contracts/blocks.json) through the 3 mm lid
 FIRST_TINT = 2.0 / 3.0         # a slot's centre moves at 1.5x the mean: first colour at ~2/3 of the mean transit
 BENCH_FLOW_UL_MIN = 50.0       # default syringe rate for the dye demo (no cells: shear doesn't matter)
 NAMES = {"n_cx": "N", "g_cx": "G", "a_cx": "A"}

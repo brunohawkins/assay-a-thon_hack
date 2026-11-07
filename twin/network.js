@@ -6,10 +6,31 @@
 // operator/module1_operator.py, so editing a pump rate in the twin re-solves on the spot.
 
 export const MU_37C = 0.8e-3;
-const PORT_HOLE_MM = 2.0;
-export const PORT_HOLE_UL = 2 * 2 * 3;
 const FIRST_TINT = 2 / 3;
 export const SHEAR_CEILING = 0.01;
+
+// Port bore and lid, as operator/network.py reads them: the bore is contracts/blocks.json's
+// fabrication floor (min_port_mm), the same source cad/make_train_cad.py draws the DXF from.
+// configure() sets them before a Network is built; the exports are live bindings.
+export let PORT_HOLE_MM = 0.8;
+let LID_MM = 3;
+export let PORT_HOLE_UL = PORT_HOLE_MM * PORT_HOLE_MM * LID_MM;   // the bore through the lid
+export function configure({ portHoleMm, lidMm } = {}) {
+  if (portHoleMm > 0) PORT_HOLE_MM = portHoleMm;
+  if (lidMm > 0) LID_MM = lidMm;
+  PORT_HOLE_UL = PORT_HOLE_MM * PORT_HOLE_MM * LID_MM;
+}
+
+// Largest feed that keeps every culture chamber under the shear ceiling: operator/network.py's
+// _default_feed_ul_min, derived from the chip so a rescale can't leave it stale.
+export function defaultFeed(chip, { mu = MU_37C, ceiling = SHEAR_CEILING, margin = 0.85 } = {}) {
+  const flows = chip.chambers.filter((c) => c.type !== 'pool').map((c) => {
+    const w = c.size[1] * 1e-3;
+    const h = c.size[2] * 1e-3;
+    return ((ceiling / 10) * w * h * h) / (6 * mu) * 60 * 1e9;   // m3/s -> uL/min
+  });
+  return flows.length ? Math.round(Math.min(...flows) * margin * 1000) / 1000 : 2;
+}
 
 export const MODES = {
   grow: { label: 'Separate growth', feed: ['p_in', 'p_g_in', 'p_a_in'], vent: ['p_mid'] },
