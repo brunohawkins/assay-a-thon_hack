@@ -121,9 +121,12 @@ def downstream_nozzles(chip: dict) -> list[tuple[float, str, str]]:
     for _, pipe in schema_io.pipelines():
         chips = {}
         for m in pipe.get("modules", []):
+            chip_path = schema_io.pipeline_chip(m)[0]
+            if not chip_path:
+                continue  # a missing module (no chip yet)
             try:
-                chips[m["module"]] = schema_io.load_json(ROOT / m["chip"])
-            except (ValueError, FileNotFoundError, KeyError):
+                chips[m["module"]] = schema_io.load_json(ROOT / chip_path)
+            except (ValueError, FileNotFoundError):
                 continue
         for h in pipe.get("handoffs", []):
             src, dst = h.get("from", {}), h.get("to", {})

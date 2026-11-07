@@ -49,21 +49,38 @@ Rules:
 
 The placeholder chip uses: `inlet_1`, `exchange_1`, `split_1` … `split_4`, `pool_1`, `outlet_1`.
 
-### MVP modules: one prefix per module
+### The current modules (the pipeline)
 
-The MVP is three chips plus an automated cell-prep bridge. **Every id on a module chip
-starts with its module prefix**: part ids, STL names, spec files, protocol files.
+`protocols/pipeline_mvp.json` lists the modules in process order, who owns each one, its
+status and how it is built:
 
-| Module | Prefix | Chip spec | Protocol | Status |
-|---|---|---|---|---|
-| 1. Culture | `m1_` | `cad/m1_culture_spec.json` | `protocols/m1_culture.json` | designed, printed |
-| 1b. Cell prep (bridge) | `m1b_` | `cad/m1b_cellprep_spec.json` | `protocols/m1b_cellprep.json` | designed, simulated, not printed this weekend |
-| 2. Encapsulation | `m2_` | `cad/m2_encapsulation_spec.json` | `protocols/m2_encapsulation.json` | parametric draft, printed |
-| 3. Capsule wash | `m3_` | `cad/m3_wash_spec.json` | `protocols/m3_wash.json` | parametric draft, printed |
+| Module | Chip spec | Protocol | Owner | Status | Build |
+|---|---|---|---|---|---|
+| 1. Culture (v1) | `chip/module1_v1.json` | `protocols/module1_v1.json` | MJ | final; built for the dye demo | laser-cut acrylic, 2 mm square lid holes |
+| 2. Encapsulation | `cad/m2_encapsulation_spec.json` | `protocols/m2_encapsulation.json` | MJ (redesign) | **draft – being redesigned by MJ**; a `chip/module2*.json` replaces it automatically | TBC |
+| 3. Load, lysis, wash | `chip/module3_v1_translated.json` (from Szonja's `chip/modules/module3_step1_3.json`) | steps in her file | Szonja | translated | TBC |
+| Barcoding (split and pool) | none | none | TBC | **missing**: not yet designed | TBC |
+| 4. Sublibrary + index PCR | `chip/module4_v1.json` | `protocols/module4_v1.json` | MJ | final | hot-embossed COC, 0.8 mm drilled ports |
+| 5. Release + cleanup | `chip/module5_v1.json` | `protocols/module5_v1.json` | MJ | final | hot-embossed COC, 0.8 mm drilled ports |
 
-`protocols/pipeline_mvp.json` chains them with hand-off events (which outlet feeds which
-inlet). A module chip says which module it is in its `module` block, and a generated spec
-records the script and parameter values that made it in its `generator` block.
+**Superseded drafts**, kept for reference and out of the pipeline: `cad/m1_culture_spec.json`
+and `cad/m1b_cellprep_spec.json` (replaced by Module 1 v1) and `cad/m3_wash_spec.json`
+(replaced by Module 3). Their `module` block says `"status": "superseded"` and
+`superseded_by`; `tools/validate.py` fails if one is put back in the pipeline.
+
+**Translated specs.** Szonja's Module 3 file is in its own format. `tools/convert_module3.py`
+writes it as a chip spec, keeping her ids and numbers; whatever it had to infer (footprint,
+layers, positions, routes, valve construction) is marked `"placeholder": true`, and the
+spec's `translated_from` names the source. Edit her file, not the translation, and re-run
+the converter (a test fails if the committed translation is out of date).
+
+### Module prefixes (generated chips)
+
+On a chip with a `module` block (the generated drafts), **every id starts with its module
+prefix** (`m1_`, `m1b_`, `m2_`, `m3_`): part ids, STL names, spec files, protocol files. The
+generated spec records the script and parameter values that made it in its `generator`
+block. Specs written by hand by their owners (`chip/module*_v1.json`) have no `module` block
+and keep their own ids.
 
 ### How to design Module 2 or 3
 
@@ -248,12 +265,21 @@ max working temperature and a chemical-compatibility map, which is still all `TO
 
 ### Pipelines: `protocols/pipeline_mvp.json`
 
-A pipeline chains the module protocols (`"kind": "pipeline"`, schema `schemas/pipeline.schema.json`):
-`modules` lists each module's chip, protocol and instances (Module 1: `control` and `interaction`),
-and `handoffs` say which outlet feeds which inlet (`m1_out_n` -> `m1b_cells_in_n`,
-`m1b_to_module2_1` -> `m2_core_in_1`, `m2_capsule_out_1` -> `m3_inlet_1`). `tools/validate.py`
-checks every port exists and runs outlet -> inlet; `tools/check_chip_spec.py` follows the
-hand-offs to check Module 1b's cell filter against Module 2's nozzle.
+A pipeline chains the modules (`"kind": "pipeline"`, schema `schemas/pipeline.schema.json`).
+Each entry in `modules` has a `status` (`final`, `draft`, `translated`, `missing`; the twin
+shows it as a badge), an `owner`, its `chip` and `protocol` (a missing module has neither),
+`build` (`method` and a `connector` id for its port style), `built_for_demo` (physically built
+for the dye demo, or twin-only), and optionally `prefer` (`{"glob": "chip/module2*.json"}`:
+switch to that file as soon as it exists). `handoffs` say which outlet feeds which inlet:
+`p_mid` -> `m2_core_in_1` -> ... -> `out_lib` -> library out. A port nobody has named yet
+is `"TBC"`; `ports` lists several inlets at once (Module 4's four). Each hand-off between two
+modules carries a `connector` block (`match`, `mismatch`, or `unknown` when either side is
+TBC, with a `warning`: where the demo needs an adapter).
+
+`tools/validate.py` checks the files exist, no superseded chip is used, every named port
+exists and runs outlet -> inlet, and the connector blocks agree with the modules' `build`; it
+lists TBC ports and connector warnings. `tools/check_chip_spec.py` follows the hand-offs to
+check any cell filter against the downstream encapsulation nozzle.
 
 ## 3. commands: the chip's instruction set
 

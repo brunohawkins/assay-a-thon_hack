@@ -7,7 +7,8 @@
     "id": "m2",
     "name": "Encapsulation",
     "status": "draft",
-    "printed": true
+    "printed": true,
+    "note": "draft – being redesigned by MJ"
   },
   "generator": {
     "script": "cad/generators/m2_encapsulation.py",
