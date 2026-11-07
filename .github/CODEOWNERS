@@ -10,9 +10,10 @@
 /twin/              @brunohawkins
 /runs/              @brunohawkins
 
-/chip/              @SzonjaS
+# Pairs
+/protocols/         @kilianpr
+/chip/              @yuvysingh @SzonjaS
+/cad/               @ayrtonakinyemi23-cmd
 
-# TODO: fill in the remaining GitHub usernames, then uncomment / extend.
-# /protocols/       @<mj-username> @<kilian-username>
-# /chip/            @<yuvraj-username> @SzonjaS
-# /cad/             @<ayrton-username>
+# TODO: add MJ to /protoc/ once we have the GitHub username:
+# /protocols/       @kilianpr @<mj-username>
