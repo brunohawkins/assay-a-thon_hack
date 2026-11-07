@@ -1,0 +1,7 @@
+{
+  "json.schemas": [
+    { "fileMatch": ["/protocols/*.json"], "url": "./contracts/schemas/protocol.schema.json" },
+    { "fileMatch": ["/chip/*.json", "/chip/nl_to_spec/out/*.json"], "url": "./contracts/schemas/chip_spec.schema.json" },
+    { "fileMatch": ["/runs/*__*.json"], "url": "./contracts/schemas/run.schema.json" }
+  ]
+}

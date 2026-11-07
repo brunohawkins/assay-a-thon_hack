@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/run.schema.json",
+  "title": "Run",
+  "description": "A recorded run: the commands an operator sent to a chip, in time order. Written by operator/, replayed by twin/.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol_id", "chip_id", "operator", "created_at", "placeholder", "events"],
+  "properties": {
+    "protocol_id": { "$ref": "#/$defs/snake_id" },
+    "protocol_name": { "type": "string" },
+    "chip_id": { "$ref": "#/$defs/snake_id" },
+    "chip_spec": {
+      "type": "string",
+      "description": "Repo-relative path of the chip spec this run used, e.g. chip/placeholder_chip_spec.json. The twin loads the chip from here."
+    },
+    "operator": { "enum": ["planner", "llm"] },
+    "model": { "type": "string", "description": "Model id, for llm runs." },
+    "created_at": { "type": "string", "format": "date-time" },
+    "placeholder": {
+      "type": "boolean",
+      "description": "true when the protocol or chip spec it was made from is a placeholder."
+    },
+    "total_duration_s": { "type": "number", "minimum": 0 },
+    "events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/event" }
+    }
+  },
+  "$defs": {
+    "snake_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+    },
+    "event": {
+      "type": "object",
+      "allOf": [{ "$ref": "commands.schema.json" }],
+      "required": ["t_s", "command", "args", "narration", "protocol_step"],
+      "properties": {
+        "t_s": { "type": "number", "minimum": 0, "description": "Protocol time when the command starts, in seconds." },
+        "duration_s": { "type": "number", "minimum": 0, "description": "How long the command takes, in seconds." },
+        "command": true,
+        "args": true,
+        "narration": { "type": "string", "description": "One sentence shown in the twin's narration panel." },
+        "protocol_step": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "The protocol step this command carries out, or null."
+        }
+      },
+      "unevaluatedProperties": false
+    }
+  }
+}

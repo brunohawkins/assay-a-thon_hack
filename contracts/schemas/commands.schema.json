@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/commands.schema.json",
+  "title": "Command",
+  "description": "One operator command. The chip's whole instruction set is these six commands. Each $defs entry is the argument object for one command; operator/llm_operator.py turns them into Claude API tools.",
+  "type": "object",
+  "required": ["command", "args"],
+  "properties": {
+    "command": { "enum": ["load", "exchange", "hold_temp", "split", "pool", "release"] },
+    "args": { "type": "object" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "command": { "const": "load" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/load" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "exchange" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/exchange" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "hold_temp" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/hold_temp" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "split" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/split" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "pool" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/pool" } } }
+    },
+    {
+      "if": { "properties": { "command": { "const": "release" } }, "required": ["command"] },
+      "then": { "properties": { "args": { "$ref": "#/$defs/release" } } }
+    }
+  ],
+  "$defs": {
+    "load": {
+      "title": "load(target, volume_ul)",
+      "description": "Bring a suspension of capsules in through the inlet and settle them in a chamber.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "volume_ul"],
+      "properties": {
+        "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Chamber id that receives the capsules." },
+        "volume_ul": { "type": "number", "exclusiveMinimum": 0, "description": "Volume of capsule suspension, in microlitres." }
+      }
+    },
+    "exchange": {
+      "title": "exchange(target, reagent, volume_ul, washes, flow_ul_min)",
+      "description": "Flow a reagent through a chamber and drain it, repeated `washes` times. Capsules stay on the mesh.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "reagent", "volume_ul", "washes", "flow_ul_min"],
+      "properties": {
+        "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Chamber id." },
+        "reagent": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Generic reagent name, snake_case." },
+        "volume_ul": { "type": "number", "exclusiveMinimum": 0, "description": "Volume per wash, in microlitres." },
+        "washes": { "type": "integer", "minimum": 1, "description": "Number of fill-and-drain cycles." },
+        "flow_ul_min": { "type": "number", "exclusiveMinimum": 0, "description": "Flow rate, in microlitres per minute." }
+      }
+    },
+    "hold_temp": {
+      "title": "hold_temp(target, temp_c, duration_s)",
+      "description": "Hold a chamber at a temperature for a time.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "temp_c", "duration_s"],
+      "properties": {
+        "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Chamber id." },
+        "temp_c": { "type": "number", "minimum": -20, "maximum": 120, "description": "Temperature in degrees C." },
+        "duration_s": { "type": "number", "exclusiveMinimum": 0, "description": "Hold time in seconds." }
+      }
+    },
+    "split": {
+      "title": "split(source, targets[])",
+      "description": "Divide the capsules in one chamber evenly between several chambers.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "targets"],
+      "properties": {
+        "source": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Chamber the capsules leave." },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" },
+          "description": "Chambers the capsules go to."
+        }
+      }
+    },
+    "pool": {
+      "title": "pool(sources[], target)",
+      "description": "Bring the capsules from several chambers together in one chamber.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sources", "target"],
+      "properties": {
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" },
+          "description": "Chambers the capsules leave."
+        },
+        "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Chamber the capsules go to." }
+      }
+    },
+    "release": {
+      "title": "release(target, reagent)",
+      "description": "Release the product from the capsules in a chamber with a reagent and send it to the outlet.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["target", "reagent"],
+      "properties": {
+        "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Chamber holding the capsules." },
+        "reagent": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Generic release reagent name." }
+      }
+    }
+  }
+}

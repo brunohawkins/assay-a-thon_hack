@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/chip_spec.schema.json",
+  "title": "Chip spec",
+  "description": "Geometry of one capsule-processor chip. All lengths in millimetres. Origin at the bottom-left corner of the footprint, x to the right, y up the slide, z up out of the slide.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "placeholder", "units", "footprint", "layers", "chambers", "channels", "ports"],
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/snake_id",
+      "description": "Unique chip id, e.g. placeholder_chip_v1."
+    },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "placeholder": {
+      "type": "boolean",
+      "description": "true while this file holds fake values."
+    },
+    "units": {
+      "const": "mm",
+      "description": "Always millimetres."
+    },
+    "footprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "number", "exclusiveMinimum": 0, "description": "Width in mm (75 for a slide)." },
+        "y": { "type": "number", "exclusiveMinimum": 0, "description": "Depth in mm (25 for a slide)." }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Material layers listed bottom to top. Each layer starts where the previous one ends; the first starts at z = 0.",
+      "items": { "$ref": "#/$defs/layer" }
+    },
+    "chambers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/chamber" }
+    },
+    "channels": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/channel" }
+    },
+    "ports": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/port" }
+    }
+  },
+  "$defs": {
+    "snake_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
+      "description": "lowercase snake_case, e.g. exchange_1, split_3"
+    },
+    "vec3": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3,
+      "description": "[x, y, z] in mm"
+    },
+    "size3": {
+      "type": "array",
+      "items": { "type": "number", "exclusiveMinimum": 0 },
+      "minItems": 3,
+      "maxItems": 3,
+      "description": "[x, y, z] extent in mm"
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "material", "thickness_mm"],
+      "properties": {
+        "id": { "$ref": "#/$defs/snake_id" },
+        "material": { "type": "string", "description": "e.g. acrylic" },
+        "thickness_mm": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "chamber": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "center", "size", "volume_ul"],
+      "properties": {
+        "id": { "$ref": "#/$defs/snake_id", "description": "Join key. STL files are named <id>.stl." },
+        "type": { "enum": ["inlet", "exchange", "split", "pool", "outlet"] },
+        "center": { "$ref": "#/$defs/vec3" },
+        "size": { "$ref": "#/$defs/size3" },
+        "mesh_pore_um": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0,
+          "description": "Pore size of the mesh floor in micrometres, or null for no mesh."
+        },
+        "volume_ul": { "type": "number", "exclusiveMinimum": 0, "description": "Chamber volume in microlitres (1 mm^3 = 1 uL)." }
+      }
+    },
+    "channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to", "width_mm", "depth_mm"],
+      "properties": {
+        "id": { "$ref": "#/$defs/snake_id" },
+        "from": { "$ref": "#/$defs/snake_id", "description": "Upstream chamber or port id." },
+        "to": { "$ref": "#/$defs/snake_id", "description": "Downstream chamber or port id." },
+        "width_mm": { "type": "number", "exclusiveMinimum": 0 },
+        "depth_mm": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "position"],
+      "properties": {
+        "id": { "$ref": "#/$defs/snake_id", "description": "e.g. inlet_1, outlet_1" },
+        "type": { "enum": ["inlet", "outlet"] },
+        "position": { "$ref": "#/$defs/vec3", "description": "Centre of the opening on the top surface of the chip." }
+      }
+    }
+  }
+}

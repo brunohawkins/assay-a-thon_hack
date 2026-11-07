@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/protocol.schema.json",
+  "title": "Protocol",
+  "description": "An assay protocol as an ordered list of steps. Units: volume in microlitres (volume_ul), time in seconds (duration_s), temperature in degrees C (temp_c), flow in microlitres per minute (flow_ul_min).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "name", "source", "placeholder", "steps"],
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/snake_id",
+      "description": "Unique protocol id, lowercase snake_case. Used in run file names."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable name shown in the twin's dropdown."
+    },
+    "source": {
+      "type": "string",
+      "description": "Citation of the published protocol this is based on."
+    },
+    "placeholder": {
+      "type": "boolean",
+      "description": "true while this file holds fake values."
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional one-paragraph summary."
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/step" }
+    }
+  },
+  "$defs": {
+    "snake_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
+      "description": "lowercase snake_case, e.g. exchange_1, split_3, wash_buffer"
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "step", "operation", "target", "reagent", "volume_ul",
+        "duration_s", "temp_c", "washes", "flow_ul_min", "note"
+      ],
+      "properties": {
+        "step": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Step number, 1, 2, 3... in order."
+        },
+        "operation": {
+          "enum": ["load", "exchange", "hold_temp", "split", "pool", "release"],
+          "description": "One of the six chip operations."
+        },
+        "target": {
+          "$ref": "#/$defs/snake_id",
+          "description": "Chamber or port id from the chip spec. For split: the chamber the capsules leave. For pool: the chamber they arrive in."
+        },
+        "reagent": {
+          "anyOf": [{ "$ref": "#/$defs/snake_id" }, { "type": "null" }],
+          "description": "Generic reagent name (snake_case) or null."
+        },
+        "volume_ul": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0,
+          "description": "Volume in microlitres, or null."
+        },
+        "duration_s": {
+          "type": "number",
+          "minimum": 0,
+          "description": "How long the step takes, in seconds."
+        },
+        "temp_c": {
+          "type": ["number", "null"],
+          "minimum": -20,
+          "maximum": 120,
+          "description": "Temperature in degrees C, or null."
+        },
+        "washes": {
+          "type": ["integer", "null"],
+          "minimum": 1,
+          "description": "Number of fill-and-drain cycles for an exchange, or null."
+        },
+        "flow_ul_min": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0,
+          "description": "Flow rate in microlitres per minute, or null."
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Plain-English description. Shown as narration in the twin."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "operation": { "const": "load" } }, "required": ["operation"] },
+          "then": { "properties": { "volume_ul": { "type": "number" } } }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "exchange" } }, "required": ["operation"] },
+          "then": {
+            "properties": {
+              "reagent": { "type": "string" },
+              "volume_ul": { "type": "number" },
+              "washes": { "type": "integer" },
+              "flow_ul_min": { "type": "number" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "hold_temp" } }, "required": ["operation"] },
+          "then": {
+            "properties": {
+              "temp_c": { "type": "number" },
+              "duration_s": { "exclusiveMinimum": 0 }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "operation": { "const": "release" } }, "required": ["operation"] },
+          "then": { "properties": { "reagent": { "type": "string" } } }
+        }
+      ]
+    }
+  }
+}
