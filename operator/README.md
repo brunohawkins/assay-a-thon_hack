@@ -16,12 +16,15 @@ python operator/run.py --reindex                          # just rebuild runs/in
 | `commands.py` | The six commands as functions, with validation against `contracts/schemas/commands.schema.json` and the chip. Also builds the Claude API tool definitions from that schema. |
 | `planner.py` | Deterministic operator: one command per protocol step, timing from `duration_s`, narration from `note`. Split/pool fan-out comes from the chip's channels. |
 | `llm_operator.py` | Claude operates the chip through the six commands as tools and explains each decision in one sentence (the narration). **Stub/TODO: written but not yet run against the live API.** |
-| `adapters/sim.py` | Default adapter: validates and records commands into a run file. |
-| `adapters/serial_pump.py` | Same interface, for real pumps later. Raises `NotImplementedError`; the docstring describes the planned serial protocol. |
+| `adapters/sim.py` | Records commands into a run file (simple runs without a scenario). |
+| `adapters/virtual_chip.py` | **SIMULATED HARDWARE**: the default for closed-loop runs. Same physics as the model, different parameters, noisy sensors, injectable faults. |
+| `adapters/dryrun.py` | Prints the exact hardware actions with timestamps; returns model predictions as "measurements". |
+| `adapters/syringe_pump.py` | Driver for RS-232/USB syringe pumps; command strings in `contracts/hardware/pump_<model>.json`. **UNTESTED – no hardware available.** |
+| `adapters/valves.py`, `adapters/sensors.py` | Documented stubs (raise `NotImplementedError`). **UNTESTED – no hardware available.** |
 | `run.py` | CLI. Writes `runs/<protocol_id>__<chip_id>.json` (LLM runs: `…__llm.json`) and rebuilds `runs/index.json`. |
 | `schema_io.py` | Loads the contract schemas; shared with `tools/validate.py`. |
 
-Every adapter has `send(command, args, **meta) -> result`.
+Every adapter implements `adapters/base.py`: `capabilities()`, `send(command, args, **meta)`, `read_sensors()`.
 
 ## LLM operator
 

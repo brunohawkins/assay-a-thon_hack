@@ -1,0 +1,27 @@
+{
+  "_about": "GENERIC EXAMPLE command set for an RS-232/USB syringe pump, in the plain-ASCII style many lab syringe pumps use. Not tied to a specific product: copy to pump_<model>.json and fill in from your pump's manual. Placeholders in {braces} are filled by operator/adapters/syringe_pump.py. UNTESTED - no hardware available.",
+  "model": "generic",
+  "baud": 9600,
+  "bytesize": 8,
+  "parity": "N",
+  "stopbits": 1,
+  "terminator": "\r",
+  "reply_terminator": "\u0003",
+  "address_format": "{address}",
+  "default_diameter_mm": 4.61,
+  "rate_unit": "UM",
+  "volume_unit": "UL",
+  "commands": {
+    "set_diameter": "DIA {diameter_mm}",
+    "set_rate": "RAT {rate} {unit}",
+    "set_volume": "VOL {volume}",
+    "infuse": "DIR INF",
+    "withdraw": "DIR WDR",
+    "run": "RUN",
+    "stop": "STP",
+    "status": "STA?",
+    "dispensed": "DIS"
+  },
+  "running_markers": ["I", "W"],
+  "error_markers": ["?", "NA", "OOR"]
+}

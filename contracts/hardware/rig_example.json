@@ -1,0 +1,15 @@
+{
+  "_about": "EXAMPLE rig for the wash MVP: which pump serves which reagent, and the valve routes. Ports, addresses and syringe sizes are placeholders. UNTESTED - no hardware available.",
+  "pumps": {
+    "capsule_suspension": {"port": "/dev/tty.usbserial-PUMP1", "model": "generic", "address": "00", "diameter_mm": 4.61},
+    "wash_buffer": {"port": "/dev/tty.usbserial-PUMP2", "model": "generic", "address": "01", "diameter_mm": 4.61},
+    "resuspension_buffer": {"port": "/dev/tty.usbserial-PUMP3", "model": "generic", "address": "02", "diameter_mm": 4.61}
+  },
+  "valves": {"port": "/dev/tty.usbmodem-VALVES", "ids": ["v_inlet", "v_waste", "v_backflush", "v_release"]},
+  "routes": {
+    "load": ["v_inlet", "v_waste"],
+    "wash_forward": ["v_inlet", "v_waste"],
+    "backflush": ["v_backflush", "v_inlet"],
+    "release": ["v_inlet", "v_release"]
+  }
+}
