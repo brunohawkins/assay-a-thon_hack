@@ -1,6 +1,7 @@
 {
-  "_about": "Fabrication limits for parts WE make (not bought ones, like a mesh sheet). tools/check_chip_spec.py compares fabricated features with these and only ever WARNS: fabrication limits never block the design. Values in 'todo' are unknown until Ayrton measures them on our cutter/press.",
+  "_about": "Fabrication limits for parts WE make (not bought ones, like a mesh sheet). tools/check_chip_spec.py compares fabricated features with these and only ever WARNS: fabrication limits never block the design. Values in 'todo' are unknown until Ayrton measures them on our cutter/press. display_scale: how much bigger cad/export_display_model.py makes the printed display model.",
   "laser_kerf_um": null,
   "min_embossed_feature_um": null,
-  "todo": ["laser_kerf_um", "min_embossed_feature_um"]
+  "todo": ["laser_kerf_um", "min_embossed_feature_um"],
+  "display_scale": 10
 }

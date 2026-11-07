@@ -89,7 +89,7 @@ def build() -> dict:
             port("inlet_1", "inlet", cx, cy, top, "load", True),                        # above the trap
             port("backflush_1", "inlet", MARGIN_MM / 2, cy, 0, "backflush", False),     # below the mesh
             port("waste_1", "outlet", fx - MARGIN_MM / 2, cy, 0, "waste", False),       # below the mesh
-            port("release_1", "outlet", fx - MARGIN_MM / 2, fy - 1.25, top, "release", True),
+            port("release_1", "outlet", cx, fy - 1.25, top, "release", True),           # past the trap's far edge
         ],
     }
 
