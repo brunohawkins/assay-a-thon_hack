@@ -119,22 +119,28 @@ def main() -> int:
     args = ap.parse_args()
 
     chip = json.loads(args.chip.read_text())
-    EXPORTS.mkdir(parents=True, exist_ok=True)
+    # Part files are named by bare id, and ids repeat across chips: both of ours have an
+    # 'inlet_1'. twin/main.js loads cad/exports/ flat, so the flat namespace can only
+    # hold one chip, and it holds the default one. Every other chip gets its own folder.
+    is_default = args.chip.resolve() == DEFAULT_CHIP.resolve()
+    out = EXPORTS if is_default else EXPORTS / chip["id"]
+    out.mkdir(parents=True, exist_ok=True)
+    rel = "cad/exports" if is_default else f"cad/exports/{chip['id']}"
     by_id = {c["id"]: c for c in chip["chambers"]}
     written = []
 
     for ch in chip["chambers"]:
-        out = EXPORTS / f"{ch['id']}.stl"
-        write_stl(out, ch["id"], box_triangles(ch["center"], ch["size"]))
-        written.append(out)
+        dest = out / f"{ch['id']}.stl"
+        write_stl(dest, ch["id"], box_triangles(ch["center"], ch["size"]))
+        written.append(dest)
 
     lid = chip["layers"][-1]["thickness_mm"]
     for port in chip["ports"]:
         x, y, z = port["position"]
-        out = EXPORTS / f"{port['id']}.stl"
-        write_stl(out, port["id"],
+        dest = out / f"{port['id']}.stl"
+        write_stl(dest, port["id"],
                   box_triangles([x, y, z - lid / 2], [PORT_SIZE_MM, PORT_SIZE_MM, lid]))
-        written.append(out)
+        written.append(dest)
 
     anchors = {c["id"]: (c["center"], c["size"]) for c in chip["chambers"]}
     for port in chip["ports"]:
@@ -162,7 +168,7 @@ def main() -> int:
         else:
             channel_outlines += outline
 
-    dxf = EXPORTS / f"{chip['id']}.dxf"
+    dxf = out / f"{chip['id']}.dxf"
     layers = {"CHAMBERS": chamber_lines, "CHANNELS": channel_outlines}
     if groove_outlines:
         layers["GROOVES"] = groove_outlines
@@ -172,7 +178,7 @@ def main() -> int:
     print(f"chip {chip['id']}: {len(by_id)} chambers, {len(chip['ports'])} ports, "
           f"{len(chip['channels'])} channels")
     for p in written:
-        print(f"  wrote cad/exports/{p.name}")
+        print(f"  wrote {rel}/{p.name}")
     if spacer:
         print(f"\n{dxf.name}: CHAMBERS and CHANNELS are the cut path for the '{spacer['id']}' "
               f"layer ({spacer['thickness_mm']} mm {spacer['material']}). Units mm, chip-spec origin.")

@@ -16,6 +16,13 @@ digital twin uses.
    *in place* (don't move it to the origin), so `exchange_1.stl` sits where the chip
    spec says `exchange_1` is.
 5. Binary or ASCII STL both work.
+6. **One chip owns the flat folder; every other chip gets a subfolder.** Part files are
+   named by bare ID and IDs repeat across chips — both real chips have an `inlet_1` —
+   so `cad/exports/inlet_1.stl` can only mean one of them. `twin/main.js` loads
+   `cad/exports/` flat, so that namespace belongs to the chip the twin shows, and
+   `cad/make_train_cad.py` writes any other chip to `cad/exports/<chip_id>/`.
+   `chip.loadStls()` already takes a base path, so pointing the twin at a subfolder is
+   a one-line change whenever someone wants the second chip in it.
 
 If your CAD can export **GLB with named parts**, put that in `cad/exports/` as well
 (e.g. `chip_v1.glb`), with each part named by its ID. The twin doesn't load GLB yet,
@@ -60,6 +67,29 @@ records that, so the file doesn't need re-exporting.
 - `cad/*_spec.json` (and `chip/*.json`) are **real-scale** chip specs: the working dimensions; the twin and `tools/check_chip_spec.py` use these.
 - `cad/display/<chip_id>/` is a **display model**: the same chip scaled up by `display_scale` (`cad/fabrication.json`, default 10×) so people can see it. It's a show piece, not a working chip.
 - Make one with `python cad/export_display_model.py cad/wash_mvp_spec.json`, then print `cad/display/<chip_id>/<chip_id>_display_print.stl` (one file, all parts in place; per-part STLs are alongside if you want colours).
+
+## Design figures (`cad/figures/`)
+
+```
+python cad/make_figures.py                      # every spec in chip/
+python cad/make_figures.py --chip chip/<spec>.json
+```
+
+Writes SVG, which GitHub renders inside markdown, so a drawing can sit in a README or
+a PR. Per chip: `_layout` (plan view, to scale), `_stack` (the layer stack and which
+process makes each layer), `_features` (every feature size against the process
+floors), plus `_barrier` and `_schedule` where the chip has them. **Generated — don't
+edit the SVGs by hand.** Channel geometry is imported from `make_train_cad.py` rather
+than re-derived, so a drawing and the DXF cut path cannot disagree.
+
+It also **checks the plan for collisions**, which is most of why it is worth running.
+This is a single-layer chip with no vias, so two channels that touch in plan view are
+one channel, and a port drilled on top of a channel it doesn't belong to is a short
+circuit. Neither shows up in a JSON spec and neither is checked by
+`tools/check_chip_spec.py`. It exits non-zero if it finds one, and always prints the
+tightest clearance between unconnected features.
+
+This found four real short circuits in the three-lane chip on its first run.
 
 ## What goes in this folder
 
