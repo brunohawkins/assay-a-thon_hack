@@ -5,6 +5,7 @@ import { Chip } from './chip.js';
 import { Player } from './player.js';
 import { createUI } from './ui.js';
 import { findDisplayModel, buildDisplayModel } from './display.js';
+import { createControlPanel } from './control.js';
 
 const ROOT = '../'; // serve the repo root: python -m http.server, then open /twin/
 
@@ -27,9 +28,23 @@ const ui = createUI({
   onView: (mode) => setView(mode),
 });
 
+const control = createControlPanel({
+  onLoopToggle: (file) => { ui.selectRun(file); selectRun(file); },
+});
+
+// Side panels start just below the topbar, however many rows it wraps to, so the
+// SIMULATED HARDWARE badge is never hidden behind a panel.
+const topbar = document.querySelector('.topbar');
+function placePanels() {
+  const bottom = topbar.getBoundingClientRect().bottom;
+  document.documentElement.style.setProperty('--panels-top', `${Math.max(84, Math.ceil(bottom + 12))}px`);
+}
+new ResizeObserver(placePanels).observe(topbar);
+placePanels();
+
 const player = new Player(ctx, {
   onEvent: (i, ev) => ui.setEvent(i, ev),
-  onTick: (info) => ui.setTick(info),
+  onTick: (info) => { ui.setTick(info); control.update(info.protocolT); },
   onPlayState: (on) => ui.setPlaying(on),
 });
 
@@ -103,18 +118,24 @@ async function setView(mode) {
   ui.setView(mode);
 }
 
+let pendingFile = null;
+
 async function selectRun(file) {
-  if (busy) return;
+  if (busy) { pendingFile = file; return; } // the latest request wins once the current switch finishes
   busy = true;
   try {
     const entry = runs.find((r) => r.file === file) ?? runs[0];
     const run = await fetchJson(`runs/${entry.file}`);
+    run.__file = entry.file;
     const path = run.chip_spec ?? entry.chip_spec;
     if (!path) throw new Error(`${entry.file} does not say which chip spec it used (chip_spec).`);
     const sameChip = chip && path === chipPath;
     const autoplay = player.playing || !player.run;
     if (sameChip && player.run) await player.fadeOut(); // smooth swap on the same chip
     await ensureChip(path);
+    const hadControl = document.body.classList.contains('has-control');
+    control.setRun(run, runs);
+    if (hadControl !== document.body.classList.contains('has-control') && view === 'real') ctx.frameChip(chip.footprint);
     player.load(run, { autoplay });
     ui.setRun(run, player.timeline());
     ui.setSizing(run.sizing ?? null);
@@ -122,6 +143,11 @@ async function selectRun(file) {
     history.replaceState(null, '', `#run=${encodeURIComponent(entry.file)}`);
   } finally {
     busy = false;
+    if (pendingFile) {
+      const next = pendingFile;
+      pendingFile = null;
+      if (next !== player.run?.__file) selectRun(next);
+    }
   }
 }
 

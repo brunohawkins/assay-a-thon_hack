@@ -57,13 +57,16 @@ export function createScene(container) {
     const top = box('.topbar')?.bottom ?? 0;
     const panel = box('.narration');
     const controlsBox = box('.controls');
+    const left = box('.control');
+    let leftEdge = 0;
+    if (left && left.width > 0 && left.left < w / 2) leftEdge = left.right;
     let right = w;
     let bottom = controlsBox ? controlsBox.top : h;
     if (panel && panel.width > 0) {
       if (panel.left > w / 2) right = panel.left; // side panel (wide screens)
       else bottom = Math.min(bottom, panel.top); // stacked above the controls (phones)
     }
-    return { left: 0, top: top + 8, right: right - 8, bottom: bottom - 8 };
+    return { left: leftEdge + 8, top: top + 8, right: right - 8, bottom: bottom - 8 };
   }
 
   // Shift the projection centre into the free rect with a view offset.

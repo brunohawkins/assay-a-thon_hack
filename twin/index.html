@@ -33,11 +33,51 @@
       <button data-view="real" aria-pressed="true" title="The chip at its real, working dimensions">Real scale</button>
       <button data-view="display" aria-pressed="false" disabled>Display model</button>
     </div>
+    <div id="loop-toggle" class="views loop" role="group" aria-label="Loop" hidden>
+      <button data-loop="open" aria-pressed="false">Open loop</button>
+      <button data-loop="closed" aria-pressed="false">Closed loop</button>
+    </div>
     <div class="badges">
+      <span class="badge sim" title="No physical pump, valves or sensors: closed-loop runs use a virtual chip">SIMULATED HARDWARE</span>
       <span id="operator-badge" class="badge">planner</span>
       <span id="placeholder-badge" class="badge warn" hidden>placeholder data</span>
     </div>
   </header>
+
+  <div id="alert-banner" class="alert-banner" role="alert" hidden></div>
+
+  <aside id="control" class="panel control" hidden aria-label="Control loop">
+    <div class="cp-head">
+      <h2>Control loop</h2>
+      <p id="cp-loop-meta" class="meta"></p>
+    </div>
+    <section>
+      <h3>Believed vs true <small>(true = simulation only)</small></h3>
+      <table class="cp-state"><thead><tr><th></th><th>Believed</th><th>True</th></tr></thead><tbody id="cp-state"></tbody></table>
+      <div class="gauge" aria-label="Pressure against its limit">
+        <div id="cp-gauge-fill" class="fill"></div>
+        <div id="cp-gauge-alert" class="mark alert"></div>
+        <div class="mark limit" style="left:83.33%"></div>
+        <div id="cp-gauge-true" class="mark true"></div>
+      </div>
+      <p id="cp-gauge-label" class="meta"></p>
+    </section>
+    <section>
+      <h3>Prediction vs measurement</h3>
+      <canvas id="cp-pressure" class="chart"></canvas>
+      <canvas id="cp-absorbance" class="chart"></canvas>
+      <p class="legend"><span class="lg pred"></span>predicted <span class="lg meas"></span>measured <span class="lg truth"></span>true (sim)
+        <span class="lg upd"></span>model update <span class="lg al"></span>alert</p>
+    </section>
+    <section>
+      <h3 id="cp-decision-title">Optimizer decision</h3>
+      <div id="cp-decision" class="cp-decision"></div>
+    </section>
+    <section>
+      <h3>Event log</h3>
+      <ul id="cp-log" class="cp-log"></ul>
+    </section>
+  </aside>
 
   <aside class="panel narration" aria-live="polite">
     <div class="step-row">

@@ -84,7 +84,9 @@ export function createUI(actions) {
         ...runs.map((r) => {
           const o = document.createElement('option');
           o.value = r.file;
-          o.textContent = `${r.protocol_name}${r.operator === 'llm' ? ' · LLM operator' : ''}`;
+          const scn = r.scenario ? ` — ${r.scenario.replace(/^wash_mvp_/, '').replace(/_/g, ' ')}` : '';
+          const op = r.operator === 'llm' ? ' · LLM operator' : r.operator === 'scripted' ? ' · scripted replay' : '';
+          o.textContent = `${r.protocol_name}${scn}${op}`;
           return o;
         }),
       );
@@ -143,6 +145,8 @@ export function createUI(actions) {
     },
 
     labelsOn() { return el.labels.getAttribute('aria-pressed') === 'true'; },
+
+    selectRun(file) { el.select.value = file; },
 
     setView(mode) {
       el.views.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === mode)));

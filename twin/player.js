@@ -283,7 +283,12 @@ export class Player {
   // Fade capsules and liquid out (used before switching runs). Resolves when done.
   fadeOut() {
     this.fadeTarget = 0;
-    return new Promise((resolve) => { this._fadeResolve = resolve; });
+    if (this.fade === 0) return Promise.resolve();
+    return new Promise((resolve) => {
+      const done = () => { this._fadeResolve = null; resolve(); };
+      this._fadeResolve = done;
+      setTimeout(() => { if (this._fadeResolve === done) { this.fade = 0; done(); } }, 600); // never wait on a slow frame rate
+    });
   }
 
   timeline() {
