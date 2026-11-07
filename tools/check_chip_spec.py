@@ -375,17 +375,20 @@ def _inside(x: float, y: float, poly) -> bool:
     return hit
 
 
-def port_overlaps(chip: dict, blocks: dict | None = None, n: int = 50) -> list[dict]:
-    """For every fluid port: its hole side, the cut area under it (mm2), what that must be, and the source."""
+def port_overlaps(chip: dict, blocks: dict | None = None, n: int = 50, polys: list | None = None,
+                  source: str | None = None) -> list[dict]:
+    """For every fluid port: its hole side, the cut area under it (mm2), what that must be, and the source.
+    polys/source: measure against these outlines instead (tools/check_asbuilt.py passes an as-built file's)."""
     if blocks is None:
         try:
             blocks = json.loads((ROOT / "contracts" / "blocks.json").read_text())
         except (OSError, ValueError):
             blocks = {}
     floor = (blocks.get("fabrication_floors") or {}).get("min_port_mm", 2.0)
-    polys, source = _dxf_outlines(chip.get("id", ""))
-    if not polys:
-        polys, source = _spec_outlines(chip), "the spec (no exported DXF)"
+    if polys is None:
+        polys, source = _dxf_outlines(chip.get("id", ""))
+        if not polys:
+            polys, source = _spec_outlines(chip), "the spec (no exported DXF)"
     out = []
     for p in chip.get("ports", []):
         if p.get("type") == "control":

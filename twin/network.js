@@ -92,6 +92,11 @@ function clipToBox(p0, p1, center, size) {
 }
 
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+function segDist(p, a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy || 1)));
+  return dist(p, [a[0] + t * dx, a[1] + t * dy]);
+}
 
 // id -> {a, b, length_mm, width_mm, depth_mm, source}
 export function channelGeometry(chip, dxfRects = null) {
@@ -110,6 +115,16 @@ export function channelGeometry(chip, dxfRects = null) {
       if (score(best) < 0.05) {
         const fwd = dist(best.a, a) < dist(best.a, b);
         Object.assign(g, { a: fwd ? best.a : best.b, b: fwd ? best.b : best.a, length_mm: best.length_mm, width_mm: best.width_mm, source: 'DXF' });
+      } else {
+        // An as-built file (tools/check_asbuilt.py) needn't trim where our generator does (it may run on
+        // into a port pad): take the outline whose centreline lies along this channel's line.
+        const off = (r) => Math.max(segDist(r.a, ca, cb), segDist(r.b, ca, cb));
+        const along = dxfRects.filter((r) => off(r) < Math.max(0.3, 2 * ch.width_mm) && r.length_mm > 0.3 * dist(a, b));
+        const near = along.length ? along.reduce((m, r) => (off(r) < off(m) ? r : m)) : null;
+        if (near) {
+          const fwd = dist(near.a, ca) < dist(near.b, ca);
+          Object.assign(g, { a: fwd ? near.a : near.b, b: fwd ? near.b : near.a, length_mm: near.length_mm, width_mm: near.width_mm, source: 'DXF (as built)' });
+        }
       }
     }
     out[ch.id] = g;

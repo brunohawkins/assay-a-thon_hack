@@ -81,6 +81,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
   let decisions = [];
   let measured = {};
   let flagged = null;      // presenter: { ids, t } parts pulsing red (a refused request)
+  let asbuilt = null;      // cad/exports/module1_v1/asbuilt.json, when the as-built CAD differs (tools/check_asbuilt.py)
   const bench = Object.fromEntries(PORTS.map((p) => [p, BENCH_DEFAULT]));
   const group = new THREE.Group();
   const objs = { arrows: null, cells: null, portIcons: {}, m2: null, disc: null, discLabel: null };
@@ -101,7 +102,18 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       configure({ portHoleMm: blocks.fabrication_floors?.min_port_mm, lidMm: spec.layers.at(-1)?.thickness_mm });
     } catch { configure({ lidMm: spec.layers.at(-1)?.thickness_mm }); }
     PROTOCOL_FEED = defaultFeed(spec);
-    const res = await fetch(`${root}cad/exports/${CHIP_ID}/${CHIP_ID}.dxf`, { cache: 'no-store' });
+    // What was printed wins: if tools/check_asbuilt.py found the as-built CAD differs from the spec,
+    // draw and solve on its normalised outline. The listing is read first, so no 404 when there is none.
+    asbuilt = null;
+    let dxfName = `${CHIP_ID}.dxf`;
+    try {
+      const listing = await (await fetch(`${root}cad/exports/${CHIP_ID}/`, { cache: 'no-store' })).text();
+      if (listing.includes('asbuilt.json')) {
+        asbuilt = await (await fetch(`${root}cad/exports/${CHIP_ID}/asbuilt.json`, { cache: 'no-store' })).json();
+        if (asbuilt?.dxf) dxfName = asbuilt.dxf;
+      }
+    } catch { asbuilt = null; }
+    const res = await fetch(`${root}cad/exports/${CHIP_ID}/${dxfName}`, { cache: 'no-store' });
     const rects = res.ok ? parseDxfChannels(await res.text()) : [];
     net = new Network(spec, rects);
     // Draw-only additions (the spec file itself is not changed): channel paths from the DXF,
@@ -591,7 +603,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
         <div class="meta">${esc(d.summary)}</div>${[...(d.reasons ?? []).map((r) => `<div class="blk">✕ ${esc(r)}</div>`), ...(d.warnings ?? []).map((w) => `<div class="wrn">! ${esc(w)}</div>`)].join('')}</li>`).join('');
     panel.innerHTML = `
       <div class="cp-head"><h2>Module 1 v1 · flow</h2>
-        <p class="meta">MJ's chip (being laser-cut) · real scale · channels from the DXF · solver: twin/network.js = operator/network.py</p></div>
+        <p class="meta">MJ's chip · real scale · channels from ${asbuilt ? `the AS-BUILT file ${esc(asbuilt.source_dxf)} (${asbuilt.differences.length} differences from the spec)` : 'the DXF'} · solver: twin/network.js = operator/network.py</p></div>
       <section><h3>Mode</h3><div class="m1-modes">${DESIGN_MODES.map(modeBtn).join('')}</div>
         <div class="m1-modes sub">${['collect', 'idle'].map(modeBtn).join('')}</div>
         <p class="m1-result">${sol ? esc(keyResult(state?.mode, sol)) : ''}</p>
@@ -704,6 +716,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     check: (mode, states, flows) => safetyCheck(net, mode, states, flows, { cells: true }),
     get decisions() { return decisions; },
     get defaultFeed() { return PROTOCOL_FEED; },
+    get asbuilt() { return asbuilt; },
     dyeCss: (k) => `rgb(${DYE_RGB[k].map((x) => Math.round(x * 255)).join(',')})`,
   };
 }
