@@ -1,0 +1,403 @@
+{
+  "id": "capsule_prep_v1",
+  "name": "Cell prep and encapsulation v1",
+  "description": "Steps 1-15 of the cell prep and encapsulation table (Szonja's chip geometry requirements sheet), grouped into Flowmatter library parts. Built from Flowmatter library parts by chip/components/build_chip.py from chip/designs/capsule_prep_v1.json.",
+  "placeholder": true,
+  "units": "mm",
+  "footprint": {
+    "x": 317.326,
+    "y": 115.828
+  },
+  "layers": [
+    {
+      "id": "base",
+      "material": "unknown",
+      "thickness_mm": 1.0
+    },
+    {
+      "id": "fluidic",
+      "material": "unknown",
+      "thickness_mm": 1.0
+    },
+    {
+      "id": "lid",
+      "material": "unknown",
+      "thickness_mm": 1.0
+    }
+  ],
+  "chambers": [
+    {
+      "id": "culture_1",
+      "type": "exchange",
+      "center": [
+        20.0,
+        54.914,
+        1.5
+      ],
+      "size": [
+        20.0,
+        80.0,
+        1.0
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 1150.0
+    },
+    {
+      "id": "quench_join",
+      "type": "pool",
+      "center": [
+        41.25,
+        54.914,
+        1.5
+      ],
+      "size": [
+        12.5,
+        20.0,
+        1.0
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 137.61
+    },
+    {
+      "id": "quench_mix",
+      "type": "exchange",
+      "center": [
+        65.0,
+        54.914,
+        1.5
+      ],
+      "size": [
+        25.0,
+        60.0,
+        1.0
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 700.0
+    },
+    {
+      "id": "cell_wash",
+      "type": "exchange",
+      "center": [
+        134.913,
+        54.914,
+        1.5
+      ],
+      "size": [
+        104.826,
+        99.828,
+        1.0
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 3522.62
+    },
+    {
+      "id": "resuspend_mix",
+      "type": "exchange",
+      "center": [
+        209.826,
+        54.914,
+        1.5
+      ],
+      "size": [
+        35.0,
+        70.0,
+        1.0
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 842.55
+    },
+    {
+      "id": "encapsulate",
+      "type": "exchange",
+      "center": [
+        242.326,
+        54.914,
+        1.5
+      ],
+      "size": [
+        20.0,
+        20.0,
+        1.0
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 175.22
+    },
+    {
+      "id": "gelation",
+      "type": "exchange",
+      "center": [
+        269.826,
+        54.914,
+        1.5
+      ],
+      "size": [
+        25.0,
+        60.0,
+        1.0
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 700.0
+    },
+    {
+      "id": "capsule_trap",
+      "type": "exchange",
+      "center": [
+        297.326,
+        54.914,
+        1.5
+      ],
+      "size": [
+        20.0,
+        80.0,
+        1.0
+      ],
+      "mesh_pore_um": 25,
+      "volume_ul": 1150.0
+    }
+  ],
+  "channels": [
+    {
+      "id": "ch_1",
+      "from": "inlet_1",
+      "to": "culture_1",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_2",
+      "from": "culture_1",
+      "to": "quench_join",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_3",
+      "from": "quench_join",
+      "to": "quench_mix",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_4",
+      "from": "quench_mix",
+      "to": "cell_wash",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_5",
+      "from": "cell_wash",
+      "to": "resuspend_mix",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_6",
+      "from": "resuspend_mix",
+      "to": "encapsulate",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_7",
+      "from": "encapsulate",
+      "to": "gelation",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_8",
+      "from": "gelation",
+      "to": "capsule_trap",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_9",
+      "from": "capsule_trap",
+      "to": "outlet_1",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_10",
+      "from": "medium_in",
+      "to": "culture_1",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_11",
+      "from": "dissociation_enzyme_in",
+      "to": "culture_1",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_12",
+      "from": "quench_medium_in",
+      "to": "quench_join",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_13",
+      "from": "cell_wash_buffer_in",
+      "to": "cell_wash",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_14",
+      "from": "encapsulation_buffer_in",
+      "to": "resuspend_mix",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_15",
+      "from": "shell_polymer_in",
+      "to": "encapsulate",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_16",
+      "from": "oil_in",
+      "to": "encapsulate",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_17",
+      "from": "emulsion_breaker_in",
+      "to": "capsule_trap",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_18",
+      "from": "photoinitiator_in",
+      "to": "capsule_trap",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    },
+    {
+      "id": "ch_19",
+      "from": "capsule_wash_buffer_in",
+      "to": "capsule_trap",
+      "width_mm": 0.5,
+      "depth_mm": 0.5
+    }
+  ],
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "position": [
+        5.0,
+        54.914,
+        3.0
+      ]
+    },
+    {
+      "id": "medium_in",
+      "type": "inlet",
+      "position": [
+        13.0,
+        107.828,
+        3.0
+      ]
+    },
+    {
+      "id": "dissociation_enzyme_in",
+      "type": "inlet",
+      "position": [
+        17.0,
+        107.828,
+        3.0
+      ]
+    },
+    {
+      "id": "quench_medium_in",
+      "type": "inlet",
+      "position": [
+        38.0,
+        107.828,
+        3.0
+      ]
+    },
+    {
+      "id": "cell_wash_buffer_in",
+      "type": "inlet",
+      "position": [
+        85.5,
+        107.828,
+        3.0
+      ]
+    },
+    {
+      "id": "encapsulation_buffer_in",
+      "type": "inlet",
+      "position": [
+        195.326,
+        107.828,
+        3.0
+      ]
+    },
+    {
+      "id": "shell_polymer_in",
+      "type": "inlet",
+      "position": [
+        235.326,
+        107.828,
+        3.0
+      ]
+    },
+    {
+      "id": "oil_in",
+      "type": "inlet",
+      "position": [
+        239.326,
+        107.828,
+        3.0
+      ]
+    },
+    {
+      "id": "emulsion_breaker_in",
+      "type": "inlet",
+      "position": [
+        290.326,
+        107.828,
+        3.0
+      ]
+    },
+    {
+      "id": "photoinitiator_in",
+      "type": "inlet",
+      "position": [
+        294.326,
+        107.828,
+        3.0
+      ]
+    },
+    {
+      "id": "capsule_wash_buffer_in",
+      "type": "inlet",
+      "position": [
+        298.326,
+        107.828,
+        3.0
+      ]
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "position": [
+        312.326,
+        54.914,
+        3.0
+      ]
+    }
+  ]
+}
