@@ -8,35 +8,34 @@
   <text x="956" y="48" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#8b949e" text-anchor="end">do not edit by hand</text>
   <rect x="44" y="56" width="840" height="560" fill="#f6f8fa" stroke="#c9d1d9" stroke-width="1.3" rx="5"/>
   <polygon points="136.48,383.01 259.61,383.01 259.61,388.61 136.48,388.61" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
-  <polygon points="499.73,233.66 581.98,271.62 579.63,276.7 497.38,238.74" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
-  <polygon points="497.38,532.86 579.63,494.89 581.98,499.98 499.73,537.94" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
-  <polygon points="376.4,383.01 458.16,383.01 458.16,388.61 376.4,388.61" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
-  <polygon points="582.09,333.85 494.48,379.23 491.9,374.25 579.51,328.87" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
-  <polygon points="579.51,442.73 491.9,397.37 494.48,392.39 582.09,437.76" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
-  <polygon points="493.19,383.01 522.88,383.01 522.88,388.61 493.19,388.61" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
-  <polygon points="697.59,298.31 791.52,298.31 791.52,303.91 697.59,303.91" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
-  <polygon points="697.59,467.68 791.52,467.68 791.52,473.28 697.59,473.28" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
+  <polygon points="499.31,231.49 581.56,254.66 580.04,260.05 497.79,236.88" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
+  <polygon points="497.79,534.72 580.04,511.56 581.56,516.95 499.31,540.11" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
+  <polygon points="376.4,383.01 442.08,383.01 442.08,388.61 376.4,388.61" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
+  <polygon points="589.62,311.16 510.86,365.11 507.69,360.49 586.45,306.54" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
+  <polygon points="586.45,465.08 507.69,411.14 510.86,406.52 589.62,460.46" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
+  <polygon points="509.28,383.01 531.2,383.01 531.2,388.61 509.28,388.61" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
+  <polygon points="697.59,271.01 791.52,271.01 791.52,276.61 697.59,276.61" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
+  <polygon points="697.59,495.01 791.52,495.01 791.52,500.61 697.59,500.61" fill="#dde2e8" stroke="#8d97a3" stroke-width="0.8"/>
   <rect x="259.61" y="350.77" width="116.79" height="70.08" fill="#cfe3f7" stroke="#2f6fb0" stroke-width="1.3" rx="2.5"/>
   <text x="318.01" y="371.91" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#2f6fb0" text-anchor="middle" font-weight="bold">n_cx</text>
   <text x="318.01" y="384.41" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.02" fill="#8b949e" text-anchor="middle">culture_chamber</text>
   <text x="318.01" y="396.32" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">4.171 × 2.503 mm</text>
   <text x="318.01" y="408.23" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">3.132 µL</text>
-  <rect x="580.8" y="266.07" width="116.79" height="70.08" fill="#cfe3f7" stroke="#2f6fb0" stroke-width="1.3" rx="2.5"/>
-  <text x="639.2" y="287.21" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#2f6fb0" text-anchor="middle" font-weight="bold">g_cx</text>
-  <text x="639.2" y="299.71" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.02" fill="#8b949e" text-anchor="middle">culture_chamber</text>
-  <text x="639.2" y="311.62" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">4.171 × 2.503 mm</text>
-  <text x="639.2" y="323.53" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">3.132 µL · mesh 5 µm</text>
-  <rect x="580.8" y="435.44" width="116.79" height="70.08" fill="#cfe3f7" stroke="#2f6fb0" stroke-width="1.3" rx="2.5"/>
-  <text x="639.2" y="456.58" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#2f6fb0" text-anchor="middle" font-weight="bold">a_cx</text>
-  <text x="639.2" y="469.08" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.02" fill="#8b949e" text-anchor="middle">culture_chamber</text>
-  <text x="639.2" y="480.99" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">4.171 × 2.503 mm</text>
-  <text x="639.2" y="492.9" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">3.132 µL · mesh 5 µm</text>
-  <rect x="458.16" y="368.3" width="35.03" height="35.03" fill="#fde6c8" stroke="#bf7b2f" stroke-width="1.3" rx="2.5"/>
-  <line x1="475.68" y1="348.3" x2="475.68" y2="368.3" stroke="#8b949e" stroke-width="0.7"/>
-  <rect x="418.08" y="314.1" width="115.2" height="34.2" fill="#ffffff" stroke="none" opacity="0.92"/>
-  <text x="475.68" y="324.78" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9" fill="#bf7b2f" text-anchor="middle" font-weight="bold">j_mid</text>
-  <text x="475.68" y="334.95" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" fill="#8b949e" text-anchor="middle">cross_junction</text>
-  <text x="475.68" y="344.7" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#5a636d" text-anchor="middle">1.251 × 1.251 mm · 0.47 µL</text>
+  <rect x="580.8" y="238.77" width="116.79" height="70.08" fill="#cfe3f7" stroke="#2f6fb0" stroke-width="1.3" rx="2.5"/>
+  <text x="639.2" y="259.91" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#2f6fb0" text-anchor="middle" font-weight="bold">g_cx</text>
+  <text x="639.2" y="272.41" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.02" fill="#8b949e" text-anchor="middle">trap_chamber</text>
+  <text x="639.2" y="284.32" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">4.171 × 2.503 mm</text>
+  <text x="639.2" y="296.23" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">3.132 µL</text>
+  <rect x="580.8" y="462.77" width="116.79" height="70.08" fill="#cfe3f7" stroke="#2f6fb0" stroke-width="1.3" rx="2.5"/>
+  <text x="639.2" y="483.91" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#2f6fb0" text-anchor="middle" font-weight="bold">a_cx</text>
+  <text x="639.2" y="496.41" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.02" fill="#8b949e" text-anchor="middle">trap_chamber</text>
+  <text x="639.2" y="508.32" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">4.171 × 2.503 mm</text>
+  <text x="639.2" y="520.23" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.02" fill="#5a636d" text-anchor="middle">3.132 µL</text>
+  <rect x="442.08" y="352.21" width="67.2" height="67.2" fill="#fde6c8" stroke="#bf7b2f" stroke-width="1.3" rx="2.5"/>
+  <text x="475.68" y="375.7" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#bf7b2f" text-anchor="middle" font-weight="bold">j_mid</text>
+  <text x="475.68" y="384.79" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="6.56" fill="#8b949e" text-anchor="middle">cross_junction</text>
+  <text x="475.68" y="393.45" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="6.56" fill="#5a636d" text-anchor="middle">2.4 × 2.4 mm</text>
+  <text x="475.68" y="402.11" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="6.56" fill="#5a636d" text-anchor="middle">1.728 µL</text>
   <circle cx="125.28" cy="385.81" r="11.2" fill="#ffffff" stroke="#2f7d32" stroke-width="2"/>
   <circle cx="125.28" cy="385.81" r="7.7" fill="#2f7d32" stroke="none"/>
   <circle cx="101.34" cy="389.33" r="7.5" fill="#ffffff" stroke="#2f7d32" stroke-width="1.2"/>
@@ -49,36 +48,36 @@
   <circle cx="487.35" cy="540.57" r="7.7" fill="#2f7d32" stroke="none"/>
   <circle cx="490.1" cy="564.61" r="7.5" fill="#ffffff" stroke="#2f7d32" stroke-width="1.2"/>
   <text x="490.1" y="567.81" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#2f7d32" text-anchor="middle" font-weight="bold">3</text>
-  <circle cx="534.08" cy="385.81" r="11.2" fill="#ffffff" stroke="#c0392b" stroke-width="2"/>
-  <circle cx="534.08" cy="385.81" r="7.7" fill="#c0392b" stroke="none"/>
-  <circle cx="553.81" cy="399.83" r="7.5" fill="#ffffff" stroke="#c0392b" stroke-width="1.2"/>
-  <text x="553.81" y="403.03" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">4</text>
-  <circle cx="802.72" cy="301.11" r="11.2" fill="#ffffff" stroke="#c0392b" stroke-width="2"/>
-  <circle cx="802.72" cy="301.11" r="7.7" fill="#c0392b" stroke="none"/>
-  <circle cx="826.79" cy="298.63" r="7.5" fill="#ffffff" stroke="#c0392b" stroke-width="1.2"/>
-  <text x="826.79" y="301.83" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">5</text>
-  <circle cx="802.72" cy="470.48" r="11.2" fill="#ffffff" stroke="#c0392b" stroke-width="2"/>
-  <circle cx="802.72" cy="470.48" r="7.7" fill="#c0392b" stroke="none"/>
-  <circle cx="825.21" cy="479.41" r="7.5" fill="#ffffff" stroke="#c0392b" stroke-width="1.2"/>
-  <text x="825.21" y="482.61" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">6</text>
+  <circle cx="542.4" cy="385.81" r="11.2" fill="#ffffff" stroke="#c0392b" stroke-width="2"/>
+  <circle cx="542.4" cy="385.81" r="7.7" fill="#c0392b" stroke="none"/>
+  <circle cx="562.83" cy="398.79" r="7.5" fill="#ffffff" stroke="#c0392b" stroke-width="1.2"/>
+  <text x="562.83" y="401.99" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">4</text>
+  <circle cx="802.72" cy="273.81" r="11.2" fill="#ffffff" stroke="#c0392b" stroke-width="2"/>
+  <circle cx="802.72" cy="273.81" r="7.7" fill="#c0392b" stroke="none"/>
+  <circle cx="826.52" cy="269.44" r="7.5" fill="#ffffff" stroke="#c0392b" stroke-width="1.2"/>
+  <text x="826.52" y="272.64" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">5</text>
+  <circle cx="802.72" cy="497.81" r="11.2" fill="#ffffff" stroke="#c0392b" stroke-width="2"/>
+  <circle cx="802.72" cy="497.81" r="7.7" fill="#c0392b" stroke="none"/>
+  <circle cx="824.55" cy="508.24" r="7.5" fill="#ffffff" stroke="#c0392b" stroke-width="1.2"/>
+  <text x="824.55" y="511.44" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#c0392b" text-anchor="middle" font-weight="bold">6</text>
   <circle cx="198.05" cy="385.81" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
   <text x="198.05" y="388.21" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">1</text>
-  <circle cx="545.76" cy="349.51" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
-  <text x="545.76" y="351.91" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">2</text>
-  <circle cx="537" cy="417.56" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
-  <text x="537" y="419.96" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">3</text>
-  <circle cx="744.55" cy="301.11" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
-  <text x="744.55" y="303.51" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">4</text>
-  <circle cx="744.55" cy="470.48" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
-  <text x="744.55" y="472.88" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">5</text>
-  <circle cx="539.68" cy="516.42" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
-  <text x="539.68" y="518.82" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">6</text>
-  <circle cx="539.68" cy="255.18" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
-  <text x="539.68" y="257.58" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">7</text>
-  <circle cx="417.28" cy="385.81" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
-  <text x="417.28" y="388.21" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">8</text>
-  <circle cx="508.04" cy="385.81" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
-  <text x="508.04" y="388.21" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">9</text>
+  <circle cx="548.66" cy="335.83" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
+  <text x="548.66" y="338.23" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">2</text>
+  <circle cx="548.66" cy="435.8" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
+  <text x="548.66" y="438.2" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">3</text>
+  <circle cx="744.55" cy="273.81" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
+  <text x="744.55" y="276.21" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">4</text>
+  <circle cx="744.55" cy="497.81" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
+  <text x="744.55" y="500.21" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">5</text>
+  <circle cx="539.68" cy="245.77" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
+  <text x="539.68" y="248.17" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">6</text>
+  <circle cx="539.68" cy="525.83" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
+  <text x="539.68" y="528.23" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">7</text>
+  <circle cx="409.24" cy="385.81" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
+  <text x="409.24" y="388.21" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">8</text>
+  <circle cx="520.24" cy="385.81" r="6.5" fill="#ffffff" stroke="#5a636d" stroke-width="1"/>
+  <text x="520.24" y="388.21" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8" fill="#5a636d" text-anchor="middle" font-weight="bold">9</text>
   <line x1="44" y1="642" x2="884" y2="642" stroke="#8b949e" stroke-width="0.8"/>
   <line x1="44" y1="638" x2="44" y2="646" stroke="#8b949e" stroke-width="0.8"/>
   <line x1="884" y1="638" x2="884" y2="646" stroke="#8b949e" stroke-width="0.8"/>
@@ -112,11 +111,11 @@
   <text x="412.8" y="720" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">3  ch_a_j · curved_channel</text>
   <text x="563.76" y="720" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">4  ch_g_out · straight_channel</text>
   <text x="734.56" y="720" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">5  ch_a_out · straight_channel</text>
-  <text x="96" y="734" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">6  ch_ain_a · curved_channel</text>
-  <text x="256.88" y="734" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">7  ch_gin_g · curved_channel</text>
+  <text x="96" y="734" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">6  ch_gin_g · curved_channel</text>
+  <text x="256.88" y="734" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">7  ch_ain_a · curved_channel</text>
   <text x="417.76" y="734" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">8  ch_n_j · straight_channel</text>
   <text x="578.64" y="734" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">9  ch_j_mid · straight_channel</text>
   <text x="44" y="756" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Every chamber and channel is 0.3 mm deep: one embossing depth, a resin-printed tool hot-embossed into the layer, with the tubing ports drilled through the lid.</text>
   <text x="44" y="769" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Small grey names are the contracts/blocks.json CAD block each chamber and channel is built from; red means it is not in the library.</text>
-  <text x="44" y="782" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Tightest clearance between unconnected features: 0.12 mm, between channels 'ch_a_j' and 'ch_j_mid'. Planar check: no overlaps; 5 rib(s) under 0.5 mm.</text>
+  <text x="44" y="782" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Tightest clearance between unconnected features: 0.62 mm, between channels 'ch_g_j' and 'ch_j_mid'. Planar check: no overlaps.</text>
 </svg>

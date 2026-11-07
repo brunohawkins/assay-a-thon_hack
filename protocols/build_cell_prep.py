@@ -43,13 +43,64 @@ SOURCE = (
     "Massoni-Badosa R et al., Genome Biol 2020;21:112, doi:10.1186/s13059-020-02032-0."
 )
 
-MIN = 60.0
-CAPSULE_UM = 135.0        # must match build_sctip_spc.py
-CORE_FRACTION = 0.5       # the core stream is half the droplet volume
-LAMBDA_CELL = 0.2
-MIX_FLOW = 20.0           # uL/min through the mixer
+import build_spc_demo     # the capsule size and occupancy target come from the encapsulation chip
 
-CH = {c["id"]: c for c in json.loads(CHIP.read_text())["chambers"]}
+MIN = 60.0
+MU_PA_S = 0.8e-3
+SHEAR_CEILING = 0.01      # dyn/cm2, in every chamber the flow runs through
+FLOW_FRACTION = 0.85      # run at this fraction of the shear-ceiling flow
+CAPSULE_UM = build_spc_demo.CAPSULE_UM
+CORE_FRACTION = build_spc_demo.CORE_SHARE   # the core stream is half the droplet volume
+LAMBDA_CELL = build_spc_demo.LAMBDA_CELL
+
+# How much liquid each step intends, in chamber volumes of the chamber it runs in.
+WASH_CV, WASHES = 1.0, 2
+DISSOCIATION_CV = 1.0
+QUENCH_CV = 1.0
+SHEAR_PASS_CV = 1.0
+DETACH_TEMP_C = 37
+DETACH_HOLD_S = 7 * MIN   # round placeholder; watch the cells rather than trust a timer
+COUNT_S = 300             # time to image the window
+COLD_C = 4
+
+CHIP_SPEC = json.loads(CHIP.read_text())
+CH = {c["id"]: c for c in CHIP_SPEC["chambers"]}
+PORTS = [p["id"] for p in CHIP_SPEC["ports"]]
+
+
+def max_flow(width_mm: float, height_mm: float, ceiling: float = SHEAR_CEILING) -> float:
+    """Highest flow in uL/min that keeps wall shear at or below the ceiling."""
+    w, h = width_mm * 1e-3, height_mm * 1e-3
+    return (ceiling / 10.0) * w * h * h / (6.0 * MU_PA_S) * 60.0 * 1e9
+
+
+def shear(flow_ul_min: float, width_mm: float, height_mm: float) -> float:
+    q = flow_ul_min * 1e-9 / 60.0
+    w, h = width_mm * 1e-3, height_mm * 1e-3
+    return (6.0 * MU_PA_S * q / (w * h * h)) * 10.0
+
+
+def route(chamber: str) -> list[str]:
+    """The chamber and every chamber downstream of it. Each stage drains through the next one
+    (the only outlet is out_cells), so the flow in one is the flow in all of them."""
+    out, todo = [], [chamber]
+    while todo:
+        c = todo.pop(0)
+        if c in CH and c not in out:
+            out.append(c)
+            todo += [ch["to"] for ch in CHIP_SPEC["channels"] if ch["from"] == c]
+    return out
+
+
+def route_flow(chamber: str) -> float:
+    """FLOW_FRACTION of the shear-ceiling flow of the tightest chamber on the route, floored to 1 nL/min."""
+    cap = min(max_flow(CH[c]["size"][1], CH[c]["size"][2]) for c in route(chamber))
+    return math.floor(FLOW_FRACTION * cap * 1000) / 1000
+
+
+def ports(feed=(), vent=()) -> dict:
+    feed, vent = list(feed), list(vent)
+    return {"feed": feed, "vent": vent, "cap": [p for p in PORTS if p not in feed + vent]}
 
 
 def capsule_nl(d_um: float = CAPSULE_UM) -> float:
@@ -74,70 +125,94 @@ def build() -> dict:
     steps: list[dict] = []
 
     def add(operation, target, note, duration_s, reagent=None, volume_ul=None,
-            temp_c=None, washes=None, flow_ul_min=None):
+            temp_c=None, washes=None, flow_ul_min=None, port_state=None, **extra):
         if operation == "exchange":
             volume_ul = volume_ul if volume_ul is not None else CH[target]["volume_ul"]
             washes = washes if washes is not None else 1
-            duration_s = max(duration_s,
-                             washes * volume_ul / (flow_ul_min or MIX_FLOW) * 60.0 * 1.4)
-        steps.append({"step": len(steps) + 1, "operation": operation, "target": target,
-                      "reagent": reagent, "volume_ul": volume_ul,
-                      "duration_s": round(duration_s), "temp_c": temp_c, "washes": washes,
-                      "flow_ul_min": flow_ul_min, "note": note})
+            duration_s = max(duration_s, washes * volume_ul / flow_ul_min * 60.0 * 1.4)
+        if operation == "mix":
+            duration_s = max(duration_s, volume_ul / flow_ul_min * 60.0 * 1.4)
+        if operation == "transfer":
+            # one chamber volume of carrier moves the cells on
+            duration_s = max(duration_s, CH[extra["source"]]["volume_ul"]
+                             / route_flow(extra["source"]) * 60.0 * 1.4)
+        step = {"step": len(steps) + 1, "operation": operation, "target": target,
+                "reagent": reagent, "volume_ul": volume_ul,
+                "duration_s": round(duration_s), "temp_c": temp_c, "washes": washes,
+                "flow_ul_min": flow_ul_min, "note": note}
+        step.update(extra)
+        step["ports"] = port_state
+        steps.append(step)
+
+    f_cult, f_mix = route_flow("cult_1"), route_flow("mix_1")
+    v_cult, v_mix = CH["cult_1"]["volume_ul"], CH["mix_1"]["volume_ul"]
 
     add("exchange", "cult_1",
         "Rinse the adherent layer into a divalent-free buffer. The rinse matters more "
         "than it looks: leftover medium slows the enzyme and leftover divalent cations "
         "keep the cells stuck down, and both show up later as clumps.",
-        240, reagent="wash_buffer", washes=2, flow_ul_min=MIX_FLOW)
+        0, reagent="wash_buffer", volume_ul=round(v_cult * WASH_CV, 3), washes=WASHES,
+        flow_ul_min=f_cult, port_state=ports(["in_buffer"], ["out_cells"]))
     add("exchange", "cult_1",
-        "Flow in the dissociation reagent and warm the chamber. This is the only heated "
-        "zone on the board.",
-        180, reagent="dissociation_reagent", temp_c=37, flow_ul_min=MIX_FLOW)
+        f"Flow in the dissociation reagent and warm the chamber. This is the only heated "
+        f"zone on the board.",
+        0, reagent="dissociation_reagent", volume_ul=round(v_cult * DISSOCIATION_CV, 3),
+        temp_c=DETACH_TEMP_C, washes=1, flow_ul_min=f_cult,
+        port_state=ports(["in_enz"], ["out_cells"]))
     add("hold_temp", "cult_1",
-        "Hold at 37 C until the cells round up and lift. Watch rather than trust a "
-        "timer: under-digestion leaves clumps, which is the thing most likely to block "
-        "a 100 um orifice downstream, and over-digestion costs viability.",
-        7 * MIN, temp_c=37)
-    add("exchange", "mix_1",
-        "Carry the lifted cells into the serpentine and co-flow the quench. Quenching "
-        "here rather than in the chamber stops the enzyme as the cells leave instead of "
-        "minutes later. The folded path is there because diffusion across a 100 um "
-        "channel takes about 100 s; the mixing has to be advective.",
-        180, reagent="quench_buffer", temp_c=4, flow_ul_min=MIX_FLOW)
-    add("exchange", "mix_1",
+        f"Hold at {DETACH_TEMP_C} C until the cells round up and lift. Watch rather than trust a "
+        f"timer: under-digestion leaves clumps, which is the thing most likely to block "
+        f"the nozzle downstream, and over-digestion costs viability.",
+        DETACH_HOLD_S, temp_c=DETACH_TEMP_C, port_state=ports())
+    add("transfer", "mix_1",
+        "Carry the lifted cells from the culture chamber into the serpentine.",
+        0, port_state=ports(["in_buffer"], ["out_cells"]), source="cult_1")
+    add("mix", "mix_1",
+        "Co-flow the quench with the lifted cells. Quenching here rather than in the "
+        "chamber stops the enzyme as the cells leave instead of minutes later. The "
+        "folded path is there because diffusion across the channel is too slow, so the "
+        "mixing has to be advective.",
+        0, reagent="quench_buffer", volume_ul=round(v_mix * QUENCH_CV, 3), temp_c=COLD_C,
+        flow_ul_min=f_mix, port_state=ports(["in_quench"], ["out_cells"]))
+    add("mix", "mix_1",
         "Shear the remaining clumps apart against the serpentine turns. Published "
-        "branching constrictions at or above 100 um raise single cells from about 75% to "
-        "about 92%, with viability unaffected when an enzyme has been used. It will not "
-        "reach 100%, which is why a bought 40 um strainer still sits downstream.",
-        120, reagent="quench_buffer", temp_c=4, flow_ul_min=MIX_FLOW)
-    add("hold_temp", "qc_1",
-        f"Stop the flow and image the window. Count about 400 cells for a 5% Poisson "
+        "branching constrictions raise single cells from about 75% to about 92%, with "
+        "viability unaffected when an enzyme has been used. It will not reach 100%, "
+        "which is why a bought 40 um strainer still sits downstream.",
+        0, reagent="quench_buffer", volume_ul=round(v_mix * SHEAR_PASS_CV, 3), temp_c=COLD_C,
+        flow_ul_min=f_mix, port_state=ports(["in_quench"], ["out_cells"]))
+    add("count", "qc_1",
+        f"Stop the flow and image the window, chilled. Count about 400 cells for a 5% Poisson "
         f"error, then dilute to the concentration the encapsulator needs: about "
         f"{cells_per_ul():.0f} cells/uL for a {CAPSULE_UM:g} um capsule at a mean of "
         f"{LAMBDA_CELL:g}. THAT NUMBER IS NOT TRANSFERABLE between capsule sizes, "
         f"because it falls as the cube of the diameter. A 20% counting error only moves "
         f"single occupancy by about 15%, so a window and a phone camera are enough and "
         f"an in-line counter is not worth building.",
-        300, temp_c=4)
-    add("release", "qc_1",
+        COUNT_S, temp_c=COLD_C, port_state=ports())
+    add("transfer", "out_cells",
         "Deliver to a chilled tube. Everything after this is bench work and stays "
         "there: one spin, a 40 um strainer, and resuspension into the viscous "
         "encapsulation buffer. The module stops here deliberately.",
-        120, reagent="wash_buffer")
+        0, port_state=ports(["in_buffer"], ["out_cells"]), source="qc_1")
 
+    total_min = sum(st["duration_s"] for st in steps) / MIN
     return {
         "id": "cell_prep_v1",
         "name": "Cell detachment, neutralisation and QC",
         "source": SOURCE,
         "placeholder": False,
         "description": (
-            "Detaches adherent cells, quenches and disaggregates them on the way out, "
-            "and presents them in a counting window. Deliberately does NOT wash, filter, "
-            "concentrate or exchange into the viscous encapsulation buffer: at a 100 um "
-            "feature floor those four steps lose to a bench tube on both recovery and "
-            "time, and --report prints the comparison. About 20 min, all features at or "
-            "above 100 um. Reagent names are generic; see the source citation."
+            f"Detaches adherent cells, quenches and disaggregates them on the way out, "
+            f"and presents them in a counting window. Deliberately does NOT wash, filter, "
+            f"concentrate or exchange into the viscous encapsulation buffer: at the "
+            f"fabrication feature floor those four steps lose to a bench tube on both "
+            f"recovery and time, and --report prints the comparison. About "
+            f"{total_min:.0f} min. Every stage drains through the next, so each flow is "
+            f"85% of the flow that keeps wall shear at or below 0.01 dyn/cm2 in the "
+            f"tightest chamber downstream (tau = 6*mu*Q/(w*h^2), mu = 0.8e-3 Pa s), and every "
+            f"volume is a number of chamber volumes. Reagent names are generic; see the "
+            f"source citation."
         ),
         "steps": steps,
     }

@@ -3,7 +3,16 @@
     python protocols/build_sctip_spc.py           # write the protocol
     python protocols/build_sctip_spc.py --report  # timing and flow table
 
-Capsule generation plus single-copy barcoding, on chip/sctip_spc_v1.json.
+Single-copy barcoding and capsule handling, on chip/sctip_spc_v1.json.
+
+WHAT IS ON THE CHIP. Stage A (making the capsules) is retired: spc_demo_v1 makes them, and
+the capsules arrive here already made. What remains is stage B (re-inject the capsules,
+meet the barcode mix, cut each capsule plus its barcode back into oil) and stage C (break
+the emulsion, trap and wash the capsules). Nothing numeric about liquid is typed in:
+the batch size is what the packed bed in trap_1 holds, volumes are chamber volumes, and
+every flow is derived from chamber geometry. A step never moves more than its chamber
+holds in one go, so a larger volume is several fills or several passes. The nozzle flows
+are the spc_demo_v1 operating point scaled by the ratio of the two nozzles' cross sections.
 
 WHAT THIS REPLACES. A published single-cell chromatin workflow (TIP-seq, Bartlett et al.
 2021) barcodes cells by splitting them across plates: one barcode on the transposon
@@ -23,8 +32,8 @@ and not an anchor molecule.
 
 WHY THE CAPSULES ARE BIG. Close-packed re-injection is what beats Poisson on the capsule
 side, and it needs an entrance about 0.85x the capsule diameter. At 70 um that entrance
-is 60 um, which we cannot make. At 135 um it is 115 um, which we can. Capsule size is set
-by the fabrication limit, not by biology.
+is 60 um, which we cannot make. Capsule size is set by the fabrication limit, not by
+biology: here it is whatever spc_demo_v1's nozzle makes (build_spc_demo.CAPSULE_UM).
 
 TEMPERATURE. Nothing above 72 C ever sees an intact capsule in this workflow: the cells
 are permeabilised rather than live, tagmentation runs at room temperature, and the
@@ -38,8 +47,11 @@ published methods are cited in SOURCE.
 from __future__ import annotations
 
 import json
+import math
 import sys
 from pathlib import Path
+
+import build_spc_demo     # capsule size and the reference nozzle operating point
 
 OUT = Path(__file__).resolve().parent / "sctip_spc_v1.json"
 CHIP = Path(__file__).resolve().parents[1] / "chip" / "sctip_spc_v1.json"
@@ -61,37 +73,88 @@ SOURCE = (
 
 MIN = 60.0
 HOUR = 3600.0
+MU_PA_S = 0.8e-3
+SHEAR_CEILING = 0.01       # dyn/cm2, in every chamber the flow runs through
+FLOW_FRACTION = 0.85       # run at this fraction of the shear-ceiling flow
+PACKING = 0.64             # random close packing
+CAPS_SHARE = 0.4           # share of the nozzle's aqueous flow carried by the capsule stream
+EMULSION_FACTOR = 2.0      # emulsion volume re-injected, in packed capsule volumes (assumption)
+LAMBDA_BARCODE = 3.0       # mean barcode molecules per droplet; see note in build()
+SETTLE_WASHES = 1
+WASH_WASHES = 3            # fills per flow-through wash
+COLLECT_S = 600            # handling time to the tube
+THERMOCYCLE_S = 2.0 * HOUR # round placeholder, in a tube
+GAP_FILL_S = 3 * MIN
+GAP_FILL_C = 72
+TRANSCRIPTION_S = 17 * HOUR
+TRANSCRIPTION_C = 37
 
-# Stage A: scaled from a documented 70 um operating point by orifice area, which keeps
-# the oil-to-aqueous ratio at 3.67 and the junction in the dripping regime.
-FLOW_A = {"shell": 1.5, "core": 1.5, "oil": 11.0}      # uL/min
-# Stage B: capsule stream, reagent-plus-barcode stream, oil.
-FLOW_B = {"caps": 4.2, "mix": 6.7, "oil": 16.7}        # uL/min
+CHIP_SPEC = json.loads(CHIP.read_text())
+CH = {c["id"]: c for c in CHIP_SPEC["chambers"]}
+PORTS = [p["id"] for p in CHIP_SPEC["ports"]]
+NOZZLE, PACK, BREAK, TRAP = "nozzle_2", "pack_1", "brk_1", "trap_1"
 
-CAPSULE_UM = 135.0
-CAPSULE_NL = 3.14159265 / 6.0 * (CAPSULE_UM / 1000.0) ** 3 * 1e3   # nL
-LAMBDA_CELL = 0.2        # mean cells per capsule
-LAMBDA_BARCODE = 3.0     # mean barcode molecules per droplet; see note in build()
-TARGET_CAPSULES = 50000
-
-CH = {c["id"]: c for c in json.loads(CHIP.read_text())["chambers"]}
+CAPSULE_UM = build_spc_demo.CAPSULE_UM
+CAPSULE_NL = math.pi / 6.0 * (CAPSULE_UM / 1000.0) ** 3 * 1e3   # nL
+LAMBDA_CELL = build_spc_demo.LAMBDA_CELL
 # Cells ride in the core stream only, which is half the droplet, so the concentration
-# the nozzle needs falls as the CUBE of capsule diameter. A figure quoted for a 70 um
-# capsule gives 42% multiplets here instead of 1.8%. build_cell_prep.py --report has
+# the nozzle needs falls as the CUBE of capsule diameter. build_cell_prep.py --report has
 # the table; this is the number that module has to hand over.
-CELLS_PER_UL = round(LAMBDA_CELL / (CAPSULE_NL * 0.5) * 1e3)
-# Packed volume of the whole batch: capsule volume x count, over random close packing.
-PACKED_UL = round(TARGET_CAPSULES * CAPSULE_NL / 1e3 / 0.64, 1)
+CELLS_PER_UL = build_spc_demo.CELLS_PER_UL
+
+
+def max_flow(width_mm: float, height_mm: float, ceiling: float = SHEAR_CEILING) -> float:
+    """Highest flow in uL/min that keeps wall shear at or below the ceiling."""
+    w, h = width_mm * 1e-3, height_mm * 1e-3
+    return (ceiling / 10.0) * w * h * h / (6.0 * MU_PA_S) * 60.0 * 1e9
+
+
+def shear(flow_ul_min: float, width_mm: float, height_mm: float) -> float:
+    q = flow_ul_min * 1e-9 / 60.0
+    w, h = width_mm * 1e-3, height_mm * 1e-3
+    return (6.0 * MU_PA_S * q / (w * h * h)) * 10.0
+
+
+def route(chamber: str) -> list[str]:
+    """The chamber and every chamber downstream of it (what the same flow also passes through)."""
+    out, todo = [], [chamber]
+    while todo:
+        c = todo.pop(0)
+        if c in CH and c not in out:
+            out.append(c)
+            todo += [ch["to"] for ch in CHIP_SPEC["channels"] if ch["from"] == c]
+    return out
+
+
+def route_flow(chamber: str) -> float:
+    """FLOW_FRACTION of the shear-ceiling flow of the tightest chamber on the route, floored to 1 nL/min."""
+    cap = min(max_flow(CH[c]["size"][1], CH[c]["size"][2]) for c in route(chamber))
+    return math.floor(FLOW_FRACTION * cap * 1000) / 1000
+
+
+def ports(feed=(), vent=()) -> dict:
+    feed, vent = list(feed), list(vent)
+    return {"feed": feed, "vent": vent, "cap": [p for p in PORTS if p not in feed + vent]}
+
+
+# Batch: what the packed bed in the trap holds.
+BATCH = int(PACKING * CH[TRAP]["volume_ul"] * 1e3 / CAPSULE_NL)
+PACKED_UL = BATCH * CAPSULE_NL / 1e3 / PACKING
+
+# Nozzle: the reference operating point of spc_demo_v1, scaled by orifice cross section.
+_nz, _ref = CH[NOZZLE]["size"], build_spc_demo.CH[build_spc_demo.NOZZLE]["size"]
+NOZZLE_SCALE = (_nz[1] * _nz[2]) / (_ref[1] * _ref[2])
+_aq = (build_spc_demo.FLOW["core"] + build_spc_demo.FLOW["shell"]) * NOZZLE_SCALE
+FLOW_B = {"caps": _aq * CAPS_SHARE, "mix": _aq * (1 - CAPS_SHARE),
+          "oil": build_spc_demo.FLOW["oil"] * NOZZLE_SCALE}   # uL/min
 
 
 def rate_hz() -> float:
-    """Droplet frequency from the aqueous flow and the capsule volume."""
-    aqueous_nl_s = (FLOW_A["shell"] + FLOW_A["core"]) * 1e3 / MIN
-    return aqueous_nl_s / CAPSULE_NL
+    """Droplet frequency: one capsule per droplet, from the capsule stream at packed density."""
+    return FLOW_B["caps"] * PACKING * 1e3 / MIN / CAPSULE_NL
 
 
 def poisson(lam: float, k: int) -> float:
-    import math
     return lam ** k * math.exp(-lam) / math.factorial(k)
 
 
@@ -99,166 +162,155 @@ def build() -> dict:
     steps: list[dict] = []
 
     def add(operation, target, note, duration_s, reagent=None, volume_ul=None,
-            temp_c=None, washes=None, flow_ul_min=None):
-        if operation == "exchange":
-            volume_ul = volume_ul if volume_ul is not None else CH[target]["volume_ul"]
-            washes = washes if washes is not None else 1
+            temp_c=None, washes=None, flow_ul_min=None, port_state=None, **extra):
+        if operation in ("exchange", "load") and volume_ul is not None:
             # never promise an exchange faster than the pump can deliver it
-            minimum = washes * volume_ul / (flow_ul_min or 4.0) * 60.0 * 1.4
-            duration_s = max(duration_s, minimum)
-        steps.append({"step": len(steps) + 1, "operation": operation, "target": target,
-                      "reagent": reagent, "volume_ul": volume_ul,
-                      "duration_s": round(duration_s), "temp_c": temp_c, "washes": washes,
-                      "flow_ul_min": flow_ul_min, "note": note})
+            duration_s = max(duration_s, (washes or 1) * volume_ul / flow_ul_min * 60.0 * 1.4)
+        step = {"step": len(steps) + 1, "operation": operation, "target": target,
+                "reagent": reagent, "volume_ul": volume_ul,
+                "duration_s": round(duration_s), "temp_c": temp_c, "washes": washes,
+                "flow_ul_min": flow_ul_min, "note": note}
+        step.update(extra)
+        step["ports"] = port_state
+        steps.append(step)
 
-    gen_s = TARGET_CAPSULES / rate_hz()
-
-    # --- stage A: make the capsules --------------------------------------------------
-    add("load", "filt_core",
-        "Load the prepared cell suspension. Cells arrive live from culture and are "
-        "permeabilised, antibody-bound and transposase-bound in a tube before they reach "
-        "the chip: those are bulk steps that gain nothing from being on a chip. They are "
-        "permeabilised, NOT fixed and NOT live, which is what the published chromatin "
-        f"method needs and which removes the fixation conflict entirely. Deliver them at "
-        f"about {CELLS_PER_UL} cells/uL: that figure is specific to a "
-        f"{CAPSULE_UM:g} um capsule and falls as the cube of diameter, so a number "
-        f"quoted for a smaller capsule would give mostly multiplets.",
-        300, reagent="cell_suspension", volume_ul=130, flow_ul_min=FLOW_A["core"])
-    add("exchange", "filt_shell",
-        "Prime the shell line. The guard filter has 100 um gaps and exists only to stop "
-        "gel lumps reaching a 100 um orifice. It cannot strain cell clumps: a 100 um gap "
-        "passes a clump of five cells, so cells are strained off-chip at 40 um first.",
-        180, reagent="shell_polymer", volume_ul=20, flow_ul_min=FLOW_A["shell"])
-    add("exchange", "nozzle_1",
-        f"Run the flow-focusing cross. Shell and core meet, oil cuts them into droplets "
-        f"at about {rate_hz():.0f} Hz, and the two aqueous polymers demix inside each "
-        f"droplet so the shell polymer wets the oil interface and the core stays liquid. "
-        f"{TARGET_CAPSULES:,} capsules of about {CAPSULE_UM:g} um take "
-        f"{gen_s / MIN:.0f} min.",
-        gen_s, reagent="carrier_oil", volume_ul=FLOW_A["oil"] * gen_s / MIN,
-        flow_ul_min=FLOW_A["oil"])
-    add("hold_temp", "delay_1",
-        "Dark residence line. It is NOT a cure window. The phase separation that makes "
-        "the shell takes minutes, and a serpentine that holds minutes at this flow would "
-        "be metres long, so curing is done off-chip in the collection tube.",
-        120, temp_c=22)
-    add("release", "delay_1",
-        "Release the emulsion to a sealed collection tube. Let it demix, then flood-cure "
-        "at 405 nm. Keep the dose low and the oil degassed: dissolved oxygen in "
-        "fluorinated oil inhibits the cure, and a high dose kills cells.",
-        1200, reagent="photoinitiator")
+    gen_s = BATCH / rate_hz()
+    v_brk, v_trap = CH[BREAK]["volume_ul"], CH[TRAP]["volume_ul"]
+    f_brk, f_trap = route_flow(BREAK), route_flow(TRAP)
+    emulsion_ul = EMULSION_FACTOR * PACKED_UL
+    passes = math.ceil(emulsion_ul / v_brk)
 
     # --- stage B: one capsule, one barcode, one droplet ------------------------------
-    add("load", "pack_1",
-        "Re-inject the cured capsules close-packed. The entrance is 115 um against a "
-        "135 um capsule, so capsules deform slightly and arrive in single file at a "
-        "steady rate. This is the step that beats Poisson on the capsule: published "
-        "work gets 93-97% single occupancy this way, against about 30% by chance.",
-        300, reagent="capsule_suspension", volume_ul=PACKED_UL,
-        flow_ul_min=FLOW_B["caps"])
-    add("exchange", "pack_1",
-        f"Meet the amplification mix carrying the barcode pool, diluted to about "
-        f"{LAMBDA_BARCODE:g} molecules per droplet. One molecule per droplet would be "
-        f"ideal but is unreachable: a free molecule cannot be ordered, so at a mean of 1 "
-        f"about 37% of droplets would get none. At {LAMBDA_BARCODE:g} only "
-        f"{poisson(LAMBDA_BARCODE, 0) * 100:.0f}% get none, and the droplets that get "
-        f"several are resolved afterwards by merging barcodes that share fragments, "
-        f"which is what the source method does.",
-        240, reagent="amplification_mix", flow_ul_min=FLOW_B["mix"])
-    add("exchange", "nozzle_2",
-        "Cut each capsule plus its barcode back into its own oil droplet. From here "
-        "until the emulsion is broken, every capsule is chemically alone.",
-        gen_s, reagent="carrier_oil", flow_ul_min=FLOW_B["oil"])
-    add("release", "nozzle_2",
-        "Release the droplets to a tube for thermocycling. On-chip cycling is not faster "
+    add("encapsulate", NOZZLE,
+        f"Re-inject the cured capsules close-packed through {PACK} and meet the amplification "
+        f"mix carrying the barcode pool, diluted to about {LAMBDA_BARCODE:g} molecules per "
+        f"droplet. The capsule stream goes in as the core and the mix as the shell. The "
+        f"entrance is narrower than a capsule, so capsules deform slightly and arrive in single "
+        f"file: this is what beats Poisson on the capsule, where published work gets 93-97% "
+        f"single occupancy against about 30% by chance. One barcode molecule per droplet "
+        f"would be ideal but is unreachable: a free molecule cannot be ordered, so at a mean "
+        f"of 1 about 37% of droplets would get none. At {LAMBDA_BARCODE:g} only "
+        f"{poisson(LAMBDA_BARCODE, 0) * 100:.0f}% get none, and the droplets that get several "
+        f"are resolved afterwards by merging barcodes that share fragments, which is what the "
+        f"source method does. Oil then cuts each capsule plus its barcode into its own "
+        f"droplet at about {rate_hz():.2f} Hz: {BATCH:,} capsules, the packed bed {TRAP} holds. "
+        f"From here until the emulsion is broken, every capsule is chemically alone.",
+        gen_s,
+        flows_ul_h={"core": round(FLOW_B["caps"] * 60, 1), "shell": round(FLOW_B["mix"] * 60, 1),
+                    "oil": round(FLOW_B["oil"] * 60, 1)},
+        capsules=BATCH,
+        port_state=ports(["in_load", "in_reagent", "in_oil"], ["out_drop"]))
+    add("transfer", "out_drop",
+        "Send the droplets to a tube for thermocycling. On-chip cycling is not faster "
         "than a tube at this scale and invites evaporation and bubbles, so only the steps "
         "that genuinely need a chip are on it.",
-        600, reagent="carrier_oil")
-    add("hold_temp", "nozzle_2",
+        COLLECT_S, port_state=ports(["in_oil"], ["out_drop"]), source=NOZZLE)
+    add("hold_temp", NOZZLE,
         "Thermocycle in the tube. Each droplet clonally amplifies its own barcode and, in "
         "the same reaction, overlap-extends it onto that cell's tagmented fragments. "
         "THIS IS THE STEP THE WHOLE DESIGN EXISTS TO PROTECT: the barcode copies are "
         "short enough to leak through the shell, so they are kept inside an oil droplet "
         "until they are part of a long molecule the capsule retains.",
-        2.0 * HOUR, temp_c=72)
+        THERMOCYCLE_S, temp_c=72, port_state=ports())
 
     # --- stage C: break, trap, wash, transcribe --------------------------------------
-    add("load", "brk_1",
-        "Return the emulsion to the chip. The bench version of this step is where the "
-        "published workflow loses most of its capsules, which is the single biggest "
-        "reason this module exists.",
-        300, reagent="emulsion", volume_ul=PACKED_UL * 2, flow_ul_min=4.0)
-    add("exchange", "brk_1",
-        "Separate the phases. Oil leaves through its own line; the capsules go on in the "
-        "aqueous stream. Driven by a pressure difference across a wetted slot array, so "
-        "it needs a controller rather than a fixed flow.",
-        600, reagent="emulsion_breaker", volume_ul=CH["brk_1"]["volume_ul"], washes=1,
-        flow_ul_min=2.0)
-    add("exchange", "trap_1",
+    chunk = round(v_brk, 3)
+    remaining = emulsion_ul
+    for i in range(1, passes + 1):
+        vol = round(min(chunk, remaining), 3)
+        remaining -= vol
+        add("load", BREAK,
+            f"Return the emulsion to the chip, pass {i} of {passes}: {BREAK} holds {v_brk:g} uL, "
+            f"so the {emulsion_ul:.2f} uL batch goes in as {passes} fills. The bench version of "
+            f"this step is where the published workflow loses most of its capsules, which is the "
+            f"single biggest reason this module exists.",
+            0, reagent="emulsion", volume_ul=vol, flow_ul_min=f_brk,
+            port_state=ports(["in_load"], ["out_waste"]))
+        add("exchange", BREAK,
+            f"Separate the phases, pass {i} of {passes}. Oil leaves through the waste line; the "
+            f"capsules go on to the trap in the aqueous stream. Driven by a pressure difference, "
+            f"so it needs a controller rather than a fixed flow.",
+            0, reagent="emulsion_breaker", volume_ul=v_brk, washes=1, flow_ul_min=f_brk,
+            port_state=ports(["in_reagent"], ["out_waste"]))
+    add("exchange", TRAP,
         "Settle the capsules into a packed bed. Retention is by chamber geometry and "
         "downward flow, not by a size gap: a liquid-core capsule deforms, and the gap "
-        "that would reliably hold one is 70-80 um, below what we can make.",
-        300, reagent="wash_buffer", volume_ul=CH["trap_1"]["volume_ul"], washes=1,
-        flow_ul_min=4.0)
+        "that would reliably hold one is below what we can make.",
+        0, reagent="wash_buffer", volume_ul=v_trap, washes=SETTLE_WASHES, flow_ul_min=f_trap,
+        port_state=ports(["in_reagent"], ["out_waste"]))
     for label in ("after the emulsion break", "before transcription"):
-        add("exchange", "trap_1",
+        add("exchange", TRAP,
             f"Flow-through wash {label}, replacing a centrifugation. Exchange is limited "
             f"by diffusion into the capsule rather than by flushing, so each one takes a "
             f"few minutes however fast the pump runs.",
-            300, reagent="wash_buffer", volume_ul=CH["trap_1"]["volume_ul"], washes=3,
-            flow_ul_min=4.0)
-    add("hold_temp", "trap_1",
+            0, reagent="wash_buffer", volume_ul=v_trap, washes=WASH_WASHES, flow_ul_min=f_trap,
+            port_state=ports(["in_reagent"], ["out_waste"]))
+    add("hold_temp", TRAP,
         "Gap-fill. The highest temperature any capsule sees in the whole workflow, and it "
         "is well inside what the shell and the board tolerate.",
-        3 * MIN, temp_c=72)
-    add("exchange", "trap_1",
+        GAP_FILL_S, temp_c=GAP_FILL_C, port_state=ports())
+    add("exchange", TRAP,
         "Load the transcription mix. The polymerase is small enough to cross the shell; "
         "the barcoded template is far too large to leave it.",
-        300, reagent="transcription_mix", volume_ul=CH["trap_1"]["volume_ul"],
-        flow_ul_min=4.0)
-    add("hold_temp", "trap_1",
+        0, reagent="transcription_mix", volume_ul=v_trap, washes=1, flow_ul_min=f_trap,
+        port_state=ports(["in_reagent"], ["out_waste"]))
+    add("hold_temp", TRAP,
         "Linear amplification in place, overnight. Linear rather than exponential because "
         "a single transposon insertion is enough, errors do not propagate and coverage "
         "stays even. Held in an incubator with the ports sealed, not on a chip heater.",
-        17 * HOUR, temp_c=37)
-    add("exchange", "trap_1",
+        TRANSCRIPTION_S, temp_c=TRANSCRIPTION_C, port_state=ports())
+    add("exchange", TRAP,
         "Final wash before recovery.",
-        300, reagent="wash_buffer", volume_ul=CH["trap_1"]["volume_ul"], washes=3,
-        flow_ul_min=4.0)
-    add("release", "trap_1",
-        "Back-flush the bed out of the recovery port. Reverse the flow on a slow ramp: "
-        "the bed lifts at well under a pascal, so a sharp start throws capsules at the "
-        "walls. Downstream library steps are bulk and off-chip.",
-        600, reagent="release_buffer")
+        0, reagent="wash_buffer", volume_ul=v_trap, washes=WASH_WASHES, flow_ul_min=f_trap,
+        port_state=ports(["in_reagent"], ["out_waste"]))
+    add("release", TRAP,
+        "Back-flush the bed out through out_waste, which the off-chip selector valve routes to "
+        "the recovery tube for this step. Reverse the flow on a slow ramp: the bed lifts at "
+        "well under a pascal, so a sharp start throws capsules at the walls. Downstream "
+        "library steps are bulk and off-chip.",
+        round(v_trap / f_trap * 60.0), reagent="release_buffer",
+        port_state=ports(["in_reagent"], ["out_waste"]))
 
+    total_h = sum(st["duration_s"] for st in steps) / HOUR
     return {
         "id": "sctip_spc_v1",
         "name": "Capsule generation and single-copy barcoding",
         "source": SOURCE,
         "placeholder": False,
         "description": (
-            f"Makes about {TARGET_CAPSULES:,} core-shell capsules of {CAPSULE_UM:g} um "
-            f"from permeabilised cells, gives each one a single-copy barcode from a large "
-            f"pool, clonally amplifies and attaches that barcode inside an oil droplet, "
-            f"then traps and washes the capsules on chip in place of about twenty "
-            f"centrifugation steps. Replaces plate-based split-and-pool barcoding with "
-            f"one step. Every feature on the chip is at or above 100 um, so the board is "
-            f"hot-embossed in a single depth with no photolithography. Reagent names are "
-            f"generic; see the source citation."
+            f"Gives each of about {BATCH:,} capsules of {CAPSULE_UM:g} um (the packed bed the "
+            f"trap holds) a single-copy barcode from a large pool, clonally amplifies and "
+            f"attaches that barcode inside an oil droplet, then breaks the emulsion and "
+            f"traps and washes the capsules on chip in place of about twenty centrifugation "
+            f"steps. Capsules arrive from spc_demo_v1; stage A is retired. Replaces "
+            f"plate-based split-and-pool barcoding with one step. Runs about {total_h:.0f} h, "
+            f"mostly the overnight transcription hold. Every volume is a number of chamber "
+            f"volumes and every flow keeps wall shear in its chambers at or below 0.01 "
+            f"dyn/cm2 (nozzle streams excepted: a droplet junction is high shear by design). "
+            f"Reagent names are generic; see the source citation."
         ),
         "steps": steps,
     }
 
 
 def report() -> None:
-    import math
     print(f"capsule {CAPSULE_UM:g} um = {CAPSULE_NL:.2f} nL   "
-          f"droplet rate {rate_hz():.0f} Hz = {rate_hz() * HOUR / 1000:.0f}k/h")
-    print(f"{TARGET_CAPSULES:,} capsules in {TARGET_CAPSULES / rate_hz() / MIN:.0f} min\n")
-    print(f"{'stream':<10}{'stage A':>12}{'stage B':>12}  (uL/min)")
-    for k in ("shell", "core", "oil"):
-        b = {"shell": "caps", "core": "mix", "oil": "oil"}[k]
-        print(f"{k:<10}{FLOW_A[k]:>12.1f}{FLOW_B[b]:>12.1f}")
+          f"droplet rate {rate_hz():.2f} Hz = {rate_hz() * HOUR / 1000:.1f}k/h")
+    print(f"batch {BATCH:,} capsules (packed bed in {TRAP}, {CH[TRAP]['volume_ul']:g} uL) "
+          f"in {BATCH / rate_hz() / MIN:.1f} min")
+    depth = CH[TRAP]["size"][2] * 1000
+    if CAPSULE_UM > depth:
+        print(f"WARNING: capsule {CAPSULE_UM:g} um is larger than the {depth:g} um chamber depth; "
+              f"this needs a chip change")
+    print(f"\nnozzle scale {NOZZLE_SCALE:.3f} x the spc_demo_v1 operating point")
+    print(f"{'stream':<10}{'uL/min':>10}")
+    for k, v in FLOW_B.items():
+        print(f"{k:<10}{v:>10.3f}")
+    print(f"\nchamber flows (uL/min) and shear (dyn/cm2):")
+    for cid in (BREAK, TRAP):
+        q = route_flow(cid)
+        c = CH[cid]
+        print(f"  {cid:<8}{q:>8.3f}   {shear(q, c['size'][1], c['size'][2]):.4f}")
     print(f"\nloading, mean cells per capsule = {LAMBDA_CELL:g} "
           f"at {CELLS_PER_UL} cells/uL into the core stream")
     for k in (0, 1, 2):
@@ -271,7 +323,7 @@ def report() -> None:
           f"one or more: {(1 - poisson(LAMBDA_BARCODE, 0)) * 100:.1f}%")
     n = 4 ** 16
     print(f"\nbarcode pool 16 random bases = {n:.2e}; sharing a barcode at "
-          f"{TARGET_CAPSULES:,} capsules: {(1 - math.exp(-(TARGET_CAPSULES - 1) / n)) * 100:.4f}%")
+          f"{BATCH:,} capsules: {(1 - math.exp(-(BATCH - 1) / n)) * 100:.4f}%")
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
   "name": "iPSC to microglia-like cells, end to end on chip",
   "source": "McQuade A, Coburn M, Tu CH, Hasselmann J, Davtyan H, Blurton-Jones M. Development and validation of a simplified method to generate human microglia from pluripotent stem cells. Molecular Neurodegeneration 2018;13:67. doi:10.1186/s13024-018-0297-x. Monolayer, embryoid-body-free, sorting-free. Maturation-stage adherence follows Washer et al., Scientific Reports 2022;12:19454, doi:10.1038/s41598-022-23477-2.",
   "placeholder": false,
-  "description": "A published monolayer, embryoid-body-free, sorting-free differentiation from iPSCs to microglia-like cells, laid out across five linked modules so that nothing is handled off-chip. The one vessel transfer in the published method becomes a channel, and each centrifugation becomes a retention mesh with liquid flowing past it. Runs about 47 days end to end, of which the published schedule accounts for 40. Reagent names are generic; see the source citation for compositions. Flow rates are computed from chamber geometry to keep wall shear at or below 0.01 dyn/cm^2, which is below the lowest shear reported to activate this cell type.",
+  "description": "A published monolayer, embryoid-body-free, sorting-free differentiation from iPSCs to microglia-like cells, laid out across five linked modules so that nothing is handled off-chip. The one vessel transfer in the published method becomes a channel, and each centrifugation becomes a trap chamber with liquid flowing past its depth weir. Runs about 47 days end to end, of which the published schedule accounts for 40. Reagent names are generic; see the source citation for compositions. Flow rates are computed from chamber geometry to keep wall shear at or below 0.01 dyn/cm^2, which is below the lowest shear reported to activate this cell type.",
   "steps": [
     {
       "step": 1,
@@ -219,7 +219,8 @@
       "temp_c": null,
       "washes": 1,
       "flow_ul_min": 3.671,
-      "note": "Day 0: full exchange into mesoderm medium. Imaging has counted the colonies and confirmed the seeding density is in range."
+      "note": "Day 0: full exchange into mesoderm medium. Imaging has counted the colonies and confirmed the seeding density is in range.",
+      "waste": "waste_1"
     },
     {
       "step": 19,
@@ -243,7 +244,8 @@
       "temp_c": null,
       "washes": 1,
       "flow_ul_min": 3.671,
-      "note": "Day 2: half exchange, leaving half the conditioned medium behind. The cells depend on their own secreted factors, so this is never a full change."
+      "note": "Day 2: half exchange, leaving half the conditioned medium behind. The cells depend on their own secreted factors, so this is never a full change.",
+      "waste": "waste_1"
     },
     {
       "step": 21,
@@ -267,7 +269,8 @@
       "temp_c": null,
       "washes": 1,
       "flow_ul_min": 3.671,
-      "note": "Day 3: full exchange into hematopoietic medium, which starts the switch from mesoderm to hemogenic endothelium."
+      "note": "Day 3: full exchange into hematopoietic medium, which starts the switch from mesoderm to hemogenic endothelium.",
+      "waste": "waste_1"
     },
     {
       "step": 23,
@@ -291,7 +294,8 @@
       "temp_c": null,
       "washes": 1,
       "flow_ul_min": 3.671,
-      "note": "Day 5: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample."
+      "note": "Day 5: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample.",
+      "waste": "waste_1"
     },
     {
       "step": 25,
@@ -315,7 +319,8 @@
       "temp_c": null,
       "washes": 1,
       "flow_ul_min": 3.671,
-      "note": "Day 7: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample."
+      "note": "Day 7: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample.",
+      "waste": "waste_1"
     },
     {
       "step": 27,
@@ -339,7 +344,8 @@
       "temp_c": null,
       "washes": 1,
       "flow_ul_min": 3.671,
-      "note": "Day 9: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample."
+      "note": "Day 9: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample.",
+      "waste": "waste_1"
     },
     {
       "step": 29,
@@ -370,12 +376,12 @@
       "operation": "exchange",
       "target": "m3_concentrate",
       "reagent": "wash_buffer",
-      "volume_ul": 0.354,
-      "duration_s": 81,
+      "volume_ul": 1.08,
+      "duration_s": 158,
       "temp_c": null,
       "washes": 2,
-      "flow_ul_min": 0.734,
-      "note": "Pass the progenitors through the 30 um filter, which blocks any detached endothelial sheet, then concentrate them. This replaces a centrifugation step."
+      "flow_ul_min": 1.147,
+      "note": "Bring the progenitors down the line from the hemogenic chamber and concentrate them here, which replaces a centrifugation step. "
     },
     {
       "step": 32,
@@ -395,7 +401,7 @@
       "target": "m2_hemogenic",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 170919,
+      "duration_s": 170842,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -418,12 +424,12 @@
       "operation": "exchange",
       "target": "m3_concentrate",
       "reagent": "wash_buffer",
-      "volume_ul": 0.354,
-      "duration_s": 81,
+      "volume_ul": 1.08,
+      "duration_s": 158,
       "temp_c": null,
       "washes": 2,
-      "flow_ul_min": 0.734,
-      "note": "Pass the progenitors through the 30 um filter, which blocks any detached endothelial sheet, then concentrate them. This replaces a centrifugation step."
+      "flow_ul_min": 1.147,
+      "note": "Bring the progenitors down the line from the hemogenic chamber and concentrate them here, which replaces a centrifugation step. "
     },
     {
       "step": 36,
@@ -443,7 +449,7 @@
       "target": "mat_1",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 84519,
+      "duration_s": 84442,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1299,7 +1305,7 @@
       "temp_c": null,
       "washes": 2,
       "flow_ul_min": 1.835,
-      "note": "Wash twice and pass the suspension through the retention mesh twice, which removes clumps above 30 um."
+      "note": "Wash twice with the suspension passing over the depth weir. "
     },
     {
       "step": 109,

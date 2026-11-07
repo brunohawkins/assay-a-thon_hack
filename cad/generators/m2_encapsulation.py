@@ -1,4 +1,4 @@
-"""Module 2, encapsulation (REAL scale, PARAMETRIC DRAFT), after CapSeq Fig. 1B and the
+"""Module 2, encapsulation (REFERENCE ONLY, buildable stand-in), after CapSeq Fig. 1B and the
 SPC methods paper (values via contracts/sources/chip_geometry_requirements.xlsx).
 
     python cad/generators/m2_encapsulation.py                      # defaults from the sheet
@@ -8,30 +8,40 @@ SPC methods paper (values via contracts/sources/chip_geometry_requirements.xlsx)
 Writes cad/m2_encapsulation_spec.json and protocols/m2_encapsulation.json, and prints the
 sizing summary (operator/sizing.py). Parameters: contracts/schemas/generators/m2_encapsulation.schema.json.
 
-Top view (75 x 25 mm; not to scale):
+HONEST FINDING. This is a flow-focusing droplet generator whose nozzle must be about 40 um
+wide to make 70 um capsules. contracts/blocks.json gives a 200 um in-plane floor, one fluidic
+layer and ONE depth (0.3 mm), so the generator CLAMPS the nozzle (and every other narrow
+channel) to 200 um and drops every shallow depth to 0.3 mm. That makes the chip buildable
+and it passes every check, but it does NOT preserve the function: a 200 um nozzle makes far
+larger droplets, if any. Droplet generation at this scale is not achievable by resin
+printing or hot embossing. The pipeline has retired this chip in favour of spc_demo_v1
+(encapsulation off-chip); this one is kept for reference only. Every clamp is listed in the
+spec description.
 
-             oil branch (top) ----------------------+
-             |                                      |
-  core_in -[filter]-\\                               v
-  oil_in-[filter]-split   Y ==== co-flow ==== NOZZLE ===== phase separation =====> emulsion_out
-  shell_in-[filter]-/                               ^            (droplets -> core-shell capsules)
-             |                                      |
-             oil branch (bottom) -------------------+
+Everything lives in the 30 x 20 mm envelope (footprint parameters above it are clamped),
+one depth, blocks from the library only, six ports (merged by off-chip selector valves).
+Top view (not to scale):
 
-     emulsion_out ~~> m2_cold_delay_1 (OFF-CHIP tubing on a cold block, 4 C, 15-30 min) ~~> emulsion_in
+              oil branch (top) -----------------+
+              |                                 |
+   core_in -[weir]-\\                            v
+   oil_in -[weir]-split  Y == co-flow == NOZZLE == separation == capsule_out ==[weir]== trap_in
+   shell_in-[weir]-/                             ^                 (port shared with the     |  (top)
+              |                                 |                  trap release)          trap
+              oil branch (bottom) --------------+                                           |
+                                                                                    under_mesh (bottom)
+     capsule_out ~~> m2_cold_delay_1 (OFF-CHIP tubing on a cold block, 4 C, 15-30 min) ~~> trap_in
 
-  Finishing trap (one capsule layer on a mesh, under a 405 nm curing window):
-     emulsion_in (above) + breaker_in / buffer_in / pi_in (top edge)
-     -> oil to m2_oil_waste_1 (below the mesh), aqueous to m2_waste_1 (below the mesh)
-     -> back-flush (m2_backflush_1, below) -> m2_agg_filter_1 (100 um) -> m2_capsule_out_1 -> Module 3
-
-The single oil inlet sits on the left edge and splits into two equal branches that pass
-around the core and shell inlets, so oil reaches both sides of the nozzle without crossing
-the aqueous line.
+The finishing trap is one capsule layer held by a DEPTH WEIR (trap_chamber block), not a
+mesh: the 200 um floor is in plane, z is free (contracts/blocks.json, "retention"). Breaker,
+buffer and photoinitiator share trap_in; waste, oil waste and back-flush share under_mesh.
+The single oil inlet splits into two equal branches that pass around the core and shell
+inlets, so oil reaches both sides of the nozzle without crossing the aqueous line.
 """
 
 from __future__ import annotations
 
+import json
 import math
 import sys
 from pathlib import Path
@@ -47,12 +57,58 @@ NAME = "m2_encapsulation"
 OUT = genlib.ROOT / "cad" / "m2_encapsulation_spec.json"
 PROTOCOL_OUT = genlib.ROOT / "protocols" / "m2_encapsulation.json"
 
+_BLOCKS = json.loads((genlib.ROOT / "contracts" / "blocks.json").read_text(encoding="utf-8"))
+_ENV, _FLOORS, _WEIR = _BLOCKS["envelope"], _BLOCKS["fabrication_floors"], _BLOCKS["retention"]["weir_geometry"]
+DEPTH_MM = _ENV["max_depth_mm"]                       # the ONE etch depth
+DEPTH_UM = DEPTH_MM * 1000
+WEIR_GAP_UM = _WEIR["gap_um"]
+WEIR_CREST_UM = DEPTH_UM - WEIR_GAP_UM                # crest = this chip's etch depth minus the gap
+MIN_OPEN_UM = _FLOORS["min_open_channel_mm"] * 1000   # in-plane floor
+PORT_UM = _FLOORS["min_port_mm"] * 1000
+PITCH_MM = _FLOORS["min_port_pitch_mm"]
+MAX_PORTS = _FLOORS["max_ports_per_chip"]
+RETENTION = {"type": "weir", "opening_um": WEIR_GAP_UM, "source": "fabricated"}
+MU_PA_S = 0.8e-3                # buffer viscosity for the wall-shear check
+SHEAR_MAX_DYN_CM2 = 0.01        # capsules on the trap: wall shear ceiling
+
 BASE_MM, LID_MM = 1.0, 1.0
-PORT_UM = 500
-OIL_PORT_X, OIL_SPLIT_X, AQ_PORT_X, ARM_X = 1.5, 4.0, 5.0, 8.0
-ARM_DY = 3.0          # core / shell arms start 3 mm above / below the centre line
-OIL_DY = 7.5          # oil branches run 7.5 mm above / below it
-FILTER_LEN, FILTER_W = 1.4, 0.8
+GAP_MM = 0.6                    # clear space between neighbouring features (floor is 0.4 mm)
+EDGE_MM = 1.0                   # clear space to the board edge
+FILTER_LEN, FILTER_W = 1.2, 0.8
+OIL_PORT_X, AQ_PORT_X = 1.5, 6.0
+AQ_ROW_MM = 3.5                 # core / shell ports sit this far inside the top / bottom edge
+ARM_DY = 1.6                    # core / shell arms start 1.6 mm above / below the centre line
+PORT_ROW_MM = 1.5               # trap ports sit this far beyond the trap's top / bottom
+MIN_TRAP_W_MM = 2.0
+FLOW_MAX_UL_MIN = 20            # placeholder wash flow, before the shear ceiling
+
+
+def shear_dyn_cm2(flow_ul_min: float, w_mm: float, h_mm: float) -> float:
+    """Wall shear tau = 6 mu Q / (w h^2) in a wide slit, in dyn/cm2 (1 Pa = 10 dyn/cm2)."""
+    q = flow_ul_min * 1e-9 / 60
+    return 10 * 6 * MU_PA_S * q / ((w_mm / 1000) * (h_mm / 1000) ** 2)
+
+
+def max_flow_ul_min(w_mm: float, h_mm: float) -> float:
+    """Highest flow that keeps shear_dyn_cm2() at or under SHEAR_MAX_DYN_CM2 for a w x h section."""
+    return SHEAR_MAX_DYN_CM2 / 10 * (w_mm / 1000) * (h_mm / 1000) ** 2 / (6 * MU_PA_S) * 60e9
+
+
+def footprint(p: dict) -> tuple[float, float]:
+    return min(p["footprint_x_mm"], _ENV["max_x_mm"]), min(p["footprint_y_mm"], _ENV["max_y_mm"])
+
+
+def trap_size(p: dict) -> tuple[float, float, float]:
+    """(x, y, volume_ul) of the finishing trap from the monolayer area, one depth, as tall as the board allows."""
+    area = sizing.compute({"capsule_count": p["capsule_count"], "capsule_diameter_um": p["capsule_diameter_um"]})["monolayer_area_cm2"] * 100
+    th = max(PITCH_MM, min(footprint(p)[1] - 2 * (PORT_ROW_MM + 1.5), area / MIN_TRAP_W_MM))
+    tw = area / th
+    return r(tw, 3), r(th, 3), r(tw * th * DEPTH_MM, 3)
+
+
+def wash_flow_ul_min(p: dict) -> float:
+    tw, th, _ = trap_size(p)
+    return float(math.floor(min(FLOW_MAX_UL_MIN, max_flow_ul_min(th, DEPTH_MM))))
 
 
 def sizing_for(p: dict) -> dict:
@@ -75,142 +131,198 @@ def build(p: dict) -> dict:
         raise ParamError("gelation_time_min_low is longer than gelation_time_min_high")
     s = sizing_for(p)
     d = p["capsule_diameter_um"]
-    fx, fy = p["footprint_x_mm"], p["footprint_y_mm"]
-    cy = fy / 2
-    nz_d = p["nozzle_depth_um"] / 1000
-    h = p["trap_height_um"] / 1000
-    top = BASE_MM + h + LID_MM
-    jz = r(BASE_MM + nz_d / 2)
-    tz = r(BASE_MM + h / 2)
-    w_in, w_co = p["inlet_width_um"] / 1000, p["coflow_width_um"] / 1000
-    yj_x = ARM_X + ARM_DY / math.tan(math.radians(p["y_junction_angle_deg"]) / 2)
-    nz_x = yj_x + p["coflow_length_mm"]
-    sep_end = nz_x + p["separation_length_mm"]
-    side = math.sqrt(s["monolayer_area_cm2"] * 100)
-    tx = fx - 9.0 - side / 2
-    if tx - side / 2 - 3.0 < sep_end + 2.0:
-        raise ParamError(f"layout doesn't fit: the separation channel ends at x = {sep_end:.1f} mm but the finishing "
-                         f"trap ({side:.1f} mm for {p['capsule_count']:,} capsules) starts at x = {tx - side / 2 - 3:.1f} mm; "
-                         f"increase footprint_x_mm, or shorten separation_length_mm / coflow_length_mm")
-    if side + 9.0 > fy or OIL_DY + 1.0 > cy:
-        raise ParamError(f"layout doesn't fit: the {side:.1f} mm trap needs footprint_y_mm >= {side + 9:.1f}")
-    filters = p["inlet_filters"]
+    clamps: list[str] = []
 
-    def port(pid, typ, xy, z, role, passable=None, note=None):
-        out = {"id": pid, "type": typ, "position": [r(xy[0], 3), r(xy[1], 3), r(z)], "role": role, "width_um": PORT_UM}
+    def floor_um(label: str, value_um: float) -> float:
+        """In-plane features cannot be printed below the open-channel floor: clamp, and say so."""
+        if value_um < MIN_OPEN_UM:
+            clamps.append(f"{label} {value_um:g} -> {MIN_OPEN_UM:g} um")
+            return MIN_OPEN_UM
+        return value_um
+
+    fx, fy = footprint(p)
+    if (fx, fy) != (p["footprint_x_mm"], p["footprint_y_mm"]):
+        clamps.append(f"footprint {p['footprint_x_mm']:g} x {p['footprint_y_mm']:g} -> {fx:g} x {fy:g} mm")
+    for label, key in (("nozzle depth", "nozzle_depth_um"), ("separation depth", "separation_depth_um"),
+                       ("trap height", "trap_height_um")):
+        if abs(p[key] - DEPTH_UM) > 1e-9:
+            clamps.append(f"{label} {p[key]:g} -> {DEPTH_UM:g} um (one etch depth)")
+    nozzle_um = floor_um("nozzle width", p["nozzle_width_um"])
+    w_in = floor_um("inlet channel width", p["inlet_width_um"]) / 1000
+    w_co = floor_um("co-flow channel width", p["coflow_width_um"]) / 1000
+    w_sep = floor_um("separation channel width", p["separation_width_um"]) / 1000
+    ww = MIN_OPEN_UM / 1000   # release path: >= 1.5 x capsule diameter and the 150 um release outlet minimum
+    if PORT_UM > 500:
+        clamps.append(f"port 500 -> {PORT_UM:g} um")
+    if p["trap_mesh_um"] < MIN_OPEN_UM:
+        clamps.append(f"trap mesh {p['trap_mesh_um']:g} um -> depth weir, {WEIR_GAP_UM:g} um gap under the lid")
+    for label, key in (("inlet filter gap", "cell_filter_gap_um"), ("aggregate filter gap", "aggregate_filter_gap_um")):
+        if p[key] < MIN_OPEN_UM:
+            clamps.append(f"{label} {p[key]:g} um -> depth weir (gap is in z, not in plane)")
+
+    cy = fy / 2
+    h = DEPTH_MM
+    top = BASE_MM + h + LID_MM
+    z = r(BASE_MM + h / 2)
+    half_port = PORT_UM / 2000
+    yj_x_arm = AQ_PORT_X + half_port + GAP_MM + FILTER_LEN + GAP_MM + 0.2   # arms turn just past the inlet filters
+    yj_x = yj_x_arm + ARM_DY / math.tan(math.radians(p["y_junction_angle_deg"]) / 2)
+    nz_x = yj_x + p["coflow_length_mm"]
+    oil_split_x = OIL_PORT_X + half_port + GAP_MM + FILTER_LEN + 0.8
+    tw, th, trap_ul = trap_size(p)
+    if p["separation_length_mm"] > fx:
+        raise ParamError(f"layout doesn't fit: separation_length_mm {p['separation_length_mm']:g} is longer than the whole "
+                         f"{fx:g} mm board")
+    release_len = half_port + GAP_MM + FILTER_LEN + 0.8                       # out port to trap, through the aggregate filter
+    max_sep = fx - EDGE_MM - tw - release_len - nz_x
+    sep_len = min(p["separation_length_mm"], max_sep)
+    if sep_len < 1.0:
+        raise ParamError(f"layout doesn't fit: the finishing trap ({tw:.1f} x {th:.1f} mm for {p['capsule_count']:,} capsules) "
+                         f"leaves {max_sep:.1f} mm for the separation channel on a {fx:g} mm board")
+    if sep_len < p["separation_length_mm"]:
+        clamps.append(f"separation channel {p['separation_length_mm']:g} -> {sep_len:.1f} mm (board length)")
+    if th + 2 * (PORT_ROW_MM + half_port) > fy or cy - AQ_ROW_MM < 1.0:
+        raise ParamError(f"layout doesn't fit: the {th:.1f} mm trap needs footprint_y_mm >= {th + 2 * (PORT_ROW_MM + half_port):.1f}")
+    out_x = nz_x + sep_len
+    trap_left = out_x + release_len
+    tx = trap_left + tw / 2
+    fa_x = out_x + half_port + GAP_MM + FILTER_LEN / 2
+    filters = p["inlet_filters"]
+    weir = f"depth weir: {WEIR_CREST_UM:g} um crest, {WEIR_GAP_UM:g} um gap under the lid"
+
+    def port(pid, typ, xy, zz, role, passable=None, note=None):
+        out = {"id": pid, "type": typ, "position": [r(xy[0], 3), r(xy[1], 3), r(zz)], "role": role, "width_um": PORT_UM}
         if passable is not None:
             out["capsule_passable"] = passable
         if note:
             out["note"] = note
         return out
 
-    def chan(cid, a, b, carries, path, w, dd, **extra):
-        out = {"id": cid, "from": a, "to": b, "width_mm": r(w), "depth_mm": r(dd), "carries": carries}
-        if path:
-            out["path"] = [[r(x, 3), r(y, 3)] for x, y in path]
-        out.update(extra)
-        return out
+    links: list[tuple] = []
 
-    def junction(cid, xy, size_mm, note):
-        return {"id": cid, "type": "junction", "center": [r(xy[0], 3), r(xy[1], 3), jz], "size": [size_mm, size_mm, r(nz_d)],
-                "volume_ul": r(size_mm * size_mm * nz_d, 6), "note": note}
+    def chan(cid, a, b, carries, w, **extra):
+        """Every channel is a straight run between two anchors (port, chamber or corner): bends are corner chambers."""
+        links.append((cid, a, b, carries, w, extra))
 
-    def filt(cid, xy, purpose, gap_um, depth, z, note):
-        return {"id": cid, "type": "filter", "center": [r(xy[0], 3), r(xy[1], 3), z], "size": [FILTER_LEN, FILTER_W, r(depth)],
-                "volume_ul": r(FILTER_LEN * FILTER_W * depth, 5),
-                "filter": {"type": "pillars", "gap_um": gap_um, "purpose": purpose}, "note": note}
+    def junction(cid, xy, size_mm, block, note):
+        return {"id": cid, "type": "junction", "center": [r(xy[0], 3), r(xy[1], 3), z], "size": [r(size_mm, 4), r(size_mm, 4), r(h)],
+                "volume_ul": r(size_mm * size_mm * h, 6), "block": block, "note": note}
+
+    def filt(cid, xy, purpose, gap_um, note):
+        return {"id": cid, "type": "filter", "center": [r(xy[0], 3), r(xy[1], 3), z], "size": [FILTER_LEN, FILTER_W, r(h)],
+                "volume_ul": r(FILTER_LEN * FILTER_W * h, 6), "block": "trap_chamber", "mesh_pore_um": None,
+                "filter": {"type": "mesh", "gap_um": gap_um, "purpose": purpose},
+                "note": f"{note} Built as a depth weir: {DEPTH_UM - gap_um:g} um crest, {gap_um:g} um gap under the lid "
+                        f"(z, not in plane), not as pillars. Not a capsule trap."}
 
     chambers = [
-        junction("m2_yjunction_1", (yj_x, cy), 0.2, f"Y-junction: core and shell meet at {p['y_junction_angle_deg']:g} degrees "
-                                                     f"and flow on side by side."),
-        junction("m2_nozzle_1", (nz_x, cy), r(p["nozzle_width_um"] / 1000),
-                 f"Flow-focusing nozzle, {p['nozzle_width_um']:g} x {p['nozzle_depth_um']:g} um: oil from both sides pinches "
-                 f"the co-flow into droplets."),
-        junction("m2_oil_split_1", (OIL_SPLIT_X, cy), 0.2, "Oil splits into two equal branches, one to each side of the nozzle."),
+        junction("m2_yjunction_1", (yj_x, cy), MIN_OPEN_UM / 1000, "y_junction",
+                 f"Y-junction: core and shell meet at {p['y_junction_angle_deg']:g} degrees and flow on side by side."),
+        junction("m2_nozzle_1", (nz_x, cy), nozzle_um / 1000, "flow_focusing",
+                 f"Flow-focusing nozzle, {nozzle_um:g} x {DEPTH_UM:g} um as BUILT (design intent {p['nozzle_width_um']:g} um, clamped to "
+                 f"the {MIN_OPEN_UM:g} um floor): oil from both sides pinches the co-flow. Will not make 70 um capsules."),
+        junction("m2_oil_split_1", (oil_split_x, cy), MIN_OPEN_UM / 1000, "fork_junction",
+                 "Oil splits into two equal branches, one to each side of the nozzle."),
     ]
-    ports = [port("m2_core_in_1", "inlet", (AQ_PORT_X, cy + ARM_DY), top, "cells", note="Cells in dextran, from Module 1b."),
-             port("m2_shell_in_1", "inlet", (AQ_PORT_X, cy - ARM_DY), top, "reagent", note="GelMA."),
+    ports = [port("m2_core_in_1", "inlet", (AQ_PORT_X, cy + (cy - AQ_ROW_MM)), top, "cells", note="Cells in dextran, from Module 1b."),
+             port("m2_shell_in_1", "inlet", (AQ_PORT_X, AQ_ROW_MM), top, "reagent", note="GelMA."),
              port("m2_oil_in_1", "inlet", (OIL_PORT_X, cy), top, "oil")]
-    channels = []
+    fxc = AQ_PORT_X + half_port + GAP_MM + FILTER_LEN / 2
     for name, sign, carries in (("core", 1, "cells"), ("shell", -1, "liquid")):
-        y = cy + sign * ARM_DY
-        arm = [(ARM_X, y), (yj_x, cy)]
+        y = cy + sign * (cy - AQ_ROW_MM)
+        ya = cy + sign * ARM_DY
+        chambers += [junction(f"m2_corner_{name}_a", (yj_x_arm, y), MIN_OPEN_UM / 1000, "channel_corner",
+                              f"Corner: the {name} line turns toward the centre line."),
+                     junction(f"m2_corner_{name}_b", (yj_x_arm, ya), MIN_OPEN_UM / 1000, "channel_corner",
+                              f"Corner: the {name} arm turns toward the Y-junction.")]
         if filters:
             fid = f"m2_filter_{name}_1"
-            fxc = AQ_PORT_X + 0.8 + FILTER_LEN / 2
-            chambers.append(filt(fid, (fxc, y), "cells" if name == "core" else "particles", p["cell_filter_gap_um"], nz_d, jz,
-                                 f"Passive pillar filter on the {name} inlet."))
-            channels += [chan(f"m2_ch_{name}_in", f"m2_{name}_in_1", fid, carries, [(AQ_PORT_X, y), (fxc - FILTER_LEN / 2, y)], w_in, nz_d),
-                         chan(f"m2_ch_{name}", fid, "m2_yjunction_1", carries, [(fxc + FILTER_LEN / 2, y)] + arm, w_in, nz_d)]
+            chambers.append(filt(fid, (fxc, y), "cells" if name == "core" else "particles", p["cell_filter_gap_um"],
+                                 f"Passive filter on the {name} inlet."))
+            chan(f"m2_ch_{name}_in", f"m2_{name}_in_1", fid, carries, w_in)
+            chan(f"m2_ch_{name}_f", fid, f"m2_corner_{name}_a", carries, w_in)
         else:
-            channels.append(chan(f"m2_ch_{name}", f"m2_{name}_in_1", "m2_yjunction_1", carries, [(AQ_PORT_X, y)] + arm, w_in, nz_d))
+            chan(f"m2_ch_{name}_f", f"m2_{name}_in_1", f"m2_corner_{name}_a", carries, w_in)
+        chan(f"m2_ch_{name}_v", f"m2_corner_{name}_a", f"m2_corner_{name}_b", carries, w_in)
+        chan(f"m2_ch_{name}", f"m2_corner_{name}_b", "m2_yjunction_1", carries, w_in)
     if filters:
-        fxo = (OIL_PORT_X + OIL_SPLIT_X) / 2
-        chambers.append(filt("m2_filter_oil_1", (fxo, cy), "particles", p["cell_filter_gap_um"], nz_d, jz, "Passive pillar filter on the oil inlet."))
-        channels += [chan("m2_ch_oil_in", "m2_oil_in_1", "m2_filter_oil_1", "oil", [(OIL_PORT_X, cy), (fxo - FILTER_LEN / 2, cy)], w_in, nz_d),
-                     chan("m2_ch_oil_feed", "m2_filter_oil_1", "m2_oil_split_1", "oil", [(fxo + FILTER_LEN / 2, cy), (OIL_SPLIT_X, cy)], w_in, nz_d)]
+        fxo = OIL_PORT_X + half_port + GAP_MM + FILTER_LEN / 2
+        chambers.append(filt("m2_filter_oil_1", (fxo, cy), "particles", p["cell_filter_gap_um"], "Passive filter on the oil inlet."))
+        chan("m2_ch_oil_in", "m2_oil_in_1", "m2_filter_oil_1", "oil", w_in)
+        chan("m2_ch_oil_feed", "m2_filter_oil_1", "m2_oil_split_1", "oil", w_in)
     else:
-        channels.append(chan("m2_ch_oil_in", "m2_oil_in_1", "m2_oil_split_1", "oil", [(OIL_PORT_X, cy), (OIL_SPLIT_X, cy)], w_in, nz_d))
+        chan("m2_ch_oil_in", "m2_oil_in_1", "m2_oil_split_1", "oil", w_in)
     for n, sign in ((1, 1), (2, -1)):
-        yb = cy + sign * OIL_DY
-        channels.append(chan(f"m2_ch_oil_{n}", "m2_oil_split_1", "m2_nozzle_1", "oil",
-                             [(OIL_SPLIT_X, cy), (OIL_SPLIT_X, yb), (nz_x, yb), (nz_x, cy)], w_in, nz_d,
-                             note=f"Oil branch {'above' if sign > 0 else 'below'} the aqueous line (same length as the other)."))
-    channels += [
-        chan("m2_ch_coflow_1", "m2_yjunction_1", "m2_nozzle_1", "cells", [(yj_x, cy), (nz_x, cy)], w_co, nz_d,
-             note="Co-flow: core and shell side by side, not mixing (laminar)."),
-        chan("m2_ch_separation_1", "m2_nozzle_1", "m2_emulsion_out_1", "droplets", [(nz_x, cy), (sep_end, cy)],
-             p["separation_width_um"] / 1000, p["separation_depth_um"] / 1000,
-             note="Straight phase-separation channel: each droplet separates into a dextran core and a GelMA shell."),
-    ]
-    ports.append(port("m2_emulsion_out_1", "outlet", (sep_end, cy), top, "transfer", True, "Emulsion out to the off-chip cold delay."))
+        yb = cy + sign * (cy - EDGE_MM)
+        side = "above" if sign > 0 else "below"
+        chambers += [junction(f"m2_corner_oil_{n}a", (oil_split_x, yb), MIN_OPEN_UM / 1000, "channel_corner", f"Corner: oil branch {side} the aqueous line."),
+                     junction(f"m2_corner_oil_{n}b", (nz_x, yb), MIN_OPEN_UM / 1000, "channel_corner", f"Corner: oil branch {side} turns into the nozzle.")]
+        chan(f"m2_ch_oil_{n}_up", "m2_oil_split_1", f"m2_corner_oil_{n}a", "oil", w_in)
+        chan(f"m2_ch_oil_{n}_across", f"m2_corner_oil_{n}a", f"m2_corner_oil_{n}b", "oil", w_in,
+             note=f"Oil branch {side} the aqueous line (same length as the other).")
+        chan(f"m2_ch_oil_{n}", f"m2_corner_oil_{n}b", "m2_nozzle_1", "oil", w_in)
+    chan("m2_ch_coflow_1", "m2_yjunction_1", "m2_nozzle_1", "cells", w_co,
+         note="Co-flow: core and shell side by side, not mixing (laminar).")
+    chan("m2_ch_separation_1", "m2_nozzle_1", "m2_capsule_out_1", "droplets", w_sep,
+         note="Straight phase-separation channel: each droplet separates into a dextran core and a GelMA shell.")
 
     # --- finishing trap -------------------------------------------------------------------
-    y_top, y_bot = cy + side / 2, cy - side / 2
-    reagent_y = y_top + 2.0
-    bottom_y = y_bot - 2.0
-    chambers.append({"id": "m2_trap_1", "type": "exchange", "center": [r(tx, 3), r(cy, 3), tz], "size": [r(side, 3), r(side, 3), r(h)],
-                     "height_um": p["trap_height_um"], "volume_ul": r(side * side * h, 3),
-                     "retention": {"type": "mesh", "opening_um": p["trap_mesh_um"], "source": "bought"},
-                     "note": "Finishing trap: one layer of capsules on a mesh, under the curing window."})
-    fax = tx + side / 2 + 2.0
-    chambers.append(filt("m2_agg_filter_1", (fax, cy), "capsule_aggregates", p["aggregate_filter_gap_um"], h, tz,
+    y_top, y_bot = cy + th / 2, cy - th / 2
+    in_y, under_y = y_top + PORT_ROW_MM, y_bot - PORT_ROW_MM
+    chambers.append({"id": "m2_trap_1", "type": "exchange", "center": [r(tx, 3), r(cy, 3), z], "size": [tw, th, r(h)],
+                     "height_um": DEPTH_UM, "volume_ul": trap_ul, "mesh_pore_um": None, "block": "trap_chamber",
+                     "retention": dict(RETENTION),
+                     "note": f"Finishing trap: one layer of capsules held by a {weir} at the outlet, under the curing window. "
+                             f"Not a mesh (the 25 um mesh cannot be printed)."})
+    chambers.append(filt("m2_agg_filter_1", (fa_x, cy), "capsule_aggregates", p["aggregate_filter_gap_um"],
                          "Capsule-aggregate filter: single capsules pass, clumps stay."))
     ports += [
-        port("m2_emulsion_in_1", "inlet", (tx, cy), top, "load", True, "Emulsion back from the cold delay, above the trap."),
-        port("m2_breaker_in_1", "inlet", (tx - 2.5, reagent_y), top, "reagent", note="Emulsion breaker."),
-        port("m2_buffer_in_1", "inlet", (tx, reagent_y), top, "reagent", note="Rinse / wash buffer."),
-        port("m2_pi_in_1", "inlet", (tx + 2.5, reagent_y), top, "reagent", note="Photoinitiator."),
-        port("m2_backflush_1", "inlet", (tx - side / 2 - 2.0, cy), 0, "backflush", False),
-        port("m2_oil_waste_1", "outlet", (tx - 1.5, bottom_y), 0, "waste", False, "Dedicated oil waste."),
-        port("m2_waste_1", "outlet", (tx + 1.5, bottom_y), 0, "waste", False),
-        port("m2_capsule_out_1", "outlet", (tx + side / 2 + 4.0, cy), top, "release", True, "Cured, washed capsules out to Module 3."),
+        port("m2_capsule_out_1", "outlet", (out_x, cy), top, "transfer", True,
+             "Emulsion out to the off-chip cold delay, and later the cured capsules out to Module 3 (off-chip selector valve)."),
+        port("m2_trap_in_1", "inlet", (tx, in_y), top, "load", True,
+             "Emulsion back from the cold delay; breaker, buffer and photoinitiator come in here too (selector valve)."),
+        port("m2_under_mesh_1", "outlet", (tx, under_y), 0, "waste", False,
+             "Under the weir: waste, oil waste and back-flush share this port (selector valve)."),
     ]
-    ww = 0.2  # release path: >= 1.5 x capsule diameter and >= the 150 um release outlet minimum
-    channels += [
-        chan("m2_ch_emulsion_in", "m2_emulsion_in_1", "m2_trap_1", "droplets", None, 0.3, h),
-        chan("m2_ch_breaker", "m2_breaker_in_1", "m2_trap_1", "liquid", [(tx - 2.5, reagent_y), (tx - 2.5, y_top)], ww, h),
-        chan("m2_ch_buffer", "m2_buffer_in_1", "m2_trap_1", "liquid", [(tx, reagent_y), (tx, y_top)], ww, h),
-        chan("m2_ch_pi", "m2_pi_in_1", "m2_trap_1", "liquid", [(tx + 2.5, reagent_y), (tx + 2.5, y_top)], ww, h),
-        chan("m2_ch_backflush", "m2_backflush_1", "m2_trap_1", "liquid", [(tx - side / 2 - 2.0, cy), (tx - side / 2, cy)], ww, h),
-        chan("m2_ch_oil_waste", "m2_trap_1", "m2_oil_waste_1", "oil", [(tx - 1.5, y_bot), (tx - 1.5, bottom_y)], ww, h),
-        chan("m2_ch_waste", "m2_trap_1", "m2_waste_1", "liquid", [(tx + 1.5, y_bot), (tx + 1.5, bottom_y)], ww, h),
-        chan("m2_ch_release", "m2_trap_1", "m2_agg_filter_1", "capsules", [(tx + side / 2, cy), (fax - FILTER_LEN / 2, cy)], ww, h),
-        chan("m2_ch_capsule_out", "m2_agg_filter_1", "m2_capsule_out_1", "capsules", [(fax + FILTER_LEN / 2, cy), (tx + side / 2 + 4.0, cy)], ww, h),
-    ]
+    chan("m2_ch_trap_in", "m2_trap_in_1", "m2_trap_1", "droplets", 1.5 * ww)
+    chan("m2_ch_under_mesh", "m2_trap_1", "m2_under_mesh_1", "liquid", ww)
+    chan("m2_ch_release", "m2_trap_1", "m2_agg_filter_1", "capsules", ww)
+    chan("m2_ch_capsule_out", "m2_agg_filter_1", "m2_capsule_out_1", "capsules", ww)
+    pos = {c["id"]: c["center"][:2] for c in chambers} | {q["id"]: q["position"][:2] for q in ports}
+    channels = [{"id": cid, "from": a, "to": b, "width_mm": r(w), "depth_mm": r(h), "carries": carries,
+                 "block": "straight_channel", "path": [[r(pos[a][0], 3), r(pos[a][1], 3)], [r(pos[b][0], 3), r(pos[b][1], 3)]], **extra}
+                for cid, a, b, carries, w, extra in links]
+    if len(ports) > MAX_PORTS:
+        raise ParamError(f"{len(ports)} ports > the {MAX_PORTS} allowed per chip")
     lo, hi = cold_delay_volume_ul(p)
     tube_area = math.pi * (p["delay_tubing_id_mm"] / 2) ** 2   # mm2 = uL per mm
     spec = {
         "id": "m2_encapsulation_v1",
-        "name": "Module 2: encapsulation (real scale, draft)",
-        "description": ("Core (cells in dextran) and shell (GelMA) meet at a Y-junction and co-flow into a flow-focusing "
-                        "nozzle with oil from both sides; droplets phase-separate into core-shell capsules along a straight "
-                        "channel, gel in an off-chip cold delay, and come back to a finishing trap: emulsion breaker, oil "
-                        "to its own waste, rinse x2, photoinitiator, 405 nm cure over one capsule layer, washes, back-flush "
-                        "out through a 100 um aggregate filter. GENERATED by cad/generators/m2_encapsulation.py."),
+        "name": "Module 2: encapsulation (REFERENCE ONLY, 30 x 20 mm; droplet generation NOT achievable)",
+        "description": (
+            "*** REFERENCE ONLY. THIS CHIP CANNOT MAKE CAPSULES. *** m2 is a flow-focusing droplet generator whose nozzle must be "
+            f"about {p['nozzle_width_um']:g} um wide to make {d:g} um capsules. The fabrication floor is {MIN_OPEN_UM:g} um in plane, so the "
+            f"generator CLAMPS the nozzle to {nozzle_um:g} um: that makes the chip buildable and it passes every check, but it does not "
+            "preserve the function. A 200 um nozzle makes far larger droplets, if any. Droplet generation at this scale is not "
+            "achievable by resin printing or hot embossing. The pipeline has retired this chip in favour of spc_demo_v1 and moved "
+            "encapsulation off-chip; this spec is kept for reference only, to show what the chip would be. "
+            f"BUILD: 30 x 20 mm envelope, ONE fluidic layer at ONE etch depth of {DEPTH_MM:g} mm everywhere (the old 0.04 / 0.08 / "
+            f"0.15 mm depths would be second processes), every channel at or above {MIN_OPEN_UM:g} um, ports {PORT_UM:g} um, "
+            f"{len(ports)} ports (limit {MAX_PORTS}, pitch >= {PITCH_MM:g} mm) merged by off-chip selector valves: emulsion out and "
+            "capsule out share m2_capsule_out_1; emulsion in, breaker, buffer and photoinitiator share m2_trap_in_1; waste, oil "
+            "waste and back-flush share m2_under_mesh_1, so carry-over and dead volume are real. Every chamber and channel carries a "
+            "block from contracts/blocks.json; chamber volumes are computed from their boxes. "
+            f"RETENTION: the finishing trap and the three filters are DEPTH WEIRS (trap_chamber block), not meshes or pillar arrays: "
+            f"the {MIN_OPEN_UM:g} um floor is in plane and z is free, so a {WEIR_CREST_UM:g} um tall crest leaves a "
+            f"{WEIR_GAP_UM:g} um gap under the lid, still one layer. The weir is untested (run a 40 / 60 / 80 um gap coupon first). "
+            "Core (cells in dextran) and shell (GelMA) meet at a Y-junction and co-flow into the nozzle with oil from both sides; "
+            "droplets would phase-separate along a straight channel, gel in an off-chip cold delay, and come back to the trap: "
+            "emulsion breaker, rinse x2, photoinitiator, 405 nm cure over one capsule layer, washes, back-flush out through the "
+            "aggregate filter. CLAMPS: " + ("; ".join(clamps) if clamps else "none") + ". "
+            "GENERATED by cad/generators/m2_encapsulation.py; edit the generator, not this file."),
         "placeholder": True,
-        "module": {"id": "m2", "name": "Encapsulation", "status": "draft", "printed": True,
-                   "note": "draft – being redesigned by MJ"},
+        "module": {"id": "m2", "name": "Encapsulation", "status": "draft", "printed": False,
+                   "note": "reference only: nozzle clamped to 200 um, cannot make capsules; encapsulation is off-chip (spc_demo_v1)"},
         "generator": {"script": "cad/generators/m2_encapsulation.py",
                       "params_schema": "contracts/schemas/generators/m2_encapsulation.schema.json", "params": p},
         "units": "mm",
@@ -221,20 +333,19 @@ def build(p: dict) -> dict:
             {"id": "m2_lid", "material": "pmma", "thickness_mm": LID_MM},
         ],
         "capsule": {"diameter_um": d, "swell_factor": s["inputs"]["swell_factor"], "count": p["capsule_count"]},
-        "trap": {"gap_um": p["trap_mesh_um"]},
         "capsule_filter": {"gap_um": p["aggregate_filter_gap_um"]},
-        "encapsulation": {"nozzle_um": p["nozzle_width_um"], "nozzle_depth_um": p["nozzle_depth_um"], "nozzle": "m2_nozzle_1",
+        "encapsulation": {"nozzle_um": nozzle_um, "nozzle_depth_um": DEPTH_UM, "nozzle": "m2_nozzle_1",
                           "core_flow_ul_h": p["core_flow_ul_h"], "shell_flow_ul_h": p["shell_flow_ul_h"],
                           "oil_flow_ul_h": p["oil_flow_ul_h"], "core_inlet": "m2_core_in_1"},
         "chambers": chambers,
         "channels": channels,
         "ports": ports,
         "features": [{"id": "m2_curing_window_1", "type": "curing_window", "center": [r(tx, 3), r(cy, 3), r(top - 0.05)],
-                      "size": [r(side + 1, 3), r(side + 1, 3), 0.1], "wavelength_nm": p["curing_wavelength_nm"],
+                      "size": [r(tw + 1, 3), r(th + 1, 3), 0.1], "wavelength_nm": p["curing_wavelength_nm"],
                       "covers": ["m2_trap_1"],
                       "note": f"{p['curing_wavelength_nm']:g} nm-transparent window over a single capsule layer (lid: glass or "
                               f"clear thermoplastic); LED mount above."}],
-        "stages": [{"id": "m2_cold_delay_1", "type": "cold_delay", "from_port": "m2_emulsion_out_1", "to_port": "m2_emulsion_in_1",
+        "stages": [{"id": "m2_cold_delay_1", "type": "cold_delay", "from_port": "m2_capsule_out_1", "to_port": "m2_trap_in_1",
                     "location": "off_chip", "temp_c": p["gelation_temp_c"],
                     "time_min": [p["gelation_time_min_low"], p["gelation_time_min_high"]], "volume_ul": [r(lo, 1), r(hi, 1)],
                     "note": (f"At {p['core_flow_ul_h'] + p['shell_flow_ul_h'] + p['oil_flow_ul_h']:g} uL/h, "
@@ -249,9 +360,11 @@ def build(p: dict) -> dict:
 
 def protocol(p: dict) -> dict:
     s = sizing_for(p)
+    tw, th, trap_ul = trap_size(p)
     t_enc = math.ceil(s["hours_to_encapsulate"] * 3600 * 10) / 10
     emulsion_ul = (p["core_flow_ul_h"] + p["shell_flow_ul_h"] + p["oil_flow_ul_h"]) * s["hours_to_encapsulate"]
-    flow, vol = 20, 20
+    flow = wash_flow_ul_min(p)                          # shear on the capsules <= SHEAR_MAX_DYN_CM2 over the trap
+    vol = math.floor(trap_ul * 10) / 10                 # one trap volume per wash: never more than the chamber holds
     step = lambda n, op, target, note, **kw: {  # noqa: E731
         "step": n, "operation": op, "target": target, "reagent": kw.pop("reagent", None), "volume_ul": kw.pop("volume_ul", None),
         "duration_s": kw.pop("duration_s"), "temp_c": kw.pop("temp_c", None), "washes": kw.pop("washes", None),
@@ -261,36 +374,41 @@ def protocol(p: dict) -> dict:
         duration_s=washes * vol / flow * 60, **kw)
     return {
         "id": "m2_encapsulation",
-        "name": "Module 2: encapsulation",
+        "name": "Module 2: encapsulation (reference only)",
         "source": ("SPC-NAR (Leonaviciene & Mazutis, NAR 2023) and CapSeq (Baronas et al., Science 2026) via "
                    "contracts/sources/chip_geometry_requirements.xlsx: 40 um nozzle, 100 / 250 / 700 uL/h, gelation at 4 C "
                    "for 15-30 min, emulsion breaker + rinse x2, 0.1% LAP, 405 nm for 20 s, 100 um aggregate filter. "
                    "Wash volumes and flows are placeholders. GENERATED by cad/generators/m2_encapsulation.py."),
         "placeholder": True,
-        "description": "Encapsulate, gel in the cold delay, break the emulsion, rinse, cure, wash, send the capsules on to Module 3.",
+        "description": ("REFERENCE ONLY: the nozzle of this chip is clamped to 200 um (design 40 um), so droplet generation "
+                        "(step 1) is not achievable by resin printing or hot embossing; the pipeline encapsulates off-chip. "
+                        "Encapsulate, gel in the cold delay, break the emulsion, rinse, cure, wash, send the capsules on to Module 3. "
+                        f"Washes are one trap volume ({vol:g} uL) at {flow:g} uL/min, which keeps wall shear on the capsules under "
+                        f"{SHEAR_MAX_DYN_CM2:g} dyn/cm2."),
         "steps": [
             step(1, "encapsulate", "m2_nozzle_1",
                  f"Encapsulate {p['capsule_count']:,} capsules: about {s['generation_rate_hz']:.0f} droplets a second, "
                  f"~{s['mean_cells_per_capsule']:.2f} cells per capsule, so most capsules are empty and almost no occupied "
-                 f"capsule holds two cells.",
+                 f"capsule holds two cells. (Design intent; the clamped 200 um nozzle will not do this.)",
                  duration_s=t_enc, flows_ul_h={"core": p["core_flow_ul_h"], "shell": p["shell_flow_ul_h"], "oil": p["oil_flow_ul_h"]},
                  capsules=p["capsule_count"]),
             step(2, "hold_temp", "m2_cold_delay_1",
                  f"Cold delay: {p['gelation_temp_c']:g} C for {p['gelation_time_min_low']:g} min in tubing on a cold block, "
                  f"so the GelMA shells set.", temp_c=p["gelation_temp_c"], duration_s=p["gelation_time_min_low"] * 60),
-            step(3, "load", "m2_trap_1", f"The emulsion (~{emulsion_ul:.1f} uL plus a chase) comes back onto the chip; "
-                 f"the capsules settle in one layer on the trap mesh.", volume_ul=vol, duration_s=60),
-            wash(4, "emulsion_breaker", 1, "Break the emulsion: the oil drains to its own waste, the capsules stay on the mesh.",
-                 waste="m2_oil_waste_1"),
-            wash(5, "wash_buffer", 2, "Rinse twice with buffer, still to the oil waste.", waste="m2_oil_waste_1"),
+            step(3, "load", "m2_trap_1", f"The emulsion (~{emulsion_ul:.1f} uL plus a chase) comes back onto the chip through "
+                 f"m2_trap_in_1; the capsules settle in one layer behind the weir.", volume_ul=vol,
+                 flow_ul_min=flow, duration_s=vol / flow * 60),
+            wash(4, "emulsion_breaker", 1, "Break the emulsion: the oil drains to the shared waste under the weir, the capsules stay.",
+                 waste="m2_under_mesh_1"),
+            wash(5, "wash_buffer", 2, "Rinse twice with buffer, still to the shared waste.", waste="m2_under_mesh_1"),
             wash(6, "photoinitiator", 1, "Photoinitiator in (0.1% LAP in the paper)."),
             step(7, "cure", "m2_trap_1", f"Cure: {p['curing_wavelength_nm']:g} nm light for {p['curing_time_s']:g} s through the "
                  f"window over the single capsule layer crosslinks the shells.",
                  duration_s=p["curing_time_s"], wavelength_nm=p["curing_wavelength_nm"]),
             wash(8, "wash_buffer", 3, "Wash three times to clear the photoinitiator."),
-            wash(9, "resuspension_buffer", 1, "Back-flush from below to lift the capsules off the mesh.", direction="backflush"),
-            step(10, "release", "m2_trap_1", "Capsules out through the 100 um aggregate filter to m2_capsule_out_1, on to Module 3.",
-                 reagent="resuspension_buffer", volume_ul=vol, duration_s=60),
+            wash(9, "resuspension_buffer", 1, "Back-flush from m2_under_mesh_1 to lift the capsules off the weir.", direction="backflush"),
+            step(10, "release", "m2_trap_1", "Capsules out through the aggregate filter to m2_capsule_out_1, on to Module 3.",
+                 reagent="resuspension_buffer", volume_ul=vol, flow_ul_min=flow, duration_s=vol / flow * 60),
         ],
     }
 

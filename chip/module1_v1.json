@@ -1,7 +1,7 @@
 {
   "id": "module1_v1",
   "name": "Module 1: flow-gated three-lineage chamber",
-  "description": "DEMO SCALE: this chip has been scaled down uniformly in x and y by a factor of 0.209 (fit_chip.py) from 140 x 75 mm to fit the 30 x 20 mm, 0.3 mm deep, single-layer resin-print and hot-emboss envelope; depths are unchanged and chamber volumes were recomputed from the new geometry. Channel widths were clamped to the 0.2 mm fabrication floor, which changed the channel aspect ratio, so flow resistances no longer match the original design and flow numbers drawn from it must be re-derived. The text below describes the original design intent and still quotes its original dimensions. Three culture chambers on one 140 x 75 mm board in a Y, meeting at a shared junction: n_cx (neurons) on the left, g_cx (glia) upper right, a_cx (astrocytes) lower right, all joining j_mid, which drains to p_mid. There are no valves and no barriers anywhere on this chip. Routing is done entirely by which port is driven and which is vented, so the only moving parts are off-chip pumps. j_mid is a junction, not a culture chamber: it exists so the three lineages meet at a shared node OUTSIDE the chambers. That matters, because if the drain hung off n_cx instead, glial and astrocyte medium would have to cross the neuron chamber to reach it, and the three media could never be kept apart. Driving a port makes it a source; venting makes it the drain; capping it makes it a block. Separate growth: drive p_in, p_g_in and p_a_in with three different media and vent only p_mid, so all three converge on j_mid and leave without entering another chamber. Interaction: drive one chamber's inlet, cap p_mid, vent the others, and that chamber's conditioned medium crosses the junction to the other two. Harvest: every channel is oriented toward j_mid so the three chambers pool there. Every feature is 0.3 mm deep or more, so unlike the groove design this board is laser-cut only, with no photolithography and no cast layer. n_cx has no retention mesh because the shared-inlet seeding fallback has to pass cells through it; g_cx and a_cx are terminal and drained, so they do. Channel directions record the harvest path; several modes deliberately reverse them, which the mode table in protocols/module1_v1.json sets out. Geometry and flow numbers are ours; the schedules they serve cite published protocols in protocols/module1_v1.json.",
+  "description": "DEMO SCALE (junction and fan re-laid out for the 0.4 mm wall floor): this chip has been scaled down uniformly in x and y by a factor of 0.209 (fit_chip.py) from 140 x 75 mm to fit the 30 x 20 mm, 0.3 mm deep, single-layer resin-print and hot-emboss envelope; depths are unchanged and chamber volumes were recomputed from the new geometry. Channel widths were clamped to the 0.2 mm fabrication floor, which changed the channel aspect ratio, so flow resistances no longer match the original design and flow numbers drawn from it must be re-derived. The text below describes the original design intent and still quotes its original dimensions. Three culture chambers on one 140 x 75 mm board in a Y, meeting at a shared junction: n_cx (neurons) on the left, g_cx (glia) upper right, a_cx (astrocytes) lower right, all joining j_mid, which drains to p_mid. There are no valves and no barriers anywhere on this chip. Routing is done entirely by which port is driven and which is vented, so the only moving parts are off-chip pumps. j_mid is a junction, not a culture chamber: it exists so the three lineages meet at a shared node OUTSIDE the chambers. That matters, because if the drain hung off n_cx instead, glial and astrocyte medium would have to cross the neuron chamber to reach it, and the three media could never be kept apart. Driving a port makes it a source; venting makes it the drain; capping it makes it a block. Separate growth: drive p_in, p_g_in and p_a_in with three different media and vent only p_mid, so all three converge on j_mid and leave without entering another chamber. Interaction: drive one chamber's inlet, cap p_mid, vent the others, and that chamber's conditioned medium crosses the junction to the other two. Harvest: every channel is oriented toward j_mid so the three chambers pool there. Every feature is 0.3 mm deep or more, so unlike the groove design this board is laser-cut only, with no photolithography and no cast layer. n_cx has no retention because the shared-inlet seeding fallback has to pass cells through it; g_cx and a_cx are terminal and drained, so they retain. Their 5 um meshes are unbuildable (200 um in-plane floor), so each is now a trap_chamber with a DEPTH WEIR at its outlet, per the retention section of contracts/blocks.json: the 200 um floor is in plane and z is free, so a 272 um tall, 200 um thick crest in the 300 um layer leaves a 25 um gap under the lid (0.4 x a 70 um capsule, the rule used by tools/check_chip_spec.py), still one etch depth and one fluidic layer; g_cx and a_cx carry it as a structured weir object (crest_height_um 272, gap_um 28, retains_um 70). The weir is UNTESTED, and the z tolerance (about +/-20 um on a 25 um gap, roughly +/-71%) is the biggest unknown: the gap could close or leak outright. Run a 40/60/80 um gap coupon first. CAVEAT: g_cx and a_cx hold glia and astrocytes, which are cells of roughly 10-15 um (or small clumps), and a 25 um gap will NOT retain them; the weir only holds capsules or aggregates of about 70 um and above, so cell retention in these chambers is an open problem (see protocols/retention_audit.md). Layout fix: j_mid was enlarged from 1.251 to 2.4 mm square and g_cx and a_cx were moved to +/-4.0 mm in y of the junction axis (p_g_out, p_a_out follow), so the g, a, n and drain arms leave its walls at least 0.6 mm apart, and p_mid moved out to x 17.8 so its channel still leaves the right face. Topology and the six ports are unchanged. Channel directions record the harvest path; several modes deliberately reverse them, which the mode table in protocols/module1_v1.json sets out. Geometry and flow numbers are ours; the schedules they serve cite published protocols in protocols/module1_v1.json. Retention is a depth weir (275 um crest, 25 um gap) recorded in each chamber's retention field; the in-plane 200 um floor does not apply in z. UNTESTED: z tolerance of about +/-20 um on a 25 um gap is the main risk.",
   "placeholder": false,
   "units": "mm",
   "footprint": {
@@ -48,7 +48,7 @@
       "type": "exchange",
       "center": [
         21.257,
-        11.246,
+        12.221,
         3.15
       ],
       "size": [
@@ -56,16 +56,21 @@
         2.503,
         0.3
       ],
-      "mesh_pore_um": 5,
+      "mesh_pore_um": null,
       "volume_ul": 3.132,
-      "block": "culture_chamber"
+      "block": "trap_chamber",
+      "retention": {
+        "type": "weir",
+        "opening_um": 25,
+        "source": "fabricated"
+      }
     },
     {
       "id": "a_cx",
       "type": "exchange",
       "center": [
         21.257,
-        5.197,
+        4.221,
         3.15
       ],
       "size": [
@@ -73,9 +78,14 @@
         2.503,
         0.3
       ],
-      "mesh_pore_um": 5,
+      "mesh_pore_um": null,
       "volume_ul": 3.132,
-      "block": "culture_chamber"
+      "block": "trap_chamber",
+      "retention": {
+        "type": "weir",
+        "opening_um": 25,
+        "source": "fabricated"
+      }
     },
     {
       "id": "j_mid",
@@ -86,12 +96,12 @@
         3.15
       ],
       "size": [
-        1.251,
-        1.251,
+        2.4,
+        2.4,
         0.3
       ],
       "mesh_pore_um": null,
-      "volume_ul": 0.47,
+      "volume_ul": 1.728,
       "block": "cross_junction"
     }
   ],
@@ -201,7 +211,7 @@
       "id": "p_mid",
       "type": "outlet",
       "position": [
-        17.503,
+        17.8,
         8.221,
         6.3
       ]
@@ -211,7 +221,7 @@
       "type": "outlet",
       "position": [
         27.097,
-        11.246,
+        12.221,
         6.3
       ]
     },
@@ -220,7 +230,7 @@
       "type": "outlet",
       "position": [
         27.097,
-        5.197,
+        4.221,
         6.3
       ]
     }

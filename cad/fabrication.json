@@ -1,7 +1,16 @@
 {
-  "_about": "Fabrication limits for parts WE make (not bought ones, like a mesh sheet). tools/check_chip_spec.py compares fabricated features with these and only ever WARNS: fabrication limits never block the design. Values in 'todo' are unknown until Ayrton measures them on our cutter/press. display_scale: how much bigger cad/export_display_model.py makes the printed display model.",
-  "laser_kerf_um": null,
-  "min_embossed_feature_um": null,
-  "todo": ["laser_kerf_um", "min_embossed_feature_um"],
+  "_about": "Fabrication limits for parts WE make (not bought ones, like a mesh sheet). The process is resin 3D printing (the tool/master) plus hot embossing into COC/COP; we no longer laser-cut anything. tools/check_chip_spec.py compares fabricated feature sizes (in um) with these and only ever WARNS: fabrication limits never block the design. check_chip_spec reads two keys, laser_kerf_um and min_embossed_feature_um, and takes the larger numeric one as the minimum; they are kept under these names so the checker keeps working. laser_kerf_um is now MEANINGLESS (no laser cutter in the process): it is deliberately set to the same value as min_embossed_feature_um only so the checker has a number; do not read it as a kerf. min_embossed_feature_um = 200, the floor agreed in contracts/blocks.json fabrication_floors.min_open_channel_mm (0.2 mm) converted to um; that is the source of truth, change it there first. These are agreed floors, not yet measured on our printer and press. The other agreed floors are mirrored in fabrication_floors_mm for reference only (the checker reads them from contracts/blocks.json, not from here). display_scale: how much bigger cad/export_display_model.py makes the printed display model.",
+  "process": "resin_3d_print_plus_hot_emboss",
+  "laser_kerf_um": 200,
+  "min_embossed_feature_um": 200,
+  "fabrication_floors_mm": {
+    "min_open_channel_mm": 0.2,
+    "min_enclosed_printed_channel_mm": 0.5,
+    "min_wall_mm": 0.4,
+    "min_port_mm": 0.8,
+    "min_port_pitch_mm": 5.0,
+    "max_ports_per_chip": 6
+  },
+  "todo": [],
   "display_scale": 10
 }

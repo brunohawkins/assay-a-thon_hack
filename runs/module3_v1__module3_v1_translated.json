@@ -4,7 +4,7 @@
   "chip_id": "module3_v1_translated",
   "chip_spec": "chip/module3_v1_translated.json",
   "operator": "planner",
-  "created_at": "2026-11-07T17:31:41Z",
+  "created_at": "2026-11-07T17:52:55Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": 650000,
@@ -40,7 +40,7 @@
       "command": "load",
       "args": {
         "target": "main_trap",
-        "volume_ul": 38.4
+        "volume_ul": 38.443
       },
       "narration": "Load the capsule suspension into the trap through the pre-filter. Capsules settle on the retention gap and the carrier leaves through the wash waste; the load is one chamber volume.",
       "protocol_step": 1
@@ -52,12 +52,12 @@
       "args": {
         "target": "main_trap",
         "reagent": "lysis_buffer",
-        "volume_ul": 192.2,
-        "washes": 1,
+        "volume_ul": 38.443,
+        "washes": 5,
         "flow_ul_min": 10.8,
         "waste": "lysis_waste"
       },
-      "narration": "Lyse the cells in the capsules: push lysis buffer through the bed to its own dedicated waste line, which never meets the other waste. Five chamber volumes so the bed is fully exchanged.",
+      "narration": "Lyse the cells in the capsules: push lysis buffer through the bed to its own dedicated waste line, which never meets the other waste. 5 fills of one chamber volume each, so the bed is fully exchanged.",
       "protocol_step": 2
     },
     {
@@ -79,12 +79,12 @@
       "args": {
         "target": "main_trap",
         "reagent": "wash_buffer",
-        "volume_ul": 192.2,
-        "washes": 3,
+        "volume_ul": 38.443,
+        "washes": 15,
         "flow_ul_min": 10.8,
         "waste": "waste"
       },
-      "narration": "Wash out the lysis buffer through the retention gap to the wash waste. Several washes of several chamber volumes each, since carryover would inhibit the next step.",
+      "narration": "Wash out the lysis buffer through the retention gap to the wash waste: 3 rounds of 5 fills of one chamber volume each, since carryover would inhibit the next step.",
       "protocol_step": 4
     },
     {
@@ -94,7 +94,7 @@
       "args": {
         "target": "main_trap",
         "reagent": "rt_mix",
-        "volume_ul": 38.4,
+        "volume_ul": 38.443,
         "washes": 1,
         "flow_ul_min": 10.8,
         "waste": "waste"
@@ -121,12 +121,12 @@
       "args": {
         "target": "main_trap",
         "reagent": "wash_buffer",
-        "volume_ul": 192.2,
-        "washes": 3,
+        "volume_ul": 38.443,
+        "washes": 15,
         "flow_ul_min": 10.8,
         "waste": "waste"
       },
-      "narration": "Wash the reverse-transcription mix out through the retention gap to the wash waste, leaving cDNA inside the capsules.",
+      "narration": "Wash the reverse-transcription mix out through the retention gap to the wash waste, leaving cDNA inside the capsules: 3 rounds of 5 fills of one chamber volume each.",
       "protocol_step": 7
     },
     {
@@ -136,7 +136,7 @@
       "args": {
         "target": "main_trap",
         "reagent": "resuspension_buffer",
-        "volume_ul": 38.4,
+        "volume_ul": 38.443,
         "washes": 1,
         "flow_ul_min": 10.8,
         "direction": "backflush"
@@ -152,7 +152,7 @@
         "target": "main_trap",
         "reagent": "resuspension_buffer"
       },
-      "narration": "Release the capsules to module 4 as one counted suspension through to_split_tree. Twice the chamber volume carries the bed out; module 4 then splits it into the sublibraries and adds the index.",
+      "narration": "Release the capsules to module 4 as one counted suspension through to_split_tree. 2 chamber volumes of buffer carry the bed out; module 4 then splits it into the sublibraries and adds the index.",
       "protocol_step": 9
     }
   ]

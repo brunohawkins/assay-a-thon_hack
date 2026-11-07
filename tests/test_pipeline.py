@@ -101,9 +101,15 @@ class PipelineRules(unittest.TestCase):
         self.assertTrue(any(hid in e and "connector" in e for e in run_check(pipe).errors))
 
     def test_a_named_port_on_a_missing_module_is_an_error(self):
+        # Take a real handoff and strip the chip off the module it points at, leaving the
+        # port named. Building the violation is better than hunting for a live one: every
+        # TBC was resolved when reverse transcription got a chip.
         pipe = copy.deepcopy(PIPE)
-        i = self.handoff(lambda h: h["to"].get("port") == "TBC")
-        pipe["handoffs"][i]["to"]["port"] = "split_in"
+        h = pipe["handoffs"][0]
+        target = h["to"]["module"]
+        i = next(i for i, m in enumerate(pipe["modules"]) if m["module"] == target)
+        pipe["modules"][i].pop("chip", None)
+        pipe["modules"][i]["status"] = "missing"
         self.assertTrue(any("must be TBC" in e for e in run_check(pipe).errors))
 
     def test_a_missing_module_needs_no_chip_but_others_do(self):

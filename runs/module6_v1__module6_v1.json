@@ -1,0 +1,235 @@
+{
+  "protocol_id": "module6_v1",
+  "protocol_name": "Omics capture: quench in place, metabolite flow-through per lane, capsules on to module 4 - module6_v1",
+  "chip_id": "module6_v1",
+  "chip_spec": "chip/module6_v1.json",
+  "operator": "planner",
+  "created_at": "2026-11-07T17:58:16Z",
+  "placeholder": true,
+  "sizing": {
+    "capsule_count": 134703,
+    "capsule_count_note": "from chip spec",
+    "capsule_diameter_um": 70,
+    "cells_expected": 10368.0,
+    "trap_chambers": [
+      "cap_n",
+      "cap_g",
+      "cap_a"
+    ],
+    "monolayer_area_mm2_needed": 660.045,
+    "trap_area_mm2": 126.0,
+    "packed_volume_ul_needed": 37.8,
+    "trap_volume_ul": 37.8,
+    "channel_width_um": [
+      600.0,
+      600.0
+    ],
+    "channel_width_um_recommended": [
+      105.0,
+      140.0
+    ],
+    "trap_gap_um_recommended": [
+      21.0,
+      28.0
+    ],
+    "swollen_diameter_um": 140.0
+  },
+  "total_duration_s": 2449.5,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 56.9,
+      "command": "load",
+      "args": {
+        "target": "cap_n",
+        "volume_ul": 12.6
+      },
+      "narration": "Neurons: the lane's own selector valve is at its capsule feed and the capsules settle against the depth weir in cap_n, where they are held. A slurry concentrated off chip to near the packing limit fills the chamber in one chamber volume; a dilute slurry needs proportionally more. The other two lanes are capped and stay untouched.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 56.9,
+      "duration_s": 316.5,
+      "command": "exchange",
+      "args": {
+        "target": "cap_n",
+        "reagent": "cold_acidic_solvent",
+        "volume_ul": 70.145,
+        "washes": 1,
+        "flow_ul_min": 13.3,
+        "waste": "out_n"
+      },
+      "narration": "Neurons: quench in place. The selector valve switches to the cold acidic solvent, which arrives by flow right where the capsules sit. The flow is the highest the shear ceiling allows, and the front still needs about 20 s to sweep the bed, so this is slower than the roughly 1 s pool turnover. The flow-through leaves by out_n to its own collection vial.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 373.4,
+      "duration_s": 0.0,
+      "command": "collect",
+      "args": {
+        "targets": [
+          "cap_n"
+        ],
+        "volume_ul": 70.145
+      },
+      "narration": "Neurons: close the collection vial. It holds the metabolite flow-through of this lane only, ready for metabolomics. It is NOT a proteome, because proteins mostly pass the capsule shell and nothing here is lysed mildly. The RNA stays in the capsules.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 373.4,
+      "duration_s": 316.5,
+      "command": "exchange",
+      "args": {
+        "target": "cap_n",
+        "reagent": "neutralising_wash",
+        "volume_ul": 70.145,
+        "washes": 1,
+        "flow_ul_min": 13.3,
+        "waste": "out_n"
+      },
+      "narration": "Neurons: the outlet valve now sends the flow to waste. A flush of the neutralising wash removes the acidic solvent from the capsules before the transcriptome workflow, and flushes the valve bore and lines to bound carry-over to the next step.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 689.9,
+      "duration_s": 126.6,
+      "command": "transfer",
+      "args": {
+        "source": "cap_n",
+        "target": "in_n"
+      },
+      "narration": "Neurons: hand-off. out_n is pressurised and in_n drains, so the flow runs backwards through the weir and lifts the capsules out through the lane's own line to module 4. The selector valve is at the module 4 position.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 816.5,
+      "duration_s": 56.9,
+      "command": "load",
+      "args": {
+        "target": "cap_g",
+        "volume_ul": 12.6
+      },
+      "narration": "Glia: the lane's own selector valve is at its capsule feed and the capsules settle against the depth weir in cap_g, where they are held. A slurry concentrated off chip to near the packing limit fills the chamber in one chamber volume; a dilute slurry needs proportionally more. The other two lanes are capped and stay untouched.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 873.4,
+      "duration_s": 316.5,
+      "command": "exchange",
+      "args": {
+        "target": "cap_g",
+        "reagent": "cold_acidic_solvent",
+        "volume_ul": 70.145,
+        "washes": 1,
+        "flow_ul_min": 13.3,
+        "waste": "out_g"
+      },
+      "narration": "Glia: quench in place. The selector valve switches to the cold acidic solvent, which arrives by flow right where the capsules sit. The flow is the highest the shear ceiling allows, and the front still needs about 20 s to sweep the bed, so this is slower than the roughly 1 s pool turnover. The flow-through leaves by out_g to its own collection vial.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 1189.9,
+      "duration_s": 0.0,
+      "command": "collect",
+      "args": {
+        "targets": [
+          "cap_g"
+        ],
+        "volume_ul": 70.145
+      },
+      "narration": "Glia: close the collection vial. It holds the metabolite flow-through of this lane only, ready for metabolomics. It is NOT a proteome, because proteins mostly pass the capsule shell and nothing here is lysed mildly. The RNA stays in the capsules.",
+      "protocol_step": 8
+    },
+    {
+      "t_s": 1189.9,
+      "duration_s": 316.5,
+      "command": "exchange",
+      "args": {
+        "target": "cap_g",
+        "reagent": "neutralising_wash",
+        "volume_ul": 70.145,
+        "washes": 1,
+        "flow_ul_min": 13.3,
+        "waste": "out_g"
+      },
+      "narration": "Glia: the outlet valve now sends the flow to waste. A flush of the neutralising wash removes the acidic solvent from the capsules before the transcriptome workflow, and flushes the valve bore and lines to bound carry-over to the next step.",
+      "protocol_step": 9
+    },
+    {
+      "t_s": 1506.4,
+      "duration_s": 126.6,
+      "command": "transfer",
+      "args": {
+        "source": "cap_g",
+        "target": "in_g"
+      },
+      "narration": "Glia: hand-off. out_g is pressurised and in_g drains, so the flow runs backwards through the weir and lifts the capsules out through the lane's own line to module 4. The selector valve is at the module 4 position.",
+      "protocol_step": 10
+    },
+    {
+      "t_s": 1633.0,
+      "duration_s": 56.9,
+      "command": "load",
+      "args": {
+        "target": "cap_a",
+        "volume_ul": 12.6
+      },
+      "narration": "Astrocytes: the lane's own selector valve is at its capsule feed and the capsules settle against the depth weir in cap_a, where they are held. A slurry concentrated off chip to near the packing limit fills the chamber in one chamber volume; a dilute slurry needs proportionally more. The other two lanes are capped and stay untouched.",
+      "protocol_step": 11
+    },
+    {
+      "t_s": 1689.9,
+      "duration_s": 316.5,
+      "command": "exchange",
+      "args": {
+        "target": "cap_a",
+        "reagent": "cold_acidic_solvent",
+        "volume_ul": 70.145,
+        "washes": 1,
+        "flow_ul_min": 13.3,
+        "waste": "out_a"
+      },
+      "narration": "Astrocytes: quench in place. The selector valve switches to the cold acidic solvent, which arrives by flow right where the capsules sit. The flow is the highest the shear ceiling allows, and the front still needs about 20 s to sweep the bed, so this is slower than the roughly 1 s pool turnover. The flow-through leaves by out_a to its own collection vial.",
+      "protocol_step": 12
+    },
+    {
+      "t_s": 2006.4,
+      "duration_s": 0.0,
+      "command": "collect",
+      "args": {
+        "targets": [
+          "cap_a"
+        ],
+        "volume_ul": 70.145
+      },
+      "narration": "Astrocytes: close the collection vial. It holds the metabolite flow-through of this lane only, ready for metabolomics. It is NOT a proteome, because proteins mostly pass the capsule shell and nothing here is lysed mildly. The RNA stays in the capsules.",
+      "protocol_step": 13
+    },
+    {
+      "t_s": 2006.4,
+      "duration_s": 316.5,
+      "command": "exchange",
+      "args": {
+        "target": "cap_a",
+        "reagent": "neutralising_wash",
+        "volume_ul": 70.145,
+        "washes": 1,
+        "flow_ul_min": 13.3,
+        "waste": "out_a"
+      },
+      "narration": "Astrocytes: the outlet valve now sends the flow to waste. A flush of the neutralising wash removes the acidic solvent from the capsules before the transcriptome workflow, and flushes the valve bore and lines to bound carry-over to the next step.",
+      "protocol_step": 14
+    },
+    {
+      "t_s": 2322.9,
+      "duration_s": 126.6,
+      "command": "transfer",
+      "args": {
+        "source": "cap_a",
+        "target": "in_a"
+      },
+      "narration": "Astrocytes: hand-off. out_a is pressurised and in_a drains, so the flow runs backwards through the weir and lifts the capsules out through the lane's own line to module 4. The selector valve is at the module 4 position.",
+      "protocol_step": 15
+    }
+  ]
+}

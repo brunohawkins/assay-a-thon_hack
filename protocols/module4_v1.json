@@ -3,7 +3,7 @@
   "name": "Sublibrary split, index PCR, release and cleanup, library out (steps 15-17) - module4_v1",
   "source": "Capsule workflow: Baronas et al., Science 391, 1138 (2026), doi:10.1126/science.ady7227 (CapSeq). Split-pool barcoding with a final indexing PCR: Rosenberg AB et al., Science 2018;360:176, doi:10.1126/science.aam8999 (SPLiT-seq). Chip geometry, the interleaved fill order, the dead-volume accounting and the flows are ours.",
   "placeholder": false,
-  "description": "Steps 15: interleaved split and index pcr, on chip/module4_v1.json. Second half of a two-chip run; see protocols/build_library_out.py. Runs across two chips: module4_v1 for the interleaved split and index PCR, then module5_v1 for the collagenase release, the bead cleanup and the library outlet. Built in the protocol sheet's order (PCR before release); published practice releases first, so that order is contested and the reasoning is in protocols/build_library_out.py. Four chambers are filled one at a time by an off-chip rotary valve in the order A B C D D C B A, twice, to keep the sublibraries even. The PCR is written out cycle by cycle. Module 5 runs one pass per sublibrary, with an explicit dilution before the beads, no ethanol wash on chip, and ratio-based size selection left as an off-chip tube step. Reagent names are generic and the volumes, setpoints and cycle count are round placeholders to be fitted. Flows are computed from chamber geometry against a capsule-handling shear of 1 dyn/cm2; the 0.01 dyn/cm2 culture ceiling does not apply to capsules.",
+  "description": "Steps 15: interleaved split and index pcr, on chip/module4_v1.json. Second half of a two-chip run; see protocols/build_library_out.py. Runs across two chips: module4_v1 for the interleaved split and index PCR, then module5_v1 for the collagenase release, the bead cleanup and the library outlet. Built in the protocol sheet's order (PCR before release); published practice releases first, so that order is contested and the reasoning is in protocols/build_library_out.py. Four chambers are filled one at a time by an off-chip rotary valve in the order A B C D D C B A, twice, to keep the sublibraries even. The PCR is written out cycle by cycle. Module 5 runs one pass per sublibrary, with an explicit dilution before the beads, no ethanol wash on chip, and ratio-based size selection left as an off-chip tube step. Reagent names are generic and the volumes, setpoints and cycle count are round placeholders to be fitted. Flows are computed from chamber geometry so that wall shear stays at or below 0.01 dyn/cm2, and every volume is a fraction of its chamber's volume_ul.",
   "steps": [
     {
       "step": 1,
@@ -11,11 +11,24 @@
       "target": "sub_1",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 1 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 1 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s1"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s2",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 2,
@@ -23,11 +36,24 @@
       "target": "sub_2",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 2 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 2 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s2"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 3,
@@ -35,11 +61,24 @@
       "target": "sub_3",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 3 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 3 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s3"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 4,
@@ -47,11 +86,24 @@
       "target": "sub_4",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 4 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 4 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s4"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3"
+        ]
+      }
     },
     {
       "step": 5,
@@ -59,11 +111,24 @@
       "target": "sub_4",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 5 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 5 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s4"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3"
+        ]
+      }
     },
     {
       "step": 6,
@@ -71,11 +136,24 @@
       "target": "sub_3",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 6 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 6 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s3"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 7,
@@ -83,11 +161,24 @@
       "target": "sub_2",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 7 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 7 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s2"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 8,
@@ -95,11 +186,24 @@
       "target": "sub_1",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 8 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 8 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s1"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s2",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 9,
@@ -107,11 +211,24 @@
       "target": "sub_1",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 9 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 9 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s1"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s2",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 10,
@@ -119,11 +236,24 @@
       "target": "sub_2",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 10 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 10 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s2"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 11,
@@ -131,11 +261,24 @@
       "target": "sub_3",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 11 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 11 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s3"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 12,
@@ -143,11 +286,24 @@
       "target": "sub_4",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 12 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 12 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s4"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3"
+        ]
+      }
     },
     {
       "step": 13,
@@ -155,11 +311,24 @@
       "target": "sub_4",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 13 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 13 of 16: the rotary valve is at position 4 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_4 (sublibrary D). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s4"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3"
+        ]
+      }
     },
     {
       "step": 14,
@@ -167,11 +336,24 @@
       "target": "sub_3",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 14 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 14 of 16: the rotary valve is at position 3 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_3 (sublibrary C). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s3"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 15,
@@ -179,11 +361,24 @@
       "target": "sub_2",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 15 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 15 of 16: the rotary valve is at position 2 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_2 (sublibrary B). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s2"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 16,
@@ -191,11 +386,24 @@
       "target": "sub_1",
       "reagent": "pooled_capsule_suspension",
       "volume_ul": 0.6,
-      "duration_s": 11,
+      "duration_s": 18,
       "temp_c": null,
       "washes": null,
-      "flow_ul_min": 10.0,
-      "note": "Step 15, fill pulse 16 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four."
+      "flow_ul_min": 3.92,
+      "note": "Step 15, fill pulse 16 of 16: the rotary valve is at position 1 and sends one 0.6 uL pulse of the pooled capsule suspension to sub_1 (sublibrary A). The palindromic order serves every chamber at the same mean position, so settling in the reservoir averages out between the four.",
+      "ports": {
+        "feed": [
+          "in_s1"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s2",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 17,
@@ -203,11 +411,24 @@
       "target": "sub_1",
       "reagent": "index_primer_1",
       "volume_ul": 0.6,
-      "duration_s": 6,
+      "duration_s": 13,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 10.0,
-      "note": "Step 15: one index primer into sub_1 through in_s1. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber."
+      "flow_ul_min": 3.92,
+      "note": "Step 15: one index primer into sub_1 through in_s1. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
+      "ports": {
+        "feed": [
+          "in_s1"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s2",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 18,
@@ -215,11 +436,24 @@
       "target": "sub_2",
       "reagent": "index_primer_2",
       "volume_ul": 0.6,
-      "duration_s": 6,
+      "duration_s": 13,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 10.0,
-      "note": "Step 15: one index primer into sub_2 through in_s2. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber."
+      "flow_ul_min": 3.92,
+      "note": "Step 15: one index primer into sub_2 through in_s2. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
+      "ports": {
+        "feed": [
+          "in_s2"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 19,
@@ -227,11 +461,24 @@
       "target": "sub_3",
       "reagent": "index_primer_3",
       "volume_ul": 0.6,
-      "duration_s": 6,
+      "duration_s": 13,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 10.0,
-      "note": "Step 15: one index primer into sub_3 through in_s3. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber."
+      "flow_ul_min": 3.92,
+      "note": "Step 15: one index primer into sub_3 through in_s3. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
+      "ports": {
+        "feed": [
+          "in_s3"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 20,
@@ -239,59 +486,124 @@
       "target": "sub_4",
       "reagent": "index_primer_4",
       "volume_ul": 0.6,
-      "duration_s": 6,
+      "duration_s": 13,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 10.0,
-      "note": "Step 15: one index primer into sub_4 through in_s4. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber."
+      "flow_ul_min": 3.92,
+      "note": "Step 15: one index primer into sub_4 through in_s4. Each chamber gets its own, which is what tells the four sublibraries apart after sequencing. It also pushes the capsules left in the fill line into the chamber.",
+      "ports": {
+        "feed": [
+          "in_s4"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3"
+        ]
+      }
     },
     {
       "step": 21,
       "operation": "exchange",
       "target": "sub_1",
       "reagent": "pcr_mix",
-      "volume_ul": 3.1,
-      "duration_s": 27,
+      "volume_ul": 3.324,
+      "duration_s": 72,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 10.0,
-      "note": "Step 15: PCR mix into sub_1. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated."
+      "flow_ul_min": 3.92,
+      "note": "Step 15: PCR mix into sub_1. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
+      "ports": {
+        "feed": [
+          "in_s1"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s2",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 22,
       "operation": "exchange",
       "target": "sub_2",
       "reagent": "pcr_mix",
-      "volume_ul": 3.1,
-      "duration_s": 27,
+      "volume_ul": 3.324,
+      "duration_s": 72,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 10.0,
-      "note": "Step 15: PCR mix into sub_2. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated."
+      "flow_ul_min": 3.92,
+      "note": "Step 15: PCR mix into sub_2. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
+      "ports": {
+        "feed": [
+          "in_s2"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s3",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 23,
       "operation": "exchange",
       "target": "sub_3",
       "reagent": "pcr_mix",
-      "volume_ul": 3.1,
-      "duration_s": 27,
+      "volume_ul": 3.324,
+      "duration_s": 72,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 10.0,
-      "note": "Step 15: PCR mix into sub_3. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated."
+      "flow_ul_min": 3.92,
+      "note": "Step 15: PCR mix into sub_3. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
+      "ports": {
+        "feed": [
+          "in_s3"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s4"
+        ]
+      }
     },
     {
       "step": 24,
       "operation": "exchange",
       "target": "sub_4",
       "reagent": "pcr_mix",
-      "volume_ul": 3.1,
-      "duration_s": 27,
+      "volume_ul": 3.324,
+      "duration_s": 72,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 10.0,
-      "note": "Step 15: PCR mix into sub_4. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated."
+      "flow_ul_min": 3.92,
+      "note": "Step 15: PCR mix into sub_4. The fill line keeps its own volume as dead space, so the mix volume includes it. Capillary-stop vents let air out and hold the liquid, so the four reactions stay isolated.",
+      "ports": {
+        "feed": [
+          "in_s4"
+        ],
+        "vent": [
+          "p_vent"
+        ],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3"
+        ]
+      }
     },
     {
       "step": 25,
@@ -303,7 +615,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, initial denature: the whole module 4 chip, all four chambers, goes to 98 C (60 s dwell plus 24.3 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, initial denature: the whole module 4 chip, all four chambers, goes to 98 C (60 s dwell plus 24.3 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 26,
@@ -315,7 +638,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 1 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 0.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 1 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 0.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 27,
@@ -327,7 +661,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 1 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 1 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 28,
@@ -339,7 +684,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 1 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 1 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 29,
@@ -351,7 +707,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 2 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 2 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 30,
@@ -363,7 +730,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 2 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 2 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 31,
@@ -375,7 +753,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 2 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 2 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 32,
@@ -387,7 +776,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 3 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 3 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 33,
@@ -399,7 +799,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 3 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 3 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 34,
@@ -411,7 +822,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 3 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 3 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 35,
@@ -423,7 +845,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 4 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 4 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 36,
@@ -435,7 +868,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 4 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 4 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 37,
@@ -447,7 +891,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 4 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 4 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 38,
@@ -459,7 +914,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 5 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 5 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 39,
@@ -471,7 +937,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 5 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 5 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 40,
@@ -483,7 +960,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 5 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 5 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 41,
@@ -495,7 +983,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 6 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 6 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 42,
@@ -507,7 +1006,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 6 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 6 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 43,
@@ -519,7 +1029,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 6 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 6 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 44,
@@ -531,7 +1052,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 7 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 7 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 45,
@@ -543,7 +1075,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 7 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 7 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 46,
@@ -555,7 +1098,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 7 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 7 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 47,
@@ -567,7 +1121,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 8 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 8 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 48,
@@ -579,7 +1144,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 8 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 8 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 49,
@@ -591,7 +1167,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 8 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 8 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 50,
@@ -603,7 +1190,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 9 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 9 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 51,
@@ -615,7 +1213,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 9 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 9 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 52,
@@ -627,7 +1236,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 9 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 9 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 53,
@@ -639,7 +1259,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 10 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 10 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 54,
@@ -651,7 +1282,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 10 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 10 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 55,
@@ -663,7 +1305,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 10 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 10 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 56,
@@ -675,7 +1328,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 11 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 11 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 57,
@@ -687,7 +1351,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 11 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 11 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 58,
@@ -699,7 +1374,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 11 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 11 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 59,
@@ -711,7 +1397,18 @@
       "temp_c": 98.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 12 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 12 denature: the whole module 4 chip, all four chambers, goes to 98 C (10 s dwell plus 8.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 60,
@@ -723,7 +1420,18 @@
       "temp_c": 60.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 12 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 12 anneal: the whole module 4 chip, all four chambers, goes to 60 C (30 s dwell plus 12.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 61,
@@ -735,7 +1443,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cycle 12 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cycle 12 extend: the whole module 4 chip, all four chambers, goes to 72 C (30 s dwell plus 4.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 62,
@@ -747,7 +1466,18 @@
       "temp_c": 72.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, final extension: the whole module 4 chip, all four chambers, goes to 72 C (120 s dwell plus 0.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, final extension: the whole module 4 chip, all four chambers, goes to 72 C (120 s dwell plus 0.0 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     },
     {
       "step": 63,
@@ -759,7 +1489,18 @@
       "temp_c": 4.0,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Step 15, thermocycling, cool down and hold: the whole module 4 chip, all four chambers, goes to 4 C (300 s dwell plus 22.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four."
+      "note": "Step 15, thermocycling, cool down and hold: the whole module 4 chip, all four chambers, goes to 4 C (300 s dwell plus 22.7 s ramp at 3 C/s). The chambers share one heater, so one step stands for all four.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4",
+          "p_vent"
+        ]
+      }
     }
   ]
 }

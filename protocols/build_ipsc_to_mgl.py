@@ -12,7 +12,7 @@ step intends (a half exchange is 0.5), and each chamber's flow is derived from i
 width and depth. Rescale the chip, rerun this script, and the protocol follows.
 
 The chip is currently demo scale (30 x 20 mm), so the absolute numbers are tiny:
-chambers hold 0.35 to 4.4 uL and flows are a fraction of a uL/min to a few uL/min.
+chambers hold about 1 to 4.4 uL and flows are around 1 to 4 uL/min (--report prints them).
 That is what the shear ceiling allows in a 0.3 mm deep chamber this small. --report
 prints a warning for any derived flow too small to be practical, and never floors it.
 
@@ -79,6 +79,23 @@ def load_chip() -> dict[str, dict]:
 
 
 CH = load_chip()
+CHANNELS = json.loads(CHIP.read_text())["channels"]
+
+
+def weir_text(chamber: str) -> str:
+    """What the chamber's depth weir holds back, read from the chip file (empty if it has none)."""
+    w = CH[chamber].get("weir")
+    if not w:
+        return ""
+    return (f"The depth weir leaves a {w['gap_um']} um gap, so it holds back aggregates and clumps above "
+            f"about {w['retains_um']} um but lets single cells through.")
+
+
+def waste_port() -> str | None:
+    """The chip's outlet port that carries spent medium, if the chip has one."""
+    chip = json.loads(CHIP.read_text())
+    ports = [p["id"] for p in chip["ports"] if p["type"] == "outlet" and "waste" in p["id"]]
+    return ports[0] if ports else None
 
 
 def chamber_flow(c: dict) -> float:
@@ -105,8 +122,9 @@ class Protocol:
         self.t = 0.0
 
     def _add(self, operation: str, target: str, note: str, duration_s: float,
-             reagent=None, volume_ul=None, temp_c=None, washes=None, flow_ul_min=None) -> None:
-        self.steps.append({
+             reagent=None, volume_ul=None, temp_c=None, washes=None, flow_ul_min=None,
+             waste=None) -> None:
+        step = {
             "step": len(self.steps) + 1,
             "operation": operation,
             "target": target,
@@ -117,7 +135,10 @@ class Protocol:
             "washes": washes,
             "flow_ul_min": flow_ul_min,
             "note": note,
-        })
+        }
+        if waste:
+            step["waste"] = waste
+        self.steps.append(step)
         self.t += round(duration_s)
 
     def load(self, target: str, note: str, fraction: float = 1.0, duration_s: float = 600) -> None:
@@ -127,12 +148,17 @@ class Protocol:
 
     def exchange(self, target: str, reagent: str, note: str, fraction: float = 1.0,
                  washes: int = 1, duration_s: float | None = None) -> None:
-        """Move `fraction` of the chamber volume through it, `washes` times."""
+        """Move `fraction` of the chamber volume through it, `washes` times.
+
+        A chamber with a channel to a waste port drains there, so the step names it.
+        """
+        waste = waste_port() if any(c["from"] == target and c["to"] == waste_port()
+                                    for c in CHANNELS) else None
         volume = round(CH[target]["volume_ul"] * fraction, 4)
         flow = FLOW[target]
         minimum = washes * volume / flow * 60.0
         self._add("exchange", target, note, duration_s or minimum * MARGIN,
-                  reagent=reagent, volume_ul=volume, washes=washes, flow_ul_min=flow)
+                  reagent=reagent, volume_ul=volume, washes=washes, flow_ul_min=flow, waste=waste)
 
     def hold(self, target: str, temp_c: float, duration_s: float, note: str) -> None:
         if duration_s <= 0:
@@ -201,7 +227,8 @@ def build() -> dict:
         p.split("m2_hemogenic",
                 f"Harvest {n}, day {day}: carry the floating progenitors downstream. The adherent layer stays put, so it keeps producing.")
         p.exchange("m3_concentrate", "wash_buffer",
-                   "Pass the progenitors through the 30 um filter, which blocks any detached endothelial sheet, then concentrate them. This replaces a centrifugation step.",
+                   "Bring the progenitors down the line from the hemogenic chamber and concentrate them here, which replaces a centrifugation step. "
+                   + weir_text("m3_concentrate"),
                    washes=2)
         p.split("m3_concentrate",
                 "Distribute the progenitors across the four maturation chambers.")
@@ -232,7 +259,7 @@ def build() -> dict:
                "Quench with a carrier-protein buffer so the released cells do not stick to the channel walls.",
                fraction=0.5)
     p.exchange("m5_harvest", "wash_buffer",
-               "Wash twice and pass the suspension through the retention mesh twice, which removes clumps above 30 um.",
+               "Wash twice with the suspension passing over the depth weir. " + weir_text("m5_harvest"),
                fraction=0.5, washes=2)
     p.release("m5_harvest", "release_buffer",
               "Deliver a counted, filtered single-cell suspension to the outlet, ready for the encapsulation chip.")
@@ -246,7 +273,7 @@ def build() -> dict:
             "A published monolayer, embryoid-body-free, sorting-free differentiation from iPSCs to "
             "microglia-like cells, laid out across five linked modules so that nothing is handled off-chip. "
             "The one vessel transfer in the published method becomes a channel, and each centrifugation "
-            "becomes a retention mesh with liquid flowing past it. Runs about 47 days end to end, of which "
+            "becomes a trap chamber with liquid flowing past its depth weir. Runs about 47 days end to end, of which "
             "the published schedule accounts for 40. Reagent names are generic; see the source citation for "
             "compositions. Flow rates are computed from chamber geometry to keep wall shear at or below "
             "0.01 dyn/cm^2, which is below the lowest shear reported to activate this cell type."

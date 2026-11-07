@@ -1,10 +1,10 @@
 {
   "protocol_id": "m2_encapsulation",
-  "protocol_name": "Module 2: encapsulation",
+  "protocol_name": "Module 2: encapsulation (reference only)",
   "chip_id": "m2_encapsulation_v1",
   "chip_spec": "cad/m2_encapsulation_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T15:17:05Z",
+  "created_at": "2026-11-07T17:57:12Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": 10000,
@@ -17,9 +17,9 @@
     "monolayer_area_mm2_needed": 49.0,
     "trap_area_mm2": 49.0,
     "packed_volume_ul_needed": 2.806,
-    "trap_volume_ul": 7.35,
+    "trap_volume_ul": 14.7,
     "channel_width_um": [
-      80.0,
+      200.0,
       300.0
     ],
     "channel_width_um_recommended": [
@@ -32,7 +32,7 @@
     ],
     "swollen_diameter_um": 140.0
   },
-  "total_duration_s": 1538.5,
+  "total_duration_s": 1526.5,
   "events": [
     {
       "t_s": 0.0,
@@ -45,7 +45,7 @@
         "oil_flow_ul_h": 700,
         "capsules": 10000
       },
-      "narration": "Encapsulate 10,000 capsules: about 541 droplets a second, ~0.08 cells per capsule, so most capsules are empty and almost no occupied capsule holds two cells.",
+      "narration": "Encapsulate 10,000 capsules: about 541 droplets a second, ~0.08 cells per capsule, so most capsules are empty and almost no occupied capsule holds two cells. (Design intent; the clamped 200 um nozzle will not do this.)",
       "protocol_step": 1
     },
     {
@@ -62,61 +62,61 @@
     },
     {
       "t_s": 918.5,
-      "duration_s": 60.0,
+      "duration_s": 58.8,
       "command": "load",
       "args": {
         "target": "m2_trap_1",
-        "volume_ul": 20
+        "volume_ul": 14.7
       },
-      "narration": "The emulsion (~5.4 uL plus a chase) comes back onto the chip; the capsules settle in one layer on the trap mesh.",
+      "narration": "The emulsion (~5.4 uL plus a chase) comes back onto the chip through m2_trap_in_1; the capsules settle in one layer behind the weir.",
       "protocol_step": 3
     },
     {
-      "t_s": 978.5,
-      "duration_s": 60.0,
+      "t_s": 977.3,
+      "duration_s": 58.8,
       "command": "exchange",
       "args": {
         "target": "m2_trap_1",
         "reagent": "emulsion_breaker",
-        "volume_ul": 20,
+        "volume_ul": 14.7,
         "washes": 1,
-        "flow_ul_min": 20,
-        "waste": "m2_oil_waste_1"
+        "flow_ul_min": 15.0,
+        "waste": "m2_under_mesh_1"
       },
-      "narration": "Break the emulsion: the oil drains to its own waste, the capsules stay on the mesh.",
+      "narration": "Break the emulsion: the oil drains to the shared waste under the weir, the capsules stay.",
       "protocol_step": 4
     },
     {
-      "t_s": 1038.5,
-      "duration_s": 120.0,
+      "t_s": 1036.1,
+      "duration_s": 117.6,
       "command": "exchange",
       "args": {
         "target": "m2_trap_1",
         "reagent": "wash_buffer",
-        "volume_ul": 20,
+        "volume_ul": 14.7,
         "washes": 2,
-        "flow_ul_min": 20,
-        "waste": "m2_oil_waste_1"
+        "flow_ul_min": 15.0,
+        "waste": "m2_under_mesh_1"
       },
-      "narration": "Rinse twice with buffer, still to the oil waste.",
+      "narration": "Rinse twice with buffer, still to the shared waste.",
       "protocol_step": 5
     },
     {
-      "t_s": 1158.5,
-      "duration_s": 60.0,
+      "t_s": 1153.7,
+      "duration_s": 58.8,
       "command": "exchange",
       "args": {
         "target": "m2_trap_1",
         "reagent": "photoinitiator",
-        "volume_ul": 20,
+        "volume_ul": 14.7,
         "washes": 1,
-        "flow_ul_min": 20
+        "flow_ul_min": 15.0
       },
       "narration": "Photoinitiator in (0.1% LAP in the paper).",
       "protocol_step": 6
     },
     {
-      "t_s": 1218.5,
+      "t_s": 1212.5,
       "duration_s": 20.0,
       "command": "cure",
       "args": {
@@ -128,43 +128,43 @@
       "protocol_step": 7
     },
     {
-      "t_s": 1238.5,
-      "duration_s": 180.0,
+      "t_s": 1232.5,
+      "duration_s": 176.4,
       "command": "exchange",
       "args": {
         "target": "m2_trap_1",
         "reagent": "wash_buffer",
-        "volume_ul": 20,
+        "volume_ul": 14.7,
         "washes": 3,
-        "flow_ul_min": 20
+        "flow_ul_min": 15.0
       },
       "narration": "Wash three times to clear the photoinitiator.",
       "protocol_step": 8
     },
     {
-      "t_s": 1418.5,
-      "duration_s": 60.0,
+      "t_s": 1408.9,
+      "duration_s": 58.8,
       "command": "exchange",
       "args": {
         "target": "m2_trap_1",
         "reagent": "resuspension_buffer",
-        "volume_ul": 20,
+        "volume_ul": 14.7,
         "washes": 1,
-        "flow_ul_min": 20,
+        "flow_ul_min": 15.0,
         "direction": "backflush"
       },
-      "narration": "Back-flush from below to lift the capsules off the mesh.",
+      "narration": "Back-flush from m2_under_mesh_1 to lift the capsules off the weir.",
       "protocol_step": 9
     },
     {
-      "t_s": 1478.5,
-      "duration_s": 60.0,
+      "t_s": 1467.7,
+      "duration_s": 58.8,
       "command": "release",
       "args": {
         "target": "m2_trap_1",
         "reagent": "resuspension_buffer"
       },
-      "narration": "Capsules out through the 100 um aggregate filter to m2_capsule_out_1, on to Module 3.",
+      "narration": "Capsules out through the aggregate filter to m2_capsule_out_1, on to Module 3.",
       "protocol_step": 10
     }
   ]

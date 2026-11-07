@@ -11,20 +11,20 @@
     { "id": "lid", "material": "coc", "thickness_mm": 1 }
   ],
   "chambers": [
-    { "id": "sub_1", "type": "split", "center": [9, 13.5, 0.65], "size": [6.5, 4.1, 0.3], "mesh_pore_um": null, "volume_ul": 8 },
-    { "id": "sub_2", "type": "split", "center": [21, 13.5, 0.65], "size": [6.5, 4.1, 0.3], "mesh_pore_um": null, "volume_ul": 8 },
-    { "id": "sub_3", "type": "split", "center": [9, 6.5, 0.65], "size": [6.5, 4.1, 0.3], "mesh_pore_um": null, "volume_ul": 8 },
-    { "id": "sub_4", "type": "split", "center": [21, 6.5, 0.65], "size": [6.5, 4.1, 0.3], "mesh_pore_um": null, "volume_ul": 8 }
+    { "id": "sub_1", "type": "split", "center": [9, 13.5, 0.65], "size": [6.5, 4.1, 0.3], "mesh_pore_um": null, "volume_ul": 8, "block": "polygon_chamber" },
+    { "id": "sub_2", "type": "split", "center": [21, 13.5, 0.65], "size": [6.5, 4.1, 0.3], "mesh_pore_um": null, "volume_ul": 8, "block": "polygon_chamber" },
+    { "id": "sub_3", "type": "split", "center": [9, 6.5, 0.65], "size": [6.5, 4.1, 0.3], "mesh_pore_um": null, "volume_ul": 8, "block": "polygon_chamber" },
+    { "id": "sub_4", "type": "split", "center": [21, 6.5, 0.65], "size": [6.5, 4.1, 0.3], "mesh_pore_um": null, "volume_ul": 8, "block": "polygon_chamber" }
   ],
   "channels": [
-    { "id": "ch_in_1", "from": "in_s1", "to": "sub_1", "width_mm": 0.6, "depth_mm": 0.3 },
-    { "id": "ch_in_2", "from": "in_s2", "to": "sub_2", "width_mm": 0.6, "depth_mm": 0.3 },
-    { "id": "ch_in_3", "from": "in_s3", "to": "sub_3", "width_mm": 0.6, "depth_mm": 0.3 },
-    { "id": "ch_in_4", "from": "in_s4", "to": "sub_4", "width_mm": 0.6, "depth_mm": 0.3 },
-    { "id": "ch_vent_1", "from": "sub_1", "to": "p_vent", "width_mm": 0.2, "depth_mm": 0.3 },
-    { "id": "ch_vent_2", "from": "sub_2", "to": "p_vent", "width_mm": 0.2, "depth_mm": 0.3 },
-    { "id": "ch_vent_3", "from": "sub_3", "to": "p_vent", "width_mm": 0.2, "depth_mm": 0.3 },
-    { "id": "ch_vent_4", "from": "sub_4", "to": "p_vent", "width_mm": 0.2, "depth_mm": 0.3 }
+    { "id": "ch_in_1", "from": "in_s1", "to": "sub_1", "width_mm": 0.6, "depth_mm": 0.3, "block": "straight_channel" },
+    { "id": "ch_in_2", "from": "in_s2", "to": "sub_2", "width_mm": 0.6, "depth_mm": 0.3, "block": "straight_channel" },
+    { "id": "ch_in_3", "from": "in_s3", "to": "sub_3", "width_mm": 0.6, "depth_mm": 0.3, "block": "straight_channel" },
+    { "id": "ch_in_4", "from": "in_s4", "to": "sub_4", "width_mm": 0.6, "depth_mm": 0.3, "block": "straight_channel" },
+    { "id": "ch_vent_1", "from": "sub_1", "to": "p_vent", "width_mm": 0.2, "depth_mm": 0.3, "block": "flow_restrictor" },
+    { "id": "ch_vent_2", "from": "sub_2", "to": "p_vent", "width_mm": 0.2, "depth_mm": 0.3, "block": "flow_restrictor" },
+    { "id": "ch_vent_3", "from": "sub_3", "to": "p_vent", "width_mm": 0.2, "depth_mm": 0.3, "block": "flow_restrictor" },
+    { "id": "ch_vent_4", "from": "sub_4", "to": "p_vent", "width_mm": 0.2, "depth_mm": 0.3, "block": "flow_restrictor" }
   ],
   "ports": [
     { "id": "in_s1", "type": "inlet", "position": [2, 17, 1.8] },
