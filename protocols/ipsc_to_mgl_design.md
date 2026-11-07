@@ -8,6 +8,13 @@ them up in the cited sources. See [CONFIDENTIALITY.md](../CONFIDENTIALITY.md).
 
 ---
 
+![Plan view of the iPSC-to-MGL train](../cad/figures/ipsc_to_mgl_chip_v1_layout.svg)
+
+Left to right: expansion, hemogenic endothelium, the concentrator that replaces the
+centrifuge, four parallel maturation chambers, and the harvest module. Drawn to scale
+by `python cad/make_figures.py`; `cad/figures/` also holds the layer stack and the
+feature-size chart for this chip.
+
 ## What this is
 
 A differentiation that runs from iPSCs to microglia-like cells with **nothing handled

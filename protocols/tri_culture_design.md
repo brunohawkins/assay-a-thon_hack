@@ -11,6 +11,12 @@ The architecture holds. Two of the components don't, and both have published
 replacements. Everything below is from published work, cited inline, plus geometry we
 derived. See [CONFIDENTIALITY.md](../CONFIDENTIALITY.md).
 
+![Plan view of the three-lane chip](../cad/figures/tri_culture_v1_layout.svg)
+
+Three lanes, each with its own inlet and its own waste, sharing only `inlet_1` at
+seeding and `mix_1` at the end. The pink strips between the three mature chambers are
+the groove barriers. Regenerate with `python cad/make_figures.py`.
+
 ---
 
 ## 1. Tesla valves cannot work here. This is physics, not engineering
@@ -89,6 +95,8 @@ exactly what compartmentalised neuron devices do, and there is a standard geomet
 `mc_nx_mx` and `mc_mx_ax` each stand for the whole array. The schema can only express
 one channel, so `width_mm` and `depth_mm` give the single-groove cross-section.
 
+![The groove barrier at its real size, in plan and in section](../cad/figures/tri_culture_v1_barrier.svg)
+
 ### Three corrections to the sketch
 
 **They cannot be opened and closed.** A 3 µm groove has no valve in it. What the
@@ -138,6 +146,10 @@ accordingly, and says so:
 - `CHAMBERS` and `CHANNELS` → the 0.3 mm spacer, laser-cut.
 - `GROOVES` → a photolithography mask, a different process and a different layer.
 
+![Every feature size against the process floors](../cad/figures/tri_culture_v1_features.svg)
+
+![The layer stack and the process for each layer](../cad/figures/tri_culture_v1_stack.svg)
+
 Commercial alternatives exist (Xona XonaChips, Merck AXIS, NETRI DuaLink) but they are
 complete devices with fixed small chambers, not parts that bond into ours.
 
@@ -177,6 +189,11 @@ early-to-intermediate maturity, so treat it as the best available rather than se
 | Astroglial | day 45 | day 55 | day 80 |
 
 Barriers opened day 80, cross-talk to day 87, harvest day 87.
+
+![Lane schedule: staggered seeding against a simultaneous start](../cad/figures/tri_culture_v1_schedule.svg)
+
+The lower panel is what staggering avoids. The figure is drawn from
+`build_tri_culture.py` itself, so it cannot drift from the protocol.
 
 This is what published work does: Guttikonda matures neurons first and adds microglia
 last; Klimmt et al. 2026 (doi 10.1038/s41593-026-02367-0), the one wild-type tri-culture
@@ -228,7 +245,36 @@ the wash step.
 
 ---
 
-## 6. Honest limits
+## 6. Drawing it found four short circuits
+
+Worth recording, because it argues for drawing every chip before anyone cuts one.
+
+`cad/make_figures.py` checks the plan as it draws. This chip is a single layer with no
+vias, so **two channels that touch in plan view are one channel**, and a port drilled
+over a channel it isn't connected to joins two things that should never meet. The JSON
+spec cannot show that, and `tools/check_chip_spec.py` doesn't look for it. The first
+run reported four errors, all in the middle lane:
+
+| | What |
+|---|---|
+| `in_m` on `ch_seed_ax` | The myeloid feed port was drilled **through the astroglial seeding line**, 1.37 mm of overlap. Seeding the astroglial lane would have pushed iPSCs out of the myeloid inlet. |
+| `ch_feed_mx` on `ch_seed_ax` | Same cause, 0.18 mm. |
+| `waste_m` on `ch_pass_mx` | The myeloid waste port sat **on the line that carries progenitors** from `mx_hemo` to `mx_mature`. The passage step would have drained cells to waste. |
+| `ch_waste_mx` on `ch_pass_mx` | Same, 0.80 mm. |
+
+All four are the same underlying problem: the middle lane is boxed in on four sides,
+so its ports had been tucked into the only gaps left, and those gaps already had
+channels in them. Fixed by moving `in_m` to (22, 35), clear of the seeding fan, and
+`waste_m` to (91, 34), downstream of `mx_mature` rather than on its feed.
+
+The tightest remaining clearance is **0.59 mm**, between `ch_seed_mx` and `ch_feed_mx`
+where both enter `mx_hemo`. That is a real 0.59 mm rib of 0.3 mm acrylic, bonded on
+both faces, and it is the tightest non-groove feature on the chip. It cannot be
+checked properly until `cad/fabrication.json` has a measured `laser_kerf_um`.
+
+The single-lineage train chip came back clean at 1.29 mm.
+
+## 7. Honest limits
 
 - **No cells have been run.** This is an architecture and a physics budget.
 - **No published wild-type iPSC tri-culture of these three types exists in a
@@ -250,6 +296,7 @@ the wash step.
 ```bash
 python protocols/build_tri_culture.py --report
 python cad/make_train_cad.py --chip chip/tri_culture_v1.json
+python cad/make_figures.py --chip chip/tri_culture_v1.json
 python operator/run.py --protocol protocols/tri_culture_v1.json --chip chip/tri_culture_v1.json
 python tools/validate.py && python tools/check_chip_spec.py
 ```

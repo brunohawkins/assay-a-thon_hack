@@ -49,10 +49,10 @@
   "ports": [
     { "id": "inlet_1", "type": "inlet", "position": [8, 37.5, 4.8] },
     { "id": "in_n", "type": "inlet", "position": [22, 50, 4.8] },
-    { "id": "in_m", "type": "inlet", "position": [22, 32, 4.8] },
+    { "id": "in_m", "type": "inlet", "position": [22, 35, 4.8] },
     { "id": "in_a", "type": "inlet", "position": [22, 25, 4.8] },
     { "id": "waste_n", "type": "outlet", "position": [75, 68, 4.8] },
-    { "id": "waste_m", "type": "outlet", "position": [57, 37.5, 4.8] },
+    { "id": "waste_m", "type": "outlet", "position": [91, 34, 4.8] },
     { "id": "waste_a", "type": "outlet", "position": [75, 7, 4.8] },
     { "id": "outlet_1", "type": "outlet", "position": [132, 37.5, 4.8] }
   ]
