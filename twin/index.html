@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Capsule Processor Twin</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="viewport" aria-label="3D view of the chip"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"></span>
+      <div>
+        <h1>Capsule Processor</h1>
+        <p>digital twin</p>
+      </div>
+    </div>
+    <label class="picker">
+      <span>Protocol</span>
+      <select id="run-select"></select>
+    </label>
+    <div class="badges">
+      <span id="operator-badge" class="badge">planner</span>
+      <span id="placeholder-badge" class="badge warn" hidden>placeholder data</span>
+    </div>
+  </header>
+
+  <aside class="panel narration" aria-live="polite">
+    <div class="step-row">
+      <span id="step-label">Loading…</span>
+      <span id="command-chip" class="command-chip" hidden></span>
+    </div>
+    <p id="narration">Loading the run…</p>
+    <dl id="details"></dl>
+    <p id="run-meta" class="meta"></p>
+  </aside>
+
+  <footer class="controls panel">
+    <div class="buttons">
+      <button id="play" class="primary" aria-pressed="false" title="Play / pause (Space)">
+        <span class="icon" aria-hidden="true"></span><span class="label">Play</span>
+      </button>
+      <button id="step" title="Play the next command, then pause (→)">Step</button>
+      <div class="speed" role="group" aria-label="Speed">
+        <button data-speed="1" aria-pressed="true" title="1x (key 1)">1x</button>
+        <button data-speed="5" aria-pressed="false" title="5x (key 2)">5x</button>
+        <button data-speed="20" aria-pressed="false" title="20x (key 3)">20x</button>
+      </div>
+      <button id="labels-toggle" aria-pressed="true" title="Show part ids (L)">IDs</button>
+    </div>
+    <div id="timeline" title="Click to jump">
+      <div id="playhead"></div>
+    </div>
+    <span id="clock" title="Protocol time">00:00</span>
+  </footer>
+
+  <div id="toast" role="status"></div>
+  <div id="error" class="error" hidden>
+    <h2>The twin could not start</h2>
+    <p id="error-text"></p>
+  </div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
