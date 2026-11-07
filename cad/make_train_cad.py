@@ -141,7 +141,11 @@ def main() -> int:
         x, y, z = port["position"]
         anchors[port["id"]] = ([x, y, z], [PORT_SIZE_MM, PORT_SIZE_MM, 0])
 
-    chamber_lines, channel_outlines = [], []
+    # The spacer is the layer whose thickness sets the chamber height.
+    depth = chip["chambers"][0]["size"][2]
+    spacer = next((l for l in chip["layers"] if abs(l["thickness_mm"] - depth) < 1e-6), None)
+
+    chamber_lines, channel_outlines, groove_outlines = [], [], []
     for ch in chip["chambers"]:
         chamber_lines += rect_lines(ch["center"][0], ch["center"][1], ch["size"][0], ch["size"][1])
     for ch in chip["channels"]:
@@ -150,21 +154,33 @@ def main() -> int:
             continue
         p0 = clip_to_box(a[0][:2], b[0][:2], a[0], a[1])
         p1 = clip_to_box(b[0][:2], a[0][:2], b[0], b[1])
-        channel_outlines += channel_lines(p0, p1, ch["width_mm"])
+        outline = channel_lines(p0, p1, ch["width_mm"])
+        # A channel shallower than the spacer is not in the spacer, so it is not cut
+        # with it. Sub-10 um depths need photolithography, not a laser.
+        if spacer and ch["depth_mm"] < spacer["thickness_mm"] - 1e-6:
+            groove_outlines += outline
+        else:
+            channel_outlines += outline
 
     dxf = EXPORTS / f"{chip['id']}.dxf"
-    write_dxf(dxf, {"CHAMBERS": chamber_lines, "CHANNELS": channel_outlines})
+    layers = {"CHAMBERS": chamber_lines, "CHANNELS": channel_outlines}
+    if groove_outlines:
+        layers["GROOVES"] = groove_outlines
+    write_dxf(dxf, layers)
     written.append(dxf)
 
-    spacer = next((l for l in chip["layers"] if "psa" in l["material"] or l is chip["layers"][1]), None)
     print(f"chip {chip['id']}: {len(by_id)} chambers, {len(chip['ports'])} ports, "
           f"{len(chip['channels'])} channels")
     for p in written:
         print(f"  wrote cad/exports/{p.name}")
     if spacer:
-        print(f"\n{dxf.name} is the cut path for the '{spacer['id']}' layer "
-              f"({spacer['thickness_mm']} mm {spacer['material']}).")
-        print("Layers in the DXF: CHAMBERS, CHANNELS. Units are mm, origin as in the chip spec.")
+        print(f"\n{dxf.name}: CHAMBERS and CHANNELS are the cut path for the '{spacer['id']}' "
+              f"layer ({spacer['thickness_mm']} mm {spacer['material']}). Units mm, chip-spec origin.")
+    if groove_outlines:
+        shallow = min(c["depth_mm"] for c in chip["channels"]) * 1000
+        print(f"  GROOVES is a SEPARATE layer and a separate process. Its shallowest feature is "
+              f"{shallow:g} um,\n  which a laser cutter cannot make (about 80 um minimum, with "
+              f"roughness of a few um).\n  Treat that layer as a photolithography mask, not a cut path.")
     return 0
 
 
