@@ -18,6 +18,12 @@ Errors (exit code 1):
     filter chamber whose purpose is cells), including the nozzle of a chip DOWNSTREAM across
     a pipeline hand-off (Module 1b's filter vs Module 2's nozzle); a pass prints an OK line
   - thermal zone (or protocol hold_temp) above the chip material's max working temperature
+  - port overlap: a port's hole (a square of its width_um, else contracts/blocks.json's
+    min_port_mm bore) must open onto the cut channel or chamber under it by at least 1 mm2,
+    or by a quarter of the hole's own area when the hole is smaller than 2 x 2 mm (a 0.8 mm
+    bore holds 0.64 mm2 in all, so 1 mm2 can't be met; a quarter is what 1 mm2 is of the
+    2 mm holes the rule was written for). The cut area is the chip's exported DXF
+    (cad/exports/<chip>/<chip>.dxf, CHANNELS and CHAMBERS) when there is one, else the spec.
 Warnings:
   - fabricated feature smaller than the fabrication minimum in cad/fabrication.json
     (fabrication limits never block the design; while they're TODO, one summary warning)
@@ -31,6 +37,8 @@ TODO lines: fabrication limits still unknown; parts marked fabricable: false (by
 from __future__ import annotations
 
 import argparse
+import json
+import math
 import sys
 from pathlib import Path
 
@@ -44,6 +52,8 @@ import sizing  # noqa: E402
 
 TRAP_MAX_FACTOR = 0.4
 CHANNEL_MIN_FACTOR = 1.5
+PORT_OVERLAP_MM2 = 1.0          # the rule as given, for a 2 x 2 mm hole
+PORT_OVERLAP_SMALL_FRACTION = 0.25   # the same rule scaled to holes under 4 mm2
 CULTURE_WORDS = ("culture", "media", "medium")
 
 
@@ -139,7 +149,7 @@ def downstream_nozzles(chip: dict) -> list[tuple[float, str, str]]:
 
 
 def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, materials: dict, fab: dict,
-          downstream: list[tuple[float, str, str]] | None = None) -> Findings:
+          downstream: list[tuple[float, str, str]] | None = None, blocks: dict | None = None) -> Findings:
     f = Findings()
     caps = chip.get("capsule", {})
     d = caps.get("diameter_um", param(params, "capsule.diameter_um"))
@@ -251,10 +261,14 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
     if not_here:
         f.todo.append("not fabricable here (by design): " + ", ".join(
             f"{ch['id']} ({ch['width_mm'] * 1000:g} x {ch['depth_mm'] * 1000:g} um)" for ch in not_here))
+    # IN-PLANE ONLY. The fabrication minimum is a lateral limit: it is what the printer can
+    # resolve in x-y and what the embossing tool can replicate as a standing feature. DEPTH
+    # is set in z by the mould relief or the layer stack and is free below it - that is the
+    # whole reason a depth weir can retain a 70 um capsule when no printable in-plane gap
+    # can. Checking depth against the lateral floor produced ~90 false warnings.
     features = [(f"channel '{ch['id']}' width", ch["width_mm"] * 1000) for ch in made_here]
-    features += [(f"channel '{ch['id']}' depth", ch["depth_mm"] * 1000) for ch in made_here]
     features += [(f"port '{p['id']}' width", p["width_um"]) for p in ports.values() if "width_um" in p]
-    features += [(f"chamber '{c['id']}' height", c["height_um"]) for c in chambers.values() if "height_um" in c]
+    # chamber height is z, like channel depth: not a lateral feature, so not checked here.
     features += [(f"chamber '{c['id']}' {c['retention']['type']} opening", c["retention"]["opening_um"])
                  for c in chambers.values() if c.get("retention", {}).get("source") == "fabricated"]
     known = [v for v in (fab.get("laser_kerf_um"), fab.get("min_embossed_feature_um")) if isinstance(v, (int, float))]
@@ -276,10 +290,10 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
         inputs = {"capsule_diameter_um": d}
         if "count" in caps:
             inputs["capsule_count"] = caps["count"]
-        if "chambers_per_round" in bc:
-            inputs["split_chambers_per_round"] = bc["chambers_per_round"]
-        if "rounds" in bc:
-            inputs["barcoding_rounds"] = bc["rounds"]
+        # Split-and-pool is dropped. A chip may still carry the old rounds/chambers_per_round
+        # keys, but they no longer describe anything, so they are ignored rather than passed on.
+        if "lanes" in bc:
+            inputs["barcoding_lanes"] = bc["lanes"]
         if "sublibraries" in bc:
             inputs["sublibraries"] = bc["sublibraries"]
         r = sizing.compute(inputs)
@@ -304,7 +318,176 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
             f.todo.append(f"compatibility TODO: {mat['name']} with {', '.join(todo)}")
         if bad:
             f.warn(f"{mat['name']} is incompatible with {', '.join(bad)}")
+    if blocks:
+        check_blocks(chip, blocks, f)
+    check_port_overlap(chip, f, blocks)
     return f
+
+
+# --- port overlap: does each lid hole open onto the cut area under it? ---------------------
+
+def _dxf_outlines(chip_id: str) -> tuple[list[list[tuple[float, float]]], str] | tuple[None, None]:
+    """Cut outlines (CHANNELS and CHAMBERS layers) of the chip's exported DXF, if there is one.
+    cad/make_train_cad.py writes each outline as 4 consecutive LINE entities."""
+    for path in (ROOT / "cad" / "exports" / chip_id / f"{chip_id}.dxf", ROOT / "cad" / "exports" / f"{chip_id}.dxf"):
+        if not path.is_file():
+            continue
+        tokens = path.read_text(errors="replace").split("\n")
+        starts, cur, layer = [], None, None
+        for code, val in zip(tokens[0::2], tokens[1::2]):
+            code, val = code.strip(), val.strip()
+            if code == "0":
+                if cur is not None and layer in ("CHANNELS", "CHAMBERS") and "10" in cur and "20" in cur:
+                    starts.append((cur["10"], cur["20"]))
+                cur, layer = ({} if val == "LINE" else None), None
+            elif cur is not None and code == "8":
+                layer = val
+            elif cur is not None and code in ("10", "20"):
+                cur[code] = float(val)
+        polys = [starts[i:i + 4] for i in range(0, len(starts) - 3, 4)]
+        return polys, path.relative_to(ROOT).as_posix()
+    return None, None
+
+
+def _spec_outlines(chip: dict) -> list[list[tuple[float, float]]]:
+    """Chambers as boxes, channels as rectangles along their path (else straight between centres)."""
+    at = {c["id"]: c["center"][:2] for c in chip.get("chambers", [])} | {p["id"]: p["position"][:2] for p in chip.get("ports", [])}
+    polys = [[(c["center"][0] + sx * c["size"][0] / 2, c["center"][1] + sy * c["size"][1] / 2)
+              for sx, sy in ((-1, -1), (1, -1), (1, 1), (-1, 1))] for c in chip.get("chambers", [])]
+    for ch in chip.get("channels", []):
+        pts = ch.get("path") or [at.get(ch["from"]), at.get(ch["to"])]
+        if any(p is None for p in pts):
+            continue
+        for a, b in zip(pts, pts[1:]):
+            dx, dy = b[0] - a[0], b[1] - a[1]
+            n = math.hypot(dx, dy) or 1.0
+            px, py = -dy / n * ch["width_mm"] / 2, dx / n * ch["width_mm"] / 2
+            polys.append([(a[0] + px, a[1] + py), (b[0] + px, b[1] + py), (b[0] - px, b[1] - py), (a[0] - px, a[1] - py)])
+    return polys
+
+
+def _inside(x: float, y: float, poly) -> bool:
+    hit = False
+    for i in range(len(poly)):
+        (x1, y1), (x2, y2) = poly[i], poly[(i + 1) % len(poly)]
+        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
+            hit = not hit
+    return hit
+
+
+def port_overlaps(chip: dict, blocks: dict | None = None, n: int = 50, polys: list | None = None,
+                  source: str | None = None) -> list[dict]:
+    """For every fluid port: its hole side, the cut area under it (mm2), what that must be, and the source.
+    polys/source: measure against these outlines instead (tools/check_asbuilt.py passes an as-built file's)."""
+    if blocks is None:
+        try:
+            blocks = json.loads((ROOT / "contracts" / "blocks.json").read_text())
+        except (OSError, ValueError):
+            blocks = {}
+    floor = (blocks.get("fabrication_floors") or {}).get("min_port_mm", 2.0)
+    if polys is None:
+        polys, source = _dxf_outlines(chip.get("id", ""))
+        if not polys:
+            polys, source = _spec_outlines(chip), "the spec (no exported DXF)"
+    out = []
+    for p in chip.get("ports", []):
+        if p.get("type") == "control":
+            continue
+        side = (p.get("width_um") or floor * 1000) / 1000
+        x0, y0 = p["position"][0] - side / 2, p["position"][1] - side / 2
+        near = [q for q in polys if min(v[0] for v in q) <= x0 + side and max(v[0] for v in q) >= x0
+                and min(v[1] for v in q) <= y0 + side and max(v[1] for v in q) >= y0]
+        hits = sum(any(_inside(x0 + (i + 0.5) * side / n, y0 + (j + 0.5) * side / n, q) for q in near)
+                   for i in range(n) for j in range(n)) if near else 0
+        area = side * side
+        need = PORT_OVERLAP_MM2 if area >= 4.0 else PORT_OVERLAP_SMALL_FRACTION * area
+        out.append({"port": p["id"], "side_mm": side, "overlap_mm2": hits / (n * n) * area, "need_mm2": need, "source": source,
+                    "tolerance_mm2": area / n})  # one row of samples
+    return out
+
+
+def check_port_overlap(chip: dict, f: "Findings", blocks: dict | None = None) -> None:
+    for r in port_overlaps(chip, blocks):
+        msg = (f"port overlap: '{r['port']}' {r['side_mm']:g} mm hole opens onto {r['overlap_mm2']:.2f} mm2 of cut channel/chamber "
+               f"(needs >= {r['need_mm2']:.2f} mm2; geometry from {r['source']})")
+        if r["overlap_mm2"] + r["tolerance_mm2"] < r["need_mm2"]:
+            f.error(msg + ": run the channel across the hole or add a port pad under it")
+        else:
+            f.ok.append(msg)
+
+
+def _num(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def check_blocks(chip: dict, blocks: dict, f: Findings) -> None:
+    """Fabrication envelope, floors and CAD block library from contracts/blocks.json."""
+    env = blocks.get("envelope", {})
+    floors = blocks.get("fabrication_floors", {})
+    library = set(blocks.get("basic", {})) | set(blocks.get("advanced", {}))
+    chambers = [c for c in chip.get("chambers", []) if isinstance(c, dict)]
+    channels = [c for c in chip.get("channels", []) if isinstance(c, dict)]
+    ports = [p for p in chip.get("ports", []) if isinstance(p, dict)]
+
+    fp = chip.get("footprint") or {}
+    for axis, key in (("x", "max_x_mm"), ("y", "max_y_mm")):
+        if _num(fp.get(axis)) and _num(env.get(key)) and fp[axis] > env[key]:
+            f.error(f"footprint {axis} {fp[axis]:g} mm > build envelope {key} {env[key]:g} mm")
+
+    max_depth = env.get("max_depth_mm")
+    chamber_depths = []
+    for c in chambers:
+        size = c.get("size")
+        if isinstance(size, list) and len(size) > 2 and _num(size[2]):
+            chamber_depths.append(size[2])
+            if _num(max_depth) and size[2] > max_depth:
+                f.error(f"chamber '{c.get('id')}' is {size[2]:g} mm deep, > max depth {max_depth:g} mm")
+    for ch in channels:
+        if _num(max_depth) and _num(ch.get("depth_mm")) and ch["depth_mm"] > max_depth:
+            f.error(f"channel '{ch.get('id')}' is {ch['depth_mm']:g} mm deep, > max depth {max_depth:g} mm")
+
+    for kind, items in (("chamber", chambers), ("channel", channels)):
+        for item in items:
+            if "block" not in item:
+                f.warn(f"{kind} '{item.get('id')}' has no \"block\" field: we cannot fabricate what we cannot name")
+            elif item["block"] not in library:
+                f.error(f"{kind} '{item.get('id')}' declares block '{item['block']}', which is not in the CAD block "
+                        f"library (contracts/blocks.json basic/advanced)")
+
+    max_ports = floors.get("max_ports_per_chip")
+    if _num(max_ports) and len(ports) > max_ports:
+        f.error(f"{len(ports)} ports > max {max_ports:g} ports per chip")
+
+    pitch = floors.get("min_port_pitch_mm")
+    if _num(pitch):
+        placed = [p for p in ports if isinstance(p.get("position"), list) and len(p["position"]) >= 2
+                  and _num(p["position"][0]) and _num(p["position"][1])]
+        for i, a in enumerate(placed):
+            for b in placed[i + 1:]:
+                dist = ((a["position"][0] - b["position"][0]) ** 2 + (a["position"][1] - b["position"][1]) ** 2) ** 0.5
+                if dist < pitch - 1e-9:
+                    f.warn(f"ports '{a.get('id')}' and '{b.get('id')}' are {dist:.2f} mm apart, closer than the "
+                           f"{pitch:g} mm minimum port pitch")
+
+    min_open = floors.get("min_open_channel_mm")
+    if _num(min_open):
+        for ch in channels:
+            if _num(ch.get("width_mm")) and ch["width_mm"] < min_open:
+                f.error(f"channel '{ch.get('id')}' is {ch['width_mm']:g} mm wide, below the {min_open:g} mm "
+                        f"minimum open channel")
+
+    fluidic = [la for la in chip.get("layers", []) if isinstance(la, dict) and _num(la.get("thickness_mm"))
+               and any(abs(la["thickness_mm"] - d) < 1e-9 for d in chamber_depths)]
+    if len(fluidic) > 1:
+        f.warn(f"{len(fluidic)} layers ({', '.join(str(la.get('id')) for la in fluidic)}) match a chamber depth: "
+               f"we print one fluidic layer")
+
+    if _num(min_open):
+        for c in chambers:
+            pore = c.get("mesh_pore_um")
+            if _num(pore) and pore < min_open * 1000:
+                f.warn(f"chamber '{c.get('id')}' declares mesh_pore_um {pore:g}, below the {min_open * 1000:g} um we can "
+                       f"print: replace it with pillar_array, trap_chamber, pillar_funnel_trap or dld_array")
 
 
 def _segments(path: list[list[float]]) -> list[tuple[tuple[float, float], tuple[float, float]]]:
@@ -353,6 +536,11 @@ def main(argv: list[str] | None = None) -> int:
     params = schema_io.load_json(ROOT / "contracts" / "parameters.json")
     materials = schema_io.load_json(ROOT / "contracts" / "materials.json")["materials"]
     fab = schema_io.load_json(ROOT / "cad" / "fabrication.json")
+    blocks_path = ROOT / "contracts" / "blocks.json"
+    try:
+        blocks = schema_io.load_json(blocks_path) if blocks_path.exists() else None
+    except ValueError:
+        blocks = None
     total_errors = 0
     for path in spec_paths(args.specs):
         chip = schema_io.load_json(path)
@@ -362,7 +550,7 @@ def main(argv: list[str] | None = None) -> int:
             total_errors += 1
             continue
         protocols = paired_protocols(chip, args.protocol)
-        f = check(chip, protocols, params, materials, fab, downstream_nozzles(chip))
+        f = check(chip, protocols, params, materials, fab, downstream_nozzles(chip), blocks)
         names = ", ".join(p.stem for p, _ in protocols) or "none"
         print(f"{rel(path)}  (chip {chip['id']}; protocols: {names})")
         for o in f.ok:

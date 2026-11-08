@@ -93,12 +93,15 @@ def build_spec(dims: dict) -> dict:
     lay = layout(dims)
     d, hw = dims["well_diameter_mm"], dims["well_depth_mm"]
     material = str(dims.get("material") or "unknown")
+    if material.lower() in ("unknown", "tbc", ""):
+        material = "printed_resin"  # a printed resin test coupon; the id in contracts/materials.json
     well_volume_ul = round(math.pi * (d / 2) ** 2 * hw, 4)  # 1 mm^3 = 1 uL
     fx, fy = lay["footprint"]
 
     def well(cid: str, center: tuple) -> dict:
         return {"id": cid, "type": "well", "center": [round(v, 4) for v in center],
-                "size": [d, d, hw], "mesh_pore_um": None, "volume_ul": well_volume_ul, "open_top": True}
+                "size": [d, d, hw], "mesh_pore_um": None, "volume_ul": well_volume_ul, "open_top": True,
+                "block": "polygon_chamber"}
 
     return {
         "id": CHIP_ID,
@@ -116,7 +119,7 @@ def build_spec(dims: dict) -> dict:
         "chambers": [well("well_1", lay["well_1_center"]), well("well_2", lay["well_2_center"])],
         "channels": [{"id": "channel_1", "from": "well_1", "to": "well_2",
                       "width_mm": dims["channel_width_mm"], "depth_mm": dims["channel_depth_mm"],
-                      "open_top": True}],
+                      "open_top": True, "block": "straight_channel"}],
         "ports": [],
     }
 

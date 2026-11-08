@@ -23,7 +23,9 @@ SHEET = {
     "channel_width_low_um": 105,                      # B28
     "channel_width_high_um": 140,                     # B29
     "swollen_diameter_um": 140,                       # B30
-    "barcode_combinations": 512,                      # B31
+    # Split-and-pool is dropped, so the sheet's 8^3 = 512 no longer applies: the only
+    # barcodes left are the 3 per-lane lipid oligos the cells already carry.
+    "barcode_combinations": 3,                        # B31
     "aqueous_flow_ul_h": 350,                         # B34
     "capsules_per_hour": 1948836.03785994,            # B35
     "generation_rate_hz": 541.343343849984,           # B36
@@ -33,14 +35,14 @@ SHEET = {
     "fraction_multi_of_occupied": 0.0379908729079278, # B40
     "hours_to_encapsulate": 0.0513126800086333,       # B41
     "cells_captured": 7696.90200129499,               # B42
-    "barcode_reagent_lines": 24,                      # B54
-    "total_reagent_inlets": 36,                       # B55
-    "valves": 36,                                     # B56
-    "capsules_per_split_chamber": 12500,              # B57
-    "packed_volume_per_split_chamber_ul": 3.50770273496517,  # B58
+    "barcode_reagent_lines": 0,                       # B54 (cells arrive barcoded)
+    "total_reagent_inlets": 12,                       # B55
+    "valves": 12,                                     # B56
+    "capsules_per_sublibrary": 25000,                 # B57
+    "packed_volume_per_sublibrary_ul": 7.015405469930339,    # B58
     "wash_volume_per_exchange_ul": 420.92432819582,   # B59
-    "total_wash_buffer_ml": 2.52554596917492,         # B60
-    "barcode_combinations_with_sublibraries": 2048,   # B61
+    "total_wash_buffer_ml": 1.68369731278328,         # B60
+    "barcode_combinations_with_sublibraries": 12,     # B61 (3 lanes x 4 sublibraries)
     "capsules_needed_for_target_cells": 25984.4805047992,    # B62
 }
 
@@ -74,14 +76,14 @@ class Modes(unittest.TestCase):
     def test_cell_mode_sizes_everything_from_derived_count(self):
         r = sizing.compute({"target_cells": 100000}, mode="cells")
         same = sizing.compute({"capsule_count": r["capsule_count"]})
-        for key in ("packed_volume_ul", "monolayer_area_cm2", "capsules_per_split_chamber", "hours_to_encapsulate"):
+        for key in ("packed_volume_ul", "monolayer_area_cm2", "capsules_per_sublibrary", "hours_to_encapsulate"):
             self.assertAlmostEqual(r[key], same[key], places=9)
         self.assertGreater(r["capsule_count"], 1_000_000)   # most capsules are empty
 
     def test_mvp_preset(self):
         _, r = sizing.scenario("mvp")
         self.assertEqual(r["capsule_count"], 10000)
-        self.assertEqual(r["barcode_combinations"], 512)
+        self.assertEqual(r["barcode_combinations"], 3)
         self.assertAlmostEqual(r["monolayer_area_cm2"], 0.49, places=9)            # 7 x 7 mm
 
 
@@ -94,7 +96,8 @@ class Collisions(unittest.TestCase):
     def test_warns_above_5_percent(self):
         many = sizing.compute({"target_cells": 100000}, mode="cells")
         self.assertTrue(any("barcode collisions" in w for w in many["warnings"]))
-        few = sizing.compute({"target_cells": 50, "split_chambers_per_round": 96}, mode="cells")
+        # No split-and-pool to widen any more: the only lever left is sublibraries.
+        few = sizing.compute({"target_cells": 2, "sublibraries": 96}, mode="cells")
         self.assertLess(few["barcode_collision_fraction"], 0.05)
         self.assertFalse(any("barcode collisions" in w for w in few["warnings"]))
 

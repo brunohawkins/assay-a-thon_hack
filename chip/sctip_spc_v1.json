@@ -1,0 +1,389 @@
+{
+  "id": "sctip_spc_v1",
+  "name": "SPC barcoding and capsule handling (stage B)",
+  "description": "DEMO SCALE (0.192 of the original 150 x 100 mm). STAGE A HAS BEEN RETIRED: its flow-focusing encapsulator duplicated spc_demo_v1, which is the only encapsulation geometry we can actually fabricate, and it was also what made this chip impossible to build - flow focusing needs shell, core, oil and an outlet simultaneously, which with stage B pushed the chip to 13 ports against a limit of 6. What remains is stage B: capsule packing, emulsion breaking and the wash trap. Capsules arrive already made from spc_demo_v1. Sequential inlets share in_reagent and in_load behind off-chip selector valves. The trap's retention opening cannot be printed in plane (200 um floor against a 70 um capsule) and must be a depth weir or a bought mesh - see contracts/blocks.json. The authoritative weir there is a 272 um crest leaving a 28 um gap in a 300 um layer (retains about 70 um capsules), UNTESTED, with the z tolerance (about +/-20 um on a 28 um gap) the biggest unknown. This chip is only 0.15 mm deep, so a 272 um crest does not fit and trap_1 is deliberately given no structured weir object: it relies on packed-bed geometry and gravity (see its note), or a bought mesh insert. Stage B was re-laid out after scaling: at 30 x 20 mm the original 150 x 100 mm routing crossed itself in eight places, and in a single-layer chip a crossing is a short circuit, so chambers and ports were re-placed until the plan is crossing-free.",
+  "placeholder": false,
+  "units": "mm",
+  "footprint": {
+    "x": 30,
+    "y": 20
+  },
+  "layers": [
+    {
+      "id": "base",
+      "material": "coc",
+      "thickness_mm": 1
+    },
+    {
+      "id": "channels",
+      "material": "coc",
+      "thickness_mm": 0.15
+    },
+    {
+      "id": "lid",
+      "material": "coc",
+      "thickness_mm": 0.2
+    }
+  ],
+  "chambers": [
+    {
+      "id": "pack_1",
+      "type": "junction",
+      "center": [
+        7,
+        13.5,
+        1.075
+      ],
+      "size": [
+        0.2,
+        0.2,
+        0.15
+      ],
+      "volume_ul": 0.006,
+      "note": "Close-packed re-injection entrance, 115 um wide against a 135 um capsule (0.85 x d). This ratio is what beats Poisson on the capsule: published work gets 93-97% single occupancy this way. It is also the reason the capsules are 135 um and not 70 um.",
+      "block": "flow_focusing_funnel"
+    },
+    {
+      "id": "nozzle_2",
+      "type": "junction",
+      "center": [
+        21,
+        13.5,
+        1.075
+      ],
+      "size": [
+        0.2,
+        0.2,
+        0.15
+      ],
+      "volume_ul": 0.006,
+      "note": "Second flow-focusing cross, 150 um orifice, cuts one capsule plus its barcode back into oil.",
+      "block": "flow_focusing"
+    },
+    {
+      "id": "brk_1",
+      "type": "filter",
+      "center": [
+        7,
+        6.5,
+        1.075
+      ],
+      "size": [
+        2.304,
+        1.536,
+        0.15
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.531,
+      "note": "Phase separation. A row of 100 x 150 um slots on a 300 um pitch, wetted for the aqueous phase; oil leaves through the separate hydrophobic line to out_oil. This is the step the bench protocol loses the most capsules at, so it is the main thing the chip is for.",
+      "block": "phase_guide"
+    },
+    {
+      "id": "trap_1",
+      "type": "cell_wash",
+      "center": [
+        14,
+        6.5,
+        1.075
+      ],
+      "size": [
+        2.688,
+        2.688,
+        0.15
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 1.084,
+      "note": "Packed-bed trap replacing ~20 centrifugation steps. Retention is by chamber geometry and gravity with downward flow, NOT by a size gap: a liquid-core capsule deforms, and the gap that would reliably hold a 135 um capsule is ~0.5-0.6 x d = 70-80 um, which we cannot make. Buffer exchange is diffusion-limited at ~2-5 min, not flush-limited.",
+      "block": "trap_chamber"
+    }
+  ],
+  "channels": [
+    {
+      "id": "ch_caps_pack",
+      "from": "in_load",
+      "to": "pack_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "path": [
+        [
+          28.8,
+          12.5
+        ],
+        [
+          28.8,
+          7
+        ],
+        [
+          18.5,
+          7
+        ],
+        [
+          18.5,
+          9.5
+        ],
+        [
+          15.2,
+          9.5
+        ]
+      ],
+      "block": "channel_corner"
+    },
+    {
+      "id": "ch_mix_pack",
+      "from": "in_reagent",
+      "to": "pack_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "path": [
+        [
+          12,
+          18.8
+        ],
+        [
+          15.2,
+          18.8
+        ],
+        [
+          15.2,
+          9.5
+        ]
+      ],
+      "block": "channel_corner"
+    },
+    {
+      "id": "ch_pack_n2",
+      "from": "pack_1",
+      "to": "nozzle_2",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "path": [
+        [
+          15.2,
+          9.5
+        ],
+        [
+          15.2,
+          4.5
+        ]
+      ],
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_oil2_n2",
+      "from": "in_oil",
+      "to": "nozzle_2",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "path": [
+        [
+          1.2,
+          4.5
+        ],
+        [
+          15.2,
+          4.5
+        ]
+      ],
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_n2_out",
+      "from": "nozzle_2",
+      "to": "out_drop",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "path": [
+        [
+          15.2,
+          4.5
+        ],
+        [
+          28.8,
+          4.5
+        ]
+      ],
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_emul_brk",
+      "from": "in_load",
+      "to": "brk_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "path": [
+        [
+          28.8,
+          12.5
+        ],
+        [
+          28.8,
+          7
+        ],
+        [
+          22.5,
+          7
+        ],
+        [
+          22.5,
+          8.23
+        ]
+      ],
+      "block": "channel_corner"
+    },
+    {
+      "id": "ch_brk_oil",
+      "from": "brk_1",
+      "to": "out_waste",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "path": [
+        [
+          23.65,
+          9.0
+        ],
+        [
+          26,
+          9.0
+        ],
+        [
+          26,
+          18.8
+        ],
+        [
+          19,
+          18.8
+        ]
+      ],
+      "block": "channel_corner"
+    },
+    {
+      "id": "ch_brk_trap",
+      "from": "brk_1",
+      "to": "trap_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "path": [
+        [
+          22.5,
+          9.77
+        ],
+        [
+          22.5,
+          14.15
+        ]
+      ],
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_wash_trap",
+      "from": "in_reagent",
+      "to": "trap_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "path": [
+        [
+          12,
+          18.8
+        ],
+        [
+          16.2,
+          18.8
+        ],
+        [
+          16.2,
+          15.5
+        ],
+        [
+          21.16,
+          15.5
+        ]
+      ],
+      "block": "channel_corner"
+    },
+    {
+      "id": "ch_trap_waste",
+      "from": "trap_1",
+      "to": "out_waste",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "path": [
+        [
+          22.5,
+          16.85
+        ],
+        [
+          22.5,
+          18.8
+        ],
+        [
+          19,
+          18.8
+        ]
+      ],
+      "block": "channel_corner"
+    }
+  ],
+  "ports": [
+    {
+      "id": "in_reagent",
+      "type": "inlet",
+      "position": [
+        28,
+        10,
+        1.35
+      ],
+      "role": "reagent",
+      "note": "off-chip selector valve: shell polymer (stage A, to filt_shell) / amplification mix + single-copy barcode (stage B, to pack_1) / wash and reagent buffers (stage C, to trap_1). Merged from in_shell, in_mix, in_wash."
+    },
+    {
+      "id": "out_waste",
+      "type": "outlet",
+      "position": [
+        10,
+        1.5,
+        1.35
+      ],
+      "role": "waste",
+      "capsule_passable": true,
+      "width_um": 800,
+      "note": "off-chip selector valve: oil waste, aqueous waste below the bed, and back-flushed capsule recovery. Merged from out_oil, out_waste, out_recover."
+    },
+    {
+      "id": "in_load",
+      "type": "inlet",
+      "position": [
+        2,
+        3,
+        1.35
+      ],
+      "role": "load",
+      "capsule_passable": true,
+      "width_um": 800,
+      "note": "off-chip selector valve: cured capsules, close-packed (stage B, to pack_1) / thermocycled emulsion back from the tube (stage C, to brk_1). Merged from in_caps, in_emul."
+    },
+    {
+      "id": "out_drop",
+      "type": "outlet",
+      "position": [
+        18,
+        18.5,
+        1.35
+      ],
+      "role": "transfer",
+      "capsule_passable": true,
+      "width_um": 800,
+      "note": "one capsule per droplet, to the thermocycler"
+    },
+    {
+      "id": "in_oil",
+      "type": "inlet",
+      "position": [
+        24,
+        18.5,
+        1.35
+      ],
+      "role": "oil",
+      "note": "carrier oil for both nozzles. Merged from in_oil1, in_oil2."
+    }
+  ]
+}

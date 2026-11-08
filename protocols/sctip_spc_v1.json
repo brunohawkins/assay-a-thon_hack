@@ -1,0 +1,535 @@
+{
+  "id": "sctip_spc_v1",
+  "name": "Capsule generation and single-copy barcoding",
+  "source": "Chromatin workflow and the T7-promoter transposon: Bartlett DA et al., J Cell Biol 2021;220:e202103078, doi:10.1083/jcb.202103078 (TIP-seq; in-situ tagmentation in permeabilised cells, then T7 linear amplification). Single-copy barcode clonally amplified in a compartment and joined by overlap extension: Garcia-Bassets I et al., bioRxiv 2024, doi:10.1101/2024.08.13.607508 (AmpliDrop). Semipermeable core-shell capsules, the ~300 bp retention cutoff and capsule survival of thermocycling: Leonaviciene G & Mazutis L, Nucleic Acids Res 2023;51:e2, doi:10.1093/nar/gkac918, and Baronas D et al., Science 2026;391:1138, doi:10.1126/science.ady7227. Close-packed re-injection of hydrogel particles for single occupancy: Du X et al., Anal Chem 2025, doi:10.1021/acs.analchem.5c05488; Clark IC & Abate AR, Lab Chip 2018, doi:10.1039/C8LC00514A. Overlap extension: Horton RM et al., Gene 1989;77:61, doi:10.1016/0378-1119(89)90359-4.",
+  "placeholder": false,
+  "description": "Gives each of about 22 capsules of 390 um (the packed bed the trap holds) a single-copy barcode from a large pool, clonally amplifies and attaches that barcode inside an oil droplet, then breaks the emulsion and traps and washes the capsules on chip in place of about twenty centrifugation steps. Capsules arrive from spc_demo_v1; stage A is retired. Replaces plate-based split-and-pool barcoding with one step. Runs about 20 h, mostly the overnight transcription hold. Every volume is a number of chamber volumes and every flow keeps wall shear in its chambers at or below 0.01 dyn/cm2 (nozzle streams excepted: a droplet junction is high shear by design). Reagent names are generic; see the source citation.",
+  "steps": [
+    {
+      "step": 1,
+      "operation": "encapsulate",
+      "target": "nozzle_2",
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 362,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": null,
+      "note": "Re-inject the cured capsules close-packed through pack_1 and meet the amplification mix carrying the barcode pool, diluted to about 3 molecules per droplet. The capsule stream goes in as the core and the mix as the shell. The entrance is narrower than a capsule, so capsules deform slightly and arrive in single file: this is what beats Poisson on the capsule, where published work gets 93-97% single occupancy against about 30% by chance. One barcode molecule per droplet would be ideal but is unreachable: a free molecule cannot be ordered, so at a mean of 1 about 37% of droplets would get none. At 3 only 5% get none, and the droplets that get several are resolved afterwards by merging barcodes that share fragments, which is what the source method does. Oil then cuts each capsule plus its barcode into its own droplet at about 0.06 Hz: 22 capsules, the packed bed trap_1 holds. From here until the emulsion is broken, every capsule is chemically alone.",
+      "flows_ul_h": {
+        "core": 10.6,
+        "shell": 15.9,
+        "oil": 97.6
+      },
+      "capsules": 22,
+      "ports": {
+        "feed": [
+          "in_load",
+          "in_reagent",
+          "in_oil"
+        ],
+        "vent": [
+          "out_drop"
+        ],
+        "cap": [
+          "out_waste"
+        ]
+      }
+    },
+    {
+      "step": 2,
+      "operation": "transfer",
+      "target": "out_drop",
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 600,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": null,
+      "note": "Send the droplets to a tube for thermocycling. On-chip cycling is not faster than a tube at this scale and invites evaporation and bubbles, so only the steps that genuinely need a chip are on it.",
+      "source": "nozzle_2",
+      "ports": {
+        "feed": [
+          "in_oil"
+        ],
+        "vent": [
+          "out_drop"
+        ],
+        "cap": [
+          "in_reagent",
+          "out_waste",
+          "in_load"
+        ]
+      }
+    },
+    {
+      "step": 3,
+      "operation": "hold_temp",
+      "target": "nozzle_2",
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 7200,
+      "temp_c": 72,
+      "washes": null,
+      "flow_ul_min": null,
+      "note": "Thermocycle in the tube. Each droplet clonally amplifies its own barcode and, in the same reaction, overlap-extends it onto that cell's tagmented fragments. THIS IS THE STEP THE WHOLE DESIGN EXISTS TO PROTECT: the barcode copies are short enough to leak through the shell, so they are kept inside an oil droplet until they are part of a long molecule the capsule retains.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_reagent",
+          "out_waste",
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 4,
+      "operation": "load",
+      "target": "brk_1",
+      "reagent": "emulsion",
+      "volume_ul": 0.531,
+      "duration_s": 122,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": 0.367,
+      "note": "Return the emulsion to the chip, pass 1 of 5: brk_1 holds 0.531 uL, so the 2.14 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
+      "ports": {
+        "feed": [
+          "in_load"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_reagent",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 5,
+      "operation": "exchange",
+      "target": "brk_1",
+      "reagent": "emulsion_breaker",
+      "volume_ul": 0.531,
+      "duration_s": 122,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 0.367,
+      "note": "Separate the phases, pass 1 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow.",
+      "ports": {
+        "feed": [
+          "in_reagent"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 6,
+      "operation": "load",
+      "target": "brk_1",
+      "reagent": "emulsion",
+      "volume_ul": 0.531,
+      "duration_s": 122,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": 0.367,
+      "note": "Return the emulsion to the chip, pass 2 of 5: brk_1 holds 0.531 uL, so the 2.14 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
+      "ports": {
+        "feed": [
+          "in_load"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_reagent",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 7,
+      "operation": "exchange",
+      "target": "brk_1",
+      "reagent": "emulsion_breaker",
+      "volume_ul": 0.531,
+      "duration_s": 122,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 0.367,
+      "note": "Separate the phases, pass 2 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow.",
+      "ports": {
+        "feed": [
+          "in_reagent"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 8,
+      "operation": "load",
+      "target": "brk_1",
+      "reagent": "emulsion",
+      "volume_ul": 0.531,
+      "duration_s": 122,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": 0.367,
+      "note": "Return the emulsion to the chip, pass 3 of 5: brk_1 holds 0.531 uL, so the 2.14 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
+      "ports": {
+        "feed": [
+          "in_load"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_reagent",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 9,
+      "operation": "exchange",
+      "target": "brk_1",
+      "reagent": "emulsion_breaker",
+      "volume_ul": 0.531,
+      "duration_s": 122,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 0.367,
+      "note": "Separate the phases, pass 3 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow.",
+      "ports": {
+        "feed": [
+          "in_reagent"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 10,
+      "operation": "load",
+      "target": "brk_1",
+      "reagent": "emulsion",
+      "volume_ul": 0.531,
+      "duration_s": 122,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": 0.367,
+      "note": "Return the emulsion to the chip, pass 4 of 5: brk_1 holds 0.531 uL, so the 2.14 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
+      "ports": {
+        "feed": [
+          "in_load"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_reagent",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 11,
+      "operation": "exchange",
+      "target": "brk_1",
+      "reagent": "emulsion_breaker",
+      "volume_ul": 0.531,
+      "duration_s": 122,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 0.367,
+      "note": "Separate the phases, pass 4 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow.",
+      "ports": {
+        "feed": [
+          "in_reagent"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 12,
+      "operation": "load",
+      "target": "brk_1",
+      "reagent": "emulsion",
+      "volume_ul": 0.011,
+      "duration_s": 3,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": 0.367,
+      "note": "Return the emulsion to the chip, pass 5 of 5: brk_1 holds 0.531 uL, so the 2.14 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
+      "ports": {
+        "feed": [
+          "in_load"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_reagent",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 13,
+      "operation": "exchange",
+      "target": "brk_1",
+      "reagent": "emulsion_breaker",
+      "volume_ul": 0.531,
+      "duration_s": 122,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 0.367,
+      "note": "Separate the phases, pass 5 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow.",
+      "ports": {
+        "feed": [
+          "in_reagent"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 14,
+      "operation": "exchange",
+      "target": "trap_1",
+      "reagent": "wash_buffer",
+      "volume_ul": 1.084,
+      "duration_s": 142,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 0.642,
+      "note": "Settle the capsules into a packed bed. Retention is by chamber geometry and downward flow, not by a size gap: a liquid-core capsule deforms, and the gap that would reliably hold one is below what we can make.",
+      "ports": {
+        "feed": [
+          "in_reagent"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 15,
+      "operation": "exchange",
+      "target": "trap_1",
+      "reagent": "wash_buffer",
+      "volume_ul": 1.084,
+      "duration_s": 425,
+      "temp_c": null,
+      "washes": 3,
+      "flow_ul_min": 0.642,
+      "note": "Flow-through wash after the emulsion break, replacing a centrifugation. Exchange is limited by diffusion into the capsule rather than by flushing, so each one takes a few minutes however fast the pump runs.",
+      "ports": {
+        "feed": [
+          "in_reagent"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 16,
+      "operation": "exchange",
+      "target": "trap_1",
+      "reagent": "wash_buffer",
+      "volume_ul": 1.084,
+      "duration_s": 425,
+      "temp_c": null,
+      "washes": 3,
+      "flow_ul_min": 0.642,
+      "note": "Flow-through wash before transcription, replacing a centrifugation. Exchange is limited by diffusion into the capsule rather than by flushing, so each one takes a few minutes however fast the pump runs.",
+      "ports": {
+        "feed": [
+          "in_reagent"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 17,
+      "operation": "hold_temp",
+      "target": "trap_1",
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 180,
+      "temp_c": 72,
+      "washes": null,
+      "flow_ul_min": null,
+      "note": "Gap-fill. The highest temperature any capsule sees in the whole workflow, and it is well inside what the shell and the board tolerate.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_reagent",
+          "out_waste",
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 18,
+      "operation": "exchange",
+      "target": "trap_1",
+      "reagent": "transcription_mix",
+      "volume_ul": 1.084,
+      "duration_s": 142,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 0.642,
+      "note": "Load the transcription mix. The polymerase is small enough to cross the shell; the barcoded template is far too large to leave it.",
+      "ports": {
+        "feed": [
+          "in_reagent"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 19,
+      "operation": "hold_temp",
+      "target": "trap_1",
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 61200,
+      "temp_c": 37,
+      "washes": null,
+      "flow_ul_min": null,
+      "note": "Linear amplification in place, overnight. Linear rather than exponential because a single transposon insertion is enough, errors do not propagate and coverage stays even. Held in an incubator with the ports sealed, not on a chip heater.",
+      "ports": {
+        "feed": [],
+        "vent": [],
+        "cap": [
+          "in_reagent",
+          "out_waste",
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 20,
+      "operation": "exchange",
+      "target": "trap_1",
+      "reagent": "wash_buffer",
+      "volume_ul": 1.084,
+      "duration_s": 425,
+      "temp_c": null,
+      "washes": 3,
+      "flow_ul_min": 0.642,
+      "note": "Final wash before recovery.",
+      "ports": {
+        "feed": [
+          "in_reagent"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    },
+    {
+      "step": 21,
+      "operation": "release",
+      "target": "trap_1",
+      "reagent": "release_buffer",
+      "volume_ul": null,
+      "duration_s": 101,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": null,
+      "note": "Back-flush the bed out through out_waste, which the off-chip selector valve routes to the recovery tube for this step. Reverse the flow on a slow ramp: the bed lifts at well under a pascal, so a sharp start throws capsules at the walls. Downstream library steps are bulk and off-chip.",
+      "ports": {
+        "feed": [
+          "in_reagent"
+        ],
+        "vent": [
+          "out_waste"
+        ],
+        "cap": [
+          "in_load",
+          "out_drop",
+          "in_oil"
+        ]
+      }
+    }
+  ]
+}

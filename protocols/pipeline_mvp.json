@@ -1,115 +1,318 @@
 {
   "kind": "pipeline",
   "id": "pipeline_mvp",
-  "name": "MVP pipeline: culture -> encapsulation -> load, lysis, wash -> barcoding -> sublibrary PCR -> release and cleanup",
+  "name": "MVP pipeline (capseq): CapSeq (RNA): culture -> cell prep -> encapsulation -> load, lysis, wash, reverse transcription (one trap) -> sublibrary PCR -> release and cleanup -> SPRI and QC (off-chip) (+ barcoding and hairpin placeholders)",
+  "same_as": "protocols/pipeline_capseq.json",
+  "variant": "capseq",
   "placeholder": true,
-  "description": "The current modules, in process order. Module 1 (MJ, final) grows the three cell types and delivers one counted suspension through p_mid; Module 2 encapsulates it (a parametric draft until MJ's redesign lands as chip/module2*.json, which the pipeline then picks up by itself); Module 3 (Szonja, translated into the chip-spec format) traps, lyses and washes the capsules; barcoding (split and pool, library steps 4-12) is not designed yet; Module 4 (MJ) splits into four sublibraries and runs index PCR; Module 5 (MJ) releases the DNA and cleans up the library. Older drafts (cad/m1_culture_spec.json, cad/m1b_cellprep_spec.json, cad/m3_wash_spec.json) are superseded and kept for reference only. TBC marks ports nobody has named yet; each hand-off's connector block says where the two modules' ports differ, i.e. where the dye demo needs an adapter.",
+  "description": "One winner per job, all on the 30 x 20 mm, 0.3 mm deep, single-layer envelope (resin print + hot emboss, blocks from contracts/blocks.json). Culture: module1_v1. Cell prep: cell_prep_v1. Encapsulation: spc_demo_v1 (0.2 mm orifice, so capsules of about 260 um, not 135 um; curing off-chip). Load, lysis, wash, reverse transcription: module3_v1_translated, steps 1-9 of protocols/module3_v1.json. Split-and-pool barcoding is dropped and there is no separate barcoding or RT module: RT is one isothermal hold (42 C, plain poly(dT)) inside module3's capsule trap, so module3 hands capsules straight to Module 4. Module 4 and Module 5 are built. SPRI size selection and QC (Qubit, TapeStation, qPCR) are off-chip and have no protocol yet. Retired, kept for reference only: cad/m1_culture_spec.json, cad/m1b_cellprep_spec.json, cad/m3_wash_spec.json (all marked superseded in their module block), cad/m2_encapsulation_spec.json (cannot make capsules at this scale; still marked draft, not superseded), stage A of chip/sctip_spc_v1.json, and dissociation inside module1 (steps 175-178 of protocols/module1_v1.json duplicate cell_prep_v1). Not in the chain: chip/ipsc_to_mgl_chip_v1.json is a separate experiment. Retention features cannot be printed at this floor, so capsule retention needs a bought mesh insert or sedimentation. One TBC remains: Module 4 has no capsule outlet port, so the Module 4 side of module4_to_module5 cannot be named. Map and open joins: protocols/pipeline_status.md. CAPSEQ VARIANT: split-and-pool barcoding (BC2, BC3) and the hairpin ligation with its pooled wash sit between the capsule trap and the sublibrary split as PLACEHOLDERS (no chip): MJ dropped them in fcc6ef2, so the cells keep only their per-lane barcode and the data is lane-level; they come back only if the team wants single-cell resolution (protocols/pipeline_status.md).",
   "modules": [
     {
-      "module": "module1", "name": "Module 1: culture (v1)", "status": "final", "owner": "MJ",
-      "chip": "chip/module1_v1.json", "protocol": "protocols/module1_v1.json",
-      "build": { "method": "laser-cut acrylic: 3 mm base, 0.3 mm spacer (the cut layer), 3 mm lid",
-                 "connector": "square_2mm_lid_hole", "ports": "2 mm square holes through the 3 mm lid",
-                 "source": "cad/make_train_cad.py (PORT_SIZE_MM = 2.0); protocols/module1_design.md" },
-      "built_for_demo": true,
-      "note": "The chip for Sunday's food-dye demo (cad/module1_dye_demo.md). Design note: protocols/module1_design.md."
-    },
-    {
-      "module": "module2", "name": "Module 2: encapsulation", "status": "draft",
-      "status_note": "draft – being redesigned by MJ", "owner": "MJ (redesign); draft by Bruno",
-      "chip": "cad/m2_encapsulation_spec.json", "protocol": "protocols/m2_encapsulation.json",
-      "prefer": { "glob": "chip/module2*.json", "status": "final", "status_note": "MJ's Module 2, picked up automatically" },
-      "build": { "method": "parametric draft (cad/generators/m2_encapsulation.py), PMMA layers; process to be set by the redesign",
-                 "connector": "TBC" },
+      "module": "module1",
+      "name": "Module 1: culture (v1)",
+      "status": "final",
+      "owner": "MJ",
+      "chip": "chip/module1_v1.json",
+      "protocol": "protocols/module1_v1.json",
+      "build": {
+        "method": "resin print + hot emboss, 30 x 20 mm, 0.3 mm deep, one fluidic layer",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "contracts/blocks.json (fabrication_floors)"
+      },
       "built_for_demo": false,
-      "note": "Stand-in so the chain is complete. When a chip/module2*.json appears, tools/validate.py and the twin use it instead and warn if the hand-off ports below are not in it."
+      "note": "Rescaled from 140 x 75 mm. Its own dissociation (steps 175-178) duplicates cell_prep_v1 and is still in the protocol; the back-flush, pooling and release (179-182) are still the only way cells leave. The dye-demo doc (cad/module1_dye_demo.md) predates the rescale."
     },
     {
-      "module": "module3", "name": "Module 3: load, lysis, wash", "status": "translated", "owner": "Szonja",
-      "chip": "chip/module3_v1_translated.json", "source": "chip/modules/module3_step1_3.json",
-      "protocol_note": "The steps (11) are in the source file's workflow block; not in protocol format yet.",
-      "build": { "method": "TBC: the 25 um retention gap and 140 x 150 um channels are below laser-cut size",
-                 "connector": "TBC" },
+      "module": "cellprep",
+      "name": "Cell prep: detach, quench, count (v1)",
+      "status": "final",
+      "owner": "TBC",
+      "chip": "chip/cell_prep_v1.json",
+      "protocol": "protocols/cell_prep_v1.json",
+      "build": {
+        "method": "resin print + hot emboss, 30 x 20 mm, 0.3 mm deep, one fluidic layer",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "contracts/blocks.json (fabrication_floors)"
+      },
       "built_for_demo": false,
-      "note": "Translated by tools/convert_module3.py; layout and valve construction are inferred (placeholder). Her file is the source of truth."
+      "note": "Wins over m1b_cellprep_v1 (retired). Wash, clump filter and concentrate stay in a bench tube with a bought mesh."
     },
     {
-      "module": "barcoding", "name": "Barcoding: split and pool (library steps 4-12)", "status": "missing",
-      "status_note": "not yet designed", "owner": "TBC",
-      "build": { "method": "TBC", "connector": "TBC" },
+      "module": "module2",
+      "name": "Module 2: encapsulation (spc_demo_v1)",
+      "status": "final",
+      "owner": "TBC",
+      "chip": "chip/spc_demo_v1.json",
+      "protocol": "protocols/spc_demo_v1.json",
+      "build": {
+        "method": "resin print + hot emboss, 30 x 20 mm, 0.15 mm deep, one fluidic layer; curing off-chip",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "contracts/blocks.json (fabrication_floors)"
+      },
       "built_for_demo": false,
-      "note": "Module 3 hands its capsules to a split tree into well_01...well_16 described in barcoding_geometry.json, which is not in the repo yet."
+      "note": "The only fabricable encapsulation chip. Wins over m2_encapsulation_v1 and sctip_spc_v1 stage A (both retired). Orifice is below the 0.2 mm floor, so expect about 260 um capsules."
     },
     {
-      "module": "module4", "name": "Module 4: sublibrary split + index PCR", "status": "final", "owner": "MJ",
-      "chip": "chip/module4_v1.json", "protocol": "protocols/module4_v1.json",
-      "build": { "method": "hot-embossed COC (Tg >= 130 C), thermally bonded; 0.5 / 0.3 / 1.0 mm",
-                 "connector": "drilled_0_8mm_5mm_pitch", "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
-                 "source": "protocols/module5_design.md, section 1" },
+      "module": "module3",
+      "name": "Module 3: load, lysis, wash, reverse transcription, release (capsule trap)",
+      "status": "translated",
+      "owner": "Szonja",
+      "chip": "chip/module3_v1_translated.json",
+      "source": "chip/modules/module3_step1_3.json",
+      "protocol": "protocols/module3_v1.json",
+      "build": {
+        "method": "resin print + hot emboss, 30 x 20 mm, 0.3 mm deep, one fluidic layer; retention gap cannot be printed, so a bought mesh insert",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "contracts/blocks.json (fabrication_floors)"
+      },
+      "built_for_demo": false,
+      "note": "The one capsule trap, and the one place RT runs (steps 5-7: RT mix, 42 C hold, wash; no barcode or UMI added, cells already carry a per-lane barcode). Wins over m2_trap_1 and m3_wash_v1 (retired). Her file is the source of truth. Built for 70 um capsules and a 650,000 count; encapsulation makes about 260 um capsules."
+    },
+    {
+      "module": "barcoding",
+      "name": "Barcoding: split and pool (BC2, BC3)",
+      "status": "missing",
+      "status_note": "placeholder · dropped by MJ for now",
+      "owner": "TBC",
+      "build": {
+        "method": "TBC",
+        "connector": "TBC"
+      },
+      "built_for_demo": false,
+      "note": "Placeholder. MJ dropped split-and-pool barcoding (fcc6ef2): the cells keep only the per-lane barcode they get in Module 1, so the data is lane-level, not single-cell. This stage comes back only if the team decides single-cell resolution is needed (open question in protocols/pipeline_status.md)."
+    },
+    {
+      "module": "hairpin",
+      "name": "Hairpin ligation + pooled wash",
+      "status": "missing",
+      "status_note": "placeholder · dropped with the barcoding",
+      "owner": "TBC",
+      "build": {
+        "method": "TBC",
+        "connector": "TBC"
+      },
+      "built_for_demo": false,
+      "note": "Placeholder: the hairpin ligation after the last barcode round and the wash of the pooled capsules. Dropped together with split-and-pool barcoding (fcc6ef2)."
+    },
+    {
+      "module": "module4",
+      "name": "Module 4: sublibrary split + index PCR",
+      "status": "final",
+      "owner": "MJ",
+      "chip": "chip/module4_v1.json",
+      "protocol": "protocols/module4_v1.json",
+      "build": {
+        "method": "hot-embossed COC (Tg >= 130 C), thermally bonded; 0.5 / 0.3 / 1.0 mm",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "protocols/module5_design.md, section 1"
+      },
       "built_for_demo": false,
       "note": "Filled one chamber at a time by an off-chip rotary valve (palindromic order), then thermocycled."
     },
     {
-      "module": "module5", "name": "Module 5: release + cleanup", "status": "final", "owner": "MJ",
-      "chip": "chip/module5_v1.json", "protocol": "protocols/module5_v1.json",
-      "build": { "method": "hot-embossed COC (Tg >= 130 C), thermally bonded; 0.5 / 0.3 / 1.0 mm",
-                 "connector": "drilled_0_8mm_5mm_pitch", "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
-                 "source": "protocols/module5_design.md, section 1" },
+      "module": "module5",
+      "name": "Module 5: release + cleanup",
+      "status": "final",
+      "owner": "MJ",
+      "chip": "chip/module5_v1.json",
+      "protocol": "protocols/module5_v1.json",
+      "build": {
+        "method": "hot-embossed COC (Tg >= 130 C), thermally bonded; 0.5 / 0.3 / 1.0 mm",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "protocols/module5_design.md, section 1"
+      },
       "built_for_demo": false,
       "note": "Collagenase release at 37 C, then magnetic bead capture; one sublibrary per pass."
     }
   ],
   "handoffs": [
     {
-      "id": "module1_to_module2", "carries": "cells", "after_step": 182,
-      "from": { "module": "module1", "port": "p_mid" },
-      "to": { "module": "module2", "port": "m2_core_in_1", "note": "The draft's core (cells) inlet; MJ's redesign may rename it." },
-      "connector": { "from": "square_2mm_lid_hole", "to": "TBC", "status": "unknown",
-                     "warning": "Connector mismatch possible: Module 1 has 2 mm square lid holes; Module 2's ports are not decided. Expect an adapter from the square hole to tubing." },
-      "note": "One counted suspension leaves j_mid through p_mid (Module 1 protocol step 182)."
+      "id": "module1_to_cellprep",
+      "carries": "cells",
+      "after_step": 182,
+      "from": {
+        "module": "module1",
+        "port": "p_mid"
+      },
+      "to": {
+        "module": "cellprep",
+        "port": "in_buffer",
+        "note": "cell_prep_v1 has no dedicated cell inlet; cells enter cult_1 through in_buffer."
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "match"
+      },
+      "note": "One counted suspension leaves j_mid through p_mid. Module 1 steps 175-178 already lift and quench the cells, but cell_prep_v1 steps 1-3 expect an adherent layer in cult_1 and dissociate again, so the join does not match."
     },
     {
-      "id": "module2_to_module3", "carries": "capsules", "after_step": 10,
-      "from": { "module": "module2", "port": "m2_capsule_out_1", "note": "The draft's capsule outlet; MJ's redesign may rename it." },
-      "to": { "module": "module3", "port": "capsule_in" },
-      "connector": { "from": "TBC", "to": "TBC", "status": "unknown",
-                     "warning": "Neither module's port style is decided; check before joining them with tubing." },
-      "note": "Cured capsules through Module 3's 100 um pre-filter into main_trap."
+      "id": "cellprep_to_module2",
+      "carries": "cells",
+      "after_step": 7,
+      "from": {
+        "module": "cellprep",
+        "port": "out_cells"
+      },
+      "to": {
+        "module": "module2",
+        "port": "in_core"
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "match"
+      },
+      "note": "By tube: one spin, a bought mesh and resuspension in the viscous buffer happen at the bench between the two chips."
     },
     {
-      "id": "module3_to_barcoding", "carries": "capsules",
-      "from": { "module": "module3", "port": "to_split_tree" },
-      "to": { "module": "barcoding", "port": "TBC" },
-      "connector": { "from": "TBC", "to": "TBC", "status": "unknown",
-                     "warning": "Barcoding is not designed; its inlet and port style are unknown." },
-      "note": "After step 11 of Module 3's workflow (back-flush resuspends the bed) into the split tree."
+      "id": "module2_to_module3",
+      "carries": "capsules",
+      "after_step": 4,
+      "from": {
+        "module": "module2",
+        "port": "out_caps"
+      },
+      "to": {
+        "module": "module3",
+        "port": "capsule_in"
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "match"
+      },
+      "note": "Capsules are collected and cured off-chip in a tube, then loaded through Module 3's pre-filter into main_trap. Undocumented: breaking the emulsion and washing off the oil. Size does not match: about 260 um capsules against a 70 um design and a 100 um pre-filter gap."
     },
     {
-      "id": "barcoding_to_module4", "carries": "capsules",
-      "from": { "module": "barcoding", "port": "TBC" },
-      "to": { "module": "module4", "ports": ["in_s1", "in_s2", "in_s3", "in_s4"],
-              "note": "Through the off-chip rotary valve, one chamber at a time." },
-      "connector": { "from": "TBC", "to": "drilled_0_8mm_5mm_pitch", "status": "unknown",
-                     "warning": "Module 4 takes 0.8 mm drilled ports at 5 mm pitch; barcoding's outlet is not designed. The rotary valve sits between them, so this is tubing either way." },
-      "note": "The pooled, barcoded capsule suspension."
+      "id": "module3_to_barcoding",
+      "carries": "capsules",
+      "from": {
+        "module": "module3",
+        "port": "to_split_tree"
+      },
+      "to": {
+        "module": "barcoding",
+        "port": "TBC"
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "TBC",
+        "status": "unknown",
+        "warning": "Barcoding is a placeholder: no chip, so no port style yet."
+      },
+      "note": "Washed capsules (after RT in the trap) into the split tree."
     },
     {
-      "id": "module4_to_module5", "carries": "capsules", "after_step": 63,
-      "from": { "module": "module4", "port": "TBC",
-                "note": "Module 4 has no product outlet (in_s1-in_s4 and a shared vent); which port each sublibrary leaves through is not stated." },
-      "to": { "module": "module5", "port": "in_lib" },
-      "connector": { "from": "drilled_0_8mm_5mm_pitch", "to": "drilled_0_8mm_5mm_pitch", "status": "match" },
-      "note": "One sublibrary per pass, by tubing between the chips (Module 5 protocol steps 1, 9, 17, 25)."
+      "id": "barcoding_to_hairpin",
+      "carries": "capsules",
+      "from": {
+        "module": "barcoding",
+        "port": "TBC"
+      },
+      "to": {
+        "module": "hairpin",
+        "port": "TBC"
+      },
+      "connector": {
+        "from": "TBC",
+        "to": "TBC",
+        "status": "unknown",
+        "warning": "Both are placeholders."
+      },
+      "note": "Pooled capsules after the last barcode round."
     },
     {
-      "id": "module5_to_library_out", "carries": "library", "after_step": 34,
-      "from": { "module": "module5", "port": "out_lib" },
-      "to": { "roadmap": "library_out" },
-      "note": "Four libraries into tubes; pooling and size selection at the bench (Module 5 steps 33-34)."
+      "id": "hairpin_to_module4",
+      "carries": "capsules",
+      "from": {
+        "module": "hairpin",
+        "port": "TBC"
+      },
+      "to": {
+        "module": "module4",
+        "ports": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4"
+        ],
+        "note": "Through an off-chip rotary valve, one chamber at a time, in the order A B C D D C B A, twice."
+      },
+      "connector": {
+        "from": "TBC",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "unknown",
+        "warning": "The hairpin step is a placeholder; Module 4 takes 0.8 mm drilled ports. The rotary valve sits between them, so this is tubing either way."
+      },
+      "note": "RT already ran inside Module 3's trap, so the RT-treated, resuspended bed leaves in one counted suspension (76.9 uL after step 9). Module 4 draws only 16 x 0.6 uL = 9.6 uL of it, so a concentration step is undocumented. The tubing and valve are not on either chip."
+    },
+    {
+      "id": "module4_to_module5",
+      "carries": "capsules",
+      "after_step": 63,
+      "from": {
+        "module": "module4",
+        "port": "TBC",
+        "note": "Module 4 has no capsule outlet: in_s1-in_s4 are inlets and p_vent is an outlet that capsules cannot pass. The sublibrary has to leave back through its own in_sN, or Module 4 needs an outlet port; neither is written down."
+      },
+      "to": {
+        "module": "module5",
+        "port": "in_lib"
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "match"
+      },
+      "note": "One sublibrary per pass, by tubing between the chips (Module 5 protocol steps 1, 9, 17, 25). The TBC is real: the chip has no outlet to name."
+    },
+    {
+      "id": "module5_to_spri_qc",
+      "carries": "library",
+      "after_step": 34,
+      "from": {
+        "module": "module5",
+        "port": "out_lib"
+      },
+      "to": {
+        "roadmap": "spri_qc"
+      },
+      "note": "Four libraries into tubes; pooling, SPRI size selection and QC are at the bench (Module 5 steps 33-34)."
+    },
+    {
+      "id": "spri_qc_to_library_out",
+      "carries": "library",
+      "from": {
+        "roadmap": "spri_qc"
+      },
+      "to": {
+        "roadmap": "library_out"
+      },
+      "note": "Off-chip. No protocol written."
     }
   ],
   "roadmap": [
-    { "id": "library_out", "name": "Library out", "note": "Finished, indexed library in a tube." },
-    { "id": "sequencing", "name": "Sequencing", "note": "Off-chip." }
+    {
+      "id": "spri_qc",
+      "name": "SPRI size selection + QC (off-chip)",
+      "note": "Qubit, TapeStation, qPCR. Undocumented: no protocol exists."
+    },
+    {
+      "id": "library_out",
+      "name": "Library out",
+      "note": "Finished, indexed library in a tube."
+    },
+    {
+      "id": "sequencing",
+      "name": "Sequencing",
+      "note": "Off-chip."
+    }
   ]
 }

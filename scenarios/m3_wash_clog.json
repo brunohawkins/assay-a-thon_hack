@@ -1,7 +1,7 @@
 {
   "_about": "Scenario for operator/run.py --scenario. SIMULATED HARDWARE: sensors, reality and faults apply to the virtual chip only.",
   "name": "m3_wash_clog",
-  "description": "Closed loop with the mesh clogging from wash 2: pressure climbs, alert, back-flush, re-plan, recovery.",
+  "description": "Closed loop with the mesh clogging from wash 2: pressure climbs, alert, back-flush, re-plan, recovery. Clog growth rescaled by 0.50 when the trap went to a single 0.3 mm etch depth and its volume changed from 7.35 to 14.7 uL; the fault is per microlitre pushed.",
   "protocol": "protocols/m3_wash.json",
   "chip": "cad/m3_wash_spec.json",
   "seed": 7,
@@ -20,7 +20,7 @@
     {
       "type": "clog",
       "start_wash": 2,
-      "growth_per_ul": 0.035,
+      "growth_per_ul": 0.0175,
       "backflush_clears": 0.8
     }
   ]

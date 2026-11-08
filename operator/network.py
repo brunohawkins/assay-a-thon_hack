@@ -36,7 +36,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FEED, VENT, CAP = "FEED", "VENT", "CAP"
 MU_37C = 0.8e-3            # Pa s: water at 37 C, the value protocols/build_module1.py uses
-PORT_HOLE_MM = 2.0         # cad/make_train_cad.py PORT_SIZE_MM
+def _port_hole_mm() -> float:
+    """Port bore, taken from the same contract cad/make_train_cad.py reads.
+
+    This was a 2.0 mm literal mirroring a 2.0 mm literal in the CAD generator. When the
+    generator started deriving the bore from contracts/blocks.json (0.8 mm) this copy went
+    stale, every port-connected channel stopped matching its own DXF, and the geometry
+    silently fell back to the straight-line estimate.
+    """
+    try:
+        import json
+        b = json.loads((ROOT / "contracts" / "blocks.json").read_text())
+        return float(b["fabrication_floors"]["min_port_mm"])
+    except Exception:
+        return 2.0
+
+
+PORT_HOLE_MM = _port_hole_mm()   # cad/make_train_cad.py PORT_SIZE_MM, same source
 DYN_CM2_PER_PA = 10.0
 
 
@@ -341,7 +357,30 @@ MODULE1_MODES = {
     "collect": {"label": "Collect (protocol back-flush)", "feed": ["p_in", "p_g_out", "p_a_out"], "vent": ["p_mid"]},
     "idle": {"label": "Idle (all capped)", "feed": [], "vent": []},
 }
-DEFAULT_FEED_UL_MIN = 11.0   # build_module1.py feed_flow(): 13.5 uL/min chamber ceiling, rounded down, minus 2
+def _default_feed_ul_min() -> float:
+    """Largest feed that keeps every culture chamber under the shear ceiling.
+
+    Derived from the chip, never hard-coded: the board has been rescaled once already
+    (140 x 75 mm -> the 30 x 20 mm build envelope) and a literal here went stale the
+    moment it was, silently pushing wall shear 4x over the ceiling. tau = 6*mu*Q/(w*h^2)
+    with w the chamber width across the flow and h its depth.
+    """
+    mu, ceiling, margin = 0.8e-3, 0.01, 0.85
+    try:
+        chip = json.loads((ROOT / "chip" / "module1_v1.json").read_text())
+    except OSError:
+        return 2.0
+    flows = []
+    for c in chip["chambers"]:
+        if c.get("type") == "pool":          # the junction is not a culture chamber
+            continue
+        w, h = c["size"][1] * 1e-3, c["size"][2] * 1e-3
+        q = (ceiling / 10.0) * w * h * h / (6.0 * mu)      # m3/s
+        flows.append(q * 60.0 * 1e9)                        # uL/min
+    return round(min(flows) * margin, 3) if flows else 2.0
+
+
+DEFAULT_FEED_UL_MIN = _default_feed_ul_min()
 
 
 def mode_ports(mode: str, flow: float | dict = DEFAULT_FEED_UL_MIN) -> dict:

@@ -58,7 +58,10 @@ class Generator(unittest.TestCase):
         proto = m3.protocol(P, spec)
         self.assertEqual(schema_io.schema_errors("protocol", proto), [])
         wash = proto["steps"][1]
-        self.assertEqual(wash["duration_s"], round(3 * wash["volume_ul"] / wash["flow_ul_min"] * 60, 1))
+        # washes is derived now: the exchange volume is sized to sweep the chamber, so the
+        # count that delivers the nominal total falls out of it rather than being fixed at 3.
+        self.assertEqual(wash["duration_s"],
+                         round(wash["washes"] * wash["volume_ul"] / wash["flow_ul_min"] * 60, 1))
         self.assertLess(m3.hydraulics(P)["pressure_kpa"], m3.hydraulics(P)["limit_kpa"])
         planner.plan(proto, spec)
 

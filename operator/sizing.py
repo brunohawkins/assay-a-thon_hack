@@ -11,7 +11,7 @@ Two input modes:
 
     python operator/sizing.py                         # sheet defaults: capsule mode next to cell mode
     python operator/sizing.py mvp cells:100000        # one column per scenario
-    python operator/sizing.py capsules:25000 --set split_chambers_per_round=12
+    python operator/sizing.py capsules:25000 --set sublibraries=8
 
 Scenarios: default, mvp, capseq, capsules:<N>, cells:<N>, or preset+mode (mvp+cells:2000).
 Standard library only.
@@ -33,8 +33,7 @@ DEFAULTS = {
     "channel_width_factor_high": 2.0,  # B10 assumption
     "trap_gap_factor_low": 0.3,        # B11 assumption
     "trap_gap_factor_high": 0.4,       # B12 assumption
-    "split_chambers_per_round": 8,     # B13 MVP suggestion; CapSeq uses 96
-    "barcoding_rounds": 3,             # B14 CapSeq
+    "barcoding_lanes": 3,              # per-lane lipid-oligo barcodes, one per lineage
     "gelma_flow_ul_h": 250.0,          # B15 SPC methods, 40 um nozzle
     "cell_flow_ul_h": 100.0,           # B16
     "oil_flow_ul_h": 700.0,            # B17
@@ -46,7 +45,7 @@ DEFAULTS = {
     "sublibraries": 4,                 # B48 assumption
     "chamber_volumes_per_wash": 5.0,   # B49 assumption
     "washes_per_exchange": 3,          # B50 assumption
-    "exchange_steps_per_run": 6,       # B51 assumption
+    "exchange_steps_per_run": 4,       # lysis, reverse transcription, final wash
     # Input (target cells)
     "target_cells": 2000.0,            # B66 demo target (assumption)
 }
@@ -61,8 +60,7 @@ PARAMETER_KEYS = {
     "channel_width_factor_high": "capsule_channel.width_factor_high",
     "trap_gap_factor_low": "trap.gap_factor_low",
     "trap_gap_factor_high": "trap.gap_factor_high",
-    "split_chambers_per_round": "barcoding.chambers_per_round",
-    "barcoding_rounds": "barcoding.rounds",
+    "barcoding_lanes": "barcoding.lanes",
     "gelma_flow_ul_h": "encapsulation.gelma_flow_ul_h",
     "cell_flow_ul_h": "encapsulation.cell_flow_ul_h",
     "oil_flow_ul_h": "encapsulation.oil_flow_ul_h",
@@ -79,8 +77,8 @@ PARAMETER_KEYS = {
 
 PRESETS = {
     "default": {},
-    "mvp": {"capsule_count": 10000, "split_chambers_per_round": 8, "barcoding_rounds": 3},
-    "capseq": {"split_chambers_per_round": 96, "barcoding_rounds": 3},
+    "mvp": {"capsule_count": 10000, "barcoding_lanes": 3},
+    "capseq": {"barcoding_lanes": 3},
 }
 
 COLLISION_WARN = 0.05  # warn above 5% of cells sharing a barcode
@@ -118,10 +116,13 @@ def compute(inputs: dict | None = None, mode: str = "capsules") -> dict:
 
     hours = _iferror(lambda: count / capsules_per_hour)                     # B41
     cells = cells_per_hour * hours                                          # B42 (= count x mean)
-    chambers, rounds, subs = p["split_chambers_per_round"], p["barcoding_rounds"], p["sublibraries"]
+    lanes, subs = p["barcoding_lanes"], p["sublibraries"]
     packed = capsule_volume_nl * count / p["packing_fraction"] / 1000       # B24
-    combos = chambers ** rounds                                             # B31
-    combos_sub = chambers ** rounds * subs                                  # B61
+    # Split-and-pool is dropped. The only barcodes left are the per-lane lipid oligos
+    # the cells already carry, so the distinguishable groups are lanes, and lanes x
+    # sublibrary indices once module 4 adds BC4. This is LANE-level, not single-cell.
+    combos = lanes                                                          # B31
+    combos_sub = lanes * subs                                               # B61
     wash_per_exchange = packed * p["chamber_volumes_per_wash"] * p["washes_per_exchange"]  # B59
 
     out = {
@@ -153,11 +154,12 @@ def compute(inputs: dict | None = None, mode: str = "capsules") -> dict:
         "filter_check": ("OK" if p["cell_filter_gap_um"] <= p["nozzle_width_um"]  # B43
                          else "Filter gap too large: clumps can reach nozzle"),
         # step 3
-        "barcode_reagent_lines": chambers * rounds,                          # B54
-        "total_reagent_inlets": p["common_reagent_lines"] + chambers * rounds + subs,  # B55
-        "valves": p["common_reagent_lines"] + chambers * rounds + subs,      # B56
-        "capsules_per_split_chamber": count / chambers,                      # B57
-        "packed_volume_per_split_chamber_ul": packed / chambers,             # B58
+        # No split-and-pool, so no per-round barcode lines: the cells arrive barcoded.
+        "barcode_reagent_lines": 0,                                          # B54
+        "total_reagent_inlets": p["common_reagent_lines"] + subs,            # B55
+        "valves": p["common_reagent_lines"] + subs,                          # B56
+        "capsules_per_sublibrary": count / subs,                             # B57
+        "packed_volume_per_sublibrary_ul": packed / subs,                    # B58
         "wash_volume_per_exchange_ul": wash_per_exchange,                    # B59
         "total_wash_buffer_ml": wash_per_exchange * p["exchange_steps_per_run"] / 1000,  # B60
         "barcode_combinations_with_sublibraries": combos_sub,                # B61
@@ -165,7 +167,7 @@ def compute(inputs: dict | None = None, mode: str = "capsules") -> dict:
     }
     # Not on the sheet: expected fraction of cells sharing their full barcode with another
     # cell. Approximation 1 - e^(-N/C); C includes the sublibrary index (B61), which is
-    # equivalent to N/S cells per sublibrary over chambers^rounds barcodes.
+    # equivalent to N/S cells per sublibrary over the per-lane barcodes.
     out["barcode_collision_fraction"] = _iferror(lambda: 1 - math.exp(-cells / combos_sub))
     out["warnings"] = warnings(out)
     return out
@@ -176,9 +178,10 @@ def warnings(r: dict) -> list[str]:
     if r["barcode_collision_fraction"] > COLLISION_WARN:
         p = r["inputs"]
         w.append(f"barcode collisions: about {r['barcode_collision_fraction']:.0%} of {r['cells']:,.0f} cells share a "
-                 f"barcode with another cell ({p['split_chambers_per_round']} chambers x {p['barcoding_rounds']} rounds "
-                 f"x {p['sublibraries']} sublibraries = {r['barcode_combinations_with_sublibraries']:,} combinations); "
-                 f"add chambers per round, rounds or sublibraries, or load fewer cells")
+                 f"barcode with another cell ({p['barcoding_lanes']} lanes x {p['sublibraries']} sublibraries "
+                 f"= {r['barcode_combinations_with_sublibraries']:,} combinations). With split-and-pool dropped "
+                 f"this is EXPECTED: the surviving barcodes are per-lane, so the data is lane-level rather than "
+                 f"single-cell. Add sublibraries, or give each cell its own barcode, or load fewer cells")
     if r["filter_check"] != "OK":
         w.append(r["filter_check"])
     return w
@@ -195,7 +198,7 @@ def chip_sizing(chip: dict) -> dict:
     for src, dst in (("diameter_um", "capsule_diameter_um"), ("swell_factor", "swell_factor"), ("count", "capsule_count")):
         if src in caps:
             inputs[dst] = caps[src]
-    for src, dst in (("chambers_per_round", "split_chambers_per_round"), ("rounds", "barcoding_rounds"),
+    for src, dst in (("lanes", "barcoding_lanes"),
                      ("sublibraries", "sublibraries")):
         if src in bc:
             inputs[dst] = bc[src]

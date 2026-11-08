@@ -1,0 +1,188 @@
+{
+  "id": "cell_prep_v1",
+  "name": "Cell detachment and QC module v1 (demo scale)",
+  "description": "DEMO SCALE: drawn 90 x 50 mm, scaled uniformly by 0.324 into 30 x 20 mm (depths unchanged at 0.15 mm); channels clamped up to 0.2 mm, ports 0.8 mm at >= 5 mm pitch. 4 ports, so no port merges needed. Capability lost: serpentine cut from 90 to ~12 mm, culture area ~10x smaller. The original design notes follow, quoted at the original 90 x 50 mm scale (the 100 um feature floor there is now the 200 um floor): A deliberately SMALL 90 x 50 mm module: it detaches adherent cells enzymatically, neutralises on the way out, and gives a counting window. It does NOT wash, filter, concentrate or exchange buffer, and that is a decision rather than an omission. Those four steps were costed against a bench tube and lost: at a 100 um feature floor, deterministic lateral displacement needs 12-45 um gaps, impedance counting needs a 20-50 um aperture, a pillar gap that removes 30-40 um clumps is impossible, and the final viscous resuspension (about 75 cP) collapses the Reynolds number by ~75x so inertial focusing stops working altogether. Doing all six steps on chip gives roughly 0.35 cumulative recovery in about 50 min; the two kept here plus a tube give roughly 0.7 in about 30 min. cult_1 is the adherent chamber and the only heated zone; mix_1 is a serpentine that neutralises by co-flowing quench buffer, because diffusion alone across 100 um would take ~100 s; qc_1 is a plain transparent window, 150 um deep, imaged from outside by a phone or USB microscope. Every feature is >= 100 um, one embossing depth, no photolithography. Geometry is ours; the methods it serves are cited in protocols/cell_prep_v1.json.",
+  "placeholder": false,
+  "units": "mm",
+  "footprint": {
+    "x": 30,
+    "y": 20
+  },
+  "layers": [
+    {
+      "id": "base",
+      "material": "coc",
+      "thickness_mm": 1
+    },
+    {
+      "id": "channels",
+      "material": "coc",
+      "thickness_mm": 0.15
+    },
+    {
+      "id": "lid",
+      "material": "coc",
+      "thickness_mm": 0.2
+    }
+  ],
+  "chambers": [
+    {
+      "id": "cult_1",
+      "type": "culture",
+      "center": [
+        8.836,
+        8.511,
+        1.075
+      ],
+      "size": [
+        6.489,
+        4.867,
+        0.15
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 4.737,
+      "note": "Adherent growth area, now about 0.32 cm2 (was 3 cm2), roughly 30k cells at typical density, still about 3x the ~10,000 cells this pipeline consumes. The only heated zone on the board.",
+      "block": "culture_chamber"
+    },
+    {
+      "id": "mix_1",
+      "type": "mixer",
+      "center": [
+        16.622,
+        8.511,
+        1.075
+      ],
+      "size": [
+        4.542,
+        1.947,
+        0.15
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 1.326,
+      "mixer": {
+        "kind": "serpentine",
+        "channel_width_mm": 0.2,
+        "turns": 3,
+        "length_mm": 12
+      },
+      "note": "Serpentine neutralisation, shortened from 90 mm to ~12 mm to fit the scaled 4.5 x 1.9 mm footprint (0.2 mm lanes, 0.4 mm walls). Residence is about 7x shorter at equal flow, so slow the flow. Mixing has to be advective.",
+      "block": "serpentine_channel"
+    },
+    {
+      "id": "qc_1",
+      "type": "qc_window",
+      "center": [
+        23.111,
+        8.511,
+        1.075
+      ],
+      "size": [
+        2.596,
+        1.947,
+        0.15
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.758,
+      "note": "Static counting window, 150 um deep, which is about a haemocytometer's depth. Stopped-flow, imaged from outside. Counting ~400 cells gives a 5% Poisson CV, and a 20% concentration error only moves single-capsule occupancy by about 15%, so this is accurate enough and an in-line counter is not worth building.",
+      "block": "polygon_chamber"
+    }
+  ],
+  "channels": [
+    {
+      "id": "ch_enz_cult",
+      "from": "in_enz",
+      "to": "cult_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_buf_cult",
+      "from": "in_buffer",
+      "to": "cult_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_cult_mix",
+      "from": "cult_1",
+      "to": "mix_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_quench_mix",
+      "from": "in_quench",
+      "to": "mix_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_mix_qc",
+      "from": "mix_1",
+      "to": "qc_1",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    },
+    {
+      "id": "ch_qc_out",
+      "from": "qc_1",
+      "to": "out_cells",
+      "width_mm": 0.2,
+      "depth_mm": 0.15,
+      "block": "straight_channel"
+    }
+  ],
+  "ports": [
+    {
+      "id": "in_enz",
+      "type": "inlet",
+      "position": [
+        2.347,
+        12.08,
+        1.35
+      ],
+      "role": "reagent",
+      "note": "dissociation reagent"
+    },
+    {
+      "id": "in_buffer",
+      "type": "inlet",
+      "position": [
+        2.347,
+        4.942,
+        1.35
+      ],
+      "role": "medium",
+      "note": "culture medium and pre-wash"
+    },
+    {
+      "id": "in_quench",
+      "type": "inlet",
+      "position": [
+        14.027,
+        14.027,
+        1.35
+      ],
+      "role": "reagent",
+      "note": "quench, co-flowed at the mixer"
+    },
+    {
+      "id": "out_cells",
+      "type": "outlet",
+      "position": [
+        27.653,
+        8.511,
+        1.35
+      ],
+      "role": "harvest",
+      "capsule_passable": true,
+      "width_um": 800,
+      "note": "To a chilled tube. Everything after this is bench: spin, 40 um strainer, resuspend."
+    }
+  ]
+}

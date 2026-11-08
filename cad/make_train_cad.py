@@ -1,4 +1,4 @@
-"""Generate CAD for a chip spec: one STL per part, plus a laser-cut DXF of the spacer layer.
+"""Generate CAD for a chip spec: one STL per part, plus a DXF outline of the fluidic layer.
 
     python cad/make_train_cad.py                     # default: the iPSC-to-MGL train
     python cad/make_train_cad.py --chip chip/<spec>.json
@@ -6,12 +6,19 @@
 Writes, into cad/exports/:
   <chamber_id>.stl   the chamber cavity, a box, exported in place in mm
   <port_id>.stl      the through-hole in the lid, in place
-  <chip_id>.dxf      the cut path for the spacer layer: every chamber and channel
+  <chip_id>.dxf      the outline of the fluidic layer: every chamber and channel
 
-Why a box is the right shape here: chamber height is set by an adhesive spacer, so a
-chamber really is a rectangle cut out of one flat layer. The DXF is that cut path and
-can go straight to a laser cutter. Channels are trimmed to the chamber walls, so the
-outline has no lines running through the inside of a chamber.
+Why a box is the right shape here: every feature is one depth, set by the fluidic layer
+(resin-printed tool, hot-embossed relief), so a chamber really is a rectangle in one flat
+layer. The DXF is that outline: layers CHAMBERS and CHANNELS. Channels are trimmed to
+the chamber walls, so the outline has no lines running through the inside of a chamber.
+Any channel shallower than the fluidic layer lands on a GROOVES layer instead, and this
+script says so loudly: with no photolithography that chip cannot be built as drawn.
+
+Ownership of cad/exports/: the flat folder belongs to ONE chip (DEFAULT_CHIP); every other
+chip writes to cad/exports/<chip_id>/. A hidden .chip_id file in each folder records the
+owner, and a second chip trying to write into it is refused (a COLLISION), because part
+ids repeat across chips and would overwrite each other silently.
 
 Standard library only, and it never touches files it did not write. See cad/README.md
 for the export rules the twin depends on (names, millimetres, shared origin).
@@ -27,7 +34,25 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPORTS = ROOT / "cad" / "exports"
 DEFAULT_CHIP = ROOT / "chip" / "ipsc_to_mgl_chip_v1.json"
 
-PORT_SIZE_MM = 2.0   # square through-hole drawn for each tubing port
+def _port_size_mm() -> float:
+    """Tubing port bore, from contracts/blocks.json rather than a literal.
+
+    This was hard-coded at 2.0 mm, which was fine on a 150 x 100 mm board and absurd
+    once every chip was scaled into a 30 x 20 mm envelope: a 2 mm port is wider than the
+    junction it taps, and it reported short circuits that were artefacts of the drawing
+    rather than the design. The fabrication floor is the honest number.
+    """
+    try:
+        import json
+        b = json.loads((ROOT / "contracts" / "blocks.json").read_text())
+        return float(b["fabrication_floors"]["min_port_mm"])
+    except Exception:
+        return 2.0
+
+
+PORT_SIZE_MM = _port_size_mm()   # square through-hole drawn for each tubing port
+BLOCKS = ROOT / "contracts" / "blocks.json"
+FOREIGN_FLAT = {"hello_world_plate.stl"}   # written by cad/hello_world_spec.py, not by a chip
 
 
 # --- STL ------------------------------------------------------------------------------
@@ -113,18 +138,84 @@ def write_dxf(path: Path, layers: dict[str, list]) -> None:
 
 # --- main -----------------------------------------------------------------------------
 
+OWNER_FILE = ".chip_id"
+
+
+def check_owner(out: Path, chip_id: str) -> str | None:
+    """None if `out` is free or already this chip's, else a message naming the other owner."""
+    marker = out / OWNER_FILE
+    if marker.exists():
+        owner = marker.read_text().strip()
+        if owner != chip_id:
+            return f"{out} already belongs to chip '{owner}'"
+    return None
+
+
+def duplicate_ids(chip) -> list[str]:
+    """Part files are named by bare id, so two parts with one id overwrite each other."""
+    seen, dup = set(), []
+    for part in [c["id"] for c in chip["chambers"]] + [p["id"] for p in chip["ports"]]:
+        if part in seen:
+            dup.append(part)
+        seen.add(part)
+    return dup
+
+
+def in_envelope(chip) -> bool:
+    """True for a chip inside the resin-print + hot-emboss build envelope (contracts/blocks.json)."""
+    try:
+        env = json.loads(BLOCKS.read_text())["envelope"]
+    except (OSError, KeyError, ValueError):
+        return False
+    deep = max([c["size"][2] for c in chip["chambers"]] + [c["depth_mm"] for c in chip["channels"]])
+    return (chip["footprint"]["x"] <= env["max_x_mm"] and chip["footprint"]["y"] <= env["max_y_mm"]
+            and deep <= env["max_depth_mm"] + 1e-9)
+
+
+def depth_problems(chip, spacer) -> list[str]:
+    """Features that are not at the fluidic layer's depth: one embossing depth only."""
+    if spacer is None:
+        return [f"no layer is {chip['chambers'][0]['size'][2]:g} mm thick, so no layer can "
+                f"hold the chambers"]
+    t = spacer["thickness_mm"]
+    out = []
+    for c in chip["chambers"]:
+        if abs(c["size"][2] - t) > 1e-6:
+            out.append(f"chamber '{c['id']}' is {c['size'][2] * 1000:g} um deep, layer is "
+                       f"{t * 1000:g} um")
+    for c in chip["channels"]:
+        if abs(c["depth_mm"] - t) > 1e-6:
+            out.append(f"channel '{c['id']}' is {c['depth_mm'] * 1000:g} um deep, layer is "
+                       f"{t * 1000:g} um")
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--chip", type=Path, default=DEFAULT_CHIP)
     args = ap.parse_args()
 
     chip = json.loads(args.chip.read_text())
+    if not all(k in chip for k in ("id", "chambers", "ports", "channels", "layers")):
+        print(f"{args.chip.name}: skipped, not a chip spec "
+              f"(no id/chambers/ports/channels/layers): nothing written")
+        return 0
     # Part files are named by bare id, and ids repeat across chips: both of ours have an
     # 'inlet_1'. twin/main.js loads cad/exports/ flat, so the flat namespace can only
     # hold one chip, and it holds the default one. Every other chip gets its own folder.
     is_default = args.chip.resolve() == DEFAULT_CHIP.resolve()
     out = EXPORTS if is_default else EXPORTS / chip["id"]
+    dup = duplicate_ids(chip)
+    clash = check_owner(out, chip["id"])
+    if dup or clash:
+        for d in dup:
+            print(f"COLLISION: id '{d}' is used twice in {chip['id']}, one STL would "
+                  f"overwrite the other")
+        if clash:
+            print(f"COLLISION: {clash}, so '{chip['id']}' was NOT written")
+        return 2
     out.mkdir(parents=True, exist_ok=True)
+    (out / OWNER_FILE).write_text(chip["id"] + "\n")
     rel = "cad/exports" if is_default else f"cad/exports/{chip['id']}"
     by_id = {c["id"]: c for c in chip["chambers"]}
     written = []
@@ -161,8 +252,8 @@ def main() -> int:
         p0 = clip_to_box(a[0][:2], b[0][:2], a[0], a[1])
         p1 = clip_to_box(b[0][:2], a[0][:2], b[0], b[1])
         outline = channel_lines(p0, p1, ch["width_mm"])
-        # A channel shallower than the spacer is not in the spacer, so it is not cut
-        # with it. Sub-10 um depths need photolithography, not a laser.
+        # A channel shallower than the fluidic layer is a second depth, which one
+        # embossing tool cannot make. It goes on its own layer so it cannot be missed.
         if spacer and ch["depth_mm"] < spacer["thickness_mm"] - 1e-6:
             groove_outlines += outline
         else:
@@ -174,19 +265,32 @@ def main() -> int:
         layers["GROOVES"] = groove_outlines
     write_dxf(dxf, layers)
     written.append(dxf)
+    # Parts left over from an older version of this chip: reported, never deleted.
+    wanted = {p.name for p in written}
+    stale = sorted(p.name for p in out.glob("*.stl")
+                   if p.name not in wanted and p.name not in FOREIGN_FLAT)
+    owned_flat = out == EXPORTS
+    problems = depth_problems(chip, spacer)
 
     print(f"chip {chip['id']}: {len(by_id)} chambers, {len(chip['ports'])} ports, "
           f"{len(chip['channels'])} channels")
     for p in written:
         print(f"  wrote {rel}/{p.name}")
     if spacer:
-        print(f"\n{dxf.name}: CHAMBERS and CHANNELS are the cut path for the '{spacer['id']}' "
-              f"layer ({spacer['thickness_mm']} mm {spacer['material']}). Units mm, chip-spec origin.")
+        how = ": resin-printed tool, hot-embossed" if in_envelope(chip) else ""
+        print(f"\n{dxf.name}: CHAMBERS and CHANNELS are the outline of the '{spacer['id']}' "
+              f"fluidic layer ({spacer['thickness_mm']} mm {spacer['material']}){how}. "
+              f"Units mm, chip-spec origin.")
     if groove_outlines:
         shallow = min(c["depth_mm"] for c in chip["channels"]) * 1000
-        print(f"  GROOVES is a SEPARATE layer and a separate process. Its shallowest feature is "
-              f"{shallow:g} um,\n  which a laser cutter cannot make (about 80 um minimum, with "
-              f"roughness of a few um).\n  Treat that layer as a photolithography mask, not a cut path.")
+        print(f"  GROOVES layer written: BUILD PROBLEM. Its shallowest feature is {shallow:g} um, "
+              f"a second\n  depth. We have no photolithography and one embossing tool makes one "
+              f"depth, so this\n  chip cannot be built as drawn. Re-draw it at one depth.")
+    for pr in problems:
+        print(f"  DEPTH: {pr}")
+    if stale:
+        note = " (the flat folder is the twin's, check them)" if owned_flat else ""
+        print(f"  STALE: {out} holds parts this chip no longer has: {', '.join(stale)}{note}")
     return 0
 
 

@@ -27,14 +27,16 @@ laser-cut for the food-dye demo; the other modules exist in the twin only.
 
 | # | Step | What the audience sees |
 |---|---|---|
-| 1 | From a prompt to a chip | A typed prompt; the steps grouped into Flowmatter library parts; the chip spec Yuvraj's tool built; our checker passes it; the chip appears with its real part shapes. A cached result (`prompt_to_chip/`, from his branch), so it runs offline. ![](step_1_prompt.jpg) |
-| 2 | Pipeline | All six modules left to right with FINAL / DRAFT / TRANSLATED / MISSING badges; cells move card to card. ![](step_2_pipeline.jpg) |
-| 3 | Module 1: separate growth | Red, yellow and blue dye (neurons, glia, astrocytes) fill their own chambers and leave through p_mid; time ×60. ![](step_3_grow.jpg) |
+| 1 | From a prompt to a chip | A typed prompt, then: Flowmatter parts → chip spec → our checker passes it; the chip appears with its real part shapes. A cached result of Yuvraj's tool (`prompt_to_chip/`), so it runs offline. ![](step_1_prompt.jpg) |
+| 2 | The whole pipeline, at real scale | The 3D scene: every chip (30 × 20 mm) in a snake, tubes between them, the sample moving chip to chip; dashed NEXT ghosts for the barcoding and hairpin placeholders. ![](step_2_pipeline.jpg) |
+| 3 | Module 1: separate growth | Red, yellow and blue dye (neurons, glia, astrocytes) fill their own chambers and leave through p_mid. ![](step_3_grow.jpg) |
 | 4 | Module 1: interaction | Only the neuron inlet is fed: red crosses the junction into the other two chambers. ![](step_4_interact.jpg) |
-| 5 | Unsafe request refused | Asked to cap p_mid and vent p_g_out during separate growth, the operator checks the flow model and refuses in one sentence (the glia chamber would get 33% neuron and 33% astrocyte medium); the ports stay as they were. ![](step_5_refuse.jpg) |
-| 6 | Harvest | All three chambers flush out through p_mid; then, in the pipeline, the cells move on to Module 2. ![](step_6_harvest.jpg) |
-| 7 | Module 4 | Rotary-valve fill A B C D D C B A, index primers, thermocycling on all four chambers. ![](step_7_m4.jpg) |
-| 8 | Module 5 | Collagenase release at 37 °C, dilution, magnetic bead capture (magnet on under bead_cx). ![](step_8_m5.jpg) |
+| 5 | Unsafe request refused | “Cap p_mid and vent p_g_out” is typed; the operator answers in one sentence from the live safety check (the glia chamber would get 33% neuron and 33% astrocyte medium); BLOCKED, ports unchanged. ![](step_5_refuse.jpg) |
+| 6 | Harvest, and on down the line | All three chambers flush out through p_mid; then, in the pipeline scene, the cells move on to cell prep and encapsulation. ![](step_6_harvest.jpg) |
+| 7 | Module 4 | Rotary-valve fill A B C D D C B A, then thermocycling on all four chambers. ![](step_7_m4.jpg) |
+| 8 | Module 5 | Collagenase release at 37 °C, magnetic bead capture, one sublibrary per pass. ![](step_8_m5.jpg) |
+
+Each step is a big title and one short caption at the bottom; no side panels.
 
 ## Backup video
 

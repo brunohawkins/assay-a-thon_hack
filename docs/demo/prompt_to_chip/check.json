@@ -2,15 +2,13 @@
   "ref": "origin/chip/flowmatter-paper-to-chip",
   "commit": "02a670a",
   "design": "capsule_prep_v1",
-  "checked_at": "2026-11-07T17:37:48Z",
+  "checked_at": "2026-11-07T18:34:36Z",
   "schema_errors": [],
   "errors": [],
   "warnings": [
     "material 'unknown' is not in contracts/materials.json: temperature and chemical compatibility can't be checked"
   ],
-  "todo": [
-    "fabrication TODO: 38 fabricated features can't be checked because cad/fabrication.json has no laser_kerf_um or min_embossed_feature_um yet (smallest: channel 'ch_1' width = 500 um)"
-  ],
+  "todo": [],
   "passes": true,
   "counts": {
     "parts": 8,

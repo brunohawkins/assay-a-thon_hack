@@ -1,88 +1,737 @@
 {
   "_about": "Design parameters from Szonja's sheet, contracts/sources/chip_geometry_requirements.xlsx (Sizing Calculator, Geometry Requirements, Step 1 and Step 3 tabs). 'source' lists keys from 'sources' below. 'assumption': true marks rules of thumb the sheet says are not from a paper (confirm with Ayrton). Where the sheet gives a range, 'min'/'max' hold it and 'value' is null unless the sheet names a typical value. operator/sizing.py uses the same defaults; tests/test_sizing.py checks they agree.",
   "sources": {
-    "CapSeq": {"reference": "Baronas et al., Science 391, 1138 (2026)", "link": "https://doi.org/10.1126/science.ady7227"},
-    "SPC-NAR": {"reference": "Leonaviciene & Mazutis, NAR 51, e2 (2023); bioRxiv 2022.09.24.509327", "link": "https://www.biorxiv.org/content/10.1101/2022.09.24.509327"},
-    "10x": {"reference": "10x Genomics CG00054 Rev B (cultured cell lines)", "link": "https://www.10xgenomics.com/support/single-cell-gene-expression/documentation/steps/sample-prep/single-cell-suspensions-from-cultured-cell-lines-for-single-cell-rna-sequencing"},
-    "inDrops": {"reference": "Harvard Single Cell Core inDrops sample prep guide", "link": "https://singlecellcore.hms.harvard.edu/resource/samplepreparation6202018pdf"},
-    "TIP-seq": {"reference": "Bartlett et al., J Cell Biol 220, e202103078 (2021)", "link": "https://doi.org/10.1083/jcb.202103078"},
-    "Assumption": {"reference": "Design rule of thumb, not from a paper: confirm with Ayrton", "link": null},
-    "Textbook": {"reference": "Standard physics / fluid mechanics values (e.g. water viscosity at 20 C, Sampson orifice flow, rectangular-channel resistance)", "link": null}
+    "CapSeq": {
+      "reference": "Baronas et al., Science 391, 1138 (2026)",
+      "link": "https://doi.org/10.1126/science.ady7227"
+    },
+    "SPC-NAR": {
+      "reference": "Leonaviciene & Mazutis, NAR 51, e2 (2023); bioRxiv 2022.09.24.509327",
+      "link": "https://www.biorxiv.org/content/10.1101/2022.09.24.509327"
+    },
+    "10x": {
+      "reference": "10x Genomics CG00054 Rev B (cultured cell lines)",
+      "link": "https://www.10xgenomics.com/support/single-cell-gene-expression/documentation/steps/sample-prep/single-cell-suspensions-from-cultured-cell-lines-for-single-cell-rna-sequencing"
+    },
+    "inDrops": {
+      "reference": "Harvard Single Cell Core inDrops sample prep guide",
+      "link": "https://singlecellcore.hms.harvard.edu/resource/samplepreparation6202018pdf"
+    },
+    "TIP-seq": {
+      "reference": "Bartlett et al., J Cell Biol 220, e202103078 (2021)",
+      "link": "https://doi.org/10.1083/jcb.202103078"
+    },
+    "Assumption": {
+      "reference": "Design rule of thumb, not from a paper: confirm with Ayrton",
+      "link": null
+    },
+    "Textbook": {
+      "reference": "Standard physics / fluid mechanics values (e.g. water viscosity at 20 C, Sampson orifice flow, rectangular-channel resistance)",
+      "link": null
+    }
   },
   "parameters": {
-    "capsule.diameter_um": {"value": 70, "min": 67, "max": 76.5, "units": "um", "source": ["CapSeq", "SPC-NAR"], "assumption": false, "note": "CapSeq typical 70 +/- 3 um; SPC methods paper 75 +/- 1.5 um; tunable 35-260 um"},
-    "capsule.diameter_tunable_um": {"value": null, "min": 35, "max": 260, "units": "um", "source": ["CapSeq", "SPC-NAR"], "assumption": false, "note": "Range capsules can be made in"},
-    "capsule.count": {"value": 100000, "units": "capsules", "source": ["CapSeq"], "assumption": false, "note": "Sheet default. CapSeq says >100,000 CELLS per run; capsules needed = cells / mean cells per capsule (sizing.py cell mode)"},
-    "capsule.packing_fraction": {"value": 0.64, "units": "fraction", "source": ["Assumption"], "assumption": true, "note": "Random close packing of spheres"},
-    "capsule.swell_factor": {"value": 2, "units": "x diameter", "source": ["CapSeq"], "assumption": false, "note": "Capsules swell >2x during culture without bursting; occupied capsules swell, empty ones don't"},
-    "capsule.mean_cells_target": {"value": 0.1, "units": "cells/capsule", "source": ["SPC-NAR", "CapSeq"], "assumption": false, "note": "~0.1 cells per capsule; most capsules empty. Size chambers by capsule count, not cell count"},
-    "capsule.retained_nucleic_acid_min_bp": {"value": 300, "units": "bp", "source": ["CapSeq"], "assumption": false, "note": "Capsule permeability: >300 bp kept. No geometry impact"},
-    "capsule.enzyme_pass_max_kda": {"value": 160, "units": "kDa", "source": ["CapSeq"], "assumption": false, "note": "Enzymes under ~160 kDa pass the shell. No geometry impact"},
-    "capsule_channel.width_factor_low": {"value": 1.5, "units": "x capsule diameter", "source": ["Assumption"], "assumption": true, "note": "Rule of thumb to avoid clogging"},
-    "capsule_channel.width_factor_high": {"value": 2, "units": "x capsule diameter", "source": ["Assumption"], "assumption": true, "note": "Rule of thumb to avoid clogging"},
-    "trap.gap_factor_low": {"value": 0.3, "units": "x capsule diameter", "source": ["Assumption"], "assumption": true, "note": "Rule of thumb"},
-    "trap.gap_factor_high": {"value": 0.4, "units": "x capsule diameter", "source": ["Assumption"], "assumption": true, "note": "Rule of thumb; check_chip_spec.py errors at or above this"},
-    "culture.chamber_height_min_um": {"value": 150, "units": "um", "source": ["CapSeq"], "assumption": false, "note": "Culture chamber height and trap clearance >= ~150 um (swollen capsules)"},
-    "culture.temp_c": {"value": 37, "units": "C", "source": ["CapSeq", "SPC-NAR"], "assumption": false, "note": "Days-weeks in medium at 37 C, 5% CO2"},
-    "release.outlet_min_width_um": {"value": 150, "units": "um", "source": ["CapSeq"], "assumption": false, "note": "Outlet sized for released spheroids (~150 um+) after collagenase release"},
-    "size_sort.cutoff_um": {"value": null, "min": 80, "max": 120, "units": "um", "source": ["CapSeq"], "assumption": false, "note": "Optional weir or DLD to drop empty (unswollen) capsules"},
-    "capsule_filter.gap_um": {"value": 100, "units": "um", "source": ["SPC-NAR"], "assumption": false, "note": "Capsule aggregates removed at 100 um"},
-    "cell_filter.gap_um": {"value": 30, "min": 30, "max": 40, "units": "um", "source": ["10x", "inDrops", "TIP-seq"], "assumption": false, "note": "10x 30 um; inDrops 40 um then 20 um; TIP-seq 30 um. Must be <= encapsulation nozzle width"},
-    "cell_wash.dld_critical_diameter_um": {"value": 8, "units": "um", "source": ["SPC-NAR", "10x"], "assumption": false, "note": "Medium-exchange module replacing pelleting: DLD critical diameter ~8 um (or spiral inertial channel)"},
-    "cell_wash.pellet_g": {"value": null, "min": 250, "max": 300, "units": "g", "source": ["SPC-NAR", "10x"], "assumption": false, "note": "Bench step to be replaced: 250-300 g, 5 min, 4 C"},
-    "dissociation.temp_c": {"value": 37, "units": "C", "source": ["10x", "inDrops"], "assumption": false, "note": "0.25% trypsin-EDTA"},
-    "dissociation.time_min": {"value": null, "min": 5, "max": 15, "units": "min", "source": ["10x", "inDrops"], "assumption": false},
-    "dissociation.outlet_min_width_um": {"value": 50, "units": "um", "source": ["10x", "inDrops"], "assumption": false, "note": "Outlet wide enough for detached cells and small clumps"},
-    "qc.viability_min": {"value": 0.9, "units": "fraction", "source": ["10x"], "assumption": false, "note": "Target >90% viable before encapsulation"},
-    "cellprep.mean_cells_tolerance": {"value": 0.25, "units": "fraction of capsule.mean_cells_target", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: Module 1b accepts a mean of 0.1 +/- 25% cells per capsule (0.075-0.125) before handing cells to Module 2"},
-    "cellprep.max_dilution": {"value": 10, "units": "x", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: the most m1b_resuspend_1 can dilute in one pass"},
-    "encapsulation.nozzle_um": {"value": 40, "units": "um", "source": ["SPC-NAR"], "assumption": false, "note": "40 x 40 um flow-focusing nozzle (existing kit)"},
-    "encapsulation.gelma_flow_ul_h": {"value": 250, "units": "uL/h", "source": ["SPC-NAR"], "assumption": false},
-    "encapsulation.cell_flow_ul_h": {"value": 100, "units": "uL/h", "source": ["SPC-NAR"], "assumption": false, "note": "Cells in 15% w/v dextran 500 kDa"},
-    "encapsulation.oil_flow_ul_h": {"value": 700, "units": "uL/h", "source": ["SPC-NAR"], "assumption": false},
-    "encapsulation.cell_conc_per_ul": {"value": 1500, "min": 1000, "max": 2000, "units": "cells/uL", "source": ["SPC-NAR"], "assumption": false, "note": "0.1-0.2 M cells per 100 uL"},
-    "encapsulation.dextran_percent_w_v": {"value": 15, "units": "% w/v", "source": ["SPC-NAR"], "assumption": false, "note": "Dextran 500 kDa"},
-    "gelation.temp_c": {"value": 4, "units": "C", "source": ["SPC-NAR"], "assumption": false},
-    "gelation.time_min": {"value": null, "min": 15, "max": 30, "units": "min", "source": ["SPC-NAR"], "assumption": false},
-    "crosslink.wavelength_nm": {"value": 405, "units": "nm", "source": ["SPC-NAR"], "assumption": false},
-    "crosslink.time_s": {"value": 20, "units": "s", "source": ["SPC-NAR"], "assumption": false},
-    "crosslink.lap_percent_w_v": {"value": 0.1, "units": "% w/v", "source": ["SPC-NAR"], "assumption": false, "note": "LAP photoinitiator"},
-    "wash.bench_g": {"value": 2000, "units": "g", "source": ["SPC-NAR"], "assumption": false, "note": "Bench capsule wash, 2 min, 4 C; replaced on chip by a trap with back-flush"},
-    "wash.chamber_volumes_per_wash": {"value": 5, "units": "chamber volumes", "source": ["Assumption"], "assumption": true},
-    "wash.washes_per_exchange": {"value": 3, "units": "washes", "source": ["CapSeq", "Assumption"], "assumption": true, "note": "'Several washes' in CapSeq"},
-    "wash.exchange_steps_per_run": {"value": 6, "units": "exchanges", "source": ["Assumption"], "assumption": true, "note": "After lysis, RT, BC2, BC3, hairpin, final"},
-    "lysis.gitc_molar": {"value": 4, "units": "M", "source": ["CapSeq"], "assumption": false, "note": "Harsh lysis with 4 M guanidinium thiocyanate for fragile cells; needs chemically resistant materials and a dedicated waste line"},
-    "reagents.common_lines": {"value": 8, "units": "lines", "source": ["CapSeq"], "assumption": false, "note": "Lysis, wash, hairpin ligation, protease, PCR mix, etc."},
-    "barcoding.rounds": {"value": 3, "units": "rounds", "source": ["CapSeq"], "assumption": false, "note": "3 rounds of split-and-pool"},
-    "barcoding.chambers_per_round": {"value": 8, "units": "chambers", "source": ["CapSeq"], "assumption": true, "note": "MVP suggestion; CapSeq uses 96 wells per round"},
-    "barcoding.chambers_per_round_capseq": {"value": 96, "units": "chambers", "source": ["CapSeq"], "assumption": false},
-    "sublibraries.count": {"value": 4, "units": "sublibraries", "source": ["Assumption"], "assumption": true, "note": "User-set in CapSeq"},
-    "rt.temp_c": {"value": 42, "units": "C", "source": ["Assumption"], "assumption": true, "note": "Typical RT temperature; exact value in CapSeq supplementary methods (not yet pulled)"},
-    "pcr.max_temp_c": {"value": 98, "units": "C", "source": ["CapSeq"], "assumption": false, "note": "Index PCR; heater/Peltier capable of ~98 C under sublibrary chambers"},
-    "ivt.temp_c": {"value": 37, "units": "C", "source": ["TIP-seq"], "assumption": false},
-    "ivt.time_h": {"value": null, "min": 16, "max": 19, "units": "h", "source": ["TIP-seq"], "assumption": false, "note": "Needs a sealed chamber against evaporation"},
-    "target_cells": {"value": 2000, "units": "cells", "source": ["Assumption"], "assumption": true, "note": "Demo target on the sheet"},
-    "fluid.viscosity_pa_s": {"value": 0.001, "units": "Pa s", "source": ["Textbook"], "assumption": false, "note": "Water at ~20 C"},
-    "mesh.open_fraction": {"value": 0.35, "units": "fraction", "source": ["Assumption"], "assumption": true, "note": "TODO: open area of the bought mesh (woven nylon is typically 30-40%); from its datasheet"},
-    "mesh.bed_resistance_kpa_per_ul_min": {"value": 0.05, "units": "kPa per uL/min", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: flow resistance of a full capsule monolayer on the mesh. The clean mesh is negligible (operator/flow_calc.py); the capsule bed dominates. The pressure sensor refits this"},
-    "capsule.escape_pressure_kpa": {"value": 5.0, "units": "kPa", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: pressure across the mesh at which soft capsules start squeezing through the opening; measure on the bench"},
-    "capsule.loss_rate": {"value": 0.2, "units": "fraction per 10 s per unit overpressure", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: how fast capsules escape above the escape pressure (model and virtual chip)"},
-    "capsule.diffusion_time_s": {"value": 60, "units": "s", "source": ["CapSeq", "Assumption"], "assumption": true, "note": "CapSeq: reagents diffuse into capsules within minutes. 60 s first-order lag is a TODO placeholder"},
-    "backflush.lift_flow_ul_min": {"value": 30, "units": "uL/min", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: upward flow that lifts a capsule monolayer off the mesh"},
-    "thermal.tau_s": {"value": 30, "units": "s", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: first-order time constant of a Peltier stage under the chip"},
-    "thermal.max_ramp_c_per_s": {"value": 2, "units": "C/s", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder: fastest heating/cooling ramp"},
-    "thermal.ambient_c": {"value": 22, "units": "C", "source": ["Assumption"], "assumption": true, "note": "Room temperature"},
-    "dye.diffusivity_m2_s": {"value": 4e-10, "units": "m2/s", "source": ["Assumption"], "assumption": true, "note": "TODO placeholder for a small-molecule dye in water; confirm from literature. Used by flow_calc's open-channel estimate (APPROXIMATE)"},
-    "reservoir.default_ul": {"value": 1000, "units": "uL", "source": ["Assumption"], "assumption": true, "note": "Starting volume of each reagent reservoir unless a scenario says otherwise"},
-    "waste.capacity_ul": {"value": 2000, "units": "uL", "source": ["Assumption"], "assumption": true},
-    "collection.capacity_ul": {"value": 500, "units": "uL", "source": ["Assumption"], "assumption": true},
-    "exchange.target_fraction": {"value": 0.99, "units": "fraction", "source": ["Assumption"], "assumption": true, "note": "Default goal for an exchange step"},
-    "exchange.interior_target_fraction": {"value": 0.95, "units": "fraction", "source": ["Assumption"], "assumption": true, "note": "Goal inside the capsules (diffusion lag): the optimizer adds a no-flow soak until the capsule interior reaches this"},
-    "backflush.target_fraction": {"value": 0.95, "units": "fraction of capsules lifted", "source": ["Assumption"], "assumption": true},
-    "release.target_fraction": {"value": 0.98, "units": "fraction of suspended capsules recovered", "source": ["Assumption"], "assumption": true},
-    "control.pressure_margin": {"value": 0.7, "units": "fraction of escape pressure", "source": ["Assumption"], "assumption": true, "note": "Plans must keep predicted pressure below this fraction of the escape pressure"},
-    "control.error_threshold": {"value": 0.15, "units": "relative error", "source": ["Assumption"], "assumption": true, "note": "Prediction error above this triggers a model update and re-plan"},
-    "control.slices_per_wash": {"value": 5, "units": "slices", "source": ["Assumption"], "assumption": true, "note": "Executor time slices per wash (measure and correct after each)"},
-    "monitor.pressure_alert_fraction": {"value": 0.85, "units": "fraction of escape pressure", "source": ["Assumption"], "assumption": true, "note": "pressure_high alert threshold"}
+    "capsule.diameter_um": {
+      "value": 70,
+      "min": 67,
+      "max": 76.5,
+      "units": "um",
+      "source": [
+        "CapSeq",
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "CapSeq typical 70 +/- 3 um; SPC methods paper 75 +/- 1.5 um; tunable 35-260 um"
+    },
+    "capsule.diameter_tunable_um": {
+      "value": null,
+      "min": 35,
+      "max": 260,
+      "units": "um",
+      "source": [
+        "CapSeq",
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "Range capsules can be made in"
+    },
+    "capsule.count": {
+      "value": 100000,
+      "units": "capsules",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Sheet default. CapSeq says >100,000 CELLS per run; capsules needed = cells / mean cells per capsule (sizing.py cell mode)"
+    },
+    "capsule.packing_fraction": {
+      "value": 0.64,
+      "units": "fraction",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Random close packing of spheres"
+    },
+    "capsule.swell_factor": {
+      "value": 2,
+      "units": "x diameter",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Capsules swell >2x during culture without bursting; occupied capsules swell, empty ones don't"
+    },
+    "capsule.mean_cells_target": {
+      "value": 0.1,
+      "units": "cells/capsule",
+      "source": [
+        "SPC-NAR",
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "~0.1 cells per capsule; most capsules empty. Size chambers by capsule count, not cell count"
+    },
+    "capsule.retained_nucleic_acid_min_bp": {
+      "value": 300,
+      "units": "bp",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Capsule permeability: >300 bp kept. No geometry impact"
+    },
+    "capsule.enzyme_pass_max_kda": {
+      "value": 160,
+      "units": "kDa",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Enzymes under ~160 kDa pass the shell. No geometry impact"
+    },
+    "capsule_channel.width_factor_low": {
+      "value": 1.5,
+      "units": "x capsule diameter",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Rule of thumb to avoid clogging"
+    },
+    "capsule_channel.width_factor_high": {
+      "value": 2,
+      "units": "x capsule diameter",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Rule of thumb to avoid clogging"
+    },
+    "trap.gap_factor_low": {
+      "value": 0.3,
+      "units": "x capsule diameter",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Rule of thumb"
+    },
+    "trap.gap_factor_high": {
+      "value": 0.4,
+      "units": "x capsule diameter",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Rule of thumb; check_chip_spec.py errors at or above this"
+    },
+    "culture.chamber_height_min_um": {
+      "value": 150,
+      "units": "um",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Culture chamber height and trap clearance >= ~150 um (swollen capsules)"
+    },
+    "culture.temp_c": {
+      "value": 37,
+      "units": "C",
+      "source": [
+        "CapSeq",
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "Days-weeks in medium at 37 C, 5% CO2"
+    },
+    "release.outlet_min_width_um": {
+      "value": 150,
+      "units": "um",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Outlet sized for released spheroids (~150 um+) after collagenase release"
+    },
+    "size_sort.cutoff_um": {
+      "value": null,
+      "min": 80,
+      "max": 120,
+      "units": "um",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Optional weir or DLD to drop empty (unswollen) capsules"
+    },
+    "capsule_filter.gap_um": {
+      "value": 100,
+      "units": "um",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "Capsule aggregates removed at 100 um"
+    },
+    "cell_filter.gap_um": {
+      "value": 30,
+      "min": 30,
+      "max": 40,
+      "units": "um",
+      "source": [
+        "10x",
+        "inDrops",
+        "TIP-seq"
+      ],
+      "assumption": false,
+      "note": "10x 30 um; inDrops 40 um then 20 um; TIP-seq 30 um. Must be <= encapsulation nozzle width"
+    },
+    "cell_wash.dld_critical_diameter_um": {
+      "value": 8,
+      "units": "um",
+      "source": [
+        "SPC-NAR",
+        "10x"
+      ],
+      "assumption": false,
+      "note": "Medium-exchange module replacing pelleting: DLD critical diameter ~8 um (or spiral inertial channel)"
+    },
+    "cell_wash.pellet_g": {
+      "value": null,
+      "min": 250,
+      "max": 300,
+      "units": "g",
+      "source": [
+        "SPC-NAR",
+        "10x"
+      ],
+      "assumption": false,
+      "note": "Bench step to be replaced: 250-300 g, 5 min, 4 C"
+    },
+    "dissociation.temp_c": {
+      "value": 37,
+      "units": "C",
+      "source": [
+        "10x",
+        "inDrops"
+      ],
+      "assumption": false,
+      "note": "0.25% trypsin-EDTA"
+    },
+    "dissociation.time_min": {
+      "value": null,
+      "min": 5,
+      "max": 15,
+      "units": "min",
+      "source": [
+        "10x",
+        "inDrops"
+      ],
+      "assumption": false
+    },
+    "dissociation.outlet_min_width_um": {
+      "value": 50,
+      "units": "um",
+      "source": [
+        "10x",
+        "inDrops"
+      ],
+      "assumption": false,
+      "note": "Outlet wide enough for detached cells and small clumps"
+    },
+    "qc.viability_min": {
+      "value": 0.9,
+      "units": "fraction",
+      "source": [
+        "10x"
+      ],
+      "assumption": false,
+      "note": "Target >90% viable before encapsulation"
+    },
+    "cellprep.mean_cells_tolerance": {
+      "value": 0.25,
+      "units": "fraction of capsule.mean_cells_target",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "TODO placeholder: Module 1b accepts a mean of 0.1 +/- 25% cells per capsule (0.075-0.125) before handing cells to Module 2"
+    },
+    "cellprep.max_dilution": {
+      "value": 10,
+      "units": "x",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "TODO placeholder: the most m1b_resuspend_1 can dilute in one pass"
+    },
+    "encapsulation.nozzle_um": {
+      "value": 40,
+      "units": "um",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "40 x 40 um flow-focusing nozzle (existing kit)"
+    },
+    "encapsulation.gelma_flow_ul_h": {
+      "value": 250,
+      "units": "uL/h",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false
+    },
+    "encapsulation.cell_flow_ul_h": {
+      "value": 100,
+      "units": "uL/h",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "Cells in 15% w/v dextran 500 kDa"
+    },
+    "encapsulation.oil_flow_ul_h": {
+      "value": 700,
+      "units": "uL/h",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false
+    },
+    "encapsulation.cell_conc_per_ul": {
+      "value": 1500,
+      "min": 1000,
+      "max": 2000,
+      "units": "cells/uL",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "0.1-0.2 M cells per 100 uL"
+    },
+    "encapsulation.dextran_percent_w_v": {
+      "value": 15,
+      "units": "% w/v",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "Dextran 500 kDa"
+    },
+    "gelation.temp_c": {
+      "value": 4,
+      "units": "C",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false
+    },
+    "gelation.time_min": {
+      "value": null,
+      "min": 15,
+      "max": 30,
+      "units": "min",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false
+    },
+    "crosslink.wavelength_nm": {
+      "value": 405,
+      "units": "nm",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false
+    },
+    "crosslink.time_s": {
+      "value": 20,
+      "units": "s",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false
+    },
+    "crosslink.lap_percent_w_v": {
+      "value": 0.1,
+      "units": "% w/v",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "LAP photoinitiator"
+    },
+    "wash.bench_g": {
+      "value": 2000,
+      "units": "g",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "Bench capsule wash, 2 min, 4 C; replaced on chip by a trap with back-flush"
+    },
+    "wash.chamber_volumes_per_wash": {
+      "value": 5,
+      "units": "chamber volumes",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true
+    },
+    "wash.washes_per_exchange": {
+      "value": 3,
+      "units": "washes",
+      "source": [
+        "CapSeq",
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "'Several washes' in CapSeq"
+    },
+    "wash.exchange_steps_per_run": {
+      "value": 4,
+      "units": "exchanges",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "After lysis, reverse transcription, and the final wash"
+    },
+    "lysis.gitc_molar": {
+      "value": 4,
+      "units": "M",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Harsh lysis with 4 M guanidinium thiocyanate for fragile cells; needs chemically resistant materials and a dedicated waste line"
+    },
+    "reagents.common_lines": {
+      "value": 8,
+      "units": "lines",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Lysis, wash, hairpin ligation, protease, PCR mix, etc."
+    },
+    "sublibraries.count": {
+      "value": 4,
+      "units": "sublibraries",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "User-set in CapSeq"
+    },
+    "rt.temp_c": {
+      "value": 42,
+      "units": "C",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Typical RT temperature; exact value in CapSeq supplementary methods (not yet pulled)"
+    },
+    "pcr.max_temp_c": {
+      "value": 98,
+      "units": "C",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Index PCR; heater/Peltier capable of ~98 C under sublibrary chambers"
+    },
+    "ivt.temp_c": {
+      "value": 37,
+      "units": "C",
+      "source": [
+        "TIP-seq"
+      ],
+      "assumption": false
+    },
+    "ivt.time_h": {
+      "value": null,
+      "min": 16,
+      "max": 19,
+      "units": "h",
+      "source": [
+        "TIP-seq"
+      ],
+      "assumption": false,
+      "note": "Needs a sealed chamber against evaporation"
+    },
+    "target_cells": {
+      "value": 2000,
+      "units": "cells",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Demo target on the sheet"
+    },
+    "fluid.viscosity_pa_s": {
+      "value": 0.001,
+      "units": "Pa s",
+      "source": [
+        "Textbook"
+      ],
+      "assumption": false,
+      "note": "Water at ~20 C"
+    },
+    "mesh.open_fraction": {
+      "value": 0.35,
+      "units": "fraction",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "TODO: open area of the bought mesh (woven nylon is typically 30-40%); from its datasheet"
+    },
+    "mesh.bed_resistance_kpa_per_ul_min": {
+      "value": 0.05,
+      "units": "kPa per uL/min",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "TODO placeholder: flow resistance of a full capsule monolayer on the mesh. The clean mesh is negligible (operator/flow_calc.py); the capsule bed dominates. The pressure sensor refits this"
+    },
+    "capsule.escape_pressure_kpa": {
+      "value": 5.0,
+      "units": "kPa",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "TODO placeholder: pressure across the mesh at which soft capsules start squeezing through the opening; measure on the bench"
+    },
+    "capsule.loss_rate": {
+      "value": 0.2,
+      "units": "fraction per 10 s per unit overpressure",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "TODO placeholder: how fast capsules escape above the escape pressure (model and virtual chip)"
+    },
+    "capsule.diffusion_time_s": {
+      "value": 60,
+      "units": "s",
+      "source": [
+        "CapSeq",
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "CapSeq: reagents diffuse into capsules within minutes. 60 s first-order lag is a TODO placeholder"
+    },
+    "backflush.lift_flow_ul_min": {
+      "value": 30,
+      "units": "uL/min",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "TODO placeholder: upward flow that lifts a capsule monolayer off the mesh"
+    },
+    "thermal.tau_s": {
+      "value": 30,
+      "units": "s",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "TODO placeholder: first-order time constant of a Peltier stage under the chip"
+    },
+    "thermal.max_ramp_c_per_s": {
+      "value": 2,
+      "units": "C/s",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "TODO placeholder: fastest heating/cooling ramp"
+    },
+    "thermal.ambient_c": {
+      "value": 22,
+      "units": "C",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Room temperature"
+    },
+    "dye.diffusivity_m2_s": {
+      "value": 4e-10,
+      "units": "m2/s",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "TODO placeholder for a small-molecule dye in water; confirm from literature. Used by flow_calc's open-channel estimate (APPROXIMATE)"
+    },
+    "reservoir.default_ul": {
+      "value": 1000,
+      "units": "uL",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Starting volume of each reagent reservoir unless a scenario says otherwise"
+    },
+    "waste.capacity_ul": {
+      "value": 2000,
+      "units": "uL",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true
+    },
+    "collection.capacity_ul": {
+      "value": 500,
+      "units": "uL",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true
+    },
+    "exchange.target_fraction": {
+      "value": 0.99,
+      "units": "fraction",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Default goal for an exchange step"
+    },
+    "exchange.interior_target_fraction": {
+      "value": 0.95,
+      "units": "fraction",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Goal inside the capsules (diffusion lag): the optimizer adds a no-flow soak until the capsule interior reaches this"
+    },
+    "backflush.target_fraction": {
+      "value": 0.95,
+      "units": "fraction of capsules lifted",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true
+    },
+    "release.target_fraction": {
+      "value": 0.98,
+      "units": "fraction of suspended capsules recovered",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true
+    },
+    "control.pressure_margin": {
+      "value": 0.7,
+      "units": "fraction of escape pressure",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Plans must keep predicted pressure below this fraction of the escape pressure"
+    },
+    "control.error_threshold": {
+      "value": 0.15,
+      "units": "relative error",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Prediction error above this triggers a model update and re-plan"
+    },
+    "control.slices_per_wash": {
+      "value": 5,
+      "units": "slices",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Executor time slices per wash (measure and correct after each)"
+    },
+    "monitor.pressure_alert_fraction": {
+      "value": 0.85,
+      "units": "fraction of escape pressure",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "pressure_high alert threshold"
+    },
+    "barcoding.scheme": {
+      "value": null,
+      "units": "scheme",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Split-and-pool barcoding is DROPPED. Cells carry a per-lane lipid-anchored oligo barcode applied in module 1, so reverse transcription uses a plain poly(dT) primer and adds no barcode. Module 4's index PCR still adds the sublibrary index. NOTE the surviving barcodes are per-LANE, not per-cell: three lanes x four sublibrary indices is about twelve distinguishable groups, so the data is lane-level, not single-cell."
+    },
+    "barcoding.lanes": {
+      "value": 3,
+      "units": "lanes",
+      "source": [
+        "CapSeq"
+      ],
+      "assumption": false,
+      "note": "Per-lane lipid-oligo barcodes carried by the cells: one per lineage."
+    },
+    "shear.culture_ceiling_dyn_cm2": {
+      "value": 0.01,
+      "units": "dyn/cm2",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Applies to chambers holding ADHERENT CELLS, where the risk is detaching them. It does NOT apply to chambers holding CAPSULES: a capsule is not attached to anything and the limit there is capsule.escape_pressure_kpa, which the planner already enforces. m3_wash runs its back-flush and release at the lift flow, about 0.038 dyn/cm2, deliberately: below the lift flow the capsule bed does not come off the weir. Do not 'fix' that by lowering it."
+    },
+    "shear.capsule_handling_note": {
+      "value": null,
+      "units": "-",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Capsule-handling steps are bounded by escape pressure, not by the culture shear ceiling. Published adherent-cell detachment is around 0.6 dyn/cm2 (see protocols/retention_audit.md), so the 0.01 ceiling already carries a 60x margin for the chips that do hold cells."
+    },
+    "shear.prelysis_rinse_ceiling_dyn_cm2": {
+      "value": 0.3,
+      "units": "dyn/cm2",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Rinse immediately before a deliberate lyse/quench, NOT a culture step. The 0.01 culture ceiling exists to keep adherent cells attached for weeks; held to it, a pre-quench rinse takes about 12 MINUTES, which perturbs metabolism for roughly 700x longer than the ~1 s quench we engineered the comb geometry to achieve. That defeats the whole point. Published adherent-cell detachment is near 0.6 dyn/cm2 (protocols/retention_audit.md), so 0.3 is half of it, applied for about 20 s to cells that are about to be killed anyway. Losing a few cells here costs nothing; a 12-minute perturbation costs the measurement."
+    }
   }
 }

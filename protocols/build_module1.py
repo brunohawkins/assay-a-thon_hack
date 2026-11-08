@@ -33,8 +33,8 @@ Limits found in review:
     stable (about 7 mbar), and below a 1 mm reservoir head (0.098 mbar) or a port meniscus
     (about 1.4 mbar). With a fixed flow at each inlet every stream can only leave by its own
     route, so the pressure-matching problem disappears.
-  - Shear: the 0.01 dyn/cm2 ceiling is applied to the CHAMBERS (met up to about 13.5
-    uL/min), where the cells are. The 0.8 x 0.3 mm CHANNELS exceed it above about 0.9
+  - Shear: the 0.01 dyn/cm2 ceiling is applied to the CHAMBERS (derived from chamber
+    geometry, about 2.8 uL/min at the 30 x 20 mm scale), where the cells are. The 0.2 x 0.3 mm CHANNELS exceed it above about 0.2
     uL/min; they are transit, not culture.
   - Each lineage has one chamber, so the passages in the published methods are not done.
 
@@ -140,9 +140,11 @@ def shear(flow_ul_min: float, width_mm: float, height_mm: float) -> float:
 
 
 CH = {c["id"]: c for c in json.loads(CHIP.read_text())["chambers"]}
-# Highest flow each chamber can carry under the ceiling, rounded down with a little headroom.
+# Highest flow each chamber can carry under the ceiling: 15% headroom, rounded down to 0.1 uL/min.
+# No floor: if a chamber is so small the result is 0, that is a design problem to surface, not hide.
 CULTURE = ["n_cx", "g_cx", "a_cx"]
-CAP_FLOW = {cid: max(1.0, float(int(max_flow(CH[cid]["size"][1], CH[cid]["size"][2]))) - 2.0)
+HEADROOM = 0.85
+CAP_FLOW = {cid: math.floor(max_flow(CH[cid]["size"][1], CH[cid]["size"][2]) * HEADROOM * 10) / 10
             for cid in CULTURE}
 
 
@@ -150,7 +152,12 @@ def feed_flow(mode: str) -> float:
     """Largest feed (uL/min) for a mode that keeps every chamber it crosses under the ceiling."""
     share = MODES[mode][2]
     limits = [CAP_FLOW[c] / f for c, f in share.items() if f > 0]
-    return float(math.floor(min(limits))) if limits else 0.0
+    if not limits:
+        return 0.0
+    flow = math.floor(min(limits) * 10) / 10
+    if flow <= 0:
+        raise SystemExit("chamber geometry leaves no flow under the shear ceiling")
+    return flow
 
 
 def events() -> list[tuple[float, dict]]:
@@ -334,8 +341,8 @@ def report() -> None:
         cells = ""
         for c in CULTURE:
             w, h = CH[c]["size"][1], CH[c]["size"][2]
-            cells += f"{q * share[c]:.0f} uL/min {shear(q * share[c], w, h):.4f}".rjust(20)
-        print(f"{label:<34}{q:>8.0f}  {cells}" if q > 0 else f"{label:<34}{'-':>8}  no flow")
+            cells += f"{q * share[c]:.1f} uL/min {shear(q * share[c], w, h):.4f}".rjust(20)
+        print(f"{label:<34}{q:>8.1f}  {cells}" if q > 0 else f"{label:<34}{'-':>8}  no flow")
     print(f"  shear in dyn/cm2, ceiling {SHEAR_CEILING}; chamber ceiling flow: "
           + ", ".join(f"{c} {max_flow(CH[c]['size'][1], CH[c]['size'][2]):.1f} uL/min" for c in CULTURE))
     ch = json.loads(CHIP.read_text())["channels"][0]

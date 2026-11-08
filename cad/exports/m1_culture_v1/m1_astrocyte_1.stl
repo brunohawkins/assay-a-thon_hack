@@ -1,0 +1,86 @@
+solid m1_astrocyte_1
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 1.889350e+01 4.293500e+00 1.100000e+00
+      vertex 2.084050e+01 6.240500e+00 1.100000e+00
+      vertex 2.084050e+01 4.293500e+00 1.100000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 -1.000000e+00
+    outer loop
+      vertex 1.889350e+01 4.293500e+00 1.100000e+00
+      vertex 1.889350e+01 6.240500e+00 1.100000e+00
+      vertex 2.084050e+01 6.240500e+00 1.100000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 1.889350e+01 4.293500e+00 1.400000e+00
+      vertex 2.084050e+01 4.293500e+00 1.400000e+00
+      vertex 2.084050e+01 6.240500e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 0.000000e+00 1.000000e+00
+    outer loop
+      vertex 1.889350e+01 4.293500e+00 1.400000e+00
+      vertex 2.084050e+01 6.240500e+00 1.400000e+00
+      vertex 1.889350e+01 6.240500e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.889350e+01 4.293500e+00 1.100000e+00
+      vertex 2.084050e+01 4.293500e+00 1.100000e+00
+      vertex 2.084050e+01 4.293500e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 -1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.889350e+01 4.293500e+00 1.100000e+00
+      vertex 2.084050e+01 4.293500e+00 1.400000e+00
+      vertex 1.889350e+01 4.293500e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.889350e+01 6.240500e+00 1.100000e+00
+      vertex 1.889350e+01 6.240500e+00 1.400000e+00
+      vertex 2.084050e+01 6.240500e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 0.000000e+00 1.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.889350e+01 6.240500e+00 1.100000e+00
+      vertex 2.084050e+01 6.240500e+00 1.400000e+00
+      vertex 2.084050e+01 6.240500e+00 1.100000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.889350e+01 4.293500e+00 1.100000e+00
+      vertex 1.889350e+01 4.293500e+00 1.400000e+00
+      vertex 1.889350e+01 6.240500e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal -1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 1.889350e+01 4.293500e+00 1.100000e+00
+      vertex 1.889350e+01 6.240500e+00 1.400000e+00
+      vertex 1.889350e+01 6.240500e+00 1.100000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.084050e+01 4.293500e+00 1.100000e+00
+      vertex 2.084050e+01 6.240500e+00 1.100000e+00
+      vertex 2.084050e+01 6.240500e+00 1.400000e+00
+    endloop
+  endfacet
+  facet normal 1.000000e+00 0.000000e+00 0.000000e+00
+    outer loop
+      vertex 2.084050e+01 4.293500e+00 1.100000e+00
+      vertex 2.084050e+01 6.240500e+00 1.400000e+00
+      vertex 2.084050e+01 4.293500e+00 1.400000e+00
+    endloop
+  endfacet
+endsolid m1_astrocyte_1

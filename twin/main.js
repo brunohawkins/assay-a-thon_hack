@@ -6,11 +6,13 @@ import { Player } from './player.js';
 import { createUI } from './ui.js';
 import { findDisplayModel, buildDisplayModel } from './display.js';
 import { createControlPanel } from './control.js';
-import { createPipeline } from './pipeline.js';
+import { createPipeline3D } from './pipeline3d.js';
+import { loadStatus } from './status.js';
 import { createOverlays } from './overlays.js';
 import { createModule1View, CHIP_ID as M1V1 } from './module1.js';
 import { createLibraryView, LIB_CHIPS } from './library_modules.js';
 import { createPresenter } from './presenter.js';
+import { applyBlocks } from './blocks.js';
 
 const ROOT = '../'; // serve the repo root: python -m http.server, then open /twin/
 // twin/?present: the presenter view (twin/presenter.js), also what `python tools/demo.py` opens.
@@ -27,7 +29,8 @@ let busy = false;
 let view = 'real';
 let displayManifest = null;
 let displayGroup = null;
-let module = null;          // 'pipeline' | 'm1v1' | 'm2' | 'm3v1' | 'm4' | 'm5' | 'old' (or m1, m1b, m3) | 'other'
+let module = null;          // 'pipeline' | 'm1v1' | 'cp' | 'enc' | 'm3v1' | 'm4' | 'm5' | 'old' (or m1, m1b, m2, m3) | 'other'
+let statusData = null;      // protocols/pipeline_status.md (twin/status.js)
 let pipelineLoaded = false;
 let cultureRun = false;
 
@@ -38,14 +41,17 @@ const PREFERRED = {
   m2: () => true,
   m3: (r) => !r.scenario,
   m1v1: () => true,
+  m3v1: (r) => !r.synthetic,          // MJ's protocols/module3_v1.json run first; Szonja's workflow is the other
   old: (r) => r.module === 'm3' && !r.scenario,
 };
-// The current modules' specs (MJ's, Szonja's translated) have no module block: their runs are
-// told apart by chip id. A chip/module2*.json from MJ lands in the Module 2 tab.
-const CHIP_VIEW = { [M1V1]: 'm1v1', module3_v1_translated: 'm3v1', ...LIB_CHIPS };
-const moduleOf = (r) => r.module ?? CHIP_VIEW[r.chip_id] ?? (/^module2/.test(r.chip_id ?? '') ? 'm2' : null);
-// The superseded drafts (Module 1 brief, 1b, 3 wash) share one "Old drafts" tab.
-const OLD = new Set(['m1', 'm1b', 'm3']);
+// The current modules' specs (MJ's 30 x 20 mm chips) have no module block: their runs are told
+// apart by chip id. A chip that protocols/pipeline_status.md marks DUPLICATE-RETIRE goes to "Old drafts".
+const CHIP_VIEW = { [M1V1]: 'm1v1', cell_prep_v1: 'cp', spc_demo_v1: 'enc', module3_v1_translated: 'm3v1', ...LIB_CHIPS };
+const moduleOf = (r) => r.module ?? (statusData?.retired.has(r.chip_id) ? 'retired' : CHIP_VIEW[r.chip_id]
+  ?? (/^module2/.test(r.chip_id ?? '') ? 'enc' : null));
+// The superseded generated drafts (Module 1 brief, 1b, Module 2 draft, 3 wash) and the retired
+// duplicates share one "Old drafts" tab.
+const OLD = new Set(['m1', 'm1b', 'm2', 'm3', 'retired']);
 const tabOf = (m) => (OLD.has(m) ? 'old' : m);
 
 // Module 3 (Szonja) has no protocol file: the twin plays her workflow block straight from
@@ -114,7 +120,7 @@ const player = new Player(ctx, {
   onOverlay: (o) => overlays.setNozzle(inPipeline() ? null : o.nozzle),
 });
 
-const pipeline = createPipeline(document.getElementById('pipeline'), {
+const pipeline = createPipeline3D(document.getElementById('pipeline'), ctx, {
   onOpenModule: (m, file) => showModule(m, file),
   onPhase: (i, ev) => ui.setEvent(i, ev),
   onTick: (info) => ui.setTick(info),
@@ -166,13 +172,14 @@ async function ensureChip(path, stlDir = null) {
     chip.dispose();
   }
   chip = new Chip(drawSpec);
+  await applyBlocks(chip); // chambers drawn from their Flowmatter block STLs where the library has them
   chipSpec = spec;
   chipPath = path;
   chip.setLabelsVisible(ui.labelsOn());
   ctx.scene.add(chip.group);
   ctx.frameChip(spec.footprint);
   player.setChip(chip);
-  ui.setChipInfo(spec, pipelineData?.entries.find((e) => e.spec?.id === spec.id) ?? null);
+  ui.setChipInfo(spec, pipelineData?.entries.find((e) => e.spec?.id === spec.id) ?? null, statusData?.byChip.get(spec.id) ?? null);
   if (m1.isChip(spec)) {
     m1.attach(chip); // loads its own STLs from cad/exports/module1_v1/
     ctx.frameChip(spec.footprint); // re-fit now the flow panel takes the left side
@@ -218,6 +225,7 @@ function runsFor(m) {
 
 // Pipeline view or one module's view.
 async function showModule(m, file = null) {
+  const wasPipeline = module === 'pipeline';
   module = m;
   ui.setTab(tabOf(m));
   if (m === 'pipeline') {
@@ -225,6 +233,8 @@ async function showModule(m, file = null) {
     overlays.setDay(null);
     overlays.setNozzle(null);
     document.body.classList.remove('has-control');
+    if (chip) chip.group.visible = false;          // the pipeline scene has its own chips
+    if (displayGroup) displayGroup.visible = false;
     await ensurePipeline();
     pipeline.show();
     ui.setRun(pipeline.runLike(), pipeline.timeline());
@@ -235,11 +245,14 @@ async function showModule(m, file = null) {
     return;
   }
   pipeline.hide();
+  if (chip) chip.group.visible = view !== 'display';
+  if (displayGroup) displayGroup.visible = view === 'display';
   const list = runsFor(m);
   if (!list.length) return;
   const pick = (file && list.find((r) => r.file === file)) ?? list.find(PREFERRED[m] ?? (() => true)) ?? list[0];
   ui.setRuns(list, pick.file);
   await selectRun(pick.file);
+  if (wasPipeline && chip && view === 'real') ctx.frameChip(chip.footprint); // back from the pipeline scene
 }
 
 // The chip a pipeline module uses now: a module with "prefer" (Module 2's draft) switches to
@@ -265,11 +278,20 @@ async function pipelineChip(m) {
 }
 
 let pipelineData = null;
+const pipelineCache = new Map();
+// The assay variants the pipeline view can switch between (tools/choose_assay.py picks the default).
+const VARIANTS = [
+  { variant: 'capseq', file: 'protocols/pipeline_capseq.json', label: 'CapSeq · RNA' },
+  { variant: 'tipseq', file: 'protocols/pipeline_tipseq.json', label: 'TIP-seq · chromatin DNA' },
+];
+let pipelineFile = 'protocols/pipeline_mvp.json';
+let chosenVariant = null;   // the variant protocols/pipeline_mvp.json copies
 
-// protocols/pipeline_mvp.json with each module's chip spec and the run its card opens.
-async function loadPipelineData() {
-  if (pipelineData) return pipelineData;
-  const pipe = await fetchJson('protocols/pipeline_mvp.json');
+// A pipeline file with each module's chip spec and the run its chip opens.
+async function loadPipelineData(file = pipelineFile) {
+  if (pipelineCache.has(file)) return (pipelineData = pipelineCache.get(file));
+  const pipe = await fetchJson(file);
+  if (file === 'protocols/pipeline_mvp.json') chosenVariant = pipe.variant ?? null;
   const entries = await Promise.all(pipe.modules.map(async (m) => {
     const { path, status, note } = await pipelineChip(m);
     const spec = path ? await fetchJson(path) : null;
@@ -280,15 +302,41 @@ async function loadPipelineData() {
       view: pick ? view : null, file: pick?.file ?? null, duration_s: pick?.total_duration_s ?? null };
   }));
   const m1e = entries.find((e) => e.module === 'module1');
-  pipelineData = { pipe, entries, days: Math.round((m1e?.duration_s ?? 0) / 86400) };
+  pipelineData = { pipe, entries, status: statusData, file, days: Math.round((m1e?.duration_s ?? 0) / 86400) };
+  pipelineCache.set(file, pipelineData);
   return pipelineData;
 }
 
 async function ensurePipeline() {
   if (pipelineLoaded) return;
-  pipeline.load(await loadPipelineData());
+  await pipeline.load(await loadPipelineData());
+  renderPipelineBar();
   pipelineLoaded = true;
 }
+
+// Above the scene: the CapSeq / TIP-seq toggle and what the scene shows.
+const pipelineBar = document.getElementById('pipeline');
+function renderPipelineBar() {
+  const current = pipelineData?.pipe?.variant ?? chosenVariant;
+  pipelineBar.innerHTML = `
+    <div class="p3-toggle" role="group" aria-label="Assay">${VARIANTS.map((v) => `<button type="button" data-variant="${v.variant}"
+      aria-pressed="${v.variant === current}">${v.label}${v.variant === chosenVariant ? ' <small>chosen</small>' : ''}</button>`).join('')}</div>
+    <p class="p3-legend">Chips at real scale (30 × 20 mm), 1/16 inch tubes; dots not to scale. Statuses: protocols/pipeline_status.md.
+      <span class="badge st-missing">NEXT</span> not on a chip yet · <span class="badge st-draft">BENCH</span> bench step</p>`;
+}
+pipelineBar.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-variant]');
+  if (!b) return;
+  const v = VARIANTS.find((x) => x.variant === b.dataset.variant);
+  if (!v || pipelineData?.pipe?.variant === v.variant) return;
+  pipelineFile = v.file;
+  pipeline.setPlaying(false);
+  await pipeline.load(await loadPipelineData(v.file));
+  renderPipelineBar();
+  ui.setRun(pipeline.runLike(), pipeline.timeline());
+  pipeline.seek(0);
+  if (inPipeline()) pipeline.frame();
+});
 
 // Szonja's workflow as a run: flows become load / exchange / back-flush; the no-flow steps
 // (settle, incubate) join the step before them. Ends with the hand-off to to_split_tree.
@@ -358,7 +406,7 @@ async function selectRun(file) {
     ui.setRun(run, player.timeline());
     // Capsule-trap sizing only fits the generated capsule chips (not Module 1 v1's cells, nor MJ's
     // and Szonja's chips, whose own design notes size them).
-    ui.setSizing(m1.isChip(chip.spec) || lib.isChip(chip.spec) || run.synthetic ? null : run.sizing ?? null);
+    ui.setSizing(chip.spec.module && !run.synthetic ? run.sizing ?? null : null);
     player.refresh(); // re-send the current event now the timeline exists
     setUrl(`#run=${encodeURIComponent(entry.file)}`);
   } finally {
@@ -377,6 +425,7 @@ async function start() {
     runs = index.runs ?? [];
     if (!runs.length) throw new Error('runs/index.json lists no runs. Generate some: python operator/run.py --all');
     runs.push(M3_ENTRY, PROMPT_ENTRY);
+    statusData = await loadStatus(ROOT);
     try { await loadPipelineData(); } catch (err) { console.warn(err); } // badges only: module views work without it
     if (PRESENT) {
       const presenter = createPresenter({

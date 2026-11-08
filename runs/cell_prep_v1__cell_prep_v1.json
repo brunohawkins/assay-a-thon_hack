@@ -1,0 +1,134 @@
+{
+  "protocol_id": "cell_prep_v1",
+  "protocol_name": "Cell detachment, neutralisation and QC",
+  "chip_id": "cell_prep_v1",
+  "chip_spec": "chip/cell_prep_v1.json",
+  "operator": "planner",
+  "created_at": "2026-11-07T17:52:56Z",
+  "placeholder": false,
+  "sizing": {
+    "capsule_count": null,
+    "capsule_count_note": "not in chip spec; sheet default 100,000 used",
+    "capsule_diameter_um": 70.0,
+    "cells_expected": 7696.9,
+    "trap_chambers": [],
+    "monolayer_area_mm2_needed": 490.0,
+    "trap_area_mm2": 0,
+    "packed_volume_ul_needed": 28.062,
+    "trap_volume_ul": 0,
+    "channel_width_um": [
+      200.0,
+      200.0
+    ],
+    "channel_width_um_recommended": [
+      105.0,
+      140.0
+    ],
+    "trap_gap_um_recommended": [
+      21.0,
+      28.0
+    ],
+    "swollen_diameter_um": 140.0
+  },
+  "total_duration_s": 4760.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 1711.0,
+      "command": "exchange",
+      "args": {
+        "target": "cult_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 4.737,
+        "washes": 2,
+        "flow_ul_min": 0.465
+      },
+      "narration": "Rinse the adherent layer into a divalent-free buffer. The rinse matters more than it looks: leftover medium slows the enzyme and leftover divalent cations keep the cells stuck down, and both show up later as clumps.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 1711.0,
+      "duration_s": 856.0,
+      "command": "exchange",
+      "args": {
+        "target": "cult_1",
+        "reagent": "dissociation_reagent",
+        "volume_ul": 4.737,
+        "washes": 1,
+        "flow_ul_min": 0.465
+      },
+      "narration": "Flow in the dissociation reagent and warm the chamber. This is the only heated zone on the board.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 2567.0,
+      "duration_s": 420.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "cult_1",
+        "temp_c": 37,
+        "duration_s": 420
+      },
+      "narration": "Hold at 37 C until the cells round up and lift. Watch rather than trust a timer: under-digestion leaves clumps, which is the thing most likely to block the nozzle downstream, and over-digestion costs viability.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 2987.0,
+      "duration_s": 856.0,
+      "command": "transfer",
+      "args": {
+        "source": "cult_1",
+        "target": "mix_1"
+      },
+      "narration": "Carry the lifted cells from the culture chamber into the serpentine.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 3843.0,
+      "duration_s": 240.0,
+      "command": "mix",
+      "args": {
+        "target": "mix_1",
+        "reagent": "quench_buffer",
+        "volume_ul": 1.326,
+        "flow_ul_min": 0.465
+      },
+      "narration": "Co-flow the quench with the lifted cells. Quenching here rather than in the chamber stops the enzyme as the cells leave instead of minutes later. The folded path is there because diffusion across the channel is too slow, so the mixing has to be advective.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 4083.0,
+      "duration_s": 240.0,
+      "command": "mix",
+      "args": {
+        "target": "mix_1",
+        "reagent": "quench_buffer",
+        "volume_ul": 1.326,
+        "flow_ul_min": 0.465
+      },
+      "narration": "Shear the remaining clumps apart against the serpentine turns. Published branching constrictions raise single cells from about 75% to about 92%, with viability unaffected when an enzyme has been used. It will not reach 100%, which is why a bought 40 um strainer still sits downstream.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 4323.0,
+      "duration_s": 300.0,
+      "command": "count",
+      "args": {
+        "target": "qc_1"
+      },
+      "narration": "Stop the flow and image the window, chilled. Count about 400 cells for a 5% Poisson error, then dilute to the concentration the encapsulator needs: about 13 cells/uL for a 390 um capsule at a mean of 0.2. THAT NUMBER IS NOT TRANSFERABLE between capsule sizes, because it falls as the cube of the diameter. A 20% counting error only moves single occupancy by about 15%, so a window and a phone camera are enough and an in-line counter is not worth building.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 4623.0,
+      "duration_s": 137.0,
+      "command": "transfer",
+      "args": {
+        "source": "qc_1",
+        "target": "out_cells"
+      },
+      "narration": "Deliver to a chilled tube. Everything after this is bench work and stays there: one spin, a 40 um strainer, and resuspension into the viscous encapsulation buffer. The module stops here deliberately.",
+      "protocol_step": 8
+    }
+  ]
+}

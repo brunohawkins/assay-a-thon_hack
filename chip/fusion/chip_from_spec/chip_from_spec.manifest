@@ -1,0 +1,10 @@
+{
+  "autodeskProduct": "Fusion360",
+  "type": "script",
+  "author": "SzonjaS",
+  "description": {
+    "": "Build the positive hot-embossing mould (3D-print this) from chip spec JSONs in chip/."
+  },
+  "supportedOS": "windows|mac",
+  "editEnabled": true
+}

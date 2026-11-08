@@ -1,0 +1,844 @@
+{
+  "id": "module6_v1",
+  "name": "Bulk omics from adherent cells: one cold acidified organic extraction, metabolome then proteome - module6_v1",
+  "source": "Chip geometry, flows and volumes are ours. Extraction approach from published single-extraction methods: Coman et al. (SIMPLEX) doi 10.1074/mcp.M115.053702; Sapcariu et al. doi 10.1016/j.mex.2014.07.002; Dettmer et al. 2011 doi 10.1007/s00216-010-4425-x; Kapoore et al. 2017 doi 10.1039/C7AN00207F; Lorenz et al. 2011 doi 10.1021/ac103313x.",
+  "placeholder": true,
+  "description": "Runs on chip/module6_v1.json, one lane at a time (neurons, glia, astrocytes), each through its own inlet, comb, field and outlet so the populations never mix. All three lanes are seeded and cultured together, then each lane in turn: ice-cold volatile rinse, stop-flow cold acidified organic quench in place, collect fraction 1 (metabolome, plus peptides under about 10 kDa), flush, resolubilise the precipitated protein, collect fraction 2 (proteome) from the same outlet. One chemistry, two fractions. Volumes are multiples of the lane's wetted volume (11.444 uL: field 2.88 + combs + stubs) or the extract volume (8.594 uL). The 0.01 dyn/cm2 ceiling holds the load, culture and rinse steps (3.78 and 1.93 uL/min); the quench flood, chases and flush (1373.3 uL/min) run after the cells are dead and are not held to it. Placeholder values to fit: culture duration and interval, soak time, resolubilisation time and temperature, flush multiples. The transcriptome arm on capsules via module 4 is separate.",
+  "steps": [
+    {
+      "operation": "load",
+      "target": "cx_n",
+      "reagent": "cell_suspension_n",
+      "volume_ul": 11.444,
+      "duration_s": 181.7,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": 3.78,
+      "note": "Neurons: load the lane's cell suspension through its own selector valve, filling the combs and field (one wetted volume), then stop flow so the cells settle and attach to the coated field floor. Held to the culture shear ceiling.",
+      "ports": {
+        "feed": [
+          "in_n"
+        ],
+        "vent": [
+          "out_n"
+        ],
+        "cap": [
+          "in_g",
+          "out_g",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 1
+    },
+    {
+      "operation": "load",
+      "target": "cx_g",
+      "reagent": "cell_suspension_g",
+      "volume_ul": 11.444,
+      "duration_s": 181.7,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": 3.78,
+      "note": "Glia: load the lane's cell suspension through its own selector valve, filling the combs and field (one wetted volume), then stop flow so the cells settle and attach to the coated field floor. Held to the culture shear ceiling.",
+      "ports": {
+        "feed": [
+          "in_g"
+        ],
+        "vent": [
+          "out_g"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 2
+    },
+    {
+      "operation": "load",
+      "target": "cx_a",
+      "reagent": "cell_suspension_a",
+      "volume_ul": 11.444,
+      "duration_s": 181.7,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": 3.78,
+      "note": "Astrocytes: load the lane's cell suspension through its own selector valve, filling the combs and field (one wetted volume), then stop flow so the cells settle and attach to the coated field floor. Held to the culture shear ceiling.",
+      "ports": {
+        "feed": [
+          "in_a"
+        ],
+        "vent": [
+          "out_a"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_g",
+          "out_g"
+        ]
+      },
+      "step": 3
+    },
+    {
+      "operation": "culture",
+      "targets": [
+        "cx_n",
+        "cx_g",
+        "cx_a"
+      ],
+      "reagents": [
+        "culture_medium",
+        "culture_medium",
+        "culture_medium"
+      ],
+      "reagent": null,
+      "volume_ul": 11.444,
+      "duration_s": 86400.0,
+      "temp_c": 37,
+      "washes": null,
+      "flow_ul_min": 3.78,
+      "exchange_interval_s": 21600.0,
+      "note": "All three lanes culture in parallel through their own ports: one wetted volume of fresh medium every interval at the shear-ceiling flow, then stop-flow. Durations are placeholders.",
+      "ports": {
+        "feed": [
+          "in_n",
+          "in_g",
+          "in_a"
+        ],
+        "vent": [
+          "out_n",
+          "out_g",
+          "out_a"
+        ]
+      },
+      "step": 4
+    },
+    {
+      "reagent": "cold_volatile_rinse",
+      "volume_ul": 22.888,
+      "duration_s": 712.0,
+      "temp_c": 4,
+      "washes": 1,
+      "flow_ul_min": 1.93,
+      "operation": "exchange",
+      "target": "cx_n",
+      "waste": "out_n",
+      "note": "Neurons: brief ice-cold volatile-buffer rinse of 2 wetted volumes to waste, mandatory because the medium is about 150:1 against intracellular volume. Held to the 0.01 dyn/cm2 ceiling, so it is slow (12 min); a rinse-specific ceiling would cut it to seconds.",
+      "ports": {
+        "feed": [
+          "in_n"
+        ],
+        "vent": [
+          "out_n"
+        ],
+        "cap": [
+          "in_g",
+          "out_g",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 5
+    },
+    {
+      "reagent": "cold_acidified_organic_quench",
+      "volume_ul": 22.888,
+      "duration_s": 1.0,
+      "temp_c": -20,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_n",
+      "waste": "out_n",
+      "note": "Neurons: quench flood in place, 2 wetted volumes in about 1 s through the combs, chloroform-free. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
+      "ports": {
+        "feed": [
+          "in_n"
+        ],
+        "vent": [
+          "out_n"
+        ],
+        "cap": [
+          "in_g",
+          "out_g",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 6
+    },
+    {
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 30.0,
+      "temp_c": 4,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "hold_temp",
+      "target": "cx_n",
+      "note": "Neurons: stop-flow extraction soak with the extract held cold. This is not a freeze-quench; the Peltier only keeps the extract cold.",
+      "ports": {
+        "feed": [
+          "in_n"
+        ],
+        "vent": [
+          "out_n"
+        ],
+        "cap": [
+          "in_g",
+          "out_g",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 7
+    },
+    {
+      "reagent": "cold_acidified_organic_quench",
+      "volume_ul": 8.594,
+      "duration_s": 0.4,
+      "temp_c": -20,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_n",
+      "note": "Neurons: chase. The outlet valve is at vial M and fresh quench solvent pushes the extract (8.594 uL, about the pore volume plus a little) out through out_n.",
+      "ports": {
+        "feed": [
+          "in_n"
+        ],
+        "vent": [
+          "out_n"
+        ],
+        "cap": [
+          "in_g",
+          "out_g",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 8
+    },
+    {
+      "reagent": null,
+      "volume_ul": 8.594,
+      "duration_s": 0.0,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "collect",
+      "targets": [
+        "cx_n"
+      ],
+      "note": "Neurons: close vial M. FRACTION 1, the metabolome, plus peptides under about 10 kDa; neutralised on arrival, kept cold.",
+      "ports": {
+        "feed": [
+          "in_n"
+        ],
+        "vent": [
+          "out_n"
+        ],
+        "cap": [
+          "in_g",
+          "out_g",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 9
+    },
+    {
+      "reagent": "denaturing_solubilisation_buffer",
+      "volume_ul": 34.332,
+      "duration_s": 1.5,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_n",
+      "waste": "out_n",
+      "note": "Neurons: the outlet valve returns to waste and 3 wetted volumes of solubilisation buffer clear the lane, port and stub of fraction 1 and displace the organic solvent. The precipitated protein stays on the floor.",
+      "ports": {
+        "feed": [
+          "in_n"
+        ],
+        "vent": [
+          "out_n"
+        ],
+        "cap": [
+          "in_g",
+          "out_g",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 10
+    },
+    {
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 600.0,
+      "temp_c": 37,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "hold_temp",
+      "target": "cx_n",
+      "note": "Neurons: stop-flow resolubilisation of the precipitated protein on the chamber floor. It is denatured by design.",
+      "ports": {
+        "feed": [
+          "in_n"
+        ],
+        "vent": [
+          "out_n"
+        ],
+        "cap": [
+          "in_g",
+          "out_g",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 11
+    },
+    {
+      "reagent": "denaturing_solubilisation_buffer",
+      "volume_ul": 8.594,
+      "duration_s": 0.4,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_n",
+      "note": "Neurons: chase. The outlet valve is at vial P and fresh buffer pushes the dissolved protein (8.594 uL) out through the SAME port out_n.",
+      "ports": {
+        "feed": [
+          "in_n"
+        ],
+        "vent": [
+          "out_n"
+        ],
+        "cap": [
+          "in_g",
+          "out_g",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 12
+    },
+    {
+      "reagent": null,
+      "volume_ul": 8.594,
+      "duration_s": 0.0,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "collect",
+      "targets": [
+        "cx_n"
+      ],
+      "note": "Neurons: close vial P. FRACTION 2, the proteome, ready for bottom-up digestion. The lane is spent; the transcriptome arm is separate and runs on capsules through module 4.",
+      "ports": {
+        "feed": [
+          "in_n"
+        ],
+        "vent": [
+          "out_n"
+        ],
+        "cap": [
+          "in_g",
+          "out_g",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 13
+    },
+    {
+      "reagent": "cold_volatile_rinse",
+      "volume_ul": 22.888,
+      "duration_s": 712.0,
+      "temp_c": 4,
+      "washes": 1,
+      "flow_ul_min": 1.93,
+      "operation": "exchange",
+      "target": "cx_g",
+      "waste": "out_g",
+      "note": "Glia: brief ice-cold volatile-buffer rinse of 2 wetted volumes to waste, mandatory because the medium is about 150:1 against intracellular volume. Held to the 0.01 dyn/cm2 ceiling, so it is slow (12 min); a rinse-specific ceiling would cut it to seconds.",
+      "ports": {
+        "feed": [
+          "in_g"
+        ],
+        "vent": [
+          "out_g"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 14
+    },
+    {
+      "reagent": "cold_acidified_organic_quench",
+      "volume_ul": 22.888,
+      "duration_s": 1.0,
+      "temp_c": -20,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_g",
+      "waste": "out_g",
+      "note": "Glia: quench flood in place, 2 wetted volumes in about 1 s through the combs, chloroform-free. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
+      "ports": {
+        "feed": [
+          "in_g"
+        ],
+        "vent": [
+          "out_g"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 15
+    },
+    {
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 30.0,
+      "temp_c": 4,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "hold_temp",
+      "target": "cx_g",
+      "note": "Glia: stop-flow extraction soak with the extract held cold. This is not a freeze-quench; the Peltier only keeps the extract cold.",
+      "ports": {
+        "feed": [
+          "in_g"
+        ],
+        "vent": [
+          "out_g"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 16
+    },
+    {
+      "reagent": "cold_acidified_organic_quench",
+      "volume_ul": 8.594,
+      "duration_s": 0.4,
+      "temp_c": -20,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_g",
+      "note": "Glia: chase. The outlet valve is at vial M and fresh quench solvent pushes the extract (8.594 uL, about the pore volume plus a little) out through out_g.",
+      "ports": {
+        "feed": [
+          "in_g"
+        ],
+        "vent": [
+          "out_g"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 17
+    },
+    {
+      "reagent": null,
+      "volume_ul": 8.594,
+      "duration_s": 0.0,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "collect",
+      "targets": [
+        "cx_g"
+      ],
+      "note": "Glia: close vial M. FRACTION 1, the metabolome, plus peptides under about 10 kDa; neutralised on arrival, kept cold.",
+      "ports": {
+        "feed": [
+          "in_g"
+        ],
+        "vent": [
+          "out_g"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 18
+    },
+    {
+      "reagent": "denaturing_solubilisation_buffer",
+      "volume_ul": 34.332,
+      "duration_s": 1.5,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_g",
+      "waste": "out_g",
+      "note": "Glia: the outlet valve returns to waste and 3 wetted volumes of solubilisation buffer clear the lane, port and stub of fraction 1 and displace the organic solvent. The precipitated protein stays on the floor.",
+      "ports": {
+        "feed": [
+          "in_g"
+        ],
+        "vent": [
+          "out_g"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 19
+    },
+    {
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 600.0,
+      "temp_c": 37,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "hold_temp",
+      "target": "cx_g",
+      "note": "Glia: stop-flow resolubilisation of the precipitated protein on the chamber floor. It is denatured by design.",
+      "ports": {
+        "feed": [
+          "in_g"
+        ],
+        "vent": [
+          "out_g"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 20
+    },
+    {
+      "reagent": "denaturing_solubilisation_buffer",
+      "volume_ul": 8.594,
+      "duration_s": 0.4,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_g",
+      "note": "Glia: chase. The outlet valve is at vial P and fresh buffer pushes the dissolved protein (8.594 uL) out through the SAME port out_g.",
+      "ports": {
+        "feed": [
+          "in_g"
+        ],
+        "vent": [
+          "out_g"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 21
+    },
+    {
+      "reagent": null,
+      "volume_ul": 8.594,
+      "duration_s": 0.0,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "collect",
+      "targets": [
+        "cx_g"
+      ],
+      "note": "Glia: close vial P. FRACTION 2, the proteome, ready for bottom-up digestion. The lane is spent; the transcriptome arm is separate and runs on capsules through module 4.",
+      "ports": {
+        "feed": [
+          "in_g"
+        ],
+        "vent": [
+          "out_g"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_a",
+          "out_a"
+        ]
+      },
+      "step": 22
+    },
+    {
+      "reagent": "cold_volatile_rinse",
+      "volume_ul": 22.888,
+      "duration_s": 712.0,
+      "temp_c": 4,
+      "washes": 1,
+      "flow_ul_min": 1.93,
+      "operation": "exchange",
+      "target": "cx_a",
+      "waste": "out_a",
+      "note": "Astrocytes: brief ice-cold volatile-buffer rinse of 2 wetted volumes to waste, mandatory because the medium is about 150:1 against intracellular volume. Held to the 0.01 dyn/cm2 ceiling, so it is slow (12 min); a rinse-specific ceiling would cut it to seconds.",
+      "ports": {
+        "feed": [
+          "in_a"
+        ],
+        "vent": [
+          "out_a"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_g",
+          "out_g"
+        ]
+      },
+      "step": 23
+    },
+    {
+      "reagent": "cold_acidified_organic_quench",
+      "volume_ul": 22.888,
+      "duration_s": 1.0,
+      "temp_c": -20,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_a",
+      "waste": "out_a",
+      "note": "Astrocytes: quench flood in place, 2 wetted volumes in about 1 s through the combs, chloroform-free. Cells are lysed where they sit and the protein precipitates on the floor. The culture ceiling does not apply: the cells are killed. Outlet at waste, flow then stops.",
+      "ports": {
+        "feed": [
+          "in_a"
+        ],
+        "vent": [
+          "out_a"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_g",
+          "out_g"
+        ]
+      },
+      "step": 24
+    },
+    {
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 30.0,
+      "temp_c": 4,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "hold_temp",
+      "target": "cx_a",
+      "note": "Astrocytes: stop-flow extraction soak with the extract held cold. This is not a freeze-quench; the Peltier only keeps the extract cold.",
+      "ports": {
+        "feed": [
+          "in_a"
+        ],
+        "vent": [
+          "out_a"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_g",
+          "out_g"
+        ]
+      },
+      "step": 25
+    },
+    {
+      "reagent": "cold_acidified_organic_quench",
+      "volume_ul": 8.594,
+      "duration_s": 0.4,
+      "temp_c": -20,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_a",
+      "note": "Astrocytes: chase. The outlet valve is at vial M and fresh quench solvent pushes the extract (8.594 uL, about the pore volume plus a little) out through out_a.",
+      "ports": {
+        "feed": [
+          "in_a"
+        ],
+        "vent": [
+          "out_a"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_g",
+          "out_g"
+        ]
+      },
+      "step": 26
+    },
+    {
+      "reagent": null,
+      "volume_ul": 8.594,
+      "duration_s": 0.0,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "collect",
+      "targets": [
+        "cx_a"
+      ],
+      "note": "Astrocytes: close vial M. FRACTION 1, the metabolome, plus peptides under about 10 kDa; neutralised on arrival, kept cold.",
+      "ports": {
+        "feed": [
+          "in_a"
+        ],
+        "vent": [
+          "out_a"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_g",
+          "out_g"
+        ]
+      },
+      "step": 27
+    },
+    {
+      "reagent": "denaturing_solubilisation_buffer",
+      "volume_ul": 34.332,
+      "duration_s": 1.5,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_a",
+      "waste": "out_a",
+      "note": "Astrocytes: the outlet valve returns to waste and 3 wetted volumes of solubilisation buffer clear the lane, port and stub of fraction 1 and displace the organic solvent. The precipitated protein stays on the floor.",
+      "ports": {
+        "feed": [
+          "in_a"
+        ],
+        "vent": [
+          "out_a"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_g",
+          "out_g"
+        ]
+      },
+      "step": 28
+    },
+    {
+      "reagent": null,
+      "volume_ul": null,
+      "duration_s": 600.0,
+      "temp_c": 37,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "hold_temp",
+      "target": "cx_a",
+      "note": "Astrocytes: stop-flow resolubilisation of the precipitated protein on the chamber floor. It is denatured by design.",
+      "ports": {
+        "feed": [
+          "in_a"
+        ],
+        "vent": [
+          "out_a"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_g",
+          "out_g"
+        ]
+      },
+      "step": 29
+    },
+    {
+      "reagent": "denaturing_solubilisation_buffer",
+      "volume_ul": 8.594,
+      "duration_s": 0.4,
+      "temp_c": null,
+      "washes": 1,
+      "flow_ul_min": 1373.3,
+      "operation": "exchange",
+      "target": "cx_a",
+      "note": "Astrocytes: chase. The outlet valve is at vial P and fresh buffer pushes the dissolved protein (8.594 uL) out through the SAME port out_a.",
+      "ports": {
+        "feed": [
+          "in_a"
+        ],
+        "vent": [
+          "out_a"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_g",
+          "out_g"
+        ]
+      },
+      "step": 30
+    },
+    {
+      "reagent": null,
+      "volume_ul": 8.594,
+      "duration_s": 0.0,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": null,
+      "operation": "collect",
+      "targets": [
+        "cx_a"
+      ],
+      "note": "Astrocytes: close vial P. FRACTION 2, the proteome, ready for bottom-up digestion. The lane is spent; the transcriptome arm is separate and runs on capsules through module 4.",
+      "ports": {
+        "feed": [
+          "in_a"
+        ],
+        "vent": [
+          "out_a"
+        ],
+        "cap": [
+          "in_n",
+          "out_n",
+          "in_g",
+          "out_g"
+        ]
+      },
+      "step": 31
+    }
+  ]
+}

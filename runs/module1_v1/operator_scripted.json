@@ -1,8 +1,8 @@
 {
  "chip": "module1_v1",
  "operator": "scripted",
- "flow_ul_min": 11.0,
- "created_at": "2026-11-07T15:51:18+00:00",
+ "flow_ul_min": 2.393,
+ "created_at": "2026-11-07T18:19:38+00:00",
  "note": "scripted = a fixed decision list (offline demo), not model output",
  "decisions": [
   {
@@ -16,18 +16,18 @@
     "p_a_out": "CAP"
    },
    "flows": {
-    "p_in": 11.0
+    "p_in": 2.393
    },
    "reason": "Seed and feed n_cx on its own: p_in fed, p_mid vented, everything else capped.",
    "operator": "scripted",
    "status": "approved",
    "reasons": [],
    "warnings": [],
-   "summary": "Separate growth: no medium enters another chamber; 11.0 uL/min leaves p_mid",
+   "summary": "Separate growth: no medium enters another chamber; 2.4 uL/min leaves p_mid",
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_in -> n_cx"
      },
      "ch_gin_g": {
@@ -39,7 +39,7 @@
       "direction": "none"
      },
      "ch_n_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "n_cx -> j_mid"
      },
      "ch_g_j": {
@@ -51,7 +51,7 @@
       "direction": "none"
      },
      "ch_j_mid": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "j_mid -> p_mid"
      },
      "ch_g_out": {
@@ -65,8 +65,8 @@
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "g_cx": {
       "throughput_ul_min": 0.0,
@@ -77,11 +77,11 @@
       "shear_dyn_cm2": 0.0
      },
      "j_mid": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.016296
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008863
      }
     },
-    "max_pressure_mbar": 0.046585
+    "max_pressure_mbar": 0.02111
    },
    "applied": true
   },
@@ -96,44 +96,44 @@
     "p_a_out": "CAP"
    },
    "flows": {
-    "p_in": 11.0,
-    "p_g_in": 11.0,
-    "p_a_in": 11.0
+    "p_in": 2.393,
+    "p_g_in": 2.393,
+    "p_a_in": 2.393
    },
    "reason": "Separate growth: all three inlets fed with their own media, only p_mid vented.",
    "operator": "scripted",
    "status": "approved",
    "reasons": [],
    "warnings": [],
-   "summary": "Separate growth: no medium enters another chamber; 33.0 uL/min leaves p_mid",
+   "summary": "Separate growth: no medium enters another chamber; 7.2 uL/min leaves p_mid",
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_in -> n_cx"
      },
      "ch_gin_g": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_g_in -> g_cx"
      },
      "ch_ain_a": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_a_in -> a_cx"
      },
      "ch_n_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "n_cx -> j_mid"
      },
      "ch_g_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "g_cx -> j_mid"
      },
      "ch_a_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "a_cx -> j_mid"
      },
      "ch_j_mid": {
-      "flow_ul_min": 33.0,
+      "flow_ul_min": 7.179,
       "direction": "j_mid -> p_mid"
      },
      "ch_g_out": {
@@ -147,23 +147,23 @@
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "g_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "a_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "j_mid": {
-      "throughput_ul_min": 33.0,
-      "shear_dyn_cm2": 0.048889
+      "throughput_ul_min": 7.179,
+      "shear_dyn_cm2": 0.026589
      }
     },
-    "max_pressure_mbar": 0.06006
+    "max_pressure_mbar": 0.025572
    },
    "applied": true
   },
@@ -178,9 +178,9 @@
     "p_a_out": "CAP"
    },
    "flows": {
-    "p_in": 11.0,
-    "p_g_in": 11.0,
-    "p_a_in": 11.0
+    "p_in": 2.393,
+    "p_g_in": 2.393,
+    "p_a_in": 2.393
    },
    "reason": "Try venting p_g_out as well, to refresh g_cx faster.",
    "operator": "scripted",
@@ -189,39 +189,39 @@
    "warnings": [
     "p_g_out also vented: separate growth should vent only p_mid"
    ],
-   "summary": "Separate growth: no medium enters another chamber; 33.0 uL/min leaves p_mid",
+   "summary": "Separate growth: no medium enters another chamber; 7.2 uL/min leaves p_mid",
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_in -> n_cx"
      },
      "ch_gin_g": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_g_in -> g_cx"
      },
      "ch_ain_a": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_a_in -> a_cx"
      },
      "ch_n_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "n_cx -> j_mid"
      },
      "ch_g_j": {
-      "flow_ul_min": 1.293381,
+      "flow_ul_min": 0.555325,
       "direction": "g_cx -> j_mid"
      },
      "ch_a_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "a_cx -> j_mid"
      },
      "ch_j_mid": {
-      "flow_ul_min": 23.293381,
+      "flow_ul_min": 5.341325,
       "direction": "j_mid -> p_mid"
      },
      "ch_g_out": {
-      "flow_ul_min": 9.706619,
+      "flow_ul_min": 1.837675,
       "direction": "g_cx -> p_g_out"
      },
      "ch_a_out": {
@@ -231,23 +231,23 @@
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "g_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "a_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "j_mid": {
-      "throughput_ul_min": 23.293381,
-      "shear_dyn_cm2": 0.034509
+      "throughput_ul_min": 5.341325,
+      "shear_dyn_cm2": 0.019783
      }
     },
-    "max_pressure_mbar": 0.054115
+    "max_pressure_mbar": 0.023859
    },
    "applied": true
   },
@@ -262,16 +262,16 @@
     "p_a_out": "CAP"
    },
    "flows": {
-    "p_in": 11.0,
-    "p_g_in": 11.0,
-    "p_a_in": 11.0
+    "p_in": 2.393,
+    "p_g_in": 2.393,
+    "p_a_in": 2.393
    },
    "reason": "Vent p_g_out instead of p_mid (a plug left in p_mid by mistake).",
    "operator": "scripted",
    "status": "blocked",
    "reasons": [
     "separate growth must keep the media apart, but g_cx receives 33% a_cx medium, 33% n_cx medium",
-    "g_cx wall shear 0.0244 dyn/cm2 > 0.01 (throughput 33.0 uL/min; the ceiling is reached at 13.5)"
+    "g_cx wall shear 0.0255 dyn/cm2 > 0.01 (throughput 7.2 uL/min; the ceiling is reached at 13.5)"
    ],
    "warnings": [
     "p_g_out also vented: separate growth should vent only p_mid"
@@ -280,27 +280,27 @@
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_in -> n_cx"
      },
      "ch_gin_g": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_g_in -> g_cx"
      },
      "ch_ain_a": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_a_in -> a_cx"
      },
      "ch_n_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "n_cx -> j_mid"
      },
      "ch_g_j": {
-      "flow_ul_min": -22.0,
+      "flow_ul_min": -4.786,
       "direction": "j_mid -> g_cx"
      },
      "ch_a_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "a_cx -> j_mid"
      },
      "ch_j_mid": {
@@ -308,7 +308,7 @@
       "direction": "none"
      },
      "ch_g_out": {
-      "flow_ul_min": 33.0,
+      "flow_ul_min": 7.179,
       "direction": "g_cx -> p_g_out"
      },
      "ch_a_out": {
@@ -318,23 +318,23 @@
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "g_cx": {
-      "throughput_ul_min": 33.0,
-      "shear_dyn_cm2": 0.024444
+      "throughput_ul_min": 7.179,
+      "shear_dyn_cm2": 0.025495
      },
      "a_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "j_mid": {
-      "throughput_ul_min": 22.0,
-      "shear_dyn_cm2": 0.032593
+      "throughput_ul_min": 4.786,
+      "shear_dyn_cm2": 0.017726
      }
     },
-    "max_pressure_mbar": 0.133735
+    "max_pressure_mbar": 0.065945
    },
    "applied": false,
    "kept": "grow"
@@ -350,44 +350,44 @@
     "p_a_out": "CAP"
    },
    "flows": {
-    "p_in": 11.0,
-    "p_g_in": 11.0,
-    "p_a_in": 11.0
+    "p_in": 2.393,
+    "p_g_in": 2.393,
+    "p_a_in": 2.393
    },
    "reason": "Back to separate growth: p_mid vented, p_g_out capped.",
    "operator": "scripted",
    "status": "approved",
    "reasons": [],
    "warnings": [],
-   "summary": "Separate growth: no medium enters another chamber; 33.0 uL/min leaves p_mid",
+   "summary": "Separate growth: no medium enters another chamber; 7.2 uL/min leaves p_mid",
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_in -> n_cx"
      },
      "ch_gin_g": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_g_in -> g_cx"
      },
      "ch_ain_a": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_a_in -> a_cx"
      },
      "ch_n_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "n_cx -> j_mid"
      },
      "ch_g_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "g_cx -> j_mid"
      },
      "ch_a_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "a_cx -> j_mid"
      },
      "ch_j_mid": {
-      "flow_ul_min": 33.0,
+      "flow_ul_min": 7.179,
       "direction": "j_mid -> p_mid"
      },
      "ch_g_out": {
@@ -401,23 +401,23 @@
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "g_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "a_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "j_mid": {
-      "throughput_ul_min": 33.0,
-      "shear_dyn_cm2": 0.048889
+      "throughput_ul_min": 7.179,
+      "shear_dyn_cm2": 0.026589
      }
     },
-    "max_pressure_mbar": 0.06006
+    "max_pressure_mbar": 0.025572
    },
    "applied": true
   },
@@ -432,7 +432,7 @@
     "p_a_out": "VENT"
    },
    "flows": {
-    "p_in": 11.0
+    "p_in": 2.393
    },
    "reason": "Interaction: send n_cx's conditioned medium to g_cx and a_cx.",
    "operator": "scripted",
@@ -443,7 +443,7 @@
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_in -> n_cx"
      },
      "ch_gin_g": {
@@ -455,15 +455,15 @@
       "direction": "none"
      },
      "ch_n_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "n_cx -> j_mid"
      },
      "ch_g_j": {
-      "flow_ul_min": -5.5,
+      "flow_ul_min": -1.1965,
       "direction": "j_mid -> g_cx"
      },
      "ch_a_j": {
-      "flow_ul_min": -5.5,
+      "flow_ul_min": -1.1965,
       "direction": "j_mid -> a_cx"
      },
      "ch_j_mid": {
@@ -471,33 +471,33 @@
       "direction": "none"
      },
      "ch_g_out": {
-      "flow_ul_min": 5.5,
+      "flow_ul_min": 1.1965,
       "direction": "g_cx -> p_g_out"
      },
      "ch_a_out": {
-      "flow_ul_min": 5.5,
+      "flow_ul_min": 1.1965,
       "direction": "a_cx -> p_a_out"
      }
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "g_cx": {
-      "throughput_ul_min": 5.5,
-      "shear_dyn_cm2": 0.004074
+      "throughput_ul_min": 1.1965,
+      "shear_dyn_cm2": 0.004249
      },
      "a_cx": {
-      "throughput_ul_min": 5.5,
-      "shear_dyn_cm2": 0.004074
+      "throughput_ul_min": 1.1965,
+      "shear_dyn_cm2": 0.004249
      },
      "j_mid": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.016296
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008863
      }
     },
-    "max_pressure_mbar": 0.058647
+    "max_pressure_mbar": 0.028307
    },
    "applied": true
   },
@@ -512,22 +512,22 @@
     "p_a_out": "VENT"
    },
    "flows": {
-    "p_g_in": 11.0
+    "p_g_in": 2.393
    },
    "reason": "Interaction: send g_cx's conditioned medium to n_cx and a_cx.",
    "operator": "scripted",
    "status": "approved",
    "reasons": [],
    "warnings": [],
-   "summary": "Interact G \u2192 N+A: g_cx medium splits at j_mid: 49% to n_cx / 51% to a_cx",
+   "summary": "Interact G \u2192 N+A: g_cx medium splits at j_mid: 50% to n_cx / 50% to a_cx",
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": -5.340358,
+      "flow_ul_min": -1.19573,
       "direction": "n_cx -> p_in"
      },
      "ch_gin_g": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_g_in -> g_cx"
      },
      "ch_ain_a": {
@@ -535,15 +535,15 @@
       "direction": "none"
      },
      "ch_n_j": {
-      "flow_ul_min": -5.340358,
+      "flow_ul_min": -1.19573,
       "direction": "j_mid -> n_cx"
      },
      "ch_g_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "g_cx -> j_mid"
      },
      "ch_a_j": {
-      "flow_ul_min": -5.659642,
+      "flow_ul_min": -1.19727,
       "direction": "j_mid -> a_cx"
      },
      "ch_j_mid": {
@@ -555,29 +555,29 @@
       "direction": "none"
      },
      "ch_a_out": {
-      "flow_ul_min": 5.659642,
+      "flow_ul_min": 1.19727,
       "direction": "a_cx -> p_a_out"
      }
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 5.340358,
-      "shear_dyn_cm2": 0.003956
+      "throughput_ul_min": 1.19573,
+      "shear_dyn_cm2": 0.004246
      },
      "g_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "a_cx": {
-      "throughput_ul_min": 5.659642,
-      "shear_dyn_cm2": 0.004192
+      "throughput_ul_min": 1.19727,
+      "shear_dyn_cm2": 0.004252
      },
      "j_mid": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.016296
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008863
      }
     },
-    "max_pressure_mbar": 0.056436
+    "max_pressure_mbar": 0.027458
    },
    "applied": true
   },
@@ -592,18 +592,18 @@
     "p_a_out": "CAP"
    },
    "flows": {
-    "p_a_in": 11.0
+    "p_a_in": 2.393
    },
    "reason": "Interaction: send a_cx's conditioned medium to n_cx and g_cx.",
    "operator": "scripted",
    "status": "approved",
    "reasons": [],
    "warnings": [],
-   "summary": "Interact A \u2192 N+G: a_cx medium splits at j_mid: 49% to n_cx / 51% to g_cx",
+   "summary": "Interact A \u2192 N+G: a_cx medium splits at j_mid: 50% to n_cx / 50% to g_cx",
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": -5.340358,
+      "flow_ul_min": -1.19573,
       "direction": "n_cx -> p_in"
      },
      "ch_gin_g": {
@@ -611,19 +611,19 @@
       "direction": "none"
      },
      "ch_ain_a": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_a_in -> a_cx"
      },
      "ch_n_j": {
-      "flow_ul_min": -5.340358,
+      "flow_ul_min": -1.19573,
       "direction": "j_mid -> n_cx"
      },
      "ch_g_j": {
-      "flow_ul_min": -5.659642,
+      "flow_ul_min": -1.19727,
       "direction": "j_mid -> g_cx"
      },
      "ch_a_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "a_cx -> j_mid"
      },
      "ch_j_mid": {
@@ -631,7 +631,7 @@
       "direction": "none"
      },
      "ch_g_out": {
-      "flow_ul_min": 5.659642,
+      "flow_ul_min": 1.19727,
       "direction": "g_cx -> p_g_out"
      },
      "ch_a_out": {
@@ -641,23 +641,23 @@
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 5.340358,
-      "shear_dyn_cm2": 0.003956
+      "throughput_ul_min": 1.19573,
+      "shear_dyn_cm2": 0.004246
      },
      "g_cx": {
-      "throughput_ul_min": 5.659642,
-      "shear_dyn_cm2": 0.004192
+      "throughput_ul_min": 1.19727,
+      "shear_dyn_cm2": 0.004252
      },
      "a_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "j_mid": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.016296
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008863
      }
     },
-    "max_pressure_mbar": 0.056436
+    "max_pressure_mbar": 0.027458
    },
    "applied": true
   },
@@ -672,7 +672,7 @@
     "p_a_out": "CAP"
    },
    "flows": {
-    "p_in": 11.0
+    "p_in": 2.393
    },
    "reason": "Harvest as the design doc tabulates it: feed p_in, vent p_mid.",
    "operator": "scripted",
@@ -683,7 +683,7 @@
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_in -> n_cx"
      },
      "ch_gin_g": {
@@ -695,7 +695,7 @@
       "direction": "none"
      },
      "ch_n_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "n_cx -> j_mid"
      },
      "ch_g_j": {
@@ -707,7 +707,7 @@
       "direction": "none"
      },
      "ch_j_mid": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "j_mid -> p_mid"
      },
      "ch_g_out": {
@@ -721,8 +721,8 @@
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "g_cx": {
       "throughput_ul_min": 0.0,
@@ -733,11 +733,11 @@
       "shear_dyn_cm2": 0.0
      },
      "j_mid": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.016296
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008863
      }
     },
-    "max_pressure_mbar": 0.046585
+    "max_pressure_mbar": 0.02111
    },
    "applied": true
   },
@@ -752,20 +752,20 @@
     "p_a_out": "FEED"
    },
    "flows": {
-    "p_in": 11.0,
-    "p_g_out": 11.0,
-    "p_a_out": 11.0
+    "p_in": 2.393,
+    "p_g_out": 2.393,
+    "p_a_out": 2.393
    },
    "reason": "Collect as the protocol does it: back-flush g_cx and a_cx from their outlets too, so all three pool.",
    "operator": "scripted",
    "status": "approved",
    "reasons": [],
    "warnings": [],
-   "summary": "Collect (protocol back-flush): all three chambers sweep into j_mid and pool out of p_mid (33.0 uL/min)",
+   "summary": "Collect (protocol back-flush): all three chambers sweep into j_mid and pool out of p_mid (7.2 uL/min)",
    "predicted": {
     "channels": {
      "ch_in_n": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "p_in -> n_cx"
      },
      "ch_gin_g": {
@@ -777,49 +777,49 @@
       "direction": "none"
      },
      "ch_n_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "n_cx -> j_mid"
      },
      "ch_g_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "g_cx -> j_mid"
      },
      "ch_a_j": {
-      "flow_ul_min": 11.0,
+      "flow_ul_min": 2.393,
       "direction": "a_cx -> j_mid"
      },
      "ch_j_mid": {
-      "flow_ul_min": 33.0,
+      "flow_ul_min": 7.179,
       "direction": "j_mid -> p_mid"
      },
      "ch_g_out": {
-      "flow_ul_min": -11.0,
+      "flow_ul_min": -2.393,
       "direction": "p_g_out -> g_cx"
      },
      "ch_a_out": {
-      "flow_ul_min": -11.0,
+      "flow_ul_min": -2.393,
       "direction": "p_a_out -> a_cx"
      }
     },
     "chambers": {
      "n_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "g_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "a_cx": {
-      "throughput_ul_min": 11.0,
-      "shear_dyn_cm2": 0.008148
+      "throughput_ul_min": 2.393,
+      "shear_dyn_cm2": 0.008498
      },
      "j_mid": {
-      "throughput_ul_min": 33.0,
-      "shear_dyn_cm2": 0.048889
+      "throughput_ul_min": 7.179,
+      "shear_dyn_cm2": 0.026589
      }
     },
-    "max_pressure_mbar": 0.06006
+    "max_pressure_mbar": 0.025572
    },
    "applied": true
   },

@@ -16,9 +16,15 @@ The format is explained, with examples, in [`contracts/README.md`](../contracts/
 | `module1_v1.json` | **Real.** Three lineages (neurons, glia, astrocytes) on `chip/module1_v1.json`, routed only by which port is pressurised: no valves, no barriers |
 | `build_module1.py` | Generates the above |
 | `module1_design.md` | Why this design and the honest limits |
+| `pipeline_status.md` | One table of every pipeline stage: which chip wins, which duplicate is retired, which stage is RT only (no barcoding) or off-chip. Read this first. |
+| `pipeline_mvp.json` | The pipeline manifest: stages and hand-offs, checked by `tools/validate.py` |
 | `placeholder_scrnaseq.json` | Generic scRNA-seq shape, 14 steps |
 | `placeholder_scdnaseq.json` | Generic scDNA-seq shape with two heat steps, 15 steps |
 | `placeholder_culture_then_scrnaseq.json` | Long media perfusion and culture first, then scRNA-seq, 15 steps |
+
+Every chip is 30 × 20 mm, 0.3 mm deep, one fluidic layer, resin-printed and hot-embossed.
+Retention features cannot be printed at this floor, so capsule retention needs a bought mesh
+insert or sedimentation.
 
 Values in the `placeholder_*` files are fake. They exist so the operator and twin can
 be built before the real protocols are ready.

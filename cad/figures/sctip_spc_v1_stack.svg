@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="814" height="362" viewBox="0 0 814 362" role="img" aria-label="sctip_spc_v1: layer stack and fabrication route">
+  <title>sctip_spc_v1: layer stack and fabrication route</title>
+  <rect width="814" height="362" fill="#ffffff"/>
+  <text x="50" y="24" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="14.5" fill="#1b2026" text-anchor="start" font-weight="bold">Layer stack and how each layer is made</text>
+  <text x="50" y="41" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9.5" fill="#5a636d" text-anchor="start">chip/sctip_spc_v1.json   ·   exploded, thickness to scale   ·   3 layers, 1.35 mm total</text>
+  <line x1="388" y1="70" x2="428" y2="70" stroke="#d6dbe1" stroke-width="1"/>
+  <polygon points="50,74 84,56 384,56 350,74" fill="#e4edf0" stroke="#7f9aa5" stroke-width="1.1"/>
+  <polygon points="350,74 384,56 384,66 350,84" fill="#7f9aa5" stroke="#7f9aa5" stroke-width="1.1" opacity="0.5"/>
+  <rect x="50" y="74" width="300" height="10" fill="#e4edf0" stroke="#7f9aa5" stroke-width="1.1"/>
+  <text x="440" y="70" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1b2026" text-anchor="start" font-weight="bold">lid</text>
+  <text x="440" y="84" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">coc   ·   0.2 mm</text>
+  <rect x="440" y="92" width="100" height="16" fill="#ffffff" stroke="#6e7781" stroke-width="1.1" rx="8"/>
+  <text x="490" y="103.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#6e7781" text-anchor="middle" font-weight="bold">drilling</text>
+  <text x="550" y="103.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">stock sheet, ports drilled through</text>
+  <line x1="388" y1="106" x2="428" y2="138" stroke="#d6dbe1" stroke-width="1"/>
+  <polygon points="50,110 84,92 384,92 350,110" fill="#e4edf0" stroke="#7f9aa5" stroke-width="1.1"/>
+  <polygon points="350,110 384,92 384,102 350,120" fill="#7f9aa5" stroke="#7f9aa5" stroke-width="1.1" opacity="0.5"/>
+  <rect x="50" y="110" width="300" height="10" fill="#e4edf0" stroke="#7f9aa5" stroke-width="1.1"/>
+  <rect x="108" y="111" width="46" height="8" fill="#ffffff" stroke="#7f9aa5" stroke-width="0.8"/>
+  <rect x="192" y="111" width="46" height="8" fill="#ffffff" stroke="#7f9aa5" stroke-width="0.8"/>
+  <rect x="276" y="111" width="46" height="8" fill="#ffffff" stroke="#7f9aa5" stroke-width="0.8"/>
+  <text x="440" y="138" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1b2026" text-anchor="start" font-weight="bold">channels</text>
+  <text x="440" y="152" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">coc   ·   0.15 mm</text>
+  <rect x="440" y="160" width="100" height="16" fill="#ffffff" stroke="#1f7a6d" stroke-width="1.1" rx="8"/>
+  <text x="490" y="171.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#1f7a6d" text-anchor="middle" font-weight="bold">hot embossing</text>
+  <text x="550" y="171.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">resin-printed tool, hot-embossed: chambers + channels</text>
+  <line x1="388" y1="152" x2="428" y2="206" stroke="#d6dbe1" stroke-width="1"/>
+  <polygon points="50,146 84,128 384,128 350,146" fill="#e4edf0" stroke="#7f9aa5" stroke-width="1.1"/>
+  <polygon points="350,146 384,128 384,158 350,176" fill="#7f9aa5" stroke="#7f9aa5" stroke-width="1.1" opacity="0.5"/>
+  <rect x="50" y="146" width="300" height="30" fill="#e4edf0" stroke="#7f9aa5" stroke-width="1.1"/>
+  <text x="440" y="206" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#1b2026" text-anchor="start" font-weight="bold">base</text>
+  <text x="440" y="220" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">coc   ·   1 mm</text>
+  <rect x="440" y="228" width="100" height="16" fill="#ffffff" stroke="#6e7781" stroke-width="1.1" rx="8"/>
+  <text x="490" y="239.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#6e7781" text-anchor="middle" font-weight="bold">stock</text>
+  <text x="550" y="239.5" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">stock sheet, bonded under the embossed layer</text>
+  <line x1="50" y1="288" x2="774" y2="288" stroke="#eaeef2" stroke-width="1"/>
+  <text x="50" y="306" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">The chamber height IS the fluidic layer: 0.15 mm. That is why every feature shares one embossing depth.</text>
+  <text x="50" y="321" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="9" fill="#5a636d" text-anchor="start">One process chain: resin-print the tool, hot-emboss the layer. Every feature is one depth, so one tool makes the whole chip.</text>
+  <text x="50" y="336" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#8b949e" text-anchor="start">Floors are from the fabrication review in contracts/blocks.json: open channel 0.2 mm, wall 0.4 mm, port 0.8 mm.</text>
+</svg>

@@ -186,10 +186,20 @@ export function createUI(actions) {
 
     // Badges and the parameters panel from the chip spec's module and generator blocks.
     // info: this chip's entry in protocols/pipeline_mvp.json, if it is one of the current modules.
-    setChipInfo(spec, info = null) {
+    // md: this chip's row in protocols/pipeline_status.md (twin/status.js), which wins for the badge.
+    setChipInfo(spec, info = null, md = null) {
       const m = spec?.module;
       const STATUS = { final: 'FINAL', draft: 'DRAFT', translated: 'TRANSLATED', missing: 'MISSING' };
-      if (info) {
+      const MD_CLASS = { BUILT: 'st-final', 'RT ONLY': 'st-translated', 'DUPLICATE-RETIRE': 'superseded', 'OFF-CHIP': 'st-draft' };
+      if (md) {
+        el.printBadge.hidden = false;
+        el.printBadge.textContent = info?.built_for_demo ? 'Built for the dye demo' : 'Twin only';
+        el.printBadge.className = `badge ${info?.built_for_demo ? 'printed' : 'sim-only'}`;
+        el.draftBadge.hidden = false;
+        el.draftBadge.textContent = `${md.badge}${md.detail ? ` · ${md.detail}` : ''}`;
+        el.draftBadge.className = `badge ${MD_CLASS[md.badge] ?? 'st-draft'}`;
+        el.draftBadge.title = `protocols/pipeline_status.md: ${md.stage}: ${md.status}`;
+      } else if (info) {
         el.printBadge.hidden = false;
         el.printBadge.textContent = info.built_for_demo ? 'Built for Sunday’s dye demo' : 'Twin only';
         el.printBadge.className = `badge ${info.built_for_demo ? 'printed' : 'sim-only'}`;

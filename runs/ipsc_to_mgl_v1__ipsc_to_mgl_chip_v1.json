@@ -4,7 +4,7 @@
   "chip_id": "ipsc_to_mgl_chip_v1",
   "chip_spec": "chip/ipsc_to_mgl_chip_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T14:47:47Z",
+  "created_at": "2026-11-07T17:52:55Z",
   "placeholder": false,
   "sizing": {
     "capsule_count": null,
@@ -20,12 +20,12 @@
       "m5_harvest"
     ],
     "monolayer_area_mm2_needed": 490.0,
-    "trap_area_mm2": 1256,
+    "trap_area_mm2": 48.722,
     "packed_volume_ul_needed": 28.062,
-    "trap_volume_ul": 376.8,
+    "trap_volume_ul": 14.616,
     "channel_width_um": [
-      800.0,
-      800.0
+      200.0,
+      200.0
     ],
     "channel_width_um_recommended": [
       105.0,
@@ -37,24 +37,24 @@
     ],
     "swollen_diameter_um": 140.0
   },
-  "total_duration_s": 4064304.0,
+  "total_duration_s": 4064003.0,
   "events": [
     {
       "t_s": 0.0,
-      "duration_s": 504.0,
+      "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "coating_solution",
-        "volume_ul": 120.0,
+        "volume_ul": 4.424,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671
       },
       "narration": "Fill the expansion chamber with coating solution so the iPSCs have a surface to attach to.",
       "protocol_step": 1
     },
     {
-      "t_s": 504.0,
+      "t_s": 101.0,
       "duration_s": 7200.0,
       "command": "hold_temp",
       "args": {
@@ -66,18 +66,18 @@
       "protocol_step": 2
     },
     {
-      "t_s": 7704.0,
+      "t_s": 7301.0,
       "duration_s": 600.0,
       "command": "load",
       "args": {
         "target": "m1_expand",
-        "volume_ul": 120
+        "volume_ul": 4.424
       },
       "narration": "Load iPSCs into the expansion chamber. Flow stops so they can settle.",
       "protocol_step": 3
     },
     {
-      "t_s": 8304.0,
+      "t_s": 7901.0,
       "duration_s": 86400.0,
       "command": "hold_temp",
       "args": {
@@ -89,151 +89,151 @@
       "protocol_step": 4
     },
     {
-      "t_s": 94704.0,
-      "duration_s": 504.0,
+      "t_s": 94301.0,
+      "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "ipsc_medium",
-        "volume_ul": 120.0,
+        "volume_ul": 4.424,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671
       },
       "narration": "Daily feed on day -6: exchange one chamber volume of iPSC medium.",
       "protocol_step": 5
     },
     {
-      "t_s": 95208.0,
-      "duration_s": 77592.0,
+      "t_s": 94402.0,
+      "duration_s": 78398.0,
       "command": "hold_temp",
       "args": {
         "target": "m1_expand",
         "temp_c": 37,
-        "duration_s": 77592
+        "duration_s": 78398
       },
       "narration": "Grow on through day -6.",
       "protocol_step": 6
     },
     {
       "t_s": 172800.0,
-      "duration_s": 504.0,
+      "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "ipsc_medium",
-        "volume_ul": 120.0,
+        "volume_ul": 4.424,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671
       },
       "narration": "Daily feed on day -5: exchange one chamber volume of iPSC medium.",
       "protocol_step": 7
     },
     {
-      "t_s": 173304.0,
-      "duration_s": 85896.0,
+      "t_s": 172901.0,
+      "duration_s": 86299.0,
       "command": "hold_temp",
       "args": {
         "target": "m1_expand",
         "temp_c": 37,
-        "duration_s": 85896
+        "duration_s": 86299
       },
       "narration": "Grow on through day -5.",
       "protocol_step": 8
     },
     {
       "t_s": 259200.0,
-      "duration_s": 504.0,
+      "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "ipsc_medium",
-        "volume_ul": 120.0,
+        "volume_ul": 4.424,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671
       },
       "narration": "Daily feed on day -4: exchange one chamber volume of iPSC medium.",
       "protocol_step": 9
     },
     {
-      "t_s": 259704.0,
-      "duration_s": 85896.0,
+      "t_s": 259301.0,
+      "duration_s": 86299.0,
       "command": "hold_temp",
       "args": {
         "target": "m1_expand",
         "temp_c": 37,
-        "duration_s": 85896
+        "duration_s": 86299
       },
       "narration": "Grow on through day -4.",
       "protocol_step": 10
     },
     {
       "t_s": 345600.0,
-      "duration_s": 504.0,
+      "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "ipsc_medium",
-        "volume_ul": 120.0,
+        "volume_ul": 4.424,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671
       },
       "narration": "Daily feed on day -3: exchange one chamber volume of iPSC medium.",
       "protocol_step": 11
     },
     {
-      "t_s": 346104.0,
-      "duration_s": 85896.0,
+      "t_s": 345701.0,
+      "duration_s": 86299.0,
       "command": "hold_temp",
       "args": {
         "target": "m1_expand",
         "temp_c": 37,
-        "duration_s": 85896
+        "duration_s": 86299
       },
       "narration": "Grow on through day -3.",
       "protocol_step": 12
     },
     {
       "t_s": 432000.0,
-      "duration_s": 504.0,
+      "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "ipsc_medium",
-        "volume_ul": 120.0,
+        "volume_ul": 4.424,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671
       },
       "narration": "Daily feed on day -2: exchange one chamber volume of iPSC medium.",
       "protocol_step": 13
     },
     {
-      "t_s": 432504.0,
-      "duration_s": 85896.0,
+      "t_s": 432101.0,
+      "duration_s": 86299.0,
       "command": "hold_temp",
       "args": {
         "target": "m1_expand",
         "temp_c": 37,
-        "duration_s": 85896
+        "duration_s": 86299
       },
       "narration": "Grow on through day -2.",
       "protocol_step": 14
     },
     {
       "t_s": 518400.0,
-      "duration_s": 252.0,
+      "duration_s": 51.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "dissociation_reagent",
-        "volume_ul": 60.0,
+        "volume_ul": 2.212,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671
       },
       "narration": "Lift the iPSCs as small aggregates with an enzyme-free reagent. Aggregates, not single cells, are what the next stage needs.",
       "protocol_step": 15
     },
     {
-      "t_s": 518652.0,
+      "t_s": 518451.0,
       "duration_s": 900.0,
       "command": "split",
       "args": {
@@ -246,169 +246,175 @@
       "protocol_step": 16
     },
     {
-      "t_s": 519552.0,
-      "duration_s": 85248.0,
+      "t_s": 519351.0,
+      "duration_s": 85449.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 85248
+        "duration_s": 85449
       },
       "narration": "No flow for 24 hours while the aggregates attach and spread. The run stops here if the day-0 colony count is out of range.",
       "protocol_step": 17
     },
     {
       "t_s": 604800.0,
-      "duration_s": 504.0,
+      "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m2_hemogenic",
         "reagent": "mesoderm_medium",
-        "volume_ul": 120.0,
+        "volume_ul": 4.424,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671,
+        "waste": "waste_1"
       },
       "narration": "Day 0: full exchange into mesoderm medium. Imaging has counted the colonies and confirmed the seeding density is in range.",
       "protocol_step": 18
     },
     {
-      "t_s": 605304.0,
-      "duration_s": 172296.0,
+      "t_s": 604901.0,
+      "duration_s": 172699.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 172296
+        "duration_s": 172699
       },
       "narration": "Days 0 to 2: mesoderm specification.",
       "protocol_step": 19
     },
     {
       "t_s": 777600.0,
-      "duration_s": 252.0,
+      "duration_s": 51.0,
       "command": "exchange",
       "args": {
         "target": "m2_hemogenic",
         "reagent": "mesoderm_medium",
-        "volume_ul": 60.0,
+        "volume_ul": 2.212,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671,
+        "waste": "waste_1"
       },
       "narration": "Day 2: half exchange, leaving half the conditioned medium behind. The cells depend on their own secreted factors, so this is never a full change.",
       "protocol_step": 20
     },
     {
-      "t_s": 777852.0,
-      "duration_s": 86148.0,
+      "t_s": 777651.0,
+      "duration_s": 86349.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 86148
+        "duration_s": 86349
       },
       "narration": "Day 2 to 3.",
       "protocol_step": 21
     },
     {
       "t_s": 864000.0,
-      "duration_s": 504.0,
+      "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m2_hemogenic",
         "reagent": "hematopoietic_medium",
-        "volume_ul": 120.0,
+        "volume_ul": 4.424,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671,
+        "waste": "waste_1"
       },
       "narration": "Day 3: full exchange into hematopoietic medium, which starts the switch from mesoderm to hemogenic endothelium.",
       "protocol_step": 22
     },
     {
-      "t_s": 864504.0,
-      "duration_s": 172296.0,
+      "t_s": 864101.0,
+      "duration_s": 172699.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 172296
+        "duration_s": 172699
       },
       "narration": "Growing on to day 5. From about day 7 the first progenitors round up and lift off the endothelial layer.",
       "protocol_step": 23
     },
     {
       "t_s": 1036800.0,
-      "duration_s": 252.0,
+      "duration_s": 51.0,
       "command": "exchange",
       "args": {
         "target": "m2_hemogenic",
         "reagent": "hematopoietic_medium",
-        "volume_ul": 60.0,
+        "volume_ul": 2.212,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671,
+        "waste": "waste_1"
       },
       "narration": "Day 5: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample.",
       "protocol_step": 24
     },
     {
-      "t_s": 1037052.0,
-      "duration_s": 172548.0,
+      "t_s": 1036851.0,
+      "duration_s": 172749.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 172548
+        "duration_s": 172749
       },
       "narration": "Growing on to day 7. From about day 7 the first progenitors round up and lift off the endothelial layer.",
       "protocol_step": 25
     },
     {
       "t_s": 1209600.0,
-      "duration_s": 252.0,
+      "duration_s": 51.0,
       "command": "exchange",
       "args": {
         "target": "m2_hemogenic",
         "reagent": "hematopoietic_medium",
-        "volume_ul": 60.0,
+        "volume_ul": 2.212,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671,
+        "waste": "waste_1"
       },
       "narration": "Day 7: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample.",
       "protocol_step": 26
     },
     {
-      "t_s": 1209852.0,
-      "duration_s": 172548.0,
+      "t_s": 1209651.0,
+      "duration_s": 172749.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 172548
+        "duration_s": 172749
       },
       "narration": "Growing on to day 9. From about day 7 the first progenitors round up and lift off the endothelial layer.",
       "protocol_step": 27
     },
     {
       "t_s": 1382400.0,
-      "duration_s": 252.0,
+      "duration_s": 51.0,
       "command": "exchange",
       "args": {
         "target": "m2_hemogenic",
         "reagent": "hematopoietic_medium",
-        "volume_ul": 60.0,
+        "volume_ul": 2.212,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 3.671,
+        "waste": "waste_1"
       },
       "narration": "Day 9: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample.",
       "protocol_step": 28
     },
     {
-      "t_s": 1382652.0,
-      "duration_s": 86148.0,
+      "t_s": 1382451.0,
+      "duration_s": 86349.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 86148
+        "duration_s": 86349
       },
       "narration": "Day 9 to 10: progenitors keep accumulating above the adherent layer.",
       "protocol_step": 29
@@ -428,20 +434,20 @@
     },
     {
       "t_s": 1469700.0,
-      "duration_s": 269.0,
+      "duration_s": 158.0,
       "command": "exchange",
       "args": {
         "target": "m3_concentrate",
         "reagent": "wash_buffer",
-        "volume_ul": 9.6,
+        "volume_ul": 1.08,
         "washes": 2,
-        "flow_ul_min": 6.0
+        "flow_ul_min": 1.147
       },
-      "narration": "Pass the progenitors through the 30 um filter, which blocks any detached endothelial sheet, then concentrate them. This replaces a centrifugation step.",
+      "narration": "Bring the progenitors down the line from the hemogenic chamber and concentrate them here, which replaces a centrifugation step. ",
       "protocol_step": 31
     },
     {
-      "t_s": 1469969.0,
+      "t_s": 1469858.0,
       "duration_s": 900.0,
       "command": "split",
       "args": {
@@ -457,13 +463,13 @@
       "protocol_step": 32
     },
     {
-      "t_s": 1470869.0,
-      "duration_s": 170731.0,
+      "t_s": 1470758.0,
+      "duration_s": 170842.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 170731
+        "duration_s": 170842
       },
       "narration": "Day 10 to 12: the endothelium produces a second batch.",
       "protocol_step": 33
@@ -483,20 +489,20 @@
     },
     {
       "t_s": 1642500.0,
-      "duration_s": 269.0,
+      "duration_s": 158.0,
       "command": "exchange",
       "args": {
         "target": "m3_concentrate",
         "reagent": "wash_buffer",
-        "volume_ul": 9.6,
+        "volume_ul": 1.08,
         "washes": 2,
-        "flow_ul_min": 6.0
+        "flow_ul_min": 1.147
       },
-      "narration": "Pass the progenitors through the 30 um filter, which blocks any detached endothelial sheet, then concentrate them. This replaces a centrifugation step.",
+      "narration": "Bring the progenitors down the line from the hemogenic chamber and concentrate them here, which replaces a centrifugation step. ",
       "protocol_step": 35
     },
     {
-      "t_s": 1642769.0,
+      "t_s": 1642658.0,
       "duration_s": 900.0,
       "command": "split",
       "args": {
@@ -512,897 +518,897 @@
       "protocol_step": 36
     },
     {
-      "t_s": 1643669.0,
-      "duration_s": 84331.0,
+      "t_s": 1643558.0,
+      "duration_s": 84442.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 84331
+        "duration_s": 84442
       },
       "narration": "Progenitors settle and begin to adhere in maturation medium. Flow stays off while they attach.",
       "protocol_step": 37
     },
     {
       "t_s": 1728000.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 14: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 38
     },
     {
-      "t_s": 1728215.0,
-      "duration_s": 215.0,
+      "t_s": 1728040.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 14: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 39
     },
     {
-      "t_s": 1728430.0,
-      "duration_s": 215.0,
+      "t_s": 1728080.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 14: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 40
     },
     {
-      "t_s": 1728645.0,
-      "duration_s": 215.0,
+      "t_s": 1728120.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 14: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 41
     },
     {
-      "t_s": 1728860.0,
-      "duration_s": 258340.0,
+      "t_s": 1728160.0,
+      "duration_s": 259040.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 258340
+        "duration_s": 259040
       },
       "narration": "Day 14 to 16: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 42
     },
     {
       "t_s": 1987200.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 16: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 43
     },
     {
-      "t_s": 1987415.0,
-      "duration_s": 215.0,
+      "t_s": 1987240.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 16: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 44
     },
     {
-      "t_s": 1987630.0,
-      "duration_s": 215.0,
+      "t_s": 1987280.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 16: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 45
     },
     {
-      "t_s": 1987845.0,
-      "duration_s": 215.0,
+      "t_s": 1987320.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 16: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 46
     },
     {
-      "t_s": 1988060.0,
-      "duration_s": 171940.0,
+      "t_s": 1987360.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 16 to 18: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 47
     },
     {
       "t_s": 2160000.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 18: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 48
     },
     {
-      "t_s": 2160215.0,
-      "duration_s": 215.0,
+      "t_s": 2160040.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 18: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 49
     },
     {
-      "t_s": 2160430.0,
-      "duration_s": 215.0,
+      "t_s": 2160080.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 18: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 50
     },
     {
-      "t_s": 2160645.0,
-      "duration_s": 215.0,
+      "t_s": 2160120.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 18: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 51
     },
     {
-      "t_s": 2160860.0,
-      "duration_s": 171940.0,
+      "t_s": 2160160.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 18 to 20: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 52
     },
     {
       "t_s": 2332800.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 20: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 53
     },
     {
-      "t_s": 2333015.0,
-      "duration_s": 215.0,
+      "t_s": 2332840.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 20: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 54
     },
     {
-      "t_s": 2333230.0,
-      "duration_s": 215.0,
+      "t_s": 2332880.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 20: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 55
     },
     {
-      "t_s": 2333445.0,
-      "duration_s": 215.0,
+      "t_s": 2332920.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 20: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 56
     },
     {
-      "t_s": 2333660.0,
-      "duration_s": 171940.0,
+      "t_s": 2332960.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 20 to 22: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 57
     },
     {
       "t_s": 2505600.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 22: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 58
     },
     {
-      "t_s": 2505815.0,
-      "duration_s": 215.0,
+      "t_s": 2505640.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 22: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 59
     },
     {
-      "t_s": 2506030.0,
-      "duration_s": 215.0,
+      "t_s": 2505680.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 22: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 60
     },
     {
-      "t_s": 2506245.0,
-      "duration_s": 215.0,
+      "t_s": 2505720.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 22: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 61
     },
     {
-      "t_s": 2506460.0,
-      "duration_s": 171940.0,
+      "t_s": 2505760.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 22 to 24: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 62
     },
     {
       "t_s": 2678400.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 24: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 63
     },
     {
-      "t_s": 2678615.0,
-      "duration_s": 215.0,
+      "t_s": 2678440.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 24: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 64
     },
     {
-      "t_s": 2678830.0,
-      "duration_s": 215.0,
+      "t_s": 2678480.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 24: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 65
     },
     {
-      "t_s": 2679045.0,
-      "duration_s": 215.0,
+      "t_s": 2678520.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 24: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 66
     },
     {
-      "t_s": 2679260.0,
-      "duration_s": 171940.0,
+      "t_s": 2678560.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 24 to 26: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 67
     },
     {
       "t_s": 2851200.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 26: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 68
     },
     {
-      "t_s": 2851415.0,
-      "duration_s": 215.0,
+      "t_s": 2851240.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 26: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 69
     },
     {
-      "t_s": 2851630.0,
-      "duration_s": 215.0,
+      "t_s": 2851280.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 26: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 70
     },
     {
-      "t_s": 2851845.0,
-      "duration_s": 215.0,
+      "t_s": 2851320.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 26: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 71
     },
     {
-      "t_s": 2852060.0,
-      "duration_s": 171940.0,
+      "t_s": 2851360.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 26 to 28: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 72
     },
     {
       "t_s": 3024000.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 28: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 73
     },
     {
-      "t_s": 3024215.0,
-      "duration_s": 215.0,
+      "t_s": 3024040.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 28: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 74
     },
     {
-      "t_s": 3024430.0,
-      "duration_s": 215.0,
+      "t_s": 3024080.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 28: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 75
     },
     {
-      "t_s": 3024645.0,
-      "duration_s": 215.0,
+      "t_s": 3024120.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 28: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 76
     },
     {
-      "t_s": 3024860.0,
-      "duration_s": 171940.0,
+      "t_s": 3024160.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 28 to 30: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 77
     },
     {
       "t_s": 3196800.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 30: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 78
     },
     {
-      "t_s": 3197015.0,
-      "duration_s": 215.0,
+      "t_s": 3196840.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 30: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 79
     },
     {
-      "t_s": 3197230.0,
-      "duration_s": 215.0,
+      "t_s": 3196880.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 30: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 80
     },
     {
-      "t_s": 3197445.0,
-      "duration_s": 215.0,
+      "t_s": 3196920.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 30: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 81
     },
     {
-      "t_s": 3197660.0,
-      "duration_s": 171940.0,
+      "t_s": 3196960.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 30 to 32: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 82
     },
     {
       "t_s": 3369600.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 32: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 83
     },
     {
-      "t_s": 3369815.0,
-      "duration_s": 215.0,
+      "t_s": 3369640.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 32: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 84
     },
     {
-      "t_s": 3370030.0,
-      "duration_s": 215.0,
+      "t_s": 3369680.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 32: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 85
     },
     {
-      "t_s": 3370245.0,
-      "duration_s": 215.0,
+      "t_s": 3369720.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 32: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 86
     },
     {
-      "t_s": 3370460.0,
-      "duration_s": 171940.0,
+      "t_s": 3369760.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 32 to 34: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 87
     },
     {
       "t_s": 3542400.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 34: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 88
     },
     {
-      "t_s": 3542615.0,
-      "duration_s": 215.0,
+      "t_s": 3542440.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 34: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 89
     },
     {
-      "t_s": 3542830.0,
-      "duration_s": 215.0,
+      "t_s": 3542480.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 34: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 90
     },
     {
-      "t_s": 3543045.0,
-      "duration_s": 215.0,
+      "t_s": 3542520.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 34: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 91
     },
     {
-      "t_s": 3543260.0,
-      "duration_s": 171940.0,
+      "t_s": 3542560.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 34 to 36: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 92
     },
     {
       "t_s": 3715200.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 36: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 93
     },
     {
-      "t_s": 3715415.0,
-      "duration_s": 215.0,
+      "t_s": 3715240.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 36: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 94
     },
     {
-      "t_s": 3715630.0,
-      "duration_s": 215.0,
+      "t_s": 3715280.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 36: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 95
     },
     {
-      "t_s": 3715845.0,
-      "duration_s": 215.0,
+      "t_s": 3715320.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 36: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 96
     },
     {
-      "t_s": 3716060.0,
-      "duration_s": 171940.0,
+      "t_s": 3715360.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 36 to 38: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 97
     },
     {
       "t_s": 3888000.0,
-      "duration_s": 215.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_1",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 38: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 98
     },
     {
-      "t_s": 3888215.0,
-      "duration_s": 215.0,
+      "t_s": 3888040.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_2",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 38: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 99
     },
     {
-      "t_s": 3888430.0,
-      "duration_s": 215.0,
+      "t_s": 3888080.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_3",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 38: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 100
     },
     {
-      "t_s": 3888645.0,
-      "duration_s": 215.0,
+      "t_s": 3888120.0,
+      "duration_s": 40.0,
       "command": "exchange",
       "args": {
         "target": "mat_4",
         "reagent": "maturation_medium",
-        "volume_ul": 38.4,
+        "volume_ul": 1.4155,
         "washes": 1,
-        "flow_ul_min": 15.0
+        "flow_ul_min": 2.937
       },
       "narration": "Day 38: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
       "protocol_step": 101
     },
     {
-      "t_s": 3888860.0,
-      "duration_s": 171940.0,
+      "t_s": 3888160.0,
+      "duration_s": 172640.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 171940
+        "duration_s": 172640
       },
       "narration": "Day 38 to 40: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.",
       "protocol_step": 102
@@ -1437,20 +1443,20 @@
     },
     {
       "t_s": 4062300.0,
-      "duration_s": 126.0,
+      "duration_s": 51.0,
       "command": "exchange",
       "args": {
         "target": "m5_harvest",
         "reagent": "dissociation_reagent",
-        "volume_ul": 30.0,
+        "volume_ul": 1.106,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 1.835
       },
       "narration": "Fill with a gentle, enzyme-free dissociation reagent.",
       "protocol_step": 105
     },
     {
-      "t_s": 4062426.0,
+      "t_s": 4062351.0,
       "duration_s": 900.0,
       "command": "hold_temp",
       "args": {
@@ -1462,35 +1468,35 @@
       "protocol_step": 106
     },
     {
-      "t_s": 4063326.0,
-      "duration_s": 126.0,
+      "t_s": 4063251.0,
+      "duration_s": 51.0,
       "command": "exchange",
       "args": {
         "target": "m5_harvest",
         "reagent": "quench_buffer",
-        "volume_ul": 30.0,
+        "volume_ul": 1.106,
         "washes": 1,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 1.835
       },
       "narration": "Quench with a carrier-protein buffer so the released cells do not stick to the channel walls.",
       "protocol_step": 107
     },
     {
-      "t_s": 4063452.0,
-      "duration_s": 252.0,
+      "t_s": 4063302.0,
+      "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m5_harvest",
         "reagent": "wash_buffer",
-        "volume_ul": 30.0,
+        "volume_ul": 1.106,
         "washes": 2,
-        "flow_ul_min": 20.0
+        "flow_ul_min": 1.835
       },
-      "narration": "Wash twice and pass the suspension through the retention mesh twice, which removes clumps above 30 um.",
+      "narration": "Wash twice with the suspension passing over the depth weir. ",
       "protocol_step": 108
     },
     {
-      "t_s": 4063704.0,
+      "t_s": 4063403.0,
       "duration_s": 600.0,
       "command": "release",
       "args": {

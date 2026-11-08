@@ -215,6 +215,7 @@ def translate(src: dict) -> tuple[dict, list[str]]:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--check", action="store_true", help="run tools/check_chip_spec.py on the result")
+    ap.add_argument("--force", action="store_true", help="overwrite a translation that has since been rescaled by hand")
     args = ap.parse_args(argv)
     src = schema_io.load_json(ROOT / SOURCE)
     spec, questions = translate(src)
@@ -223,6 +224,14 @@ def main(argv: list[str] | None = None) -> int:
         for e in errs:
             print(f"ERROR {schema_io.path_str(e)}: {schema_io.describe(e)}", file=sys.stderr)
         return 1
+    existing = ROOT / OUT
+    if existing.is_file() and not args.force:
+        old = schema_io.load_json(existing)
+        if old.get("footprint") != spec["footprint"]:
+            print(f"{OUT} has been rescaled since it was translated (footprint {old.get('footprint')}, this would write "
+                  f"{spec['footprint']}): MJ fitted it to the 30 x 20 mm envelope. Not overwritten; --force to replace it.",
+                  file=sys.stderr)
+            return 1
     schema_io.write_json(ROOT / OUT, spec)
     n_ph = sum(1 for g in ("chambers", "channels", "ports", "valves", "layers") for x in spec[g] if x.get("placeholder"))
     print(f"wrote {OUT} from {SOURCE}: {len(spec['chambers'])} chambers, {len(spec['channels'])} channels, "
