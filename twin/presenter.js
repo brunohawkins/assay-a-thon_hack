@@ -11,6 +11,7 @@
 //   - an error in one step is shown quietly and the buttons keep working.
 // #step=N in the URL opens step N; tools/record_presenter.py reads `seconds` to pace the video.
 import { modeStates } from './network.js';
+import { notPrintable, shortStage } from './status.js';
 
 let FLOW = 2.4; // µL/min: Module 1's feed, derived from the chip by the twin (operator/network.py DEFAULT_FEED_UL_MIN)
 const NAMES = { n_cx: 'neuron', g_cx: 'glia', a_cx: 'astrocyte' };
@@ -91,8 +92,11 @@ function makeSteps(api) {
       caption: '',
       async enter(s) {
         await s.show('pipeline');
-        const ghosts = (pipeline.data?.entries ?? []).some((e) => !e.spec);
-        s.caption(`${chipsIn()} chips, 30 × 20 mm each: cells go in, capsules in the middle, a library out.${ghosts ? ' Dashed: not designed yet.' : ''}`);
+        const entries = pipeline.data?.entries ?? [];
+        const ghosts = entries.some((e) => !e.spec);
+        const bought = entries.filter(notPrintable).map((e) => shortStage(pipeline.data?.status?.byChip.get(e.spec?.id)?.stage ?? e.name));
+        s.caption(`${chipsIn()} stages at real scale, 30 × 20 mm each: cells go in, capsules in the middle, a library out.`
+          + `${bought.length ? ` ${bought.join(', ')} runs our chemistry on bought hardware.` : ''}${ghosts ? ' Dashed: not designed yet.' : ''}`);
         pipeline.setSpeed(1.6);
         pipeline.seek(0);
         pipeline.setPlaying(true);

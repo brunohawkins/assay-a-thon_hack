@@ -4,10 +4,15 @@
   "chip_id": "m1_culture_v1",
   "chip_spec": "cad/m1_culture_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T17:47:46Z",
+  "created_at": "2026-11-08T09:51:02Z",
   "placeholder": true,
   "run_parameters": {
     "variant": "interaction"
+  },
+  "simulated_hardware": true,
+  "adapter": "sim",
+  "scenario": {
+    "description": "No scenario file: the sim adapter records the commands the planner sent and nothing else. No virtual chip, no sensors and no injected faults, so there is no reality to configure - and nothing was measured, which is why simulated_hardware is true."
   },
   "total_duration_s": 1475820.0,
   "events": [

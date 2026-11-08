@@ -1,20 +1,21 @@
 # Run report: Module 3: capsule wash on m3_wash_v1
 
-> **SIMULATED HARDWARE.** This run used the virtual chip: no physical pump, valves or sensors. Values marked TRUE come from the simulation and could never be measured directly on real hardware.
+> **SIMULATED HARDWARE.** This run used the virtual chip: no physical pump, routing or sensors. Values marked TRUE come from the simulation and could never be measured directly on real hardware.
 
 - Scenario: `m3_wash_closed_loop`: Pressure sensor at the mesh and outlet absorbance on: the model is corrected as the run goes.
 - Operator: **planner** · Adapter: `virtual_chip` · Loop: **closed**
-- Sensors: pressure_kpa, outlet_absorbance
+- Sensors: outlet_absorbance, pressure_kpa
 - Faults injected: none
 - Status: **done** · Protocol time: 347.29 s
-- Created: 2026-11-07T17:59:30Z
+- Created: 2026-11-08T09:51:04Z
 
 ## Outcome
 
-| | Believed (model + sensors) | TRUE (simulation) |
+| | Believed (model + outlet_absorbance, pressure_kpa) | TRUE (simulation) |
 |---|---|---|
+| Where these come from | model corrected by outlet_absorbance, pressure_kpa | the virtual chip's own state |
 | Final exchange % (step 2) | 100.0% | 99.98% |
-| Capsule recovery | 97.83% | 98.02% |
+| Capsule recovery (believed value is ASSUMED) | 97.83% | 98.02% |
 | Capsules collected | 9783 | 9802 |
 | Capsules lost to waste | 0 | 0 |
 | Capsules left on the mesh | 34 | 25 |
@@ -22,6 +23,10 @@
 | Reagent used: resuspension_buffer | 93.3 uL | 93.3 uL |
 | Reagent used: wash_buffer | 111.16 uL | 111.16 uL |
 | Waste | 165.56 uL | 165.56 uL |
+
+Capsule recovery: ASSUMED: the denominator is the capsules the chip spec says were loaded (capsule.count - they were never counted), and the numerator is the MODEL's prediction of how many came out (no capsule counter was on).
+
+Capsule conservation (capsules_loaded == on a mesh + suspended + collected + lost): every believed count added up; 0.0 capsules unaccounted for at the end.
 
 Alerts: **0** (none) · Recoveries: **0** · Model updates: **4**
 
@@ -41,9 +46,9 @@ How far the operator's belief was from the simulated truth at the end of the run
 | Start | Step | Command as executed | Duration | Safety | Operator's explanation |
 |---|---|---|---|---|---|
 | 0.0 s | 1 | load 14.7 uL at 40 uL/min | 22.1 s | approved | Fastest safe option of 3 simulated (0 rejected): load 14.7 uL at 40 uL/min, predicted 22 s, 63.2% exchanged, peak 2.00 kPa. |
-| 22.1 s | 2 | exchange 1 x 31.76 uL wash_buffer at 40 uL/min + 29 s soak | 47.6 s | approved | Fastest safe option of 16 simulated (7 rejected): exchange 3 x 39.7 uL wash_buffer at 40 uL/min + 29 s soak, predicted 208 s, 100.0% exchanged, peak 2.00 kPa. |
-| 69.7 s | 2 | exchange 2 x 39.7 uL wash_buffer at 40 uL/min + 38 s soak | 157.5 s | approved | Re-planned after a model update: Fastest safe option of 16 simulated (4 rejected): exchange 2 x 39.7 uL wash_buffer at 40 uL/min + 38 s soak, predicted 158 s, 100.0% exchanged, peak 2.46 kPa. |
-| 227.2 s | 3 | back-flush 1 x 39.7 uL resuspension_buffer at 60 uL/min | 39.7 s | approved | Fastest safe option of 8 simulated (5 rejected): exchange back-flush 1 x 39.7 uL resuspension_buffer at 60 uL/min, predicted 40 s, 94.2% exchanged, peak -3.70 kPa. |
+| 22.1 s | 2 | exchange 1 x 31.76 uL wash_buffer at 40 uL/min + 29 s soak | 47.6 s | approved | Fastest safe option of 20 simulated (8 rejected): exchange 3 x 39.7 uL wash_buffer at 40 uL/min + 29 s soak, predicted 208 s, 100.0% exchanged, peak 2.00 kPa. |
+| 69.7 s | 2 | exchange 2 x 39.7 uL wash_buffer at 40 uL/min + 38 s soak | 157.5 s | approved | Re-planned after a model update: Fastest safe option of 20 simulated (4 rejected): exchange 2 x 39.7 uL wash_buffer at 40 uL/min + 38 s soak, predicted 158 s, 100.0% exchanged, peak 2.46 kPa. |
+| 227.2 s | 3 | back-flush 1 x 39.7 uL resuspension_buffer at 60 uL/min | 39.7 s | warning | Fastest safe option of 8 simulated (5 rejected): exchange back-flush 1 x 39.7 uL resuspension_buffer at 60 uL/min, predicted 40 s, 94.2% exchanged, peak -3.70 kPa. |
 | 266.9 s | 4 | release 53.6 uL at 40 uL/min | 80.4 s | approved | Fastest safe option of 9 simulated (3 rejected): release 53.6 uL at 40 uL/min, predicted 80 s, 99.9% exchanged. |
 
 ## Alerts
@@ -58,16 +63,16 @@ None.
 
 | t | Parameter | Old -> new | Why |
 |---|---|---|---|
-| 22.1 s | `mesh_resistance[m3_trap_1]` | 0.05 -> 0.0616 kPa per uL/min | pressure 2.58 kPa vs predicted 2.00 (+29%) |
-| 57.8 s | `chamber_volume_ul[m3_trap_1]` | 14.7 -> 13.58 uL | outlet absorbance 0.911 after 32 uL: leftover old liquid -23% vs the model since the exchange began |
-| 81.6 s | `chamber_volume_ul[m3_trap_1]` | 13.58 -> 13.99 uL | outlet absorbance 0.965 after 48 uL: leftover old liquid +16% vs the model since the exchange began |
-| 258.9 s | `chamber_volume_ul[m3_trap_1]` | 13.99 -> 13.41 uL | outlet absorbance 0.951 after 40 uL: leftover old liquid -16% vs the model since the exchange began |
+| 34.0 s | `mesh_resistance[m3_trap_1]` | 0.05 -> 0.0616 kPa per uL/min | pressure 2.58 kPa vs predicted 2.00 (+29%) |
+| 69.7 s | `chamber_volume_ul[m3_trap_1]` | 14.7 -> 13.58 uL | outlet absorbance 0.911 after 32 uL: leftover old liquid -23% vs the model since the exchange began |
+| 93.5 s | `chamber_volume_ul[m3_trap_1]` | 13.58 -> 13.99 uL | outlet absorbance 0.965 after 48 uL: leftover old liquid +16% vs the model since the exchange began |
+| 266.9 s | `chamber_volume_ul[m3_trap_1]` | 13.99 -> 13.41 uL | outlet absorbance 0.951 after 40 uL: leftover old liquid -16% vs the model since the exchange began |
 
 ## Optimizer decisions
 
 - t = 0.0 s, step 1 (plan): step 1: chose load 14.7 uL at 40 uL/min; predicted {'time_s': 22.1, 'reagent_ul': 14.7, 'final_pct': 63.21, 'interior_pct': 11.81, 'peak_kpa': 2.0}. 3 candidates, 0 rejected.
-- t = 22.1 s, step 2 (plan): step 2: chose exchange 3 x 39.7 uL wash_buffer at 40 uL/min + 29 s soak; predicted {'time_s': 207.9, 'reagent_ul': 119.1, 'final_pct': 99.97, 'interior_pct': 95.0, 'peak_kpa': 2.0}. 16 candidates, 7 rejected (4 x predicted …, 3 x peak …).
-- t = 69.7 s, step 2 (replan): step 2: re-planned the rest after a model update: exchange 2 x 39.7 uL wash_buffer at 40 uL/min + 38 s soak. 16 candidates, 4 rejected (4 x peak …).
+- t = 22.1 s, step 2 (plan): step 2: chose exchange 3 x 39.7 uL wash_buffer at 40 uL/min + 29 s soak; predicted {'time_s': 208.0, 'reagent_ul': 119.1, 'final_pct': 99.97, 'interior_pct': 95.01, 'peak_kpa': 2.0}. 20 candidates, 8 rejected (5 x predicted …, 3 x peak …).
+- t = 69.7 s, step 2 (replan): step 2: re-planned the rest after a model update: exchange 2 x 39.7 uL wash_buffer at 40 uL/min + 38 s soak. 20 candidates, 4 rejected (4 x peak …).
 - t = 227.2 s, step 3 (plan): step 3: chose exchange back-flush 1 x 39.7 uL resuspension_buffer at 60 uL/min; predicted {'time_s': 39.7, 'reagent_ul': 39.7, 'final_pct': 94.15, 'interior_pct': 34.03, 'peak_kpa': -3.696}. 8 candidates, 5 rejected (5 x lifts …).
 - t = 266.9 s, step 4 (plan): step 4: chose release 53.6 uL at 40 uL/min; predicted {'time_s': 80.4, 'reagent_ul': 53.6, 'final_pct': 99.91, 'interior_pct': 82.22, 'peak_kpa': 0.0}. 9 candidates, 3 rejected (3 x recovers …).
 
@@ -75,14 +80,14 @@ None.
 
 - `    0.0 s` **plan**: step 1: chose load 14.7 uL at 40 uL/min; predicted {'time_s': 22.1, 'reagent_ul': 14.7, 'final_pct': 63.21, 'interior_pct': 11.81, 'peak_kpa': 2.0}
 - `    0.0 s` **safety**: approved: load 14.7 uL at 40 uL/min
-- `   22.1 s` **plan**: step 2: chose exchange 3 x 39.7 uL wash_buffer at 40 uL/min + 29 s soak; predicted {'time_s': 207.9, 'reagent_ul': 119.1, 'final_pct': 99.97, 'interior_pct': 95.0, 'peak_kpa': 2.0}
+- `   22.1 s` **plan**: step 2: chose exchange 3 x 39.7 uL wash_buffer at 40 uL/min + 29 s soak; predicted {'time_s': 208.0, 'reagent_ul': 119.1, 'final_pct': 99.97, 'interior_pct': 95.01, 'peak_kpa': 2.0}
 - `   22.1 s` **safety**: approved: exchange 3 x 39.7 uL wash_buffer at 40 uL/min + 29 s soak
-- `   22.1 s` **model_update**: mesh_resistance[m3_trap_1]: 0.05 -> 0.0616 kPa per uL/min (pressure 2.58 kPa vs predicted 2.00 (+29%))
-- `   57.8 s` **model_update**: chamber_volume_ul[m3_trap_1]: 14.7 -> 13.58 uL (outlet absorbance 0.911 after 32 uL: leftover old liquid -23% vs the model since the exchange began)
+- `   34.0 s` **model_update**: mesh_resistance[m3_trap_1]: 0.05 -> 0.0616 kPa per uL/min (pressure 2.58 kPa vs predicted 2.00 (+29%))
+- `   69.7 s` **model_update**: chamber_volume_ul[m3_trap_1]: 14.7 -> 13.58 uL (outlet absorbance 0.911 after 32 uL: leftover old liquid -23% vs the model since the exchange began)
 - `   69.7 s` **replan**: step 2: re-planned the rest after a model update: exchange 2 x 39.7 uL wash_buffer at 40 uL/min + 38 s soak
-- `   81.6 s` **model_update**: chamber_volume_ul[m3_trap_1]: 13.58 -> 13.99 uL (outlet absorbance 0.965 after 48 uL: leftover old liquid +16% vs the model since the exchange began)
+- `   93.5 s` **model_update**: chamber_volume_ul[m3_trap_1]: 13.58 -> 13.99 uL (outlet absorbance 0.965 after 48 uL: leftover old liquid +16% vs the model since the exchange began)
 - `  227.2 s` **plan**: step 3: chose exchange back-flush 1 x 39.7 uL resuspension_buffer at 60 uL/min; predicted {'time_s': 39.7, 'reagent_ul': 39.7, 'final_pct': 94.15, 'interior_pct': 34.03, 'peak_kpa': -3.696}
-- `  227.2 s` **safety**: approved: exchange back-flush 1 x 39.7 uL resuspension_buffer at 60 uL/min
-- `  258.9 s` **model_update**: chamber_volume_ul[m3_trap_1]: 13.99 -> 13.41 uL (outlet absorbance 0.951 after 40 uL: leftover old liquid -16% vs the model since the exchange began)
+- `  227.2 s` **safety**: warning: exchange back-flush 1 x 39.7 uL resuspension_buffer at 60 uL/min (predicted 3.70 kPa lifting off the retention is above 70% of the 5 kPa escape pressure)
+- `  266.9 s` **model_update**: chamber_volume_ul[m3_trap_1]: 13.99 -> 13.41 uL (outlet absorbance 0.951 after 40 uL: leftover old liquid -16% vs the model since the exchange began)
 - `  266.9 s` **plan**: step 4: chose release 53.6 uL at 40 uL/min; predicted {'time_s': 80.4, 'reagent_ul': 53.6, 'final_pct': 99.91, 'interior_pct': 82.22, 'peak_kpa': 0.0}
 - `  266.9 s` **safety**: approved: release 53.6 uL at 40 uL/min

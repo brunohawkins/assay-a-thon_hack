@@ -5,6 +5,20 @@
 
 Single-copy barcoding and capsule handling, on chip/sctip_spc_v1.json.
 
+THIS IS THE PROJECT'S SINGLE-CELL BARCODING STAGE. It is not a duplicate of module 3 and
+it is not a side experiment. It is the one place a per-CELL barcode is created, and it
+sits between module 3 and module 4 in protocols/pipeline_mvp.json:
+
+    module 3 (load, lysis, wash, reverse transcription, wash, release)
+        -> IN:  washed capsules, each holding one cell's cDNA, no barcode on it yet
+    barcoding (this file)
+        -> OUT: washed capsules whose molecules each carry one clonal, per-capsule barcode
+    module 4 (sublibrary split + index PCR)
+
+The lane label the cells carry from module 1 and module 4's four sublibrary indices are
+DEMULTIPLEXING conveniences, about twelve groups. They are not the resolution of the data.
+The resolution comes from here: one capsule, one droplet, one clonal barcode.
+
 WHAT IS ON THE CHIP. Stage A (making the capsules) is retired: spc_demo_v1 makes them, and
 the capsules arrive here already made. What remains is stage B (re-inject the capsules,
 meet the barcode mix, cut each capsule plus its barcode back into oil) and stage C (break
@@ -40,6 +54,57 @@ are permeabilised rather than live, tagmentation runs at room temperature, and t
 amplification happens on free DNA. Thermocycling is done in a tube, because on-chip is no
 faster and invites evaporation and bubbles.
 
+TWO WORKFLOWS IN ONE FILE, AND WHICH STEPS BELONG TO WHICH. These steps are NOT all one
+workflow and they are deliberately not merged:
+
+  * SHARED SINGLE-CELL BARCODING STAGE - steps 1-16 and 20-21. Stage B (steps 1-3: re-inject
+    close-packed, pair each capsule with the barcode pool, cut into oil, thermocycle in a
+    tube) plus the first half of stage C (steps 4-16: break the emulsion pass by pass,
+    settle the bed, two flow-through washes) and its tail (steps 20-21: final wash,
+    back-flush release). Every workflow runs these, because this is what puts a per-cell
+    barcode on the molecules.
+  * CHROMATIN / TRANSPOSASE VARIANT TAIL - steps 17-19 only (gap-fill at 72 C, load the
+    transcription mix, then the overnight 37 C LINEAR amplification in the trap). These
+    finish a transposon-tagmented DNA library in place and belong to the TIP-seq flavour.
+    The RNA pipeline in protocols/pipeline_mvp.json does NOT run them: module 3's reverse
+    transcription has already made the template, and module 4's index PCR does the
+    amplifying. They are kept here, labelled, rather than silently folded into the shared
+    stage or deleted.
+
+WHAT EVERY EXCHANGE IS FOR IS A FIELD, NOT PROSE. Each exchange declares `exchange_kind`,
+and `add()` refuses to write one without it, because absence means SWEEP and absence must
+never be the loophole. Ten exchanges, classified honestly:
+
+  * SWEEP x8, sized from exchange.target_fraction - a well-mixed chamber keeps exp(-V) of its
+    old liquid after V chamber volumes, so clearing to 99% takes -ln(1-0.99) = 4.61 chamber
+    volumes, which at one chamber volume per fill is 5 fills. The five emulsion-break passes
+    are sweeps because carried-over oil is exactly what must not reach the capsule bed, and
+    the three flow-through washes are sweeps because they clear a reagent before an enzymatic
+    step. The precedent is upstream: the guanidinium-class lysis residue inhibits reverse
+    transcription at millimolar levels, so "mostly gone" is not a specification.
+  * PARTIAL x1 - the settle. One chamber volume, deliberately, because it SEATS THE BED
+    rather than clearing it; the liquid the capsules arrive in is cleared by the sweeps after.
+  * FILL x1 - the transcription mix. Loading a reaction mix into a packed bed puts reagent
+    IN, so it is bounded above by the chamber and has no clearance target.
+
+A SWEEP NEEDS THE SOAK AS WELL AS THE VOLUME. The design note's own point is that exchange
+here is DIFFUSION-LIMITED into the capsule at 2-5 min per fill, not flush-limited. Pump time
+alone does not cover that: five fills of the trap take about 8 min of pumping but need up to
+25 min of soaking. So every trap exchange carries `soak=True` and its duration is the LARGER
+of pump time and washes x SOAK_PER_FILL_S, budgeted at the pessimistic 5 min end. The
+emulsion-break passes do not soak: capsules transit that chamber, they do not sit in it.
+
+FABRICATION, PLAINLY. None of the droplet handling is printable. Stage B needs a 115 um
+close-packed entrance (0.85 x a 135 um capsule) and stage C needs 100 x 150 um slots, and
+our in-plane floor is 200 um for open channels. So, exactly as with encapsulation, the
+droplet-handling steps run on a COMMERCIAL DROPLET KIT and chip/sctip_spc_v1.json is a
+demo-scale layout, not a printable part: its pack_1 is clamped to 200 um, which is wider
+than a capsule and therefore cannot order them single file. The split is coherent and is
+the position we take: the barcoding CHEMISTRY is ours and is the single-cell mechanism;
+the droplet HARDWARE is bought. The only piece we do fabricate ourselves is capsule
+retention, as a depth weir with a 25 um gap under the lid (crest = the chip's etch depth
+minus the gap) - the 200 um floor is IN-PLANE and z is free.
+
 Reagent names are generic and no compositions appear here. See CONFIDENTIALITY.md. The
 published methods are cited in SOURCE.
 """
@@ -71,17 +136,35 @@ SOURCE = (
     "Horton RM et al., Gene 1989;77:61, doi:10.1016/0378-1119(89)90359-4."
 )
 
+PARAMS = json.loads(
+    (Path(__file__).resolve().parents[1] / "contracts" / "parameters.json").read_text()
+)["parameters"]
+
+
+def parameter(key: str):
+    return PARAMS[key]["value"]
+
+
 MIN = 60.0
 HOUR = 3600.0
-MU_PA_S = 0.8e-3
+# 37 C medium, read from the contract rather than typed in: every flow on this chip is a
+# 37 C aqueous flow, so fluid.viscosity_37c_pa_s is the only viscosity that applies.
+MU_PA_S = parameter("fluid.viscosity_37c_pa_s")
 SHEAR_CEILING = 0.01       # dyn/cm2, in every chamber the flow runs through
 FLOW_FRACTION = 0.85       # run at this fraction of the shear-ceiling flow
 PACKING = 0.64             # random close packing
 CAPS_SHARE = 0.4           # share of the nozzle's aqueous flow carried by the capsule stream
 EMULSION_FACTOR = 2.0      # emulsion volume re-injected, in packed capsule volumes (assumption)
 LAMBDA_BARCODE = 3.0       # mean barcode molecules per droplet; see note in build()
-SETTLE_WASHES = 1
-WASH_WASHES = 3            # fills per flow-through wash
+# A well-mixed chamber keeps exp(-V) of its old liquid after V chamber volumes, so clearing
+# it to exchange.target_fraction needs -ln(1 - target) chamber volumes. Derived, not typed in.
+EXCHANGE_TARGET = parameter("exchange.target_fraction")
+SWEEP_CV = -math.log(1 - EXCHANGE_TARGET)
+# Buffer exchange here is DIFFUSION-LIMITED into the capsule, not flush-limited: the design
+# note puts it at 2-5 min per fill, so a sweep needs the SOAK as well as the volume. We budget
+# the pessimistic end, per fill, and a step's duration is the larger of pump time and soak time.
+SOAK_PER_FILL_S = 5 * MIN
+SETTLE_CV = 1.0            # one chamber volume: the settle seats the bed, it does not clear it
 COLLECT_S = 600            # handling time to the tube
 THERMOCYCLE_S = 2.0 * HOUR # round placeholder, in a tube
 GAP_FILL_S = 3 * MIN
@@ -94,13 +177,18 @@ CH = {c["id"]: c for c in CHIP_SPEC["chambers"]}
 PORTS = [p["id"] for p in CHIP_SPEC["ports"]]
 NOZZLE, PACK, BREAK, TRAP = "nozzle_2", "pack_1", "brk_1", "trap_1"
 
-CAPSULE_UM = build_spc_demo.CAPSULE_UM
+# The capsules that arrive here are the PIPELINE's capsules, made off-chip on the bought
+# droplet kit, not the ones spc_demo_v1's own geometry demo would make. Fall back through the
+# names build_spc_demo has used so a rename upstream cannot silently change the batch size.
+CAPSULE_UM = float(getattr(build_spc_demo, "PIPELINE_CAPSULE_UM", None)
+                   or getattr(build_spc_demo, "CAPSULE_UM", None)
+                   or build_spc_demo.DROPLET_UM)
 CAPSULE_NL = math.pi / 6.0 * (CAPSULE_UM / 1000.0) ** 3 * 1e3   # nL
-LAMBDA_CELL = build_spc_demo.LAMBDA_CELL
+LAMBDA_CELL = 0.2          # mean cells per capsule: deliberately low, so doublets are rare
 # Cells ride in the core stream only, which is half the droplet, so the concentration
 # the nozzle needs falls as the CUBE of capsule diameter. build_cell_prep.py --report has
 # the table; this is the number that module has to hand over.
-CELLS_PER_UL = build_spc_demo.CELLS_PER_UL
+CELLS_PER_UL = round(LAMBDA_CELL / (CAPSULE_NL * getattr(build_spc_demo, "CORE_SHARE", 0.5)) * 1e3)
 
 
 def max_flow(width_mm: float, height_mm: float, ceiling: float = SHEAR_CEILING) -> float:
@@ -158,18 +246,39 @@ def poisson(lam: float, k: int) -> float:
     return lam ** k * math.exp(-lam) / math.factorial(k)
 
 
+def sweep_washes(chamber_volume_ul: float, fill_ul: float) -> int:
+    """Fills of `fill_ul` needed to clear a chamber to exchange.target_fraction.
+
+    The contract defines volume_ul as the volume PER WASH, and a step can never move more
+    than the chamber holds in one go, so a sweep is always several fills of about one
+    chamber volume rather than one big push.
+    """
+    return max(1, math.ceil(SWEEP_CV * chamber_volume_ul / fill_ul))
+
+
 def build() -> dict:
     steps: list[dict] = []
 
     def add(operation, target, note, duration_s, reagent=None, volume_ul=None,
-            temp_c=None, washes=None, flow_ul_min=None, port_state=None, **extra):
+            temp_c=None, washes=None, flow_ul_min=None, port_state=None,
+            exchange_kind=None, soak=False, **extra):
+        if operation == "exchange" and exchange_kind is None:
+            raise ValueError(f"exchange on {target} must declare exchange_kind "
+                             f"(partial | sweep | fill); absence means sweep, so say it")
+        if operation != "exchange" and exchange_kind is not None:
+            raise ValueError(f"exchange_kind is for exchange steps only, not {operation}")
         if operation in ("exchange", "load") and volume_ul is not None:
             # never promise an exchange faster than the pump can deliver it
             duration_s = max(duration_s, (washes or 1) * volume_ul / flow_ul_min * 60.0 * 1.4)
+            if soak:
+                # ...and never promise it faster than the capsule interior can equilibrate
+                duration_s = max(duration_s, (washes or 1) * SOAK_PER_FILL_S)
         step = {"step": len(steps) + 1, "operation": operation, "target": target,
                 "reagent": reagent, "volume_ul": volume_ul,
                 "duration_s": round(duration_s), "temp_c": temp_c, "washes": washes,
                 "flow_ul_min": flow_ul_min, "note": note}
+        if exchange_kind is not None:
+            step["exchange_kind"] = exchange_kind
         step.update(extra)
         step["ports"] = port_state
         steps.append(step)
@@ -182,17 +291,22 @@ def build() -> dict:
 
     # --- stage B: one capsule, one barcode, one droplet ------------------------------
     add("encapsulate", NOZZLE,
+        f"SHARED BARCODING STAGE, and the step that makes this a single-cell assay. "
         f"Re-inject the cured capsules close-packed through {PACK} and meet the amplification "
         f"mix carrying the barcode pool, diluted to about {LAMBDA_BARCODE:g} molecules per "
         f"droplet. The capsule stream goes in as the core and the mix as the shell. The "
         f"entrance is narrower than a capsule, so capsules deform slightly and arrive in single "
         f"file: this is what beats Poisson on the capsule, where published work gets 93-97% "
-        f"single occupancy against about 30% by chance. One barcode molecule per droplet "
+        f"single occupancy against about 30% by chance. That entrance has to be about 0.85 x the "
+        f"capsule, so {0.85 * CAPSULE_UM:.0f} um here, which is far below our 200 um in-plane "
+        f"floor: THIS STEP RUNS ON A BOUGHT DROPLET KIT, as encapsulation does. The chemistry is "
+        f"ours; the droplet hardware is not. One barcode molecule per droplet "
         f"would be ideal but is unreachable: a free molecule cannot be ordered, so at a mean "
-        f"of 1 about 37% of droplets would get none. At {LAMBDA_BARCODE:g} only "
-        f"{poisson(LAMBDA_BARCODE, 0) * 100:.0f}% get none, and the droplets that get several "
-        f"are resolved afterwards by merging barcodes that share fragments, which is what the "
-        f"source method does. Oil then cuts each capsule plus its barcode into its own "
+        f"of 1 about 37% of droplets would get none. At {LAMBDA_BARCODE:g} about "
+        f"{poisson(LAMBDA_BARCODE, 0) * 100:.0f}% of droplets still get no barcode at all and "
+        f"those cells are simply lost from the data, while most droplets get several barcodes "
+        f"and have to be merged computationally afterwards by spotting barcodes that share "
+        f"fragments, which is what the source method does. Oil then cuts each capsule plus its barcode into its own "
         f"droplet at about {rate_hz():.2f} Hz: {BATCH:,} capsules, the packed bed {TRAP} holds. "
         f"From here until the emulsion is broken, every capsule is chemically alone.",
         gen_s,
@@ -201,93 +315,185 @@ def build() -> dict:
         capsules=BATCH,
         port_state=ports(["in_load", "in_reagent", "in_oil"], ["out_drop"]))
     add("transfer", "out_drop",
-        "Send the droplets to a tube for thermocycling. On-chip cycling is not faster "
+        "SHARED BARCODING STAGE. Send the droplets to a tube for thermocycling. On-chip cycling is not faster "
         "than a tube at this scale and invites evaporation and bubbles, so only the steps "
         "that genuinely need a chip are on it.",
         COLLECT_S, port_state=ports(["in_oil"], ["out_drop"]), source=NOZZLE)
     add("hold_temp", NOZZLE,
-        "Thermocycle in the tube. Each droplet clonally amplifies its own barcode and, in "
-        "the same reaction, overlap-extends it onto that cell's tagmented fragments. "
-        "THIS IS THE STEP THE WHOLE DESIGN EXISTS TO PROTECT: the barcode copies are "
+        "SHARED BARCODING STAGE. Thermocycle in the tube. Each droplet clonally amplifies its own barcode and, in "
+        "the same reaction, overlap-extends it onto that cell's own molecules - the cDNA made in "
+        "module 3's trap in the RNA pipeline, or tagmented fragments in the chromatin variant. "
+        "THIS IS THE STEP THE WHOLE DESIGN EXISTS TO PROTECT, and the step that makes the data "
+        "single-cell rather than lane-level: the barcode copies are "
         "short enough to leak through the shell, so they are kept inside an oil droplet "
-        "until they are part of a long molecule the capsule retains.",
+        "until they are part of a long molecule the capsule retains. The barcode is generated "
+        "INSIDE the capsule's own surrounding oil droplet, so the emulsion is the containment "
+        "and every capsule - and so every cell - ends up with its own clonal barcode.",
         THERMOCYCLE_S, temp_c=72, port_state=ports())
 
-    # --- stage C: break, trap, wash, transcribe --------------------------------------
+    # --- stage C: break, trap, wash (shared), then the chromatin variant tail --------
     chunk = round(v_brk, 3)
     remaining = emulsion_ul
+    brk_washes = sweep_washes(v_brk, v_brk)
+    trap_washes = sweep_washes(v_trap, v_trap)
     for i in range(1, passes + 1):
         vol = round(min(chunk, remaining), 3)
         remaining -= vol
         add("load", BREAK,
-            f"Return the emulsion to the chip, pass {i} of {passes}: {BREAK} holds {v_brk:g} uL, "
+            f"SHARED BARCODING STAGE. Return the emulsion to the chip, pass {i} of {passes}: {BREAK} holds {v_brk:g} uL, "
             f"so the {emulsion_ul:.2f} uL batch goes in as {passes} fills. The bench version of "
             f"this step is where the published workflow loses most of its capsules, which is the "
             f"single biggest reason this module exists.",
             0, reagent="emulsion", volume_ul=vol, flow_ul_min=f_brk,
             port_state=ports(["in_load"], ["out_waste"]))
         add("exchange", BREAK,
-            f"Separate the phases, pass {i} of {passes}. Oil leaves through the waste line; the "
-            f"capsules go on to the trap in the aqueous stream. Driven by a pressure difference, "
-            f"so it needs a controller rather than a fixed flow.",
-            0, reagent="emulsion_breaker", volume_ul=v_brk, washes=1, flow_ul_min=f_brk,
+            f"SHARED BARCODING STAGE. SWEEP, {brk_washes} fills of {v_brk:g} uL = "
+            f"{brk_washes * v_brk / v_brk:.2f} chamber volumes. Separate the phases, pass {i} of "
+            f"{passes}. Oil leaves through the waste line; the capsules go on to the trap in the "
+            f"aqueous stream. Driven by a pressure difference, so it needs a controller rather "
+            f"than a fixed flow. This is a SWEEP and not a partial because carried-over oil is "
+            f"exactly what must not reach the capsule bed: an oil film on a capsule blocks every "
+            f"buffer exchange after it, so the oil has to be cleared to "
+            f"exchange.target_fraction ({EXCHANGE_TARGET:.0%}) and not merely reduced. "
+            f"HONEST CAVEAT: {SWEEP_CV:.2f} chamber volumes is the WELL-MIXED bound, and a "
+            f"two-phase filter chamber is not well mixed - take it as a design bound, not a "
+            f"measurement, and check it with a dye test.",
+            0, reagent="emulsion_breaker", volume_ul=v_brk, washes=brk_washes,
+            flow_ul_min=f_brk, exchange_kind="sweep",
             port_state=ports(["in_reagent"], ["out_waste"]))
     add("exchange", TRAP,
-        "Settle the capsules into a packed bed. Retention is by chamber geometry and "
-        "downward flow, not by a size gap: a liquid-core capsule deforms, and the gap "
-        "that would reliably hold one is below what we can make.",
-        0, reagent="wash_buffer", volume_ul=v_trap, washes=SETTLE_WASHES, flow_ul_min=f_trap,
+        f"SHARED BARCODING STAGE. PARTIAL: {SETTLE_CV:g} chamber volume, and deliberately no more. "
+        f"This step SEATS THE BED, it does not clear anything - the capsules arrive in the aqueous "
+        f"stream and pack against the retention, and the liquid they arrive in is cleared by the "
+        f"two sweeps that follow. Sizing it as a sweep would be sizing the wrong job. The capsules "
+        f"are held by a fabricated depth weir: the 200 um fabrication floor is IN-PLANE and z is "
+        f"free, so the crest is this chip's etch depth minus a 25 um gap under the lid. No bought "
+        f"mesh insert and no sedimentation step. Packed-bed geometry and downward flow do the rest, "
+        f"because a liquid-core capsule deforms and an in-plane gap that would reliably hold one is "
+        f"below what we can make. It carries no diffusion soak either, for the same reason: it is "
+        f"not trying to equilibrate the capsule interiors, and the sweep straight after it is.",
+        0, reagent="wash_buffer", volume_ul=round(SETTLE_CV * v_trap, 3), washes=1,
+        flow_ul_min=f_trap, exchange_kind="partial",
         port_state=ports(["in_reagent"], ["out_waste"]))
-    for label in ("after the emulsion break", "before transcription"):
+    for label, why in (
+        ("after the emulsion break",
+         "it carries out the emulsion breaker and the last of the oil"),
+        ("before the next enzymatic step",
+         "carry-over inhibits what comes next - the guanidinium-class lysis residue upstream is "
+         "the precedent: it inhibits reverse transcription at millimolar levels, so 'mostly gone' "
+         "is not a specification"),
+    ):
         add("exchange", TRAP,
-            f"Flow-through wash {label}, replacing a centrifugation. Exchange is limited "
-            f"by diffusion into the capsule rather than by flushing, so each one takes a "
-            f"few minutes however fast the pump runs.",
-            0, reagent="wash_buffer", volume_ul=v_trap, washes=WASH_WASHES, flow_ul_min=f_trap,
+            f"SHARED BARCODING STAGE. SWEEP, {trap_washes} fills of {v_trap:g} uL = "
+            f"{trap_washes:.2f} chamber volumes, which is what "
+            f"exchange.target_fraction ({EXCHANGE_TARGET:.0%}) needs at "
+            f"{SWEEP_CV:.2f} chamber volumes. Flow-through wash {label}, replacing a "
+            f"centrifugation. It must reach target because {why}. "
+            f"AND IT NEEDS THE SOAK AS WELL AS THE VOLUME: exchange here is limited by diffusion "
+            f"INTO the capsule (2-5 min per fill), not by flushing, so the duration is "
+            f"{trap_washes} x {SOAK_PER_FILL_S / MIN:.0f} min of soak rather than the "
+            f"{trap_washes * v_trap / f_trap:.1f} min the pump alone would take. Running it any "
+            f"faster clears the chamber and leaves the capsule interiors untouched.",
+            0, reagent="wash_buffer", volume_ul=v_trap, washes=trap_washes,
+            flow_ul_min=f_trap, exchange_kind="sweep", soak=True,
             port_state=ports(["in_reagent"], ["out_waste"]))
     add("hold_temp", TRAP,
-        "Gap-fill. The highest temperature any capsule sees in the whole workflow, and it "
+        "VARIANT WORKFLOW, chromatin/transposase flavour: NOT part of the shared barcoding stage "
+        "and NOT run by the pipeline in protocols/pipeline_mvp.json, where module 3's reverse "
+        "transcription has already made the template. Gap-fill. The highest temperature any "
+        "capsule sees in the whole workflow, and it "
         "is well inside what the shell and the board tolerate.",
         GAP_FILL_S, temp_c=GAP_FILL_C, port_state=ports())
     add("exchange", TRAP,
-        "Load the transcription mix. The polymerase is small enough to cross the shell; "
-        "the barcoded template is far too large to leave it.",
+        f"VARIANT WORKFLOW, chromatin/transposase flavour: skipped in the RNA pipeline. "
+        f"FILL: one chamber volume of reaction mix into the packed bed. A fill, not a sweep - "
+        f"the preceding sweep already cleared the chamber, and this step is putting the reagent "
+        f"IN, so it is bounded above by the chamber and has no clearance target. It still needs "
+        f"the diffusion soak, because the polymerase has to cross the shell: "
+        f"{SOAK_PER_FILL_S / MIN:.0f} min, against the "
+        f"{v_trap / f_trap:.1f} min the pump alone would take. The polymerase is small enough to "
+        f"cross the shell; the barcoded template is far too large to leave it.",
         0, reagent="transcription_mix", volume_ul=v_trap, washes=1, flow_ul_min=f_trap,
+        exchange_kind="fill", soak=True,
         port_state=ports(["in_reagent"], ["out_waste"]))
     add("hold_temp", TRAP,
+        "VARIANT WORKFLOW, chromatin/transposase flavour: skipped in the RNA pipeline, where "
+        "module 4's index PCR does the amplifying. "
         "Linear amplification in place, overnight. Linear rather than exponential because "
         "a single transposon insertion is enough, errors do not propagate and coverage "
         "stays even. Held in an incubator with the ports sealed, not on a chip heater.",
         TRANSCRIPTION_S, temp_c=TRANSCRIPTION_C, port_state=ports())
     add("exchange", TRAP,
-        "Final wash before recovery.",
-        0, reagent="wash_buffer", volume_ul=v_trap, washes=WASH_WASHES, flow_ul_min=f_trap,
+        f"SHARED BARCODING STAGE. SWEEP, {trap_washes} fills of {v_trap:g} uL = "
+        f"{trap_washes:.2f} chamber volumes against the {SWEEP_CV:.2f} that reaches "
+        f"exchange.target_fraction ({EXCHANGE_TARGET:.0%}). Final wash before recovery, and a "
+        f"sweep for the same reason as the others: whatever is left here is carried into the "
+        f"downstream library chemistry. Soak-limited too, so "
+        f"{trap_washes} x {SOAK_PER_FILL_S / MIN:.0f} min.",
+        0, reagent="wash_buffer", volume_ul=v_trap, washes=trap_washes, flow_ul_min=f_trap,
+        exchange_kind="sweep", soak=True,
         port_state=ports(["in_reagent"], ["out_waste"]))
     add("release", TRAP,
-        "Back-flush the bed out through out_waste, which the off-chip selector valve routes to "
+        "SHARED BARCODING STAGE. Back-flush the bed out through out_waste, which the off-chip selector valve routes to "
         "the recovery tube for this step. Reverse the flow on a slow ramp: the bed lifts at "
-        "well under a pascal, so a sharp start throws capsules at the walls. Downstream "
-        "library steps are bulk and off-chip.",
+        "well under a pascal, so a sharp start throws capsules at the walls. In the pipeline the "
+        "recovered, now barcoded capsules go on to module 4 for the sublibrary split and index "
+        "PCR; the remaining library steps are bulk and off-chip.",
         round(v_trap / f_trap * 60.0), reagent="release_buffer",
         port_state=ports(["in_reagent"], ["out_waste"]))
 
     total_h = sum(st["duration_s"] for st in steps) / HOUR
+    kinds = [st.get("exchange_kind") for st in steps if st["operation"] == "exchange"]
+    n_sweep, n_partial, n_fill = (kinds.count(k) for k in ("sweep", "partial", "fill"))
     return {
         "id": "sctip_spc_v1",
-        "name": "Capsule generation and single-copy barcoding",
+        "name": "Single-cell barcoding: one clonal barcode per capsule, made in its own oil droplet",
         "source": SOURCE,
         "placeholder": False,
         "description": (
-            f"Gives each of about {BATCH:,} capsules of {CAPSULE_UM:g} um (the packed bed the "
-            f"trap holds) a single-copy barcode from a large pool, clonally amplifies and "
-            f"attaches that barcode inside an oil droplet, then breaks the emulsion and "
-            f"traps and washes the capsules on chip in place of about twenty centrifugation "
-            f"steps. Capsules arrive from spc_demo_v1; stage A is retired. Replaces "
-            f"plate-based split-and-pool barcoding with one step. Runs about {total_h:.0f} h, "
+            f"THE PIPELINE'S SINGLE-CELL BARCODING STAGE, sitting between module 3 and module 4 "
+            f"in protocols/pipeline_mvp.json. IN: washed capsules from module 3, each holding one "
+            f"cell's cDNA with no barcode on it. OUT: the same capsules, with every molecule "
+            f"carrying one clonal, per-capsule barcode. Gives each of about {BATCH:,} capsules of "
+            f"{CAPSULE_UM:g} um (the packed bed the trap holds) a single-copy barcode from a pool "
+            f"of 16 random bases (4.3e9, so under 0.002% of capsules collide), clonally amplifies "
+            f"and attaches that barcode INSIDE the capsule's own surrounding oil droplet - the "
+            f"emulsion is the containment, there is no anchor molecule and no cleavage step - then "
+            f"breaks the emulsion and traps and washes the capsules on chip in place of about "
+            f"twenty centrifugation steps. One capsule holds one cell, so this is what makes the "
+            f"data single-cell; the per-lane label from module 1 and module 4's four sublibrary "
+            f"indices (about twelve groups) are for demultiplexing, not resolution. Barcode "
+            f"loading is Poisson at a mean of {LAMBDA_BARCODE:g}: about "
+            f"{poisson(LAMBDA_BARCODE, 0) * 100:.0f}% of droplets get no barcode and those cells "
+            f"are lost, and most get several and must be merged computationally. Steps 1-16 and "
+            f"20-21 are the shared barcoding stage that every workflow runs; steps 17-19 (gap-fill, "
+            f"transcription mix, overnight linear amplification) are the chromatin/transposase "
+            f"VARIANT tail and are skipped in the RNA pipeline - they are kept here labelled, not "
+            f"merged in. Capsules arrive from spc_demo_v1 via module 3; stage A is retired. "
+            f"FABRICATION: the droplet handling is NOT printable - stage B needs a 115 um "
+            f"close-packed entrance and stage C 100 x 150 um slots against a 200 um in-plane "
+            f"floor - so re-injection and droplet making run on a bought droplet kit, exactly as "
+            f"encapsulation does; the chemistry is ours, the droplet hardware is bought. Capsule "
+            f"retention IS ours: a fabricated depth weir with a 25 um gap under the lid, since the "
+            f"floor is in-plane and z is free. Runs about {total_h:.0f} h, "
             f"mostly the overnight transcription hold. Every volume is a number of chamber "
             f"volumes and every flow keeps wall shear in its chambers at or below 0.01 "
-            f"dyn/cm2 (nozzle streams excepted: a droplet junction is high shear by design). "
-            f"Reagent names are generic; see the source citation."
+            f"dyn/cm2 at fluid.viscosity_37c_pa_s (nozzle streams excepted: a droplet junction is "
+            f"high shear by design). EVERY EXCHANGE DECLARES WHAT IT IS FOR in exchange_kind, and "
+            f"the builder refuses to write one that does not, because absence means sweep: "
+            f"{n_sweep} SWEEPs sized from exchange.target_fraction ({EXCHANGE_TARGET:.0%}, so "
+            f"{SWEEP_CV:.2f} chamber volumes, {trap_washes} fills of one) - the five "
+            f"emulsion-break passes, because carried-over oil must not reach the capsule bed, and "
+            f"the three flow-through washes, because a wash that clears a reagent before an "
+            f"enzymatic step has to reach target (the guanidinium-class lysis residue upstream is "
+            f"the precedent: it inhibits reverse transcription at millimolar levels); "
+            f"{n_partial} PARTIAL, the settle, which seats the bed rather than clearing it and "
+            f"says so; and {n_fill} FILL, the transcription mix, which puts reagent into a packed "
+            f"bed and is bounded above by the chamber. SWEEPS CARRY THE SOAK AS WELL AS THE "
+            f"VOLUME: exchange here is diffusion-limited INTO the capsule at 2-5 min per fill, so "
+            f"each trap exchange is held to {SOAK_PER_FILL_S / MIN:.0f} min per fill, which is "
+            f"longer than the pump time and is what the timing now covers. Reagent names are "
+            f"generic; see the source citation."
         ),
         "steps": steps,
     }

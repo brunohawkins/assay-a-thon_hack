@@ -37,14 +37,14 @@
   <text x="240" y="207.68" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9" fill="#6e7781" text-anchor="middle" font-weight="bold">pack_1</text>
   <text x="240" y="217.85" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" fill="#8b949e" text-anchor="middle">flow_focusing_funnel</text>
   <text x="240" y="227.6" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="7.5" fill="#5a636d" text-anchor="middle">0.2 × 0.2 mm · 0.006 µL</text>
-  <polygon points="461.67,280.83 596.02,303.22 593.92,315.79 459.58,293.4" fill="#ffffff" stroke="none" opacity="0.92"/>
-  <text x="527.8" y="300.86" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" fill="#5a636d" text-anchor="middle" transform="rotate(9.46 527.8 298.31)">ch_mix_pack · channel_corner</text>
+  <polygon points="457.09,280.06 600.61,303.98 598.51,316.56 454.99,292.64" fill="#ffffff" stroke="none" opacity="0.92"/>
+  <text x="527.8" y="300.86" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" fill="#5a636d" text-anchor="middle" transform="rotate(9.46 527.8 298.31)">ch_mix_pack · straight_channel</text>
   <polygon points="365.57,219.45 506.43,219.45 506.43,232.2 365.57,232.2" fill="#ffffff" stroke="none" opacity="0.92"/>
   <text x="436" y="228.38" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" fill="#5a636d" text-anchor="middle">ch_pack_n2 · straight_channel</text>
-  <polygon points="572.39,380.78 709.04,346.62 712.13,358.99 575.49,393.15" fill="#ffffff" stroke="none" opacity="0.92"/>
-  <text x="642.26" y="372.43" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" fill="#5a636d" text-anchor="middle" transform="rotate(-14.04 642.26 369.88)">ch_wash_trap · channel_corner</text>
-  <polygon points="146.96,446.88 207.51,319.71 219.03,325.19 158.47,452.36" fill="#ffffff" stroke="none" opacity="0.92"/>
-  <text x="182.99" y="388.58" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" fill="#5a636d" text-anchor="middle" transform="rotate(-64.54 182.99 386.03)">ch_caps_pack · channel_corner</text>
+  <polygon points="567.88,381.91 713.55,345.49 716.64,357.86 570.98,394.28" fill="#ffffff" stroke="none" opacity="0.92"/>
+  <text x="642.26" y="372.43" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" fill="#5a636d" text-anchor="middle" transform="rotate(-14.04 642.26 369.88)">ch_wash_trap · straight_channel</text>
+  <polygon points="144.96,451.08 209.51,315.51 221.03,320.99 156.47,456.56" fill="#ffffff" stroke="none" opacity="0.92"/>
+  <text x="182.99" y="388.58" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" fill="#5a636d" text-anchor="middle" transform="rotate(-64.54 182.99 386.03)">ch_caps_pack · straight_channel</text>
   <polygon points="571.83,88.06 641.91,204.85 630.97,211.41 560.9,94.62" fill="#ffffff" stroke="none" opacity="0.92"/>
   <text x="601.4" y="152.28" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="7.5" fill="#5a636d" text-anchor="middle" transform="rotate(59.04 601.4 149.73)">ch_n2_out · straight_channel</text>
   <circle cx="828" cy="336" r="11.2" fill="#ffffff" stroke="#2f7d32" stroke-width="2"/>
@@ -108,9 +108,9 @@
   <text x="44" y="720" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#8b949e" text-anchor="start" font-weight="bold">channels</text>
   <text x="96" y="720" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">1  ch_oil2_n2 · straight_channel</text>
   <text x="276.72" y="720" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">2  ch_brk_trap · straight_channel</text>
-  <text x="462.4" y="720" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">3  ch_brk_oil · channel_corner</text>
-  <text x="633.2" y="720" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">4  ch_emul_brk · channel_corner</text>
-  <text x="96" y="734" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">5  ch_trap_waste · channel_corner</text>
+  <text x="462.4" y="720" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">3  ch_brk_oil · straight_channel</text>
+  <text x="643.12" y="720" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">4  ch_emul_brk · straight_channel</text>
+  <text x="96" y="734" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8" fill="#5a636d" text-anchor="start">5  ch_trap_waste · straight_channel</text>
   <text x="44" y="756" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Every chamber and channel is 0.15 mm deep: one embossing depth, a resin-printed tool hot-embossed into the layer, with the tubing ports drilled through the lid.</text>
   <text x="44" y="769" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Small grey names are the contracts/blocks.json CAD block each chamber and channel is built from; red means it is not in the library.</text>
   <text x="44" y="782" font-family="DejaVu Sans, Helvetica, Arial, sans-serif" font-size="8.5" fill="#5a636d" text-anchor="start">Tightest clearance between unconnected features: 0.83 mm, between channels 'ch_brk_oil' and 'ch_brk_trap'. Planar check: no overlaps.</text>

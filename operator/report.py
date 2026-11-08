@@ -6,6 +6,12 @@
 The report lists steps, timings, alerts, recoveries, model updates, final capsule
 recovery, reagent used, final exchange % and belief-vs-truth drift. Values marked TRUE
 come from the virtual chip (SIMULATED HARDWARE); real hardware could never report them.
+
+Every column says where its numbers come from. The believed column is headed by what
+actually fed it - in an open-loop run that is the model alone, with no sensor anywhere -
+and capsule recovery is marked ASSUMED, because its denominator is the capsule count the
+chip spec declares (never counted) and its numerator is usually the model's own prediction
+of how many came out.
 """
 
 from __future__ import annotations
@@ -17,6 +23,8 @@ def build_run(ctl, header: dict, scenario: dict, scenario_path: str | None) -> d
     caps = ctl.adapter.capabilities()
     run = dict(header)
     run.update({
+        # Required by contracts/schemas/run.schema.json and taken from the adapter, which is
+        # the only thing that knows whether hardware was involved.
         "simulated_hardware": bool(caps.get("simulated")),
         "adapter": ctl.adapter.name,
         "loop": ctl.loop,
@@ -43,18 +51,31 @@ def render_report(run: dict) -> str:
     s = run.get("summary", {})
     scn = run.get("scenario", {})
     sim = run.get("simulated_hardware")
-    sensors = [k for k, on in (scn.get("sensors") or {}).items() if on]
+    # What the run ACTUALLY read, not what the scenario asked for: a dry run has no
+    # instruments at all, however many sensors its scenario switches on.
+    asked = [k for k, on in (scn.get("sensors") or {}).items() if on]
+    sensors = s.get("trusted_sensors", asked)
+    unavailable = [k for k in asked if k not in sensors]
     faults = scn.get("faults") or []
     L = []
+    dry_run = run.get("adapter") == "dryrun"
     L.append(f"# Run report: {run.get('protocol_name', run['protocol_id'])} on {run['chip_id']}")
     L.append("")
-    if sim:
-        L.append("> **SIMULATED HARDWARE.** This run used the virtual chip: no physical pump, valves or sensors. "
+    if sim and dry_run:
+        L.append("> **SIMULATED HARDWARE - DRY RUN.** Nothing moved and nothing was measured: no pump, no routing, "
+                 "no heater, no sensors. Every number below is the model's own prediction of what would happen. "
+                 "The model cannot check itself, so a dry run has no measurements and no 'true' column, and the "
+                 "closed loop has nothing to correct it with.")
+        L.append("")
+    elif sim:
+        L.append("> **SIMULATED HARDWARE.** This run used the virtual chip: no physical pump, routing or sensors. "
                  "Values marked TRUE come from the simulation and could never be measured directly on real hardware.")
         L.append("")
     L.append(f"- Scenario: `{scn.get('name', '–')}`: {scn.get('description', '')}")
     L.append(f"- Operator: **{run['operator']}** · Adapter: `{run.get('adapter')}` · Loop: **{run.get('loop')}**")
-    L.append(f"- Sensors: {', '.join(sensors) if sensors else 'none (open loop)'}")
+    L.append(f"- Sensors: {', '.join(sensors) if sensors else 'none (open loop)'}"
+             + (f" · asked for but not available on `{run.get('adapter')}`: {', '.join(unavailable)}"
+                if unavailable else ""))
     L.append(f"- Faults injected: {', '.join(f['type'] + ' ' + str({k: v for k, v in f.items() if k != 'type'}) for f in faults) if faults else 'none'}")
     L.append(f"- Status: **{run.get('status')}**{(' (' + s.get('status_reason') + ')') if s.get('status_reason') else ''}"
              f" · Protocol time: {_fmt(run.get('total_duration_s'), ' s')}")
@@ -62,13 +83,19 @@ def render_report(run: dict) -> str:
     L.append("")
 
     b, t = s.get("believed") or {}, s.get("true") or {}
+    # Head the believed column with what actually fed it. "Believed (model + sensors)" was
+    # printed even in open-loop runs with every sensor off, where no sensor fed anything.
+    believed_head = ("Believed (model only: NO sensors)" if not sensors else
+                     f"Believed (model + {', '.join(sensors)})")
     L.append("## Outcome")
     L.append("")
-    L.append("| | Believed (model + sensors) | TRUE (simulation) |")
+    L.append(f"| | {believed_head} | TRUE (simulation) |")
     L.append("|---|---|---|")
+    L.append(f"| Where these come from | {s.get('believed_basis', '–')} | the virtual chip's own state |")
     fx = s.get("final_exchange_pct") or {}
     L.append(f"| Final exchange % (step {fx.get('step', '–')}) | {_fmt(fx.get('believed'), '%')} | {_fmt(fx.get('true'), '%')} |")
-    L.append(f"| Capsule recovery | {_fmt(b.get('capsule_recovery_pct'), '%')} | {_fmt(t.get('capsule_recovery_pct'), '%')} |")
+    L.append(f"| Capsule recovery (believed value is ASSUMED) | {_fmt(b.get('capsule_recovery_pct'), '%')} | "
+             f"{_fmt(t.get('capsule_recovery_pct'), '%')} |")
     L.append(f"| Capsules collected | {_fmt(b.get('capsules_collected'))} | {_fmt(t.get('capsules_collected'))} |")
     L.append(f"| Capsules lost to waste | {_fmt(b.get('capsules_lost'))} | {_fmt(t.get('capsules_lost'))} |")
     L.append(f"| Capsules left on the mesh | {_fmt(b.get('capsules_on_mesh'))} | {_fmt(t.get('capsules_on_mesh'))} |")
@@ -77,6 +104,15 @@ def render_report(run: dict) -> str:
                  f"{_fmt((t.get('reagent_used_ul') or {}).get(reagent), ' uL')} |")
     L.append(f"| Waste | {_fmt(b.get('waste_ul'), ' uL')} | {_fmt(t.get('waste_ul'), ' uL')} |")
     L.append("")
+    L.append(f"Capsule recovery: {s.get('capsule_recovery_basis', 'basis not recorded')}.")
+    L.append("")
+    cons = s.get("conservation") or {}
+    if cons:
+        L.append(f"Capsule conservation ({cons.get('invariant')}): "
+                 + (f"**{cons['checks_failed']} correction(s)** were needed to keep the believed count possible; "
+                    if cons.get("checks_failed") else "every believed count added up; ")
+                 + f"{_fmt(cons.get('believed_unaccounted'))} capsules unaccounted for at the end.")
+        L.append("")
     L.append(f"Alerts: **{s.get('alerts', 0)}** ({', '.join(s.get('alert_names', [])) or 'none'}) · "
              f"Recoveries: **{s.get('recoveries', 0)}** · Model updates: **{s.get('model_updates', 0)}**")
     L.append("")

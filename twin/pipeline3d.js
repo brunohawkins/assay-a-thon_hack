@@ -5,11 +5,18 @@
 // up. Statuses come from protocols/pipeline_status.md (twin/status.js); a stage with no chip is a
 // ghost outline labelled "next"; off-chip steps are labelled on the tube where they happen.
 // Click a chip to open its own view. Same playback interface as the old card view.
+//
+// Every word in here comes from protocols/pipeline_mvp.json, the chip spec or
+// protocols/pipeline_status.md: there is no prose table in this file (MJ). A hand-written
+// summary once told every viewer the pipeline had no single-cell step; it has one, between
+// Module 3 and Module 4, and it appears here because the pipeline file lists it. A stage whose
+// features are below the in-plane floor is OUR CHEMISTRY ON BOUGHT HARDWARE, not a chip of ours,
+// and the caveat in a module's note travels with its headline.
 import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { Chip } from './chip.js';
 import { applyBlocks } from './blocks.js';
-import { statusView } from './status.js';
+import { statusView, shortStage, notPrintable, calm } from './status.js';
 
 const SLOT_W = 30;
 const SLOT_H = 20;
@@ -23,9 +30,15 @@ const CAPSULE_CORE = 0xf08a7e;   // a capsule: the cell-pink core inside its tea
 const TUBE_COLOR = 0x8c959f;
 
 // Short stage names for the labels in the scene; the sidebar lists the full ones.
-// Keyed by chip id, or by the pipeline's module id for a stage with no chip.
-export const SHORT = { module1_v1: 'Culture', cell_prep_v1: 'Cell prep', spc_demo_v1: 'Encapsulation', module3_v1_translated: 'Lysis, wash, RT',
-  module4_v1: 'Index PCR', module5_v1: 'Release, cleanup', sctip_spc_v1: 'Barcoding in oil', bench: 'Permeabilise, tagment' };
+// The honest half of a note, not just its headline: pipeline_mvp.json's notes carry what is wrong
+// or bought as well as what works, and one sentence of each is all the scene shows (MJ).
+const CAVEAT = /\b(not printable|bought|below the|under the|mismatch|unverified|no barcode|lost|nobody has published|open problem)\b/i;
+export function caveat(e) {
+  const text = `${e?.note ?? ''} ${e?.build?.method ?? ''}`;
+  const head = firstSentence(e?.note ?? '');
+  const hit = (text.match(/[^.!?]+[.!?]/g) ?? []).map((s) => s.trim()).find((s) => s !== head && CAVEAT.test(s));
+  return hit ?? '';
+}
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const ease = (x) => { x = clamp01(x); return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2; };
@@ -268,9 +281,10 @@ export function createPipeline3D(root, ctx, handlers = {}) {
         const st = s.chip ? status?.byChip.get(s.chip.spec.id) : null;
         const badge = s.kind === 'ghost' ? (e.status === 'bench' ? 'BENCH' : 'NEXT') : st?.badge ?? (e.status ?? '').toUpperCase();
         const v = statusView(badge, s.kind === 'ghost' ? '' : st?.detail ?? '');
-        const name = SHORT[s.chip?.spec.id] ?? SHORT[e.module] ?? String(e.name ?? '').split(/[:(]/)[0].trim();
+        const name = shortStage(st?.stage ?? e.name);
         const dot = `<i class="sdot ${v.cls}" title="${esc(v.text)}"></i>`;
-        html = `<span class="p3-head">${dot}<span class="p3-num">${k + 1}</span><b>${esc(name)}</b></span>${s.kind === 'ghost' ? `<span class="p3-id">${esc(v.word.toLowerCase())}</span>` : ''}`;
+        const sub = s.kind === 'ghost' ? v.word.toLowerCase() : notPrintable(e) ? 'bought hardware · our chemistry' : '';
+        html = `<span class="p3-head">${dot}<span class="p3-num">${k + 1}</span><b>${esc(name)}</b></span>${sub ? `<span class="p3-id">${esc(sub)}</span>` : ''}`;
       }
       const obj = label(html, s.kind);
       const front = s.y === 0 && slots.some((o) => o.y > 0);
@@ -298,7 +312,8 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       const e = s.entry;
       const st = s.chip ? data.status?.byChip.get(s.chip.spec.id) : null;
       const what = s.kind === 'ghost' ? `${e.name}: ${e.status === 'bench' ? 'a bench step' : 'not on a chip yet'}. ${firstSentence(e.note ?? e.status_note ?? '')}`
-        : `${st?.stage ?? e.name} (${s.chip.spec.id}), ${statusView(st?.badge ?? e.status, st?.detail ?? '').text.toLowerCase()}. ${firstSentence(e.note ?? s.chip.spec.description ?? '')}`;
+        : `${st?.stage ?? e.name} (${s.chip.spec.id}), ${statusView(st?.badge ?? e.status, st?.detail ?? '').text.toLowerCase()}`
+          + `${notPrintable(e) ? ', bought hardware · our chemistry' : ''}. ${calm(firstSentence(e.note ?? s.chip.spec.description ?? ''))}${caveat(e) ? ` ${calm(caveat(e))}` : ''}`;
       phases.push({ id: `pl_${e.module}`, kind: 'module', k, play: s.kind === 'ghost' ? 2.5 : 4.5, proto: e.duration_s ?? 600,
         narration: what, args: s.chip ? { chip: s.chip.spec.id, status: st?.status ?? e.status } : { status: 'next' } });
       const tb = tubes[k];

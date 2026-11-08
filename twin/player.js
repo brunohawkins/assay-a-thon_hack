@@ -7,7 +7,7 @@
 //
 // Capsules are instanced meshes, so a real-scale chip can show all 10,000 of them.
 import * as THREE from 'three';
-import { ORDER, VALVE_COLORS, CHANNEL } from './chip.js';
+import { ORDER, CHANNEL } from './chip.js';
 
 export const LIBRARY_COLOR = '#bf3989';
 const CARRIER = 'carrier';
@@ -175,6 +175,9 @@ function applyEvent(prev, ev, chip) {
       break;
     }
     case 'valve':
+      // Off-chip valves only (rotary selector, pinch valves): nothing to draw on the chip,
+      // which is one fluidic layer with no on-chip valves. The state is still recorded and
+      // shown in the narration panel.
       for (const v of a.valves) s.valves[v] = a.state;
       break;
     case 'culture':
@@ -322,7 +325,7 @@ export class Player {
     for (let i = 0; i < 3; i++) {
       const blob = new THREE.Mesh(
         blobGeometry,
-        new THREE.MeshBasicMaterial({ color: LIBRARY_COLOR, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+        new THREE.MeshBasicMaterial({ color: LIBRARY_COLOR, transparent: true, depthWrite: false }),
       );
       blob.visible = false;
       blob.renderOrder = ORDER.glow;
@@ -574,13 +577,7 @@ export class Player {
     }
     for (const b of this.blobs) b.visible = false;
 
-    // Module parts: valves, differentiation colour, labels, the counter reading, the cold coil.
-    for (const v of this.chip.valves.values()) {
-      const st = state.valves[v.id] ?? v.normal;
-      v.material.color.setHex(VALVE_COLORS[st]);
-      v.material.emissive.setHex(VALVE_COLORS[st]);
-      v.disc.scale.setScalar(1);
-    }
+    // Module parts: differentiation colour, labels, the counter reading, the cold coil.
     const maxCulture = this.maxCulture || 1;
     for (const [cid, secs] of Object.entries(state.culture)) {
       const part = this.chip.chamber(cid);
@@ -813,25 +810,6 @@ export class Player {
         }
         break;
       }
-      case 'valve': {
-        // Valves switch halfway; the control line flashes.
-        for (const id of a.valves) {
-          const v = chip.valves.get(id);
-          if (!v) continue;
-          const from = before.valves[id] ?? v.normal;
-          const st = p < 0.5 ? from : a.state;
-          v.material.color.setHex(VALVE_COLORS[st]);
-          v.material.emissive.setHex(VALVE_COLORS[st]);
-          v.material.emissiveIntensity = 0.6 + 1.2 * envelope(p, 0.3);
-          v.disc.scale.setScalar(1 + 0.6 * Math.sin(Math.PI * p));
-          if (v.line) v.line.material.opacity = 0.45 + 0.5 * envelope(p, 0.3);
-          if (v.kind === 'pair') {
-            const ch = chip.channel(v.spec.channel);
-            if (ch && a.state === 'open') this.#pulseChannels([ch], new THREE.Color(0xfde047), ease(span(p, 0.5, 1)));
-          }
-        }
-        break;
-      }
       case 'culture': {
         // Days pass: each chamber shifts towards its cell type's colour, and every medium
         // change (one per exchange_interval_s) pulses fresh medium through each lane.
@@ -856,12 +834,6 @@ export class Player {
             if (fIn) this.#pulseChannels(chip.channelsBetween(fIn, t).slice(0, 1), reagentColor(a.factors[n]), pulse);
           }
         });
-        // Pair valves open: signals cross the microgrooves.
-        for (const v of chip.valves.values()) {
-          if (v.kind !== 'pair' || (before.valves[v.id] ?? v.normal) !== 'open') continue;
-          const ch = chip.channel(v.spec.channel);
-          if (ch) this.#pulseChannels([ch], new THREE.Color(0xfde047), 0.5 + 0.5 * Math.sin(p * Math.PI * 2 * changes));
-        }
         for (const f of chip.features.values()) {
           if (f.type !== 'heat_zone') continue;
           f.material.opacity = f.baseOpacity + 0.12 * (0.6 + 0.4 * Math.sin(p * Math.PI * 6));

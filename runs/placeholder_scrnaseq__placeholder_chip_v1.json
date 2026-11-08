@@ -4,7 +4,7 @@
   "chip_id": "placeholder_chip_v1",
   "chip_spec": "chip/placeholder_chip_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T19:00:23Z",
+  "created_at": "2026-11-08T09:51:03Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": null,
@@ -37,6 +37,11 @@
     ],
     "swollen_diameter_um": 140.0
   },
+  "simulated_hardware": true,
+  "adapter": "sim",
+  "scenario": {
+    "description": "No scenario file: the sim adapter records the commands the planner sent and nothing else. No virtual chip, no sensors and no injected faults, so there is no reality to configure - and nothing was measured, which is why simulated_hardware is true."
+  },
   "total_duration_s": 2040.0,
   "events": [
     {
@@ -45,9 +50,9 @@
       "command": "load",
       "args": {
         "target": "exchange_1",
-        "volume_ul": 100
+        "volume_ul": 3.6
       },
-      "narration": "Load the capsule suspension into the exchange chamber; the mesh floor holds the capsules in place.",
+      "narration": "Load the capsule suspension into the exchange chamber; the weir holds the capsules back. One chamber volume: a load FILLS the chamber, so the chamber's own volume (3.638 uL) is the only sensible number. This step used to say 100 uL, 27x what the chamber holds.",
       "protocol_step": 1
     },
     {
@@ -57,11 +62,11 @@
       "args": {
         "target": "exchange_1",
         "reagent": "wash_buffer",
-        "volume_ul": 100,
+        "volume_ul": 5.6,
         "washes": 3,
-        "flow_ul_min": 100
+        "flow_ul_min": 50
       },
-      "narration": "Wash the capsules three times with wash buffer to clear the loading liquid.",
+      "narration": "Wash the capsules three times with wash buffer to clear the loading liquid. SWEEP: 1.54 chamber volumes per wash, 4.62 in total, which is what the 99% exchange goal needs.",
       "protocol_step": 2
     },
     {
@@ -71,11 +76,11 @@
       "args": {
         "target": "exchange_1",
         "reagent": "lysis_buffer",
-        "volume_ul": 100,
+        "volume_ul": 16.8,
         "washes": 1,
-        "flow_ul_min": 100
+        "flow_ul_min": 50
       },
-      "narration": "Swap in lysis buffer to open the cells, keeping the capsules on the mesh.",
+      "narration": "Swap in lysis buffer to open the cells, keeping the capsules on the weir. SWEEP, not a fill: the chamber is full of wash buffer, so one chamber volume would leave over a third of it behind and dilute the lysis chemistry by the same share. 4.62 chamber volumes in one pass.",
       "protocol_step": 3
     },
     {
@@ -85,11 +90,11 @@
       "args": {
         "target": "exchange_1",
         "reagent": "wash_buffer",
-        "volume_ul": 100,
+        "volume_ul": 5.6,
         "washes": 3,
-        "flow_ul_min": 100
+        "flow_ul_min": 50
       },
-      "narration": "Wash out the lysis buffer three times.",
+      "narration": "Wash the lysis buffer out three times. SWEEP: 4.62 chamber volumes in total, because carryover into the RT step is exactly what this step exists to prevent.",
       "protocol_step": 4
     },
     {
@@ -99,11 +104,11 @@
       "args": {
         "target": "exchange_1",
         "reagent": "rt_mix",
-        "volume_ul": 100,
+        "volume_ul": 16.8,
         "washes": 1,
-        "flow_ul_min": 100
+        "flow_ul_min": 50
       },
-      "narration": "Fill the chamber with RT mix.",
+      "narration": "Exchange into the RT mix. SWEEP: an enzyme mix has to arrive undiluted, so this clears the wash buffer rather than topping it up.",
       "protocol_step": 5
     },
     {
@@ -141,11 +146,11 @@
       "args": {
         "target": "split_1",
         "reagent": "reagent_a",
-        "volume_ul": 50,
+        "volume_ul": 5.9,
         "washes": 1,
         "flow_ul_min": 50
       },
-      "narration": "Give split chamber 1 its own reagent, A.",
+      "narration": "Give split chamber 1 its own reagent, A. SWEEP of the SPLIT chamber: 4.63 of its 1.273 uL volumes, not of the exchange chamber's. Each split chamber arrives full of RT mix, and the point of a split is that the four get DIFFERENT reagents, so carryover is what would blur them together.",
       "protocol_step": 8
     },
     {
@@ -155,11 +160,11 @@
       "args": {
         "target": "split_2",
         "reagent": "reagent_b",
-        "volume_ul": 50,
+        "volume_ul": 5.9,
         "washes": 1,
         "flow_ul_min": 50
       },
-      "narration": "Give split chamber 2 reagent B.",
+      "narration": "Give split chamber 2 reagent B. SWEEP: 4.63 split-chamber volumes.",
       "protocol_step": 9
     },
     {
@@ -169,11 +174,11 @@
       "args": {
         "target": "split_3",
         "reagent": "reagent_c",
-        "volume_ul": 50,
+        "volume_ul": 5.9,
         "washes": 1,
         "flow_ul_min": 50
       },
-      "narration": "Give split chamber 3 reagent C.",
+      "narration": "Give split chamber 3 reagent C. SWEEP: 4.63 split-chamber volumes.",
       "protocol_step": 10
     },
     {
@@ -183,11 +188,11 @@
       "args": {
         "target": "split_4",
         "reagent": "reagent_d",
-        "volume_ul": 50,
+        "volume_ul": 5.9,
         "washes": 1,
         "flow_ul_min": 50
       },
-      "narration": "Give split chamber 4 reagent D.",
+      "narration": "Give split chamber 4 reagent D. SWEEP: 4.63 split-chamber volumes.",
       "protocol_step": 11
     },
     {
@@ -213,11 +218,11 @@
       "args": {
         "target": "pool_1",
         "reagent": "wash_buffer",
-        "volume_ul": 100,
+        "volume_ul": 4.5,
         "washes": 3,
-        "flow_ul_min": 100
+        "flow_ul_min": 50
       },
-      "narration": "Wash the pooled capsules three times.",
+      "narration": "Wash the pooled capsules three times. SWEEP: 1.55 pool-chamber volumes (2.911 uL each) per wash, 4.64 in total.",
       "protocol_step": 13
     },
     {
@@ -228,7 +233,7 @@
         "target": "pool_1",
         "reagent": "release_buffer"
       },
-      "narration": "Release the library from the capsules and send it to the outlet for collection.",
+      "narration": "Release the library from the capsules and send it to the outlet for collection. 3.9 pool-chamber volumes, which is -ln(1 - 0.98) for the release.target_fraction goal rather than the exchange one.",
       "protocol_step": 14
     }
   ]

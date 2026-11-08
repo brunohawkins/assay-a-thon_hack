@@ -14,9 +14,25 @@ Standard library only.
 
 from __future__ import annotations
 
+import json
 import math
+from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
 UL_MIN_TO_M3_S = 1e-9 / 60.0
+
+
+def _parameter(name: str) -> float:
+    """One value from contracts/parameters.json, with no local fallback copy."""
+    params = json.loads((ROOT / "contracts" / "parameters.json").read_text())["parameters"]
+    return float(params[name]["value"])
+
+
+DYE_DIFFUSIVITY_M2_S = _parameter("dye.diffusivity_m2_s")
+# Default for chip calculations: the 37 C medium value. fluid.viscosity_pa_s is water at
+# 20 C and belongs to the room-temperature dye demo only.
+VISCOSITY_PA_S = _parameter("fluid.viscosity_37c_pa_s")
+VISCOSITY_WATER_20C_PA_S = _parameter("fluid.viscosity_pa_s")
 
 
 def rect_channel_resistance_pa_s_m3(length_mm: float, width_mm: float, depth_mm: float, viscosity_pa_s: float) -> float:
@@ -47,7 +63,7 @@ def pressure_kpa(resistance_kpa_per_ul_min: float, flow_ul_min: float) -> float:
     return resistance_kpa_per_ul_min * flow_ul_min
 
 
-def open_channel_diffusion_time_s(length_mm: float, diffusivity_m2_s: float = 4e-10) -> float:
+def open_channel_diffusion_time_s(length_mm: float, diffusivity_m2_s: float = DYE_DIFFUSIVITY_M2_S) -> float:
     """APPROXIMATE. Time for dye to diffuse along an open channel between two wells at
     the same level: t ~ L^2 / (2 D). Visible transfer needs a level difference or mixing."""
     return (length_mm / 1000) ** 2 / (2 * diffusivity_m2_s)
@@ -55,7 +71,7 @@ def open_channel_diffusion_time_s(length_mm: float, diffusivity_m2_s: float = 4e
 
 if __name__ == "__main__":
     # Quick look at the wash MVP numbers.
-    mu = 1e-3
+    mu = VISCOSITY_PA_S
     print(f"140 x 150 um channel, 1.25 mm: {channel_resistance(1.25, 0.14, 0.15, mu):.2e} kPa per uL/min")
     print(f"clean 25 um mesh, 49 mm2, 35% open: {mesh_clean_resistance(25, 49, 0.35, mu):.2e} kPa per uL/min")
     t = open_channel_diffusion_time_s(5.0)

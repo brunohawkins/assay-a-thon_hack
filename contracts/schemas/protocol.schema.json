@@ -145,6 +145,10 @@
           "enum": ["forward", "backflush"],
           "description": "Optional, exchange only. backflush pushes liquid up through the mesh to lift capsules off it."
         },
+        "exchange_kind": {
+          "enum": ["partial", "sweep", "fill"],
+          "description": "Optional, exchange only. What the exchange is FOR, which is what sets its volume. This distinction used to live only in English inside `note`, where no tool could read it, so one rule could not tell a half medium change from a failed wash. partial: a deliberate fractional change of the chamber's liquid, typically a routine culture medium half-change. It is NOT trying to clear the chamber - the conditioned medium left behind is the point - so the one-chamber-volume floor does NOT apply, and the note must say what fraction of the chamber is replaced. sweep: clearing the chamber's contents - a wash, a rinse, a stage-medium change or a reagent clear-out. It MUST move at least one chamber volume and is normally several, sized from exchange.target_fraction: a well-mixed chamber keeps exp(-V) of the old liquid after V chamber volumes, so reaching the target needs -ln(1 - exchange.target_fraction) chamber volumes in total, and below one chamber volume the step cannot clear the chamber however many times it is repeated. fill: the first filling of an empty or air-filled chamber, bounded ABOVE by the chamber's volume_ul (a fill cannot put in more than the chamber holds) and with no lower bound. A step with NO exchange_kind is treated as sweep, the STRICT default: absence must never be the loophole, so an unclassified exchange is held to the sweep rule and the floor applies to it."
+        },
         "ports": {
           "type": "object",
           "additionalProperties": false,
@@ -180,6 +184,10 @@
         {
           "if": { "required": ["cycles"] },
           "then": { "properties": { "operation": { "const": "hold_temp" } } }
+        },
+        {
+          "if": { "required": ["exchange_kind"] },
+          "then": { "properties": { "operation": { "const": "exchange" } } }
         },
         {
           "if": { "properties": { "operation": { "const": "load" } }, "required": ["operation"] },

@@ -2,7 +2,7 @@
  "chip": "module1_v1",
  "operator": "scripted",
  "flow_ul_min": 2.393,
- "created_at": "2026-11-07T18:19:38+00:00",
+ "created_at": "2026-11-08T09:51:05+00:00",
  "note": "scripted = a fixed decision list (offline demo), not model output",
  "decisions": [
   {

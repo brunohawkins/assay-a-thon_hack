@@ -122,21 +122,25 @@
     "n_cx": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008498,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "g_cx": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008498,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "a_cx": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008498,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "j_mid": {
      "throughput_ul_min": 7.179,
      "shear_dyn_cm2": 0.026589,
+     "width_across_flow_mm": 2.4,
      "volume_ul": 1.728
     }
    },
@@ -165,8 +169,8 @@
       "p_a_in": 1.0
      },
      "j_mid": {
-      "a_cx": 0.333333,
       "g_cx": 0.333333,
+      "a_cx": 0.333333,
       "n_cx": 0.333333
      },
      "p_in": {
@@ -179,8 +183,8 @@
       "p_a_in": 1.0
      },
      "p_mid": {
-      "a_cx": 0.333333,
       "g_cx": 0.333333,
+      "a_cx": 0.333333,
       "n_cx": 0.333333
      }
     },
@@ -308,21 +312,25 @@
     "n_cx": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008498,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "g_cx": {
      "throughput_ul_min": 1.1965,
      "shear_dyn_cm2": 0.004249,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "a_cx": {
      "throughput_ul_min": 1.1965,
      "shear_dyn_cm2": 0.004249,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "j_mid": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008863,
+     "width_across_flow_mm": 2.4,
      "volume_ul": 1.728
     }
    },
@@ -494,21 +502,25 @@
     "n_cx": {
      "throughput_ul_min": 1.19573,
      "shear_dyn_cm2": 0.004246,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "g_cx": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008498,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "a_cx": {
      "throughput_ul_min": 1.19727,
      "shear_dyn_cm2": 0.004252,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "j_mid": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008863,
+     "width_across_flow_mm": 2.4,
      "volume_ul": 1.728
     }
    },
@@ -680,21 +692,25 @@
     "n_cx": {
      "throughput_ul_min": 1.19573,
      "shear_dyn_cm2": 0.004246,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "g_cx": {
      "throughput_ul_min": 1.19727,
      "shear_dyn_cm2": 0.004252,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "a_cx": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008498,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "j_mid": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008863,
+     "width_across_flow_mm": 2.4,
      "volume_ul": 1.728
     }
    },
@@ -866,21 +882,25 @@
     "n_cx": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008498,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "g_cx": {
      "throughput_ul_min": 0.0,
      "shear_dyn_cm2": 0.0,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "a_cx": {
      "throughput_ul_min": 0.0,
      "shear_dyn_cm2": 0.0,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "j_mid": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008863,
+     "width_across_flow_mm": 2.4,
      "volume_ul": 1.728
     }
    },
@@ -1036,21 +1056,25 @@
     "n_cx": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008498,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "g_cx": {
      "throughput_ul_min": 1.1965,
      "shear_dyn_cm2": 0.004249,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "a_cx": {
      "throughput_ul_min": 1.1965,
      "shear_dyn_cm2": 0.004249,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "j_mid": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008863,
+     "width_across_flow_mm": 2.4,
      "volume_ul": 1.728
     }
    },
@@ -1222,21 +1246,25 @@
     "n_cx": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008498,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "g_cx": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008498,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "a_cx": {
      "throughput_ul_min": 2.393,
      "shear_dyn_cm2": 0.008498,
+     "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "j_mid": {
      "throughput_ul_min": 7.179,
      "shear_dyn_cm2": 0.026589,
+     "width_across_flow_mm": 2.4,
      "volume_ul": 1.728
     }
    },
@@ -1265,17 +1293,17 @@
       "p_a_out": 1.0
      },
      "j_mid": {
+      "g_cx": 0.333333,
       "a_cx": 0.333333,
-      "n_cx": 0.333333,
-      "g_cx": 0.333333
+      "n_cx": 0.333333
      },
      "p_in": {
       "p_in": 1.0
      },
      "p_mid": {
+      "g_cx": 0.333333,
       "a_cx": 0.333333,
-      "n_cx": 0.333333,
-      "g_cx": 0.333333
+      "n_cx": 0.333333
      },
      "p_g_out": {
       "p_g_out": 1.0

@@ -21,8 +21,11 @@ not used here). `tools/record_presenter.py` refuses any request outside the repo
 recording is also the offline check.
 
 **What is real.** Everything on screen is the digital twin: simulated hardware, flows from the
-chip's network model, labelled "Simulation" on every step. Module 1 is the chip being
-laser-cut for the food-dye demo; the other modules exist in the twin only.
+chip's network model, labelled "Simulation" on every step. Module 1 is the chip being made for
+the food-dye demo — a resin-printed tool, hot-embossed, not laser-cut from sheet
+(`cad/fabrication.json`); the other modules exist in the twin only. The single-cell barcoding
+stage between Modules 3 and 4 is our chemistry on **bought** droplet hardware: its features are
+below the 200 µm in-plane floor, so there is no printable chip of ours for it.
 
 ## The steps
 
@@ -53,23 +56,25 @@ beside the pipeline playing on a loop. From there: **See the pipeline**, **Bench
 python tools/demo.py --bench      # opens http://localhost:8000/twin/#view=bench
 ```
 
-For running the physical Module 1 chip with food dye (red for the neuron chamber, yellow for
-glia, blue for astrocytes) while the twin runs alongside:
+For the physical dye demo in [docs/demo.md](../demo.md): printed chips, **one** syringe pump,
+food dye in water. The twin runs MJ's procedure for each chip alongside, on one clock.
 
-1. **Mode**: separate growth, one of the three interactions, or harvest.
-2. **Bench set-up**: set the pump rate; the table says what goes on each port (which dye
-   syringe, open to waste, or plugged). Prime the chip with water first.
-3. **Start** the timer with the pumps. The twin's dye moves in real time, on the same clock.
-4. **Watch for** lists what should happen and when, each as a window from the dye first
-   showing there to plug-flow arrival (the chip's network model, the same as
-   `operator/network.py`). Press **Mark** when you first see it on the bench; it says whether
-   that landed in the window, or how far off it was.
+1. **Chip**: pick it (the pipeline's chips first, in order).
+2. **Set up** as the sidebar says: the pump on the feed port at the given rate, the vent open
+   to waste, every other port plugged. All of it comes from `docs/demo_plan.json`, the same plans
+   as `docs/demo.md`, derived by `tools/demo_plan.py` from the chip spec and contracts.
+3. **Start** the timer as the dye reaches the feed port. Module 1 runs through its flow model;
+   every other chip colours along the predicted route.
+4. **Watch for** lists every part in order of arrival with its predicted window. The bold ones
+   colour slowly enough to film; press **Mark** when you first see dye in one, and it says
+   whether that landed in the window.
 
 ![](bench_demo.jpg)
 
-Changing the mode keeps the dye in the chip and resets the timer; **Reset** clears the dye.
-Start the timer as the dye enters the chip, or enter the tubing's volume so the predictions
-include it. The twin never talks to the pumps: it is a simulation, and says so on screen.
+**Then** lists the other vents and inlets to try, and **What this run cannot show** says what a
+one-pump dye run says nothing about (retention, streams meeting, heat steps). The twin never
+talks to the pump. After changing a chip: `python tools/demo_plan.py --write` and
+`python tools/demo_plan.py --json > docs/demo_plan.json`.
 
 ## Backup video
 

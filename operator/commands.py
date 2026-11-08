@@ -6,7 +6,6 @@
     split(source, targets[])
     pool(sources[], target)
     release(target, reagent)
-    valve(valves[], state)                                   Module 1: open / close valves
     culture(targets[], reagents[], duration_s, exchange_interval_s, volume_ul, flow_ul_min, temp_c)
     collect(targets[], volume_ul)                            supernatant out, cells stay
     harvest(targets[], reagent)                              cells out through each outlet
@@ -18,7 +17,13 @@
 
 Each function returns a command dict {"command": ..., "args": {...}} after checking it
 against contracts/schemas/commands.schema.json, and against a chip spec when one is
-given. Adapters (adapters/sim.py, adapters/serial_pump.py) take these dicts.
+given. Adapters (adapters/sim.py, adapters/syringe_pump.py) take these dicts.
+
+There is no `valve` command. On-chip valves were dropped from the design - a pneumatic
+membrane valve needs a second fluidic layer and we print one, so contracts/blocks.json
+lists them as excluded and no chip declares any - and the command went with them. Routing
+is by which port is fed, vented or capped. The rig's OFF-CHIP pinch/solenoid valves are
+hardware, not a command: they live in operator/adapters/.
 """
 
 from __future__ import annotations
@@ -29,7 +34,7 @@ from typing import Any
 import schema_io
 
 COMMAND_NAMES = ("load", "exchange", "hold_temp", "split", "pool", "release",
-                 "valve", "culture", "collect", "harvest", "encapsulate", "cure", "mix", "transfer", "count")
+                 "culture", "collect", "harvest", "encapsulate", "cure", "mix", "transfer", "count")
 
 # Which args hold chamber ids, per command. Used for chip checks and by the twin.
 ID_ARGS = {
@@ -48,8 +53,11 @@ ID_ARGS = {
     "transfer": ("source",),       # its target may be a chamber or an outlet port (checked below)
     "count": ("target",),
 }
-# Args that hold valve ids.
-VALVE_ARGS = {"valve": ("valves",)}
+# Args that hold valve ids. No command has any (the `valve` command is gone), so this is
+# now empty and ids_in(..., VALVE_ARGS) finds nothing for every command. KEPT because
+# tools/validate.py checks run files against it: an old run that still contains a valve
+# event must keep being read and reported, not crash the validator.
+VALVE_ARGS: dict[str, tuple[str, ...]] = {}
 
 # Nominal time for commands whose duration isn't implied by their args, in seconds.
 NOMINAL_DURATION_S = 60.0
@@ -88,21 +96,6 @@ def release(target: str, reagent: str, chip: dict | None = None) -> dict:
     return validate("release", {"target": target, "reagent": reagent}, chip)
 
 
-def valve(valves: list[str], state: str, chip: dict | None = None) -> dict:
-    return validate("valve", {"valves": list(valves), "state": state}, chip)
-
-
-COMMANDS = {
-    "load": load,
-    "exchange": exchange,
-    "hold_temp": hold_temp,
-    "split": split,
-    "pool": pool,
-    "release": release,
-    "valve": valve,
-}
-
-
 # --- validation ------------------------------------------------------------------
 
 
@@ -120,11 +113,13 @@ def stage_ids(chip: dict) -> set[str]:
 
 
 def valve_ids(chip: dict) -> set[str]:
+    """Valves a chip declares. No chip declares any (one fluidic layer), so this is empty
+    everywhere; kept because tools/validate.py checks chips and runs with it."""
     return {v["id"] for v in chip.get("valves", [])}
 
 
 def place_ids(chip: dict) -> set[str]:
-    """Everything a protocol step may name as a target: chambers, ports and valves."""
+    """Everything a protocol step may name as a target: chambers, ports and stages."""
     return chamber_ids(chip) | port_ids(chip) | valve_ids(chip) | stage_ids(chip)
 
 
@@ -136,9 +131,13 @@ def step_targets(step: dict) -> list[str]:
 
 
 def ids_in(command: str, args: dict, which: dict | None = None) -> list[str]:
-    """Every chamber id a command refers to (valve ids with which=VALVE_ARGS)."""
+    """Every chamber id a command refers to (valve ids with which=VALVE_ARGS).
+
+    `which` is used when given, even when it is empty: `which or ID_ARGS` would fall back
+    to the chamber map for an empty VALVE_ARGS and check chamber ids against valve ids.
+    """
     out: list[str] = []
-    for key in (which or ID_ARGS).get(command, ()):
+    for key in (ID_ARGS if which is None else which).get(command, ()):
         value = args.get(key)
         if isinstance(value, list):
             out.extend(v for v in value if isinstance(v, str))
@@ -181,8 +180,6 @@ def estimate_duration_s(command: str, args: dict) -> float:
         return float(args["washes"]) * float(args["volume_ul"]) / float(args["flow_ul_min"]) * 60.0
     if command == "culture":
         return float(args["duration_s"])
-    if command == "valve":
-        return 10.0
     if command == "cure":
         return float(args["duration_s"])
     return NOMINAL_DURATION_S

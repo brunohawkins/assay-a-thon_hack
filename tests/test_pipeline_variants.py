@@ -37,21 +37,29 @@ class Variants(unittest.TestCase):
         self.assertEqual(errors(CAP), [])
         self.assertEqual(errors(TIP), [])
 
-    def test_capseq_is_mjs_chain_with_no_barcoding_stage(self):
-        # MJ, fcc6ef2: the cells carry a per-lane barcode from Module 1, RT in Module 3's trap adds
-        # none, Module 4's index PCR adds the sublibrary index. No barcoding or hairpin stage.
-        self.assertEqual(chips(CAP), ["chip/module1_v1.json", "chip/cell_prep_v1.json", "chip/spc_demo_v1.json",
-                                      "chip/module3_v1_translated.json", "chip/module4_v1.json", "chip/module5_v1.json"])
-        self.assertFalse([m for m in CAP["modules"] if m["status"] in ("missing", "bench")])
-        straight = [(h["from"].get("module"), h["to"].get("module")) for h in CAP["handoffs"]]
-        self.assertIn(("module3", "module4"), straight)
+    def test_capseq_chain_barcodes_between_the_trap_and_the_split(self):
+        """CapSeq is MJ's chain unchanged, and that chain BARCODES PER CELL.
 
-    def test_capseq_refuses_a_base_with_the_old_placeholders(self):
-        import build_assay_variants
-        old = copy.deepcopy(CAP)
-        old["modules"].insert(4, {"module": "barcoding", "name": "Barcoding", "status": "missing"})
-        with self.assertRaises(SystemExit):
-            build_assay_variants.capseq(old)
+        This test used to assert two placeholders here - split-and-pool rounds and a hairpin
+        ligation, both "(missing)" - and it was the only thing in the suite that said what
+        CapSeq did between module 3 and module 4. Dropping plate-based split-and-pool did not
+        drop per-cell barcoding; the stage is real, with a chip spec and a protocol, so it is
+        asserted as a real stage and the placeholders are asserted GONE.
+        """
+        self.assertEqual(chips(CAP), ["chip/module1_v1.json", "chip/cell_prep_v1.json", "chip/spc_demo_v1.json",
+                                      "chip/module3_v1_translated.json", "chip/sctip_spc_v1.json",
+                                      "chip/module4_v1.json", "chip/module5_v1.json"])
+        order = [m["module"] for m in CAP["modules"]]
+        self.assertEqual(order[order.index("module3") + 1], "barcoding", "barcoding sits between module 3 and module 4")
+        self.assertEqual(order[order.index("barcoding") + 1], "module4")
+        self.assertNotIn("hairpin", order)
+        self.assertEqual([m["name"] for m in CAP["modules"] if m["status"] == "missing"], [])
+        bc = next(m for m in CAP["modules"] if m["module"] == "barcoding")
+        self.assertEqual(bc["protocol"], "protocols/sctip_spc_v1.json")
+        # Our chemistry, bought droplet hardware: the stage must say so, not read as a part we make.
+        self.assertIn("NOT PRINTABLE", bc["build"]["method"].upper())
+        self.assertEqual([h["id"] for h in CAP["handoffs"] if "barcoding" in (h["from"].get("module"), h["to"].get("module"))],
+                         ["module3_to_barcoding", "barcoding_to_module4"])
 
     def test_tipseq_releases_before_index_pcr(self):
         self.assertEqual(chips(TIP), ["chip/module1_v1.json", "(bench)", "chip/spc_demo_v1.json", "chip/sctip_spc_v1.json",

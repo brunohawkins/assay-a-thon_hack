@@ -145,12 +145,14 @@ select, input[type="number"], input[type="text"] {
   white-space: nowrap;
 }
 .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--dot); flex: none; }
+.chip-card .status, .note .status { white-space: normal; }
 .status.st-final { --dot: var(--ok); }
 .status.st-translated { --dot: var(--accent); }
 .status.st-draft { --dot: #bf8700; }
 .status.st-missing::before { background: transparent; border: 1.5px dashed var(--bad); width: 9px; height: 9px; }
 .status.st-bench::before { background: transparent; border: 1.5px dashed #bf8700; width: 9px; height: 9px; }
 .status.superseded { --dot: var(--text-3); }
+.status.st-bought { --dot: var(--info); }
 
 .badge {
   display: inline-flex;
@@ -168,6 +170,11 @@ select, input[type="number"], input[type="text"] {
 }
 .badge.sim { color: #6e5600; background: var(--warn-soft); border-color: #eac54f; }
 .badge.sim::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #bf8700; }
+/* The hardware badge reads run.simulated_hardware and has three states (MJ): the flag is absent
+   from many run files and neither answer may be assumed. */
+.badge.sim-real { color: var(--ok); background: var(--ok-soft); border-color: #8ddb8c; }
+.badge.sim-real::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+.badge.sim-unknown { color: var(--text-2); border-style: dashed; }
 .badge.warn { color: var(--warn); border-color: #eac54f; }
 .badge[data-kind="llm"] { color: var(--accent-text); border-color: #80ccff; }
 .badge.printed, .badge.st-final { color: var(--ok); border-color: #8ddb8c; }
@@ -496,6 +503,16 @@ body[data-module="home"] .scalebar { left: calc(min(640px, 50vw) + 20px); bottom
 .ports .meta-cell { color: var(--text-2); font-size: 12px; }
 body[data-module="bench"] #m1-panel { display: none !important; }
 .check-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12.5px; color: var(--text-2); }
+.field { display: grid; gap: 4px; font-size: 12px; color: var(--text-2); }
+.field select { width: 100%; }
+.arrivals tr.fast td { color: var(--text-3); }
+.arrivals tr.film td:first-child code { font-weight: 600; color: var(--text); }
+.arrivals tr.past:not(.due) td { opacity: 0.75; }
+.arrivals .kind { font-size: 11px; color: var(--text-3); }
+.plain-list { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 6px; font-size: 12.5px; line-height: 1.5; }
+.plain-list.faint { color: var(--text-2); }
+.side-section code, .sidebar code { font: 11.5px var(--mono); }
+.stages li.branch .n { color: var(--info); }
 
 /* ---------------------------------------------------------------- transport */
 
@@ -721,6 +738,7 @@ body[data-module="bench"] .scalebar { bottom: 16px; }
 .sdot.st-draft { background: #bf8700; }
 .sdot.st-missing { background: transparent; border: 1.5px dashed var(--bad); }
 .sdot.st-bench { background: transparent; border: 1.5px dashed #bf8700; }
+.sdot.st-bought { background: var(--info); }
 .p3-label .status { display: flex; font-size: 11px; margin-top: 3px; }
 .p3-label .p3-id, .p3-label .p3-extra { display: block; font-size: 11px; color: var(--text-2); margin-top: 1px; padding-left: 14px; }
 .p3-label .p3-extra { color: var(--accent-text); }
@@ -901,7 +919,7 @@ body:not(.eng) .control { display: none !important; }
 .pr-root { display: none; }
 body.presenter .pr-root { display: block; }
 /* No panels, no run picker, no playback bar: the presenter's buttons drive everything. */
-body.presenter #module-tabs, body.presenter .header-tools > :not(.badges), body.presenter .badges > :not(.sim),
+body.presenter #module-tabs, body.presenter .header-tools > :not(.badges), body.presenter .badges > :not(#hardware-badge),
 body.presenter .controls, body.presenter .sidebar, body.presenter #m1-panel, body.presenter #m1-tooltip,
 body.presenter #control, body.presenter #toast, body.presenter #day-counter, body.presenter #stopwatch,
 body.presenter #alert-banner, body.presenter #nozzle-inset, body.presenter .pr-card, body.presenter #home { display: none !important; }
@@ -909,7 +927,7 @@ body.presenter .topbar { min-height: 64px; padding: 10px 28px; }
 body.presenter .brand h1 { font-size: 20px; }
 body.presenter .brand p { font-size: 14px; }
 body.presenter .logo { width: 36px; height: 26px; }
-body.presenter .badge.sim { font-size: 16px; padding: 4px 14px; line-height: 22px; }
+body.presenter #hardware-badge { font-size: 16px; padding: 4px 14px; line-height: 22px; }
 body.presenter .scalebar { bottom: calc(var(--pr-caption-h, 200px) + 16px); font-size: 14px; }
 body.presenter.pr-idle, body.presenter.pr-idle * { cursor: none !important; }
 

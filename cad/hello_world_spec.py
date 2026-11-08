@@ -100,8 +100,8 @@ def build_spec(dims: dict) -> dict:
 
     def well(cid: str, center: tuple) -> dict:
         return {"id": cid, "type": "well", "center": [round(v, 4) for v in center],
-                "size": [d, d, hw], "mesh_pore_um": None, "volume_ul": well_volume_ul, "open_top": True,
-                "block": "polygon_chamber"}
+                "size": [d, d, hw], "shape": "cylinder", "mesh_pore_um": None, "volume_ul": well_volume_ul,
+                "open_top": True, "block": "polygon_chamber"}
 
     return {
         "id": CHIP_ID,

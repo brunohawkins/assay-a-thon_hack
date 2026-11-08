@@ -4,8 +4,25 @@
   "chip_id": "m1b_cellprep_v1",
   "chip_spec": "cad/m1b_cellprep_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T17:47:46Z",
+  "created_at": "2026-11-08T09:51:04Z",
   "placeholder": true,
+  "simulated_hardware": true,
+  "adapter": "simulated_counter",
+  "scenario": {
+    "name": "m1b_cellprep_low_viability",
+    "protocol": "protocols/m1b_cellprep.json",
+    "chip": "cad/m1b_cellprep_spec.json",
+    "module2_chip": "cad/m2_encapsulation_spec.json",
+    "seed": 7,
+    "sample_volume_ul": 50,
+    "counter": {
+      "cells_per_ul": 3600,
+      "viability": 0.84,
+      "cv": 0.05
+    },
+    "file": "scenarios/m1b_cellprep_low_viability.json",
+    "description": "Too many dead cells: viability under 90%. Dilution can't fix that, so the safety checker blocks the hand-off to Module 2."
+  },
   "total_duration_s": 1302.0,
   "events": [
     {
@@ -104,7 +121,7 @@
       "t_s": 1302.0,
       "kind": "blocked",
       "step": 7,
-      "message": "cells to Module 2: blocked: viability 84% is below 90% (10x guidance): don't encapsulate these cells"
+      "message": "cells to Module 2 through m1b_to_module2_1: blocked: viability 84% is below 90% (10x guidance): don't encapsulate these cells; this verdict rests on 1,953 cells/uL, which is ASSUMED, not measured: counted at the QC window (before the mixer) divided by the dilution the operator set. There is no counter after the mixer, so the dilution is commanded, not verified"
     },
     {
       "t_s": 1302.0,
@@ -113,32 +130,20 @@
       "message": "stopped before Module 2: the cells stay in m1b_resuspend_1 for a person to fix (viability 84% is below 90% (10x guidance): don't encapsulate these cells)"
     }
   ],
-  "simulated_hardware": true,
-  "adapter": "simulated_counter",
   "loop": "closed",
   "status": "stopped",
-  "scenario": {
-    "name": "m1b_cellprep_low_viability",
-    "protocol": "protocols/m1b_cellprep.json",
-    "chip": "cad/m1b_cellprep_spec.json",
-    "module2_chip": "cad/m2_encapsulation_spec.json",
-    "seed": 7,
-    "sample_volume_ul": 50,
-    "counter": {
-      "cells_per_ul": 3600,
-      "viability": 0.84,
-      "cv": 0.05
-    },
-    "file": "scenarios/m1b_cellprep_low_viability.json",
-    "description": "Too many dead cells: viability under 90%. Dilution can't fix that, so the safety checker blocks the hand-off to Module 2."
-  },
   "summary": {
     "status": "stopped",
     "counted": {
       "cells_per_ul": 3554,
       "viability": 0.843
     },
+    "counted_where": "m1b_qc_window_1, by a SIMULATED counter",
     "dilution": 1.82,
+    "dilution_basis": "set by the operator; commanded, not verified",
+    "assumed_final_cells_per_ul": 1953,
+    "assumed_mean_cells_per_capsule": 0.1002,
+    "assumption_basis": "ASSUMED, not measured: counted at the QC window (before the mixer) divided by the dilution the operator set. There is no counter after the mixer, so the dilution is commanded, not verified",
     "final_cells_per_ul": 1953,
     "mean_cells_per_capsule": 0.1002,
     "target_mean": 0.1,
@@ -146,9 +151,11 @@
     "verdict": {
       "result": "blocked",
       "reasons": [
-        "viability 84% is below 90% (10x guidance): don't encapsulate these cells"
+        "viability 84% is below 90% (10x guidance): don't encapsulate these cells",
+        "this verdict rests on 1,953 cells/uL, which is ASSUMED, not measured: counted at the QC window (before the mixer) divided by the dilution the operator set. There is no counter after the mixer, so the dilution is commanded, not verified"
       ]
-    }
+    },
+    "verdict_rests_on": "an assumed concentration (see assumption_basis)"
   },
   "report": "runs/m1b_cellprep__m1b_cellprep_v1__m1b_cellprep_low_viability_report.md"
 }

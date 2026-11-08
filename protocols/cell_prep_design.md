@@ -56,13 +56,16 @@ fabricated feature, so it doesn't break the rule — but it isn't something we m
 
 ## 3. The viscous buffer kills everything upstream of it
 
-The encapsulation buffer is ~75 cP. Reynolds scales as 1/µ, so at the same flow it drops
-~75× and inertial focusing stops ([10.1073/pnas.0704958104](https://doi.org/10.1073/pnas.0704958104)).
-Restoring it would need ~75 mL/min and megapascals of pressure.
+The encapsulation buffer carries a viscosity-raising additive that puts it roughly two
+orders of magnitude above water. Reynolds scales as 1/µ, so at the same flow it drops by
+the same factor and inertial focusing stops
+([10.1073/pnas.0704958104](https://doi.org/10.1073/pnas.0704958104)). Restoring it would
+need litres per minute and megapascals of pressure.
 
 **So the viscous buffer goes in last, off chip, in the final step.** It also means
-centrifugation barely works there either — at 15% dextran the density difference almost
-vanishes — so that step is a gentle mix-in however you do it.
+centrifugation barely works there either — at the additive loading used, the density
+difference between cells and buffer almost vanishes — so that step is a gentle mix-in
+however you do it.
 
 ---
 

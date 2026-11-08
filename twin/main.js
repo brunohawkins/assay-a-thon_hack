@@ -1,5 +1,6 @@
 // Entry point: loads runs/index.json, shows the pipeline view or a module view, plays runs.
 // The twin only ever reads run files, so a recorded run always works offline.
+import { loadContracts } from './contracts.js';
 import { createScene } from './scene.js';
 import { Chip } from './chip.js';
 import { Player } from './player.js';
@@ -7,7 +8,7 @@ import { createUI } from './ui.js';
 import { findDisplayModel, buildDisplayModel } from './display.js';
 import { createControlPanel } from './control.js';
 import { createPipeline3D } from './pipeline3d.js';
-import { loadStatus } from './status.js';
+import { loadStatus, shortStage } from './status.js';
 import { createOverlays } from './overlays.js';
 import { createModule1View, CHIP_ID as M1V1 } from './module1.js';
 import { createLibraryView, LIB_CHIPS } from './library_modules.js';
@@ -27,6 +28,20 @@ const ENG_KEY = 'twin-engineering';
 let eng = false;
 if (!PRESENT) { try { eng = localStorage.getItem(ENG_KEY) === '1'; } catch { eng = false; } }
 document.body.classList.toggle('eng', eng);
+
+// Contracts first (MJ). Viscosity, the port bore, the shear ceiling and the build envelope come
+// from contracts/parameters.json and contracts/blocks.json, and network.js, chip.js and module1.js
+// read them the moment they are constructed. The twin will not run on stand-in physics.
+try {
+  await loadContracts(ROOT);
+} catch (err) {
+  document.getElementById('error-text').textContent =
+    `${err.message} The twin reads its physics from contracts/parameters.json and `
+    + 'contracts/blocks.json and will not fall back to numbers of its own. Start a server from '
+    + 'the repo root (python -m http.server 8000) and open http://localhost:8000/twin/';
+  document.getElementById('error').hidden = false;
+  throw err;
+}
 
 const ctx = createScene(document.getElementById('viewport'));
 let chip = null;
@@ -54,7 +69,11 @@ const PREFERRED = {
 };
 // The current modules' specs (MJ's 30 x 20 mm chips) have no module block: their runs are told
 // apart by chip id. A chip that protocols/pipeline_status.md marks DUPLICATE-RETIRE goes to "Old drafts".
-const CHIP_VIEW = { [M1V1]: 'm1v1', cell_prep_v1: 'cp', spc_demo_v1: 'enc', module3_v1_translated: 'm3v1', ...LIB_CHIPS };
+// sctip_spc_v1 is the single-cell barcoding stage (4b in protocols/pipeline_status.md) and
+// module6_v1 the bulk omics arm that branches off culture: each has its own view, so neither
+// reads as missing from the pipeline (MJ).
+const CHIP_VIEW = { [M1V1]: 'm1v1', cell_prep_v1: 'cp', spc_demo_v1: 'enc', module3_v1_translated: 'm3v1', sctip_spc_v1: 'bc',
+  module6_v1: 'm6', ...LIB_CHIPS };
 const moduleOf = (r) => r.module ?? (statusData?.retired.has(r.chip_id) ? 'retired' : CHIP_VIEW[r.chip_id]
   ?? (/^module2/.test(r.chip_id ?? '') ? 'enc' : null));
 // The superseded generated drafts (Module 1 brief, 1b, Module 2 draft, 3 wash) and the retired
@@ -106,8 +125,20 @@ m1.setHandlers({ onManual: () => player.setPlaying(false) });
 const lib = createLibraryView({ panel: document.getElementById('lib-panel') });
 // The sidebar's context block: the chip card, or the bench demo's controls.
 const sideContext = document.getElementById('side-context');
-const bench = createBench({ el: sideContext, m1, onOpenChip: () => showModule('m1v1') });
-sideContext.addEventListener('click', (e) => { if (e.target.closest('[data-open-bench]')) showModule('bench'); });
+const bench = createBench({
+  el: sideContext, m1, root: ROOT, getChip: () => chip,
+  nameOf: (id) => shortStage(statusData?.byChip.get(id)?.stage ?? id),
+  order: () => (pipelineData?.entries ?? []).map((e) => e.spec?.id).filter(Boolean),
+  onPick: (id, { open = false } = {}) => {
+    if (!open) { showModule('bench', id); return; }
+    const r = runs.find((x) => x.chip_id === id);
+    if (r) showModule(moduleOf(r) ?? 'other', r.file);
+  },
+});
+sideContext.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-open-bench]');
+  if (b) showModule('bench', b.dataset.openBench || null);
+});
 
 // The sidebar and panels start just below the header, however many rows it wraps to.
 const topbar = document.querySelector('.topbar');
@@ -229,15 +260,29 @@ async function ensureChip(path, stlDir = null) {
   ctx.frameChip(spec.footprint);
   player.setChip(chip);
   ui.setChipInfo(spec, pipelineData?.entries.find((e) => e.spec?.id === spec.id) ?? null, statusData?.byChip.get(spec.id) ?? null);
+  // Every chip loads the folder that BELONGS to it (cad/exports/<chip_id>/, or the flat
+  // cad/exports/ only when its .chip_id names this chip): part ids repeat across chips (MJ).
+  // Awaited and before m1.attach, so the Module 1 view can dim the chamber STLs it finds.
+  await loadChipCad(spec, stlDir);
   if (m1.isChip(spec)) {
-    m1.attach(chip); // loads its own STLs from cad/exports/module1_v1/
+    m1.attach(chip);
     ctx.frameChip(spec.footprint); // re-fit now the flow panel takes the left side
   }
-  else chip.loadStls(`${ROOT}${stlDir ?? 'cad/exports/'}`).then((ids) => {
-    if (ids.length) ui.toast(`Using CAD for ${ids.join(', ')}`);
-  });
   displayManifest = await findDisplayModel(spec.id, ROOT);
-  ui.setDisplayAvailable(displayManifest, spec.id);
+  ui.setDisplayAvailable(displayManifest, spec.id, spec);
+}
+
+// stlDir: a caller that already knows where this chip's parts are overrides the lookup
+// (Yuvraj's cached prompt-to-chip result lives outside cad/exports/).
+let cadSummary = null;
+async function loadChipCad(spec, stlDir = null) {
+  const target = chip;
+  const src = stlDir
+    ? { dir: stlDir, owner: spec.id, names: await Chip.listStls(stlDir, ROOT) }
+    : await Chip.stlSource(spec.id, ROOT);
+  const report = await target.loadStls(src, ROOT);
+  if (chip !== target) return; // the user switched chips while this was in flight
+  cadSummary = ui.setCadStatus({ ...report, chipId: spec.id, why: src.why, undrawn: target.undrawn });
 }
 
 // Real scale: the working chip, in real mm. Display model: the printed show piece.
@@ -279,7 +324,7 @@ async function showModule(m, file = null) {
   module = m;
   ui.setTab(tabOf(m));
   homeEl.hidden = m !== 'home';
-  if (was === 'bench' && m !== 'bench') bench.detach();
+  if (was === 'bench') { bench.detach(); player.refresh(); }
   if (m === 'pipeline' || m === 'home') {
     sideContext.replaceChildren();
     player.setPlaying(false);
@@ -308,23 +353,27 @@ async function showModule(m, file = null) {
   if (chip) chip.group.visible = view !== 'display';
   if (displayGroup) displayGroup.visible = view === 'display';
   if (m === 'bench') {
-    // Module 1 in real time beside the physical food-dye run (twin/bench.js).
-    const list = runsFor('m1v1');
-    if (!list.length) return;
-    const pick = list.find(PREFERRED.m1v1) ?? list[0];
+    // The twin beside the one-pump food-dye run (twin/bench.js, MJ's docs/demo_plan.json).
+    const id = bench.pick(file);
+    const list = id ? runs.filter((r) => r.chip_id === id) : [];
+    if (!list.length) { bench.attach(null); return; }
+    const view0 = CHIP_VIEW[id];
+    const pick = list.find(PREFERRED[view0] ?? (() => true)) ?? list[0];
     ui.setRuns(list, pick.file);
     player.setPlaying(false);
     while (busy) await new Promise((r) => setTimeout(r, 30));
     if (module !== 'bench') return;
     await selectRun(pick.file);
-    if (module !== 'bench') return;
+    if (module !== 'bench' || chip?.spec.id !== id) return;
     player.setPlaying(false);
     overlays.setDay(null);
-    if (!m1.attached) { ui.toast('Module 1 could not be loaded, so the bench demo is not available.'); return; }
+    overlays.setNozzle(null);
+    lib.detach();               // Modules 4 / 5: their protocol overlays (magnet, heater) are not part of a dye run
     await setView('real');
-    bench.attach();
+    bench.attach(id);
+    ui.setHardwareNote('Simulation', 'sim', 'The bench demo runs the twin\'s own model beside the physical chip; the twin never talks to the pump.');
     ctx.frameChip(chip.footprint);
-    setUrl('#view=bench');
+    setUrl(`#view=bench&chip=${encodeURIComponent(id)}`);
     return;
   }
   const list = runsFor(m);
@@ -413,7 +462,7 @@ const pipelineBar = document.getElementById('pipeline');
 function renderPipelineBar() {
   const current = pipelineData?.pipe?.variant ?? chosenVariant;
   pipelineBar.innerHTML = overviewHtml({ variants: VARIANTS, current, chosen: chosenVariant, slots: pipeline.slots,
-    pipe: pipelineData?.pipe, status: statusData });
+    pipe: pipelineData?.pipe, status: statusData, plans: bench.planned });
   markStage(pipeline.currentIndex);
 }
 // The stage the pipeline is playing stands out in the list.
@@ -442,7 +491,9 @@ pipelineBar.addEventListener('click', async (e) => {
 });
 
 // Szonja's workflow as a run: flows become load / exchange / back-flush; the no-flow steps
-// (settle, incubate) join the step before them. Ends with the hand-off out of to_split_tree, on to Module 4.
+// (settle, incubate) join the step before them. Ends with the hand-off out of to_split_tree, which
+// feeds the barcoding stage (4b) and then Module 4: plate-based split-and-pool is dropped, so
+// there is no split tree and the port name is only a leftover of it (MJ).
 // The generated chip as a one-step run: medium into its first part, so the twin draws it live.
 function promptRun(entry) {
   return { protocol_id: entry.protocol_id, protocol_name: entry.protocol_name, chip_id: entry.chip_id, chip_spec: entry.chip_spec,
@@ -479,7 +530,7 @@ async function module3Run(entry) {
     t += dur;
   }
   events.push({ command: 'release', args: { target: 'main_trap', reagent: 'wash_buffer' }, t_s: t, duration_s: 60, protocol_step: events.length + 1,
-    narration: 'Hand-off: the resuspended capsules leave through to_split_tree, on to Module 4, which splits them into four sublibraries. There is no barcoding step in between: the cells already carry their lane barcode from Module 1.' });
+    narration: 'Hand-off: the resuspended capsules leave through to_split_tree for the single-cell barcoding stage (4b), then Module 4. The port keeps its name from the dropped split-and-pool design; there is no split tree.' });
   return { protocol_id: entry.protocol_id, protocol_name: entry.protocol_name, chip_id: entry.chip_id, chip_spec: entry.chip_spec,
     operator: 'planner', placeholder: true, synthetic: true, total_duration_s: t + 60, events };
 }
@@ -511,6 +562,7 @@ function renderChipCard() {
   sideContext.innerHTML = chipCardHtml({
     spec: chipSpec, entry: k >= 0 ? entries[k] : null, md: statusData?.byChip.get(chipSpec.id) ?? null,
     stage: k >= 0 ? { k, n: entries.length, variant } : null, retired: Boolean(statusData?.retired.has(chipSpec.id)),
+    plan: bench.planFor(chipSpec.id), cad: cadSummary,
   });
 }
 
@@ -564,6 +616,7 @@ async function start() {
     runs.push(M3_ENTRY, PROMPT_ENTRY);
     statusData = await loadStatus(ROOT);
     try { await loadPipelineData(); } catch (err) { console.warn(err); } // badges only: module views work without it
+    await bench.load();
     await dropMissingVariants();
     hideEmptyChipViews();
     if (PRESENT) {
@@ -587,7 +640,7 @@ async function start() {
     const tab = entry ? tabOf(moduleOf(entry) ?? 'other') : null;
     if (entry && (tab === 'old' || tab === 'other') && !eng) setEng(true); // a link to an old run is an engineer's
     if (entry) await showModule(moduleOf(entry) ?? 'other', entry.file);
-    else if (params.get('view') === 'bench') await showModule('bench');
+    else if (params.get('view') === 'bench') await showModule('bench', params.get('chip'));
     else if (params.get('view') === 'pipeline') await showModule('pipeline');
     else await showModule('home');
     window.__twin.ready = true;

@@ -17,6 +17,10 @@ import schema_io  # noqa: E402
 NET = nw.module1_network()
 PROTO_FLOW = max(s["flow_ul_min"] for s in schema_io.load_json(ROOT / "protocols" / "module1_v1.json")["steps"]
                  if s.get("flow_ul_min"))
+# The ceiling is a contract value, read here from contracts/parameters.json rather than
+# restated, so the assertions below cannot drift from the number the design is held to.
+PARAMS = schema_io.load_json(ROOT / "contracts" / "parameters.json")["parameters"]
+SHEAR_CEILING = PARAMS["shear.culture_ceiling_dyn_cm2"]["value"]
 CULTURE = ["n_cx", "g_cx", "a_cx"]
 INLET = {"n_cx": "p_in", "g_cx": "p_g_in", "a_cx": "p_a_in"}
 SOURCE = {"int_n": "n_cx", "int_g": "g_cx", "int_a": "a_cx"}
@@ -95,19 +99,35 @@ class Modes(unittest.TestCase):
 
 
 class DesignNumbers(unittest.TestCase):
-    def test_shear_thresholds_match_the_design_doc(self):
-        self.assertAlmostEqual(nw.threshold_flow(12, 0.3, 0.01, nw.MU_37C), 13.5, places=6)
-        self.assertAlmostEqual(nw.threshold_flow(0.8, 0.3, 0.01, nw.MU_37C), 0.9, places=6)
+    def test_the_solver_reads_its_ceiling_and_viscosity_from_the_contracts(self):
+        self.assertEqual(nw.SHEAR_CEILING_DYN_CM2, SHEAR_CEILING)
+        # The 37 C medium value, not fluid.viscosity_pa_s (water at 20 C, the dye-demo figure).
+        self.assertEqual(nw.MU_37C, PARAMS["fluid.viscosity_37c_pa_s"]["value"])
+
+    def test_the_threshold_flow_is_the_flow_at_which_shear_reaches_the_ceiling(self):
+        # The old form of this test restated two uL/min figures from the design doc, which
+        # were computed at a viscosity the contract no longer holds. The invariant is what
+        # matters: threshold_flow inverts shear_dyn_cm2 at the ceiling, for real geometry.
+        chamber = next(c for c in NET.chip["chambers"] if c["id"] == "n_cx")
+        w_chamber, depth = chamber["size"][1], chamber["size"][2]
+        w_channel = min(c["width_mm"] for c in NET.chip["channels"])
+        for label, width in (("chamber n_cx", w_chamber), ("narrowest channel", w_channel)):
+            q = nw.threshold_flow(width, depth, SHEAR_CEILING, NET.mu)
+            self.assertAlmostEqual(nw.shear_dyn_cm2(q, width, depth, NET.mu), SHEAR_CEILING, places=12, msg=label)
+            self.assertGreater(q, 0, label)
+        # Shear scales as 1/width, so the narrow channel is always the binding one.
+        self.assertLess(nw.threshold_flow(w_channel, depth, SHEAR_CEILING, NET.mu),
+                        nw.threshold_flow(w_chamber, depth, SHEAR_CEILING, NET.mu))
 
     def test_chambers_stay_under_the_shear_ceiling_at_the_protocol_flow(self):
         for mode, sol in nw.solve_modes(NET, PROTO_FLOW).items():
             for c in CULTURE:
-                self.assertLess(sol["chambers"][c]["shear_dyn_cm2"], 0.01, msg=f"{mode} {c}")
+                self.assertLess(sol["chambers"][c]["shear_dyn_cm2"], SHEAR_CEILING, msg=f"{mode} {c}")
 
     def test_operator_default_feed_stays_under_the_shear_ceiling(self):
         for mode, sol in nw.solve_modes(NET).items():
             for c in CULTURE:
-                self.assertLess(sol["chambers"][c]["shear_dyn_cm2"], 0.01,
+                self.assertLess(sol["chambers"][c]["shear_dyn_cm2"], SHEAR_CEILING,
                                 msg=f"{mode} {c}: operator/network.py DEFAULT_FEED_UL_MIN={nw.DEFAULT_FEED_UL_MIN} is stale")
 
     def test_running_pressure_range_is_reported_not_tuned(self):
@@ -121,10 +141,15 @@ class DesignNumbers(unittest.TestCase):
 
 
 class AnyChip(unittest.TestCase):
-    def test_solver_runs_on_another_chip(self):
-        chip = json.loads((ROOT / "cad" / "m3_wash_spec.json").read_text())
-        sol = nw.Network(chip).solve({"m3_inlet_1": ("FEED", 20), "m3_waste_1": "VENT"})
-        self.assertAlmostEqual(sol["channels"]["m3_ch_waste"]["flow_ul_min"], 20.0, places=6)
+    def test_solver_runs_on_the_shipped_module_3_chip(self):
+        # Was cad/m3_wash_spec.json, which is marked superseded and is out of the pipeline.
+        chip = json.loads((ROOT / "chip" / "module3_v1_translated.json").read_text())
+        load = next(p["id"] for p in chip["ports"] if p.get("role") == "load")
+        waste = next(p["id"] for p in chip["ports"] if p.get("role") == "waste")
+        out = next(c["id"] for c in chip["channels"] if c["to"] == waste)
+        sol = nw.Network(chip).solve({load: ("FEED", 20), waste: "VENT"})
+        self.assertAlmostEqual(sol["channels"][out]["flow_ul_min"], 20.0, places=6)
+        self.assertAlmostEqual(sol["ports"][waste]["into_chip_ul_min"], -20.0, places=6)
 
 
 if __name__ == "__main__":

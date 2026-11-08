@@ -63,7 +63,7 @@ at this floor: it is a bought mesh insert.
 ## Drive it with syringe pumps, not pressure
 
 The single most important operational finding. Running pressures are **0.04–0.22 mbar**.
-That is below the stability of commercial pressure controllers (a Fluigent Flow EZ wants
+That is below the stability of commercial pressure controllers (typical units want
 roughly 7 mbar), smaller than 1 mm of reservoir head (0.098 mbar), and far smaller than a
 port meniscus (~1.4 mbar). Pressure control cannot hold these set points.
 

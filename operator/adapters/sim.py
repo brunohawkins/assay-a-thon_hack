@@ -1,7 +1,10 @@
 """Simulation adapter: validates each command and records it as a run event.
 
-This is the default adapter. Nothing moves; the run file it writes is what the twin
-replays.
+This is the default adapter. Nothing moves and nothing is measured, so every run it writes
+carries simulated_hardware: true - the marker is set here, in the only place that can know
+it, rather than left to each caller to remember (runs used to be indexed
+simulated_hardware: false simply because nobody set it). The run file it writes is what the
+twin replays.
 """
 
 from __future__ import annotations
@@ -14,6 +17,10 @@ import schema_io
 
 class SimAdapter:
     name = "sim"
+    simulated = True        # no pump, no sensors, nothing moved
+
+    def capabilities(self) -> dict:
+        return {"sensors": [], "actuators": [], "simulated": True}
 
     def __init__(self, chip: dict | None = None, start_t_s: float = 0.0):
         self.chip = chip
@@ -47,6 +54,16 @@ class SimAdapter:
     def to_run(self, header: dict) -> dict:
         """Assemble a run dict (see contracts/schemas/run.schema.json)."""
         run = dict(header)
+        run["simulated_hardware"] = True
+        run.setdefault("adapter", self.name)
+        # A run that is marked simulated has to say what was simulated (tools/validate.py
+        # checks that). For a simple planner run the answer is "nothing was configured,
+        # because nothing ran": no virtual chip, no sensors, no faults, no reality to set.
+        run.setdefault("scenario", {
+            "description": "No scenario file: the sim adapter records the commands the planner sent and nothing "
+                           "else. No virtual chip, no sensors and no injected faults, so there is no reality to "
+                           "configure - and nothing was measured, which is why simulated_hardware is true.",
+        })
         run["total_duration_s"] = round(self.t_s, 3)
         run["events"] = list(self.events)
         if self.log:

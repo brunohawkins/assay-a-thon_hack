@@ -1,11 +1,11 @@
 {
   "kind": "pipeline",
   "id": "pipeline_mvp",
-  "name": "MVP pipeline (capseq): CapSeq (RNA): culture -> cell prep -> encapsulation -> load, lysis, wash, reverse transcription (one trap) -> sublibrary PCR -> release and cleanup -> SPRI and QC (off-chip)",
+  "name": "MVP pipeline (capseq): CapSeq (RNA): culture -> cell prep -> encapsulation -> load, lysis, wash, reverse transcription (one trap) -> single-cell barcoding (one clonal barcode per capsule, in its own oil droplet) -> sublibrary PCR -> release and cleanup -> SPRI and QC (off-chip)",
   "same_as": "protocols/pipeline_capseq.json",
   "variant": "capseq",
   "placeholder": true,
-  "description": "One winner per job, all on the 30 x 20 mm, 0.3 mm deep, single-layer envelope (resin print + hot emboss, blocks from contracts/blocks.json). Culture: module1_v1. Cell prep: cell_prep_v1. Encapsulation: spc_demo_v1 (0.2 mm orifice, so capsules of about 260 um, not 135 um; curing off-chip). Load, lysis, wash, reverse transcription: module3_v1_translated, steps 1-9 of protocols/module3_v1.json. Split-and-pool barcoding is dropped and there is no separate barcoding or RT module: RT is one isothermal hold (42 C, plain poly(dT)) inside module3's capsule trap, so module3 hands capsules straight to Module 4. Module 4 and Module 5 are built. SPRI size selection and QC (Qubit, TapeStation, qPCR) are off-chip and have no protocol yet. Retired, kept for reference only: cad/m1_culture_spec.json, cad/m1b_cellprep_spec.json, cad/m3_wash_spec.json (all marked superseded in their module block), cad/m2_encapsulation_spec.json (cannot make capsules at this scale; still marked draft, not superseded), stage A of chip/sctip_spc_v1.json, and dissociation inside module1 (steps 175-178 of protocols/module1_v1.json duplicate cell_prep_v1). Not in the chain: chip/ipsc_to_mgl_chip_v1.json is a separate experiment. Retention features cannot be printed at this floor, so capsule retention needs a bought mesh insert or sedimentation. One TBC remains: Module 4 has no capsule outlet port, so the Module 4 side of module4_to_module5 cannot be named. Map and open joins: protocols/pipeline_status.md. CAPSEQ VARIANT: MJ's chain as it is. Barcoding is not a stage of its own (fcc6ef2): the cells carry a per-lane barcode from Module 1, reverse transcription in Module 3's capsule trap adds none, and Module 4's index PCR adds the sublibrary index, so the data is lane-level, not single-cell (protocols/pipeline_status.md).",
+  "description": "One winner per job, all on the 30 x 20 mm, 0.3 mm deep, single-layer envelope (resin print + hot emboss, blocks from contracts/blocks.json). Culture: module1_v1. Cell prep: cell_prep_v1. Encapsulation: spc_demo_v1 (0.2 mm orifice, so capsules of about 260 um, not 135 um; curing off-chip). Load, lysis, wash, reverse transcription: module3_v1_translated, steps 1-9 of protocols/module3_v1.json. There is no separate RT module: RT is one isothermal hold (42 C, plain poly(dT)) inside module3's capsule trap, and reverse transcription itself adds no barcode. THIS IS A SINGLE-CELL ASSAY, and the stage that makes it one is barcoding, which sits between Module 3 and Module 4: protocols/sctip_spc_v1.json. Plate-based split-and-pool barcoding is dropped, but per-cell barcoding is NOT. Each capsule is re-injected into its own oil droplet, where a single barcode molecule from a pool of 16 random bases (4.3e9) is clonally amplified and overlap-extended onto that capsule's cDNA - the AmpliDrop idea (doi:10.1101/2024.08.13.607508) applied to semipermeable capsules. The emulsion is the containment, so no anchor molecule and no cleavage step are needed. One capsule holds one cell, so every cell ends up with its own clonal barcode. The per-lane label from Module 1 and Module 4's four sublibrary indices - about twelve groups - are a DEMULTIPLEXING convenience on top, not the resolution of the data. Barcoding exists as a design (protocols/sctip_spc_design.md) and a protocol, but NOT as a printable chip: stage B needs a close-packed entrance of about 0.85 x the capsule diameter and stage C needs 100 x 150 um slots, both far below the 200 um in-plane floor, so - exactly as with encapsulation - the droplet handling runs on a bought droplet kit. The chemistry is ours; the droplet hardware is bought. Module 4 and Module 5 are built. MODULE 6 IS A BRANCH OFF CULTURE, not a step in this chain: it takes adherent cells before encapsulation and gets a bulk metabolome AND proteome out of one single-phase acidified polar-organic extraction (chip/module6_v1.json, protocols/module6_v1.json, recorded as the roadmap destination module6_bulk_omics because this format expresses one chain and not a branch). It REQUIRES A SUB-AMBIENT STAGE: a -20 C extraction soak and a 4 C rinse and flood, on one thermal zone under all three lanes - see protocols/thermal_map.md. SPRI size selection and QC (fluorometric quantification, fragment sizing, quantitative amplification) are off-chip and have no protocol yet. Retired, kept for reference only: cad/m1_culture_spec.json, cad/m1b_cellprep_spec.json, cad/m3_wash_spec.json (all marked superseded in their module block), cad/m2_encapsulation_spec.json (cannot make capsules at this scale; still marked draft, not superseded), stage A of chip/sctip_spc_v1.json (stages B and C of that file are NOT retired - they are the barcoding module), and dissociation inside module1 (steps 175-178 of protocols/module1_v1.json duplicate cell_prep_v1). Not in the chain: chip/ipsc_to_mgl_chip_v1.json is a separate experiment. Retention features cannot be printed at this floor, so capsule retention needs a bought mesh insert or sedimentation. One TBC remains: Module 4 has no capsule outlet port, so the Module 4 side of module4_to_module5 cannot be named. Map and open joins: protocols/pipeline_status.md. CAPSEQ VARIANT: this is MJ's chain unchanged. The barcoding stage between the capsule trap and the sublibrary split is REAL (chip/sctip_spc_v1.json, protocols/sctip_spc_v1.json): one clonal barcode per capsule, generated in that capsule's own oil droplet, so the data is single-cell and not lane-level. The chemistry is ours; the droplet handling it needs is below the 200 um in-plane floor and runs on bought hardware, which is why the stage has a design and a protocol but no printable chip of ours (protocols/pipeline_status.md, stage 4b). The old plate-based split-and-pool rounds and their hairpin ligation stay dropped (fcc6ef2); they are NOT what makes this assay single-cell. CAPSEQ VARIANT: this is MJ's chain unchanged. The barcoding stage between the capsule trap and the sublibrary split is REAL (chip/sctip_spc_v1.json, protocols/sctip_spc_v1.json): one clonal barcode per capsule, generated in that capsule's own oil droplet, so the data is single-cell and not lane-level. The chemistry is ours; the droplet handling it needs is below the 200 um in-plane floor and runs on bought hardware, which is why the stage has a design and a protocol but no printable chip of ours (protocols/pipeline_status.md, stage 4b). The old plate-based split-and-pool rounds and their hairpin ligation stay dropped (fcc6ef2); they are NOT what makes this assay single-cell. CAPSEQ VARIANT: this is MJ's chain unchanged. The barcoding stage between the capsule trap and the sublibrary split is REAL (chip/sctip_spc_v1.json, protocols/sctip_spc_v1.json): one clonal barcode per capsule, generated in that capsule's own oil droplet, so the data is single-cell and not lane-level. The chemistry is ours; the droplet handling it needs is below the 200 um in-plane floor and runs on bought hardware, which is why the stage has a design and a protocol but no printable chip of ours (protocols/pipeline_status.md, stage 4b). The old plate-based split-and-pool rounds and their hairpin ligation stay dropped (fcc6ef2); they are NOT what makes this assay single-cell. CAPSEQ VARIANT: this is MJ's chain unchanged. The barcoding stage between the capsule trap and the sublibrary split is REAL (chip/sctip_spc_v1.json, protocols/sctip_spc_v1.json): one clonal barcode per capsule, generated in that capsule's own oil droplet, so the data is single-cell and not lane-level. The chemistry is ours; the droplet handling it needs is below the 200 um in-plane floor and runs on bought hardware, which is why the stage has a design and a protocol but no printable chip of ours (protocols/pipeline_status.md, stage 4b). The old plate-based split-and-pool rounds and their hairpin ligation stay dropped (fcc6ef2); they are NOT what makes this assay single-cell.",
   "modules": [
     {
       "module": "module1",
@@ -70,7 +70,24 @@
         "source": "contracts/blocks.json (fabrication_floors)"
       },
       "built_for_demo": false,
-      "note": "The one capsule trap, and the one place RT runs (steps 5-7: RT mix, 42 C hold, wash; no barcode or UMI added, cells already carry a per-lane barcode). Wins over m2_trap_1 and m3_wash_v1 (retired). Her file is the source of truth. Built for 70 um capsules and a 650,000 count; encapsulation makes about 260 um capsules."
+      "note": "The one capsule trap, and the one place RT runs (steps 5-7: RT mix, 42 C hold, wash). Reverse transcription adds no barcode and no UMI itself; the per-cell barcode is added by the next module, barcoding, which overlap-extends a clonal per-capsule barcode onto this cDNA inside an oil droplet. Wins over m2_trap_1 and m3_wash_v1 (retired). The project's geometry requirements sheet is the source of truth. Built for 70 um capsules and a 650,000 count; encapsulation makes about 260 um capsules."
+    },
+    {
+      "module": "barcoding",
+      "name": "Barcoding: one clonal barcode per capsule, generated in its own oil droplet",
+      "status": "draft",
+      "status_note": "draft - the chemistry and the protocol exist; the droplet hardware is bought, not printed",
+      "owner": "MJ",
+      "chip": "chip/sctip_spc_v1.json",
+      "protocol": "protocols/sctip_spc_v1.json",
+      "build": {
+        "method": "NOT PRINTABLE AS DRAWN, and that is the position we take rather than a failure: stage B needs a close-packed re-injection entrance of about 0.85 x the capsule diameter and stage C needs 100 x 150 um slots, both far below the 200 um in-plane floor, so re-injection, droplet making and emulsion breaking run on a BOUGHT DROPLET KIT exactly as encapsulation does. chip/sctip_spc_v1.json is the demo-scale layout only; its pack_1 is clamped to 200 um, which is wider than a capsule and so cannot order them single file. The one part we do fabricate is capsule retention: a depth weir with a 25 um gap under the lid (crest = the chip's etch depth minus the gap), because the 200 um floor is IN-PLANE and z is free.",
+        "connector": "TBC",
+        "ports": "TBC: the droplet steps run on a bought kit, so its fittings are not ours to name; our side is >= 0.8 mm drilled holes at >= 5 mm pitch",
+        "source": "protocols/sctip_spc_design.md, section 6; contracts/blocks.json (fabrication_floors)"
+      },
+      "built_for_demo": false,
+      "note": "THE STAGE THAT MAKES THIS A SINGLE-CELL ASSAY, and the stage the pipeline had quietly lost. Stages B and C of protocols/sctip_spc_v1.json are not a duplicate of module 3's trap; they are the missing barcoding step. IN: washed capsules from module 3, each holding one cell's cDNA with no barcode on it. OUT: the same capsules, every molecule carrying one clonal per-capsule barcode. Steps 1-16 and 20-21 of the protocol are the shared barcoding stage; steps 17-19 (gap-fill, transcription mix, overnight linear amplification) are the chromatin/transposase VARIANT tail and are skipped here, because module 3 already made the template and module 4's index PCR does the amplifying. Barcode loading is Poisson at a mean of 3: about 5% of droplets get no barcode and those cells are lost, and most get several and must be merged computationally afterwards. Sized for the pipeline's capsule diameter (contracts/parameters.json capsule.diameter_um), so the 2 -> 3 size mismatch flagged in pipeline_status.md applies here too. Nobody has published capsule re-injection with a single-copy barcode: both halves are published, the combination is not."
     },
     {
       "module": "module4",
@@ -102,7 +119,7 @@
         "source": "protocols/module5_design.md, section 1"
       },
       "built_for_demo": false,
-      "note": "Collagenase release at 37 C, then magnetic bead capture; one sublibrary per pass."
+      "note": "Matrix-digesting enzyme release at 37 C, then magnetic bead capture; one sublibrary per pass."
     }
   ],
   "handoffs": [
@@ -165,12 +182,34 @@
       "note": "Capsules are collected and cured off-chip in a tube, then loaded through Module 3's pre-filter into main_trap. Undocumented: breaking the emulsion and washing off the oil. Size does not match: about 260 um capsules against a 70 um design and a 100 um pre-filter gap."
     },
     {
-      "id": "module3_to_module4",
+      "id": "module3_to_barcoding",
       "carries": "capsules",
       "after_step": 9,
       "from": {
         "module": "module3",
         "port": "to_split_tree"
+      },
+      "to": {
+        "module": "barcoding",
+        "port": "in_load",
+        "note": "Capsules are re-injected close-packed, so they have to be concentrated to a packed bed first; that concentration step is undocumented."
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "TBC",
+        "status": "unknown",
+        "warning": "The barcoding droplet steps run on a bought droplet kit, so its fittings are unknown: the demo needs an adapter from our 0.8 mm drilled port to whatever tubing the kit uses."
+      },
+      "note": "RT already ran inside Module 3's trap, so the RT-treated, resuspended bed leaves in one counted suspension (76.9 uL after step 9) with no barcode on the cDNA yet. Barcoding is where each capsule gets its own clonal barcode. The port name to_split_tree is a leftover from the dropped split-and-pool tree; it is just Module 3's capsule outlet."
+    },
+    {
+      "id": "barcoding_to_module4",
+      "carries": "capsules",
+      "after_step": 21,
+      "from": {
+        "module": "barcoding",
+        "port": "out_waste",
+        "note": "Step 21 back-flushes the bed out through out_waste, which an off-chip selector valve routes to the recovery tube for that step only."
       },
       "to": {
         "module": "module4",
@@ -183,11 +222,12 @@
         "note": "Through an off-chip rotary valve, one chamber at a time, in the order A B C D D C B A, twice."
       },
       "connector": {
-        "from": "drilled_0_8mm_5mm_pitch",
+        "from": "TBC",
         "to": "drilled_0_8mm_5mm_pitch",
-        "status": "match"
+        "status": "unknown",
+        "warning": "Same adapter in reverse: the bought droplet kit's outlet tubing into Module 4's 0.8 mm drilled inlets."
       },
-      "note": "RT already ran inside Module 3's trap, so the RT-treated, resuspended bed leaves in one counted suspension (76.9 uL after step 9). Module 4 draws only 16 x 0.6 uL = 9.6 uL of it, so a concentration step is undocumented. The tubing and valve are not on either chip."
+      "note": "Barcoded capsules in one suspension. Module 4 draws only 16 x 0.6 uL = 9.6 uL, so a concentration step is undocumented, and the tubing and rotary valve are on neither chip. Steps 17-19 of the barcoding protocol (the chromatin variant's gap-fill and overnight linear amplification) are NOT run on this path."
     },
     {
       "id": "module4_to_module5",
@@ -195,8 +235,8 @@
       "after_step": 63,
       "from": {
         "module": "module4",
-        "port": "TBC",
-        "note": "Module 4 has no capsule outlet: in_s1-in_s4 are inlets and p_vent is an outlet that capsules cannot pass. The sublibrary has to leave back through its own in_sN, or Module 4 needs an outlet port; neither is written down."
+        "port": "out_sub",
+        "note": "Each of the four chambers taps east through a capillary-stop restrictor onto one shared collection spine, which leaves through out_sub. The spine stays dry through PCR because every tap is a capillary stop, and collection is air-driven one chamber at a time with p_vent capped, so the spine runs one way only. Worst-case carry-over between sublibrary indices is about 1.1% of a sublibrary, computed from the tap geometry."
       },
       "to": {
         "module": "module5",
@@ -207,7 +247,7 @@
         "to": "drilled_0_8mm_5mm_pitch",
         "status": "match"
       },
-      "note": "One sublibrary per pass, by tubing between the chips (Module 5 protocol steps 1, 9, 17, 25). The TBC is real: the chip has no outlet to name."
+      "note": "One sublibrary per pass, by tubing between the chips (Module 5 protocol steps 1, 9, 17, 25). Module 4 now has a real outlet, so this handoff is no longer a TBC; what remains off-chip is the tubing and the selector that picks which sublibrary is being collected."
     },
     {
       "id": "module5_to_spri_qc",
@@ -221,6 +261,19 @@
         "roadmap": "spri_qc"
       },
       "note": "Four libraries into tubes; pooling, SPRI size selection and QC are at the bench (Module 5 steps 33-34)."
+    },
+    {
+      "id": "module1_to_module6",
+      "carries": "cells",
+      "from": {
+        "module": "module1",
+        "port": "p_mid"
+      },
+      "to": {
+        "roadmap": "module6_bulk_omics",
+        "note": "A BRANCH, not a step in the chain: Module 6 takes ADHERENT cells in place, before any encapsulation, at the end of the interaction window and before module 1's own dissociation (steps 175-178). It is recorded as a roadmap destination because this pipeline format can only express a single chain, not a branch - the real Module 6 has a chip (chip/module6_v1.json) and a protocol (protocols/module6_v1.json), so do not read 'roadmap' as 'not designed'."
+      },
+      "note": "The bulk metabolome + proteome arm. Destructive, one endpoint, and it never reaches the capsule chain. TODAY this means PARALLEL SAMPLES WITHIN ONE EXPERIMENT - same lanes, same medium, same timepoint, different cells - not one sample population; chip/module1_target_v1.json (in progress) adds replicated fields per lane so some fields are quenched in place while others in the SAME lane go to the single-cell transcriptome, and only then is 'multi-omic from one sample' true. NEW RIG REQUIREMENT: Module 6 needs a SUB-AMBIENT STAGE (-20 C extraction soak for 5 min, plus a 4 C rinse and quench flood), on ONE thermal zone under all three lanes, which is why its protocol is ordered by phase and not by lane. See protocols/thermal_map.md and protocols/multiomic_design.md."
     },
     {
       "id": "spri_qc_to_library_out",
@@ -238,7 +291,12 @@
     {
       "id": "spri_qc",
       "name": "SPRI size selection + QC (off-chip)",
-      "note": "Qubit, TapeStation, qPCR. Undocumented: no protocol exists."
+      "note": "Fluorometric quantification, fragment sizing and a quantitative amplification assay. Undocumented: no protocol exists."
+    },
+    {
+      "id": "module6_bulk_omics",
+      "name": "Module 6: bulk metabolome + proteome arm (branches off culture, before encapsulation)",
+      "note": "NOT a roadmap stub: chip/module6_v1.json and protocols/module6_v1.json both exist. It is filed here because the pipeline format expresses one chain and this is a branch. Metabolome AND proteome from ONE single-phase acidified polar-organic extraction of ADHERENT cells, in place on the chamber floor: fraction 1 (metabolome) out of the lane outlet, then the precipitated protein film resolubilised at ambient and collected as fraction 2 (proteome) out of the SAME outlet. Chlorinated and partition solvents are excluded; the chip is a cyclic-olefin copolymer, so coupon tests belong on that polymer and not on PMMA. REQUIRES A SUB-AMBIENT STAGE: -20 C soak for 5 min and a 4 C rinse and flood, one thermal zone over all three lanes, so no lane can be cold while another is alive and the protocol is ordered by phase. The rig has no sub-ambient source today; the degraded fallback is a 4 C soak, which is off the published method and makes the yield and the metabolome/proteome split unvalidated. Yield about 9,600 cells per lane, which supports untargeted coverage of roughly 100-160 metabolites if the extract stays at or below about 10 uL."
     },
     {
       "id": "library_out",

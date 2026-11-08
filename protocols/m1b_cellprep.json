@@ -1,7 +1,7 @@
 {
   "id": "m1b_cellprep",
   "name": "Module 1b: cell prep",
-  "source": "PLACEHOLDER, after the sheet's cell-prep rows (contracts/sources/chip_geometry_requirements.xlsx): quench, wash, 30 um filter (10x / inDrops / TIP-seq), viability >= 90% (10x), resuspend in 15% dextran (SPC-NAR) at ~0.1 cells per capsule (SPC-NAR / CapSeq). Volumes, flows and times are placeholders; the cell-wash method is TBC.",
+  "source": "PLACEHOLDER, after the sheet's cell-prep rows (contracts/sources/chip_geometry_requirements.xlsx): quench, wash, 30 um filter (10x / inDrops / TIP-seq), viability >= 90% (10x), resuspend in the viscous resuspension buffer (SPC-NAR) at ~0.1 cells per capsule (SPC-NAR / CapSeq). Volumes, flows and times are placeholders; the cell-wash method is TBC.",
   "placeholder": true,
   "description": "Take the three Module 1 lanes already merged at one inlet, quench, wash, filter, count, resuspend at the concentration Module 2 needs (the operator sets the dilution from the count), and send the cells to Module 2's core inlet once the safety checker approves. The chip has no valves: routing is the step's ports (feed, vent, cap) plus off-chip selector valves.",
   "steps": [

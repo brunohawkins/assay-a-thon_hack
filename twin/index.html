@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Capsule Processor · Digital twin</title>
+  <!-- Inline, so the offline demo never logs a 404 for a favicon it does not have. -->
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css">
   <script type="importmap">
     {
@@ -36,8 +38,11 @@
           <button data-module="cp" role="menuitem" aria-pressed="false"><span>Cell prep</span><small>cell_prep_v1</small></button>
           <button data-module="enc" role="menuitem" aria-pressed="false"><span>Encapsulation</span><small>spc_demo_v1</small></button>
           <button data-module="m3v1" role="menuitem" aria-pressed="false"><span>Lysis, wash and RT</span><small>module3_v1_translated</small></button>
+          <button data-module="bc" role="menuitem" aria-pressed="false"><span>Single-cell barcoding</span><small>sctip_spc_v1</small></button>
           <button data-module="m4" role="menuitem" aria-pressed="false"><span>Sublibrary split and index PCR</span><small>module4_v1</small></button>
           <button data-module="m5" role="menuitem" aria-pressed="false"><span>Release and cleanup</span><small>module5_v1</small></button>
+          <div class="menu-sep" role="separator"></div>
+          <button data-module="m6" role="menuitem" aria-pressed="false"><span>Bulk omics arm (branch)</span><small>module6_v1</small></button>
           <div class="menu-sep eng-only" role="separator"></div>
           <button data-module="old" class="eng-only" role="menuitem" aria-pressed="false"><span>Old drafts</span><small>superseded and retired</small></button>
           <button data-module="other" class="eng-only" role="menuitem" aria-pressed="false"><span>Other runs</span><small>placeholders and experiments</small></button>
@@ -58,7 +63,8 @@
         <button data-loop="closed" aria-pressed="false">Closed loop</button>
       </div>
       <div class="badges">
-        <span class="badge sim" title="Nothing on this screen is live hardware: flows and timings come from the chip's network model.">Simulation</span>
+        <span id="hardware-badge" class="badge sim-unknown" title="Whether the run on screen was recorded on real hardware, from its simulated_hardware flag">Hardware not recorded</span>
+        <span id="cad-badge" class="badge eng-only" hidden></span>
         <span id="operator-badge" class="badge eng-only">planner</span>
         <span id="print-badge" class="badge printed eng-only" hidden>Printed</span>
         <span id="draft-badge" class="badge draft eng-only" hidden>Draft design</span>
@@ -110,8 +116,9 @@
       <dl class="home-built">
         <dt>Shared file formats</dt>
         <dd>For protocols, chips, runs and the pipeline. Six people could build in parallel against placeholders, and every tool reads the same files.</dd>
-        <dt>Six chips, culture to clean-up</dt>
-        <dd>Each 30 × 20 mm and 0.3 mm deep, one fluidic layer: the envelope both resin printing and hot embossing can make.</dd>
+        <dt>Seven stages, culture to clean-up</dt>
+        <dd>Six chips of our own, each 30 × 20 mm and 0.3 mm deep with one fluidic layer (the envelope both resin printing and
+          hot embossing can make), and a single-cell barcoding stage that runs our chemistry on a bought droplet kit.</dd>
         <dt>Prompt to chip</dt>
         <dd>A typed description becomes a chip spec built from Flowmatter library parts, and our checker tests it against the fabrication rules.</dd>
         <dt>CAD for every part</dt>
@@ -120,8 +127,9 @@
         <dd>It plans, checks and corrects a run. With no hardware this weekend, it runs against a virtual chip with injected faults such as a clog.</dd>
         <dt>This digital twin</dt>
         <dd>One picture of the whole line for the team and for this demo: every chip, the sample moving through, and a bench view that runs beside the real chip.</dd>
-        <dt>Module 1, made for a food-dye run</dt>
-        <dd>To test the flow model on a real chip: if the dye arrives when the twin says it will, the model has earned some trust.</dd>
+        <dt>A dye demo for every printed chip</dt>
+        <dd>One syringe pump and food dye in water, with each chip's feed, vent and pump rate derived from its spec. The twin
+          runs beside it on one clock: if the dye arrives when the twin says it will, the model has earned some trust.</dd>
       </dl>
     </section>
 
@@ -130,6 +138,9 @@
       <ul class="home-list">
         <li><b>Routing by flow, not valves.</b> Module 1 grows neurons, glia and astrocytes in three chambers that meet at one
           junction. Which ports are fed, open or plugged decides whether the cultures stay apart or share medium.</li>
+        <li><b>Single-cell barcodes made in droplets.</b> After reverse transcription each capsule goes into its own oil
+          droplet, where one random barcode is amplified and joined onto that capsule's cDNA. One capsule holds one cell, so
+          each cell gets its own barcode.</li>
         <li><b>The AI does not get the last word.</b> The operator suggests, the flow model predicts, and deterministic rules
           decide. Asked to do something that would mix the cultures, it refuses and says why.</li>
         <li><b>One description drives every tool.</b> The protocol and the chip spec feed the CAD, the operator and the twin,
@@ -146,11 +157,13 @@
       <ul class="home-list plain">
         <li>Everything on screen is a simulation. There are no pumps, cameras or wet-lab data this weekend, and the
           closed loop runs on a virtual chip.</li>
-        <li>All six chips have a spec and a protocol. Module 1 is being made for the food-dye run; the others exist in the twin.</li>
-        <li>Barcoding is not a stage of its own. Each lineage carries a lane barcode from Module 1, reverse transcription
-          adds none, and Module 4's PCR adds a sublibrary index: about twelve groups in all, so the data is per lane, not per
-          cell. Whether single-cell resolution is needed is an open question for the team.</li>
-        <li>Capsule retention cannot be printed at this size: it needs a bought mesh insert or sedimentation.</li>
+        <li>Six chips have a spec and a protocol; the barcoding stage has a design and a protocol and runs on a bought kit,
+          because its features are below the in-plane floor. Every demo-scale chip has a dye-demo procedure.</li>
+        <li>It is a single-cell assay: the per-capsule barcode resolves cells. The lane label from Module 1 and the four
+          sublibrary indices from Module 4 only help sort the data.</li>
+        <li>A bulk metabolome and proteome arm (Module 6) branches off culture. It needs a sub-ambient stage the rig does not
+          have yet.</li>
+        <li>Capsule retention cannot be printed in-plane at this size: it uses a bought mesh insert, or a shallow weir under the lid.</li>
       </ul>
     </section>
 

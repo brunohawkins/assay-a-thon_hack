@@ -5,7 +5,7 @@
   "description": "A recorded run: the commands an operator sent to a chip, in time order. Written by operator/, replayed by twin/.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["protocol_id", "chip_id", "operator", "created_at", "placeholder", "events"],
+  "required": ["protocol_id", "chip_id", "operator", "created_at", "placeholder", "events", "simulated_hardware"],
   "properties": {
     "protocol_id": { "$ref": "#/$defs/snake_id" },
     "protocol_name": { "type": "string" },
@@ -32,7 +32,7 @@
     },
     "simulated_hardware": {
       "type": "boolean",
-      "description": "true when the run used the virtual chip (SIMULATED HARDWARE): every 'true' value is from the simulation."
+      "description": "REQUIRED. true when no physical hardware was involved, so every number in the run came from a model: the virtual chip (where values marked 'true' are the simulation's), the dry run (which measures nothing at all) and the recording sim adapter are all simulated. false only when real instruments produced the readings. This marker is required, and set by the adapter rather than by each caller, because when it was optional every writer that forgot it left runs indexed as if hardware had moved: a missing marker must be impossible, not merely discouraged."
     },
     "adapter": { "type": "string", "description": "virtual_chip, dryrun, syringe_pump, sim ..." },
     "loop": { "enum": ["open", "closed"], "description": "closed: sensors corrected the model during the run." },
