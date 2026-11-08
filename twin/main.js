@@ -156,6 +156,10 @@ function setEng(on) {
   engToggle.checked = on;
   document.body.classList.toggle('eng', on);
   try { localStorage.setItem(ENG_KEY, on ? '1' : '0'); } catch { /* private window */ }
+  if (!PRESENT && player.setPacing(on ? 'full' : 'demo') && player.run && !inPipeline()) {
+    ui.setRun(player.run, player.timeline(), player.paceNote());
+    player.refresh();
+  }
   if (!on && (module === 'old' || module === 'other')) { showModule('pipeline'); return; }
   reframe();
 }
@@ -166,7 +170,7 @@ function reframe() {
 }
 
 const player = new Player(ctx, {
-  onEvent: (i, ev) => { if (!inPipeline()) { ui.setEvent(i, ev); m1.onEvent(i, ev, player.playing); lib.onEvent(i); } },
+  onEvent: (i, ev) => { if (!inPipeline()) { ui.setEvent(i, ev, player.phaseOf(i)); m1.onEvent(i, ev, player.playing); lib.onEvent(i); } },
   onTick: (info) => {
     if (inPipeline()) return;
     ui.setTick(info);
@@ -203,6 +207,9 @@ homeEl.addEventListener('keydown', (e) => {
   const li = e.target.closest?.('li[data-open]');
   if (li && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); li.click(); }
 });
+// The clean view plays each protocol at demo pace (each phase once, briskly); engineering and the
+// presenter keep the full timing (the presenter's steps are paced on it).
+player.setPacing(!PRESENT && !eng ? 'demo' : 'full');
 ctx.onFrame((dt) => pipeline.update(dt));
 ctx.onFrame(() => bench.update());   // before Module 1 draws, so the dye is on time
 ctx.onFrame((dt) => { if (!inPipeline()) m1.update(dt, player.playing); });
@@ -588,7 +595,7 @@ async function selectRun(file) {
     cultureRun = run.events.some((e) => e.command === 'culture') || run.total_duration_s > 3 * 86400;
     player.load(run, { autoplay });
     if (lib.isChip(chip.spec)) { lib.attach(chip, run); ctx.frameChip(chip.footprint); } else lib.detach();
-    ui.setRun(run, player.timeline());
+    ui.setRun(run, player.timeline(), player.paceNote());
     // Capsule-trap sizing only fits the generated capsule chips (not Module 1 v1's cells, nor MJ's
     // and Szonja's chips, whose own design notes size them).
     ui.setSizing(chip.spec.module && !run.synthetic ? run.sizing ?? null : null);

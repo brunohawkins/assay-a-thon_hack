@@ -314,7 +314,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       const what = s.kind === 'ghost' ? `${e.name}: ${e.status === 'bench' ? 'a bench step' : 'not on a chip yet'}. ${firstSentence(e.note ?? e.status_note ?? '')}`
         : `${st?.stage ?? e.name} (${s.chip.spec.id}), ${statusView(st?.badge ?? e.status, st?.detail ?? '').text.toLowerCase()}`
           + `${notPrintable(e) ? ', bought hardware · our chemistry' : ''}. ${calm(firstSentence(e.note ?? s.chip.spec.description ?? ''))}${caveat(e) ? ` ${calm(caveat(e))}` : ''}`;
-      phases.push({ id: `pl_${e.module}`, kind: 'module', k, play: s.kind === 'ghost' ? 2.5 : 4.5, proto: e.duration_s ?? 600,
+      phases.push({ id: `pl_${e.module}`, kind: 'module', k, play: s.kind === 'ghost' ? 2 : 3.2, proto: e.duration_s ?? 600,
         narration: what, args: s.chip ? { chip: s.chip.spec.id, status: st?.status ?? e.status } : { status: 'next' } });
       const tb = tubes[k];
       if (!tb) return;
@@ -322,7 +322,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       const h = tb.handoff;
       const toName = to.kind === 'end' ? 'the off-chip steps' : to.chip ? to.chip.spec.id : to.entry?.name;
       const off = (data.status?.offChip ?? []).filter((o) => o.after && o.after === s.chip?.spec.id && o.before !== null && to.kind !== 'end').map((o) => o.stage.toLowerCase());
-      phases.push({ id: `pl_${h?.id ?? `${e.module}_to_next`}`, kind: 'handoff', k, play: 2.6, proto: 120,
+      phases.push({ id: `pl_${h?.id ?? `${e.module}_to_next`}`, kind: 'handoff', k, play: 2, proto: 120,
         narration: `${(h?.carries ?? 'sample').replace(/^./, (c) => c.toUpperCase())} go from ${s.chip ? `${s.chip.spec.id} ${s.outPort ?? ''}` : e.name} to ${toName}${to.kind === 'chip' && to.inPort ? ` ${to.inPort}` : ''} through 1/16 inch tubing${off.length ? `; off-chip on the way: ${off.join(', ')}` : ''}.`,
         args: { carries: h?.carries ?? 'cells', from: h?.from?.port ?? '', to: (h?.to?.ports ?? [h?.to?.port ?? h?.to?.roadmap ?? '']).join(', ') } });
     });

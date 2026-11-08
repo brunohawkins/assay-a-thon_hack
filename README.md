@@ -134,7 +134,10 @@ The twin's header has four views and two switches:
 The hardware badge reads each run's `simulated_hardware` flag: simulated, hardware run, or not
 recorded; the twin never assumes either answer. Playback: Play/Pause (Space), Step (→), speed
 1x/5x/20x (keys 1/2/3), click the timeline to jump, drag to orbit. `#run=<file>` in the URL opens
-a specific run.
+a specific run. The clean view plays each protocol at **demo pace**: a repeating pattern of
+commands (Module 1's daily medium change over weeks, Module 4's PCR cycles, Module 5's four passes)
+shows as one phase, so Module 1's 182 commands take about 45 s instead of 12 minutes, and the
+whole pipeline about 35 s. **Engineering** plays the full timing.
 Closed-loop runs add the **control loop** panel in engineering mode (believed vs true state, prediction vs
 measurement charts with model-update markers, the optimizer's choices, the event log
 with safety tags), an alert banner, and an **Open loop / Closed loop** toggle that

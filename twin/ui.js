@@ -96,6 +96,7 @@ export function createUI(actions) {
   let segments = [];
   let total = 1;
   let events = [];
+  let lastPhase = null;      // a collapsed phase is shown once, not once per command in it
 
   el.select.addEventListener('change', () => actions.onSelectRun(el.select.value));
   el.play.addEventListener('click', () => actions.onPlayPause());
@@ -198,7 +199,8 @@ export function createUI(actions) {
       if (selected) el.select.value = selected;
     },
 
-    setRun(run, timeline) {
+    setRun(run, timeline, paceNote = '') {
+      lastPhase = null;
       events = timeline.map((s) => s.ev);
       total = timeline.length ? timeline[timeline.length - 1].start + timeline[timeline.length - 1].duration : 1;
       el.timeline.querySelectorAll('.seg').forEach((s) => s.remove());
@@ -217,11 +219,31 @@ export function createUI(actions) {
       el.operator.dataset.kind = run.operator;
       el.runMeta.textContent = run.kind === 'pipeline'
         ? `pipeline_mvp · ${events.length} phases · ${formatDuration(run.total_duration_s)} of protocol time`
-        : `${run.protocol_id} on ${run.chip_id}${run.run_parameters?.variant ? ` (${run.run_parameters.variant})` : ''} · ${events.length} commands · ${formatDuration(run.total_duration_s)} of protocol time`;
+        : `${run.protocol_id} on ${run.chip_id}${run.run_parameters?.variant ? ` (${run.run_parameters.variant})` : ''} · ${events.length} commands · ${formatDuration(run.total_duration_s)} of protocol time${paceNote ? ` · ${paceNote}` : ''}`;
     },
 
-    setEvent(i, ev) {
+    setEvent(i, ev, phase = null) {
       segments.forEach((s, k) => s.classList.toggle('active', k === i));
+      if (ev && phase && phase.repeat > 1) {
+        const key = `${phase.first}-${phase.last}`;
+        if (key === lastPhase) return;
+        lastPhase = key;
+        const first = events[phase.first] ?? ev;
+        const stepOf = (k) => events[k]?.protocol_step ?? k + 1;
+        const lastStep = events.reduce((m, e, k) => Math.max(m, e.protocol_step ?? k + 1), 0);
+        const cmds = events.slice(phase.first, phase.first + phase.period).map((e) => e.command);
+        el.stepLabel.textContent = `Steps ${stepOf(phase.first)}–${stepOf(phase.last)} of ${lastStep}`;
+        el.commandChip.hidden = false;
+        el.commandChip.textContent = `${cmds.join(' + ')} ×${phase.repeat}`;
+        el.commandChip.style.setProperty('--chip', commandColor(first));
+        el.narration.textContent = `${first.narration || ''} Repeated ${phase.repeat} times, shown at a glance.`.trim();
+        el.narration.classList.remove('enter');
+        void el.narration.offsetWidth;
+        el.narration.classList.add('enter');
+        el.details.replaceChildren(...details(first));
+        return;
+      }
+      lastPhase = null;
       if (!ev) {
         el.stepLabel.textContent = 'Ready';
         el.commandChip.hidden = true;

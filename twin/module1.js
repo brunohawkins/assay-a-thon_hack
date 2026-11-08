@@ -351,7 +351,9 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       cfl = Math.max(cfl, (qin * dt) / n.v);
     }
     const nSub = Math.max(1, Math.ceil(cfl / 0.45));
-    if (nSub > 20000) { snapSteady(); return; } // that long at this flow: everything has long reached steady state
+    // That long at this flow: everything has long reached its steady colours, and catching up
+    // step by step would stall the frame (the demo pace moves days per second), so jump there.
+    if (nSub > 1500) { snapSteady(); return; }
     const h = dt / nSub;
     for (let s = 0; s < nSub; s++) substep(h, flows);
   }
@@ -574,11 +576,13 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     objs.m2.boxMat.emissiveIntensity = out < -1e-6 ? 0.25 : 0.05;
     // diffusion disc while nothing flows
     const still = !Object.values(sol.channels).some((c) => c.flow_ul_min);
-    objs.disc.visible = still && idleT > 60;
+    // Only when the pumps are stopped by hand (the flow panel's idle mode): when the protocol is in
+    // charge the chip is capped for days between operations, and the disc would swamp the chip.
+    objs.disc.visible = still && idleT > 60 && !follow;
     objs.discLabel.visible = objs.disc.visible;
     if (objs.disc.visible) {
       const r = diffusionMm(idleT);
-      objs.disc.scale.setScalar(Math.max(r, 0.5));
+      objs.disc.scale.setScalar(Math.min(Math.max(r, 0.5), 0.45 * chip.footprint.y));   // the label keeps the true figure
       objs.disc.material.color.copy(dyeColor(sim.node.j_mid.c, col));
       objs.discLabel.element.textContent = `diffusion: ~${r.toFixed(1)} mm after ${fmtT(idleT)} (doc: 8.8 mm in 12 h)`;
     }
