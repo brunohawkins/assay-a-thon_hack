@@ -187,13 +187,20 @@ def _carries(brief: Brief) -> str:
 
 
 def requests_for(briefs: Sequence[Brief], placement: Placement, *, floors: dict,
-                 handoffs: Sequence[dict] = (), chip_id: str = "") -> list[PortRequest]:
+                 handoffs: Sequence[dict] = (), chip_id: str = "",
+                 extra: Sequence[Brief] = ()) -> list[PortRequest]:
     """Which ports this chip needs, in the order they matter if the budget gets tight.
 
     The entry and exit ports are named by the partition's hand-offs when there is one, so
     `partition.json` stays the single place that says which outlet feeds which inlet.
+
+    `briefs` are the PLACED parts, in placement order, so a request's `near` indexes
+    `placement.placed`. `extra` are ops realised as channels rather than parts: they still
+    need their reagent or their vent, so they count towards WHICH ports exist, but they
+    have no placed part to sit beside.
     """
     first, last = briefs[0], briefs[-1]
+    everything = list(briefs) + list(extra)
     arriving = next((h for h in handoffs if h.get("to") == chip_id), None)
     leaving = next((h for h in handoffs if h.get("from") == chip_id), None)
 
@@ -217,10 +224,11 @@ def requests_for(briefs: Sequence[Brief], placement: Placement, *, floors: dict,
         ),
     ]
     feeders = [i for i, b in enumerate(briefs) if b.needs_reagent]
-    if feeders:
-        ops = ", ".join(str(briefs[i].op) for i in feeders)
+    if feeders or any(b.needs_reagent for b in extra):
+        ops = ", ".join(str(b.op) for b in everything if b.needs_reagent)
         out.append(PortRequest(
-            id="reagent_in", type="inlet", role="reagent", edge="bottom", near=feeders[0],
+            id="reagent_in", type="inlet", role="reagent", edge="bottom",
+            near=feeders[0] if feeders else 0,
             carries="liquid", particles="none", particle_um=None, capsule_passable=False,
             why=(f"one reagent feed for op(s) {ops}; WHICH reagent is selected OFF chip by a "
                  f"rotary or selector valve, because an on-chip valve needs a second "
@@ -228,11 +236,14 @@ def requests_for(briefs: Sequence[Brief], placement: Placement, *, floors: dict,
         ))
     oil = [i for i, b in enumerate(briefs)
            if b.viscosity_class == "oil" or b.kind == "encapsulate"]
-    if oil:
+    if oil or any(b.viscosity_class == "oil" or b.kind == "encapsulate" for b in extra):
         out.append(PortRequest(
-            id="oil_in", type="inlet", role="oil", edge="bottom", near=oil[0], carries="oil",
+            id="oil_in", type="inlet", role="oil", edge="bottom",
+            near=oil[0] if oil else 0, carries="oil",
             particles="none", particle_um=None, capsule_passable=False,
-            why=f"the oil phase for op {briefs[oil[0]].op} on its own line: it must never "
+            why=f"the oil phase for op "
+                f"{(briefs[oil[0]] if oil else next(b for b in extra if b.kind == 'encapsulate' or b.viscosity_class == 'oil')).op}"
+                f" on its own line: it must never "
                 f"share a feed with the aqueous reagents",
         ))
     drains = [i for i, b in enumerate(briefs) if b.drains]
@@ -273,10 +284,11 @@ def _slots(edge: str, placement: Placement, inset: float) -> list[tuple[float, f
 
 
 def plan_ports(briefs: Sequence[Brief], placement: Placement, *, floors: dict, scale: str,
-               handoffs: Sequence[dict] = (), chip_id: str = "") -> PortPlan:
+               handoffs: Sequence[dict] = (), chip_id: str = "",
+               extra: Sequence[Brief] = ()) -> PortPlan:
     """Place every port this chip needs. Raises PortBudgetExceeded when it cannot."""
     requests = requests_for(briefs, placement, floors=floors, handoffs=handoffs,
-                            chip_id=chip_id)
+                            chip_id=chip_id, extra=extra)
     limit = contracts.max_ports_per_chip(scale)
     if limit is not None and len(requests) > limit:
         raise PortBudgetExceeded(
@@ -286,7 +298,7 @@ def plan_ports(briefs: Sequence[Brief], placement: Placement, *, floors: dict, s
             {"wanted": len(requests), "limit": limit, "scale": scale,
              "ports": [{"id": r.id, "why": r.why} for r in requests]})
 
-    budget = pad_budget(briefs, scale=scale)
+    budget = pad_budget(list(briefs) + list(extra), scale=scale)
     pitch = float(floors["min_port_pitch_mm"])
     inset = float(floors["min_wall_mm"]) + budget / 2.0
     placed: list[PlacedPort] = []

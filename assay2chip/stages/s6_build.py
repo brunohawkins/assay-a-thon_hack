@@ -51,6 +51,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from dataclasses import replace
 from typing import Any, Sequence
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -65,6 +66,7 @@ from assay2chip.layout import place as place_mod  # noqa: E402
 from assay2chip.layout import ports as ports_mod  # noqa: E402
 from assay2chip.layout import spec as spec_mod  # noqa: E402
 from assay2chip.lib import contracts, io as stage_io  # noqa: E402
+from assay2chip.parts.geometry import Load  # noqa: E402
 
 STAGE = "assay2chip/stages/s6_build.py"
 # Declared for assay2chip/run.py: it records these and REFUSES to overwrite a file this
@@ -91,6 +93,119 @@ AFTER_ROUTING = [
 
 class BuildError(Exception):
     """S6 cannot build this chip and it is not a fit problem (so not S4's to solve)."""
+
+
+def size_and_split(briefs: Sequence[Any], *, flow_scale: float = 1.0
+                   ) -> tuple[list, list]:
+    """Size every brief, then split them into PARTS and INLINE realisations.
+
+    A conduit - a mixer, a delay line, a junction - has no population to hold, so its size
+    comes from flow and residence time. When that comes to less than a part a channel
+    could even enter, there is no part: the op is realised as the CONNECTING CHANNEL,
+    lengthened to the length it needs. `assay2chip/layout/parts.py joinable()` is the test,
+    and the length is the registry's own `centreline_length_mm` for a mixer (enough chevron
+    cycles to mix at this Peclet number) or Q t / (w h) for a delay.
+
+    Emitting the part anyway is what blocked S7: a 0.38 x 0.20 mm "mixer" has no face long
+    enough for a 0.21 mm channel plus its walls, so nothing can be joined to it.
+    """
+    parts: list = []
+    inline: list = []
+    for brief in briefs:
+        if brief.inline:
+            inline.append(brief)
+            continue
+        part = parts_mod.size_part(brief, flow_scale=flow_scale)
+        if not part.chambers:
+            # The block expands to no CHAMBER: either nothing at all (a phase guide, a
+            # label) or a bare channel (a straight run, a folded delay). Either way there
+            # is no vessel for S7 to route TO - it looks parts up among the chambers and
+            # reports "unknown part: the placed chip has no part called ..." - and a part
+            # that is only a channel IS the connecting channel. So say that.
+            inline.append(replace(
+                brief, inline=True,
+                inline_why=(f"block '{part.block}' for op(s) "
+                            f"{', '.join(str(n) for n in brief.ops)} cuts no chamber of "
+                            f"its own - it is "
+                            + ("a bare channel" if part.channels else "nothing fluidic")
+                            + ", so there is no vessel to place or to join to; the op is "
+                              "the connecting channel"),
+                target_length_mm=brief.residence_length_mm(
+                    brief.route_width_mm, contracts.max_depth_mm())))
+            continue
+        if not brief.conduit and not parts_mod.joinable(part):
+            # A VESSEL this small is not a small chamber, it is one with no wall long
+            # enough for a channel to attach to: S7 reports "'x' is 0.83 x 0.83 mm, 3
+            # connection(s) have to meet it, and a 200 um channel at the 0.4 mm minimum
+            # wall has nowhere to leave it ... the part needs room on at least one wall,
+            # or has to be bigger". So it is grown to the smallest JOINABLE footprint.
+            # Same rule as rounding a tiny load up to the smallest buildable chamber, one
+            # step further: the part holds more than the assay needs, and says so.
+            side = parts_mod.joinable_minimum_mm(brief)
+            grown = replace(
+                brief, load=Load(basis="none"),
+                volume_ul=side * side * contracts.max_depth_mm(),
+                volume_source=(f"{brief.volume_source}, then grown to the smallest "
+                               f"footprint a channel can attach to ({side:.2f} mm a side)"),
+                load_basis="none",
+                gaps=brief.gaps + ({
+                    "op": brief.op, "field": "part",
+                    "question": f"the load for op(s) {', '.join(str(n) for n in brief.ops)} "
+                                f"gives a {part.footprint[0]:g} x {part.footprint[1]:g} mm "
+                                f"part, and no wall of it is long enough for a "
+                                f"{brief.route_width_mm:g} mm channel plus its "
+                                f"{contracts.floor('min_wall_mm'):g} mm walls, so the "
+                                f"chamber was grown to {side:.2f} mm a side; it holds more "
+                                f"than the assay needs",
+                    "assumed": round(side * side * contracts.max_depth_mm(), 4),
+                    "assumed_from": "contracts/blocks.json fabrication_floors "
+                                    "min_open_channel_mm + min_wall_mm",
+                },))
+            part = parts_mod.size_part(grown, flow_scale=flow_scale)
+        if brief.conduit and not parts_mod.joinable(part):
+            width = brief.route_width_mm
+            target = (parts_mod.mixing_length_mm(part)
+                      or brief.residence_length_mm(width, contracts.max_depth_mm()))
+            why = (f"{part.block} for op(s) {', '.join(str(n) for n in brief.ops)} comes out "
+                   f"{part.footprint[0]:g} x {part.footprint[1]:g} mm, smaller than the "
+                   f"{parts_mod.joinable_minimum_mm(brief):.2f} mm a face needs for a "
+                   f"{width:g} mm channel plus its walls, so it is realised as the "
+                   f"connecting channel"
+                   + (f", lengthened to {target:g} mm" if target else ""))
+            inline.append(replace(brief, inline=True, inline_why=why,
+                                  target_length_mm=target))
+            continue
+        parts.append(part)
+    if not parts and inline:
+        # EVERY op on this chip is a conduit. The chip is still a real chip - a mixing or
+        # delay board between its own ports - but a chip with nothing placed has nothing
+        # for S7 to route between and nothing for S8 to target. So the op with the longest
+        # job becomes the one place on it, grown to the smallest footprint a channel can
+        # attach to, and the rest stay channel. This is not the same as sizing a mixer
+        # from the fabrication floor: it is the deliberate choice of where the single
+        # vessel on a conduit-only chip goes.
+        promoted = max(inline, key=lambda b: (b.target_length_mm or 0.0, b.op))
+        inline = [b for b in inline if b is not promoted]
+        side = parts_mod.joinable_minimum_mm(promoted)
+        parts.append(parts_mod.size_part(replace(
+            promoted, inline=False, load=Load(basis="none"),
+            volume_ul=side * side * contracts.max_depth_mm(), load_basis="none",
+            volume_source=(f"every op on this chip carries a stream, so op(s) "
+                           f"{', '.join(str(n) for n in promoted.ops)} became its one "
+                           f"place, at the smallest footprint a channel can attach to "
+                           f"({side:.2f} mm a side)"),
+            gaps=promoted.gaps + ({
+                "op": promoted.op, "field": "part",
+                "question": f"every op on this chip is a conduit, so there would have been "
+                            f"nothing placed at all; op(s) "
+                            f"{', '.join(str(n) for n in promoted.ops)} "
+                            f"({', '.join(promoted.kinds)}) were made the chip's single "
+                            f"place at the smallest joinable size, and the remaining "
+                            f"{len(inline)} op(s) stay as channel",
+                "assumed": round(side * side * contracts.max_depth_mm(), 4),
+                "assumed_from": "assay2chip/layout/parts.py joinable_minimum_mm()",
+            },)), flow_scale=flow_scale))
+    return parts, inline
 
 
 def verification() -> dict:
@@ -153,8 +268,6 @@ def build_chip(chip_entry: dict, ops_by_number: dict[int, dict], *, assay_id: st
     except mats.MaterialError as e:
         return _rerun(chip_id, scale, f"no material can do these ops together: {e}", e.detail)
 
-    side_feeds = [i for i, b in enumerate(briefs) if b.needs_reagent]
-    drains = [i for i, b in enumerate(briefs) if b.drains]
     pad = ports_mod.pad_budget(briefs, scale=scale)
 
     # SIZE AND PLACE, SLOWING DOWN RATHER THAN GIVING UP. Every flow on this chip is one
@@ -184,9 +297,12 @@ def build_chip(chip_entry: dict, ops_by_number: dict[int, dict], *, assay_id: st
                     f"than the chip's {depth:g} mm etch depth. The chip is ONE layer at ONE "
                     f"depth (contracts/blocks.json envelope), so this is a registry bug, not "
                     f"something to paper over here.")
+            # Indexed against the PLACED parts, not the briefs: an op realised as a
+            # channel has no part to hang a side port off.
             placement = place_mod.place_parts(
                 parts, envelope, floors=floors, port_pad_mm=pad,
-                side_feeds=side_feeds, drains=drains)
+                side_feeds=[i for i, p in enumerate(parts) if p.brief.needs_reagent],
+                drains=[i for i, p in enumerate(parts) if p.brief.drains])
         except (parts_mod.PartError, place_mod.CannotFit) as e:
             failure = e
             continue
@@ -216,8 +332,9 @@ def build_chip(chip_entry: dict, ops_by_number: dict[int, dict], *, assay_id: st
         })
 
     try:
-        port_plan = ports_mod.plan_ports(briefs, placement, floors=floors, scale=scale,
-                                         handoffs=handoffs, chip_id=chip_id)
+        port_plan = ports_mod.plan_ports(
+            [p.brief for p in parts], placement, floors=floors, scale=scale,
+            handoffs=handoffs, chip_id=chip_id, extra=inline)
     except ports_mod.PortBudgetExceeded as e:
         return _rerun(chip_id, scale, f"too many ports: split ({e})", e.detail)
 
@@ -230,10 +347,16 @@ def build_chip(chip_entry: dict, ops_by_number: dict[int, dict], *, assay_id: st
         chip, gaps = spec_mod.build_chip_spec(
             chip_id=chip_id, parts=parts, placement=placement, port_plan=port_plan,
             material=material, scale=scale, reason=chip_entry.get("reason", ""),
-            unresolved=unresolved, registry=parts_mod.registry_source())
+            unresolved=unresolved + [
+                {"chip_id": chip_id, "op": b.op, "field": "part",
+                 "question": b.inline_why,
+                 "assumed": "the connecting channel",
+                 "assumed_from": "assay2chip/layout/parts.py joinable()"}
+                for b in inline],
+            inline=inline, registry=parts_mod.registry_source())
         connection = conn.connection_file(
             assay_id=assay_id, chip_id=chip_id, scale=scale, parts=parts,
-            placement=placement, port_plan=port_plan, unresolved=gaps)
+            placement=placement, port_plan=port_plan, inline=inline, unresolved=gaps)
     except parts_mod.PartError as e:
         # A part that cannot be joined up is a part that cannot be used, and that is a
         # partition decision, not a crash halfway through writing a chip.
@@ -251,6 +374,8 @@ def build_chip(chip_entry: dict, ops_by_number: dict[int, dict], *, assay_id: st
             "footprint_mm": [envelope.x_mm, envelope.y_mm],
             "ops": [n for b in briefs for n in b.ops],
             "parts": len(parts),
+            "inline_ops": {", ".join(str(n) for n in b.ops): b.target_length_mm
+                           for b in inline},
             "merged_parts": {p.part_id: list(p.brief.ops) for p in parts if p.brief.merged},
             "blocks": {p.part_id: p.block for p in parts},
             "chambers": len(chip["chambers"]),

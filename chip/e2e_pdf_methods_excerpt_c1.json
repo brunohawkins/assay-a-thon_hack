@@ -1,0 +1,635 @@
+{
+  "id": "e2e_pdf_methods_excerpt_c1",
+  "name": "e2e_pdf_methods_excerpt_c1: wash, separate, lyse, incubate",
+  "description": "UNROUTED. Built by assay2chip/stages/s6_build.py from partition.json: op 2 wash -> polygon_chamber 'wash_2', ops 4 separate, 5 collect, 6 wash -> polygon_chamber 'separate_4', ops 8 separate, 9 collect, 10 wash -> polygon_chamber 'separate_8', ops 12 separate, 13 collect -> polygon_chamber 'separate_12', op 14 lyse -> trap_chamber 'lyse_14', op 16 incubate -> trap_chamber 'incubate_16'. wash, mix, separate, collect, lyse, incubate share one board; they run between 25 and 37 C; 15 ports, which the target envelope does not cap; 5% of the envelope 127.76 x 85.48 mm (target envelope), ONE fluidic layer at ONE 0.3 mm etch depth, base and lid 0.5 / 1 mm. COP (Zeonor 1060R) because hot_embossing route; 90 C max working temperature covers the 37 C hold; DNA adsorption Low: hydrophobic, little DNA binding; protein/enzyme adsorption possible. The hottest hold here is 37 C. SIZED FROM THE LOAD, never from the paper's tube volumes (assay2chip/README.md, 'Bench volumes do not transfer'): wash_2 from 2,000 cells at 1500 per uL = 1.33 uL of suspension; separate_4 from 2,000 cells at 1500 per uL = 1.33 uL of suspension (the largest load of op(s) 4, 5, 6: op 4); separate_8 from 2,000 cells at 1500 per uL = 1.33 uL of suspension (the largest load of op(s) 8, 9, 10: op 8); separate_12 from 2,000 cells at 1500 per uL = 1.33 uL of suspension (the largest load of op(s) 12, 13: op 12); lyse_14 from a stated packed bed of 28.0616 uL; incubate_16 from a stated packed bed of 28.0616 uL. ONE PART PER PLACE (chip/designs/README.md rule 1): ops 4, 5, 6 (separate, collect, wash) all act on the same cells in 'separate_4', so they share one chamber sized for the largest of their loads and held at each temperature in turn; ops 8, 9, 10 (separate, collect, wash) all act on the same cells in 'separate_8', so they share one chamber sized for the largest of their loads and held at each temperature in turn; ops 12, 13 (separate, collect) all act on the same cells in 'separate_12', so they share one chamber sized for the largest of their loads and held at each temperature in turn. PLACEMENT: parts sit in flow order in 1 row(s) (left to right), spread across the usable 121.4 x 79.1 mm so the slack between them is routing corridor. Total chain length 516.8 mm, crossing risk 0, nothing rotated; every feature keeps at least 0.4 mm to its neighbours and to the chip edge. PORTS: 4 (inlet_1, outlet_1, reagent_in, waste), each over a PORT PAD the registry sized, so the bore opens entirely onto cut area and the port-overlap rule in tools/check_chip_spec.py passes. Inlets and outlets are on opposite edges, which is what keeps the layout planar in one layer, and no two ports are closer than 5 mm. CHANNELS BETWEEN PARTS ARE DELIBERATELY EMPTY: S7 routes them from assay2chip/work/<id>/connections_e2e_pdf_methods_excerpt_c1.json. Until it has run, a chamber here is unconnected on purpose, and every rule that needs a channel - channel width against capsule diameter, channel crossings, protocol targets - can only be checked after S7. REALISED AS CHANNELS, not as parts: op(s) 3 (mix) - op(s) 3 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part; op(s) 7 (mix) - op(s) 7 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part; op(s) 11 (mix) - op(s) 11 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part; op(s) 15 (mix) - op(s) 15 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part. A conduit is sized from flow and residence time, and one that comes out smaller than a face a channel can attach to is not a small part but an unusable one, so it becomes the channel instead, lengthened to the length it needs. Parts sized by assay2chip/parts/registry.py. RISKS carried from sizing: Z TOLERANCE: the gap is 25 um and published z tolerance on these processes is +/-20 um, which is +/-80% of it, so the weir could close or leak outright. blocks.json calls this the biggest unknown in the retention scheme: coupon 21, 24 and 27 um gaps before committing. If it fails, the lever is capsule size (tunable 35-260 um), which buys a proportionally larger gap.; flow distribution across a wide weir is explicitly NOT scale-free (blocks.json target_envelope.not_scale_free); this crest is 9.67 mm wide.",
+  "placeholder": true,
+  "units": "mm",
+  "footprint": {
+    "x": 127.76,
+    "y": 85.48
+  },
+  "layers": [
+    {
+      "id": "base",
+      "material": "cop_zeonor_1060r",
+      "thickness_mm": 0.5,
+      "note": "COP (Zeonor 1060R): hot_embossing route; 90 C max working temperature covers the 37 C hold; DNA adsorption Low: hydrophobic, little DNA binding; protein/enzyme adsorption possible"
+    },
+    {
+      "id": "fluidic",
+      "material": "cop_zeonor_1060r",
+      "thickness_mm": 0.3,
+      "note": "the ONE fluidic layer, at the one etch depth (contracts/blocks.json envelope.max_depth_mm = 0.3 mm)"
+    },
+    {
+      "id": "lid",
+      "material": "cop_zeonor_1060r",
+      "thickness_mm": 1.0,
+      "note": "bonded lid; the ports are drilled through it onto their pads"
+    }
+  ],
+  "chambers": [
+    {
+      "block": "polygon_chamber",
+      "id": "wash_2",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        4.2541,
+        8.0357,
+        0.65
+      ],
+      "size": [
+        2.1082,
+        2.1082,
+        0.3
+      ],
+      "volume_ul": 1.3334,
+      "height_um": 300.0,
+      "note": "general-purpose chamber, straight walls."
+    },
+    {
+      "block": "polygon_chamber",
+      "id": "separate_4",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        25.0058,
+        8.0357,
+        0.65
+      ],
+      "size": [
+        2.1082,
+        2.1082,
+        0.3
+      ],
+      "volume_ul": 1.3334,
+      "height_um": 300.0,
+      "note": "general-purpose chamber, straight walls."
+    },
+    {
+      "block": "polygon_chamber",
+      "id": "separate_8",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        45.7575,
+        8.0357,
+        0.65
+      ],
+      "size": [
+        2.1082,
+        2.1082,
+        0.3
+      ],
+      "volume_ul": 1.3334,
+      "height_um": 300.0,
+      "note": "general-purpose chamber, straight walls."
+    },
+    {
+      "block": "polygon_chamber",
+      "id": "separate_12",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        66.5091,
+        8.0357,
+        0.65
+      ],
+      "size": [
+        2.1082,
+        2.1082,
+        0.3
+      ],
+      "volume_ul": 1.3334,
+      "height_um": 300.0,
+      "note": "general-purpose chamber, straight walls."
+    },
+    {
+      "block": "trap_chamber",
+      "id": "lyse_14",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        91.1342,
+        8.0357,
+        0.65
+      ],
+      "size": [
+        9.8549,
+        9.6715,
+        0.3
+      ],
+      "volume_ul": 28.0616,
+      "height_um": 300.0,
+      "retention": {
+        "type": "weir",
+        "opening_um": 25.0,
+        "source": "fabricated",
+        "crest_height_um": 275.0,
+        "crest_thickness_um": 200.0,
+        "retains_um": 70.0
+      },
+      "note": "depth weir at the outlet: 25 um gap in z under the lid, 275 um crest (300 um etch depth minus the gap), 200 um thick in plane. Volume is the box minus the crest."
+    },
+    {
+      "block": "trap_chamber",
+      "id": "incubate_16",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        119.6326,
+        8.0357,
+        0.65
+      ],
+      "size": [
+        9.8549,
+        9.6715,
+        0.3
+      ],
+      "volume_ul": 28.0616,
+      "height_um": 300.0,
+      "retention": {
+        "type": "weir",
+        "opening_um": 25.0,
+        "source": "fabricated",
+        "crest_height_um": 275.0,
+        "crest_thickness_um": 200.0,
+        "retains_um": 70.0
+      },
+      "note": "depth weir at the outlet: 25 um gap in z under the lid, 275 um crest (300 um etch depth minus the gap), 200 um thick in plane. Volume is the box minus the crest."
+    },
+    {
+      "block": "port",
+      "id": "inlet_1_pad",
+      "type": "inlet",
+      "shape": "cylinder",
+      "center": [
+        1.0,
+        8.0,
+        0.65
+      ],
+      "size": [
+        1.2,
+        1.2,
+        0.3
+      ],
+      "volume_ul": 0.3393,
+      "height_um": 300.0,
+      "note": "0.8 mm through-hole on a 1.2 mm pad. The pad exists so the hole opens onto cut channel, which is the port-overlap rule tools/check_chip_spec.py enforces. S7 routes INTO this pad, not to the hole centre."
+    },
+    {
+      "block": "port",
+      "id": "outlet_1_pad",
+      "type": "outlet",
+      "shape": "cylinder",
+      "center": [
+        126.76,
+        8.0,
+        0.65
+      ],
+      "size": [
+        1.2,
+        1.2,
+        0.3
+      ],
+      "volume_ul": 0.3393,
+      "height_um": 300.0,
+      "note": "0.8 mm through-hole on a 1.2 mm pad. The pad exists so the hole opens onto cut channel, which is the port-overlap rule tools/check_chip_spec.py enforces. S7 routes INTO this pad, not to the hole centre."
+    },
+    {
+      "block": "port",
+      "id": "reagent_in_pad",
+      "type": "inlet",
+      "shape": "cylinder",
+      "center": [
+        4.25,
+        1.0,
+        0.65
+      ],
+      "size": [
+        1.2,
+        1.2,
+        0.3
+      ],
+      "volume_ul": 0.3393,
+      "height_um": 300.0,
+      "note": "0.8 mm through-hole on a 1.2 mm pad. The pad exists so the hole opens onto cut channel, which is the port-overlap rule tools/check_chip_spec.py enforces. S7 routes INTO this pad, not to the hole centre."
+    },
+    {
+      "block": "port",
+      "id": "waste_pad",
+      "type": "outlet",
+      "shape": "cylinder",
+      "center": [
+        91.25,
+        84.48,
+        0.65
+      ],
+      "size": [
+        1.2,
+        1.2,
+        0.3
+      ],
+      "volume_ul": 0.3393,
+      "height_um": 300.0,
+      "note": "0.8 mm through-hole on a 1.2 mm pad. The pad exists so the hole opens onto cut channel, which is the port-overlap rule tools/check_chip_spec.py enforces. S7 routes INTO this pad, not to the hole centre."
+    }
+  ],
+  "channels": [
+    {
+      "id": "ch_conn_1",
+      "from": "inlet_1_pad",
+      "to": "wash_2",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "path": [
+        [
+          1.6,
+          7.925
+        ],
+        [
+          3.2,
+          7.925
+        ]
+      ],
+      "carries": "cells",
+      "note": "the sample enters at 'inlet_1' and the first thing it meets is op 2 (wash) S7 route: 0 corner(s), 1.60 mm centreline, mouths east/west."
+    },
+    {
+      "id": "ch_conn_2",
+      "from": "wash_2",
+      "to": "separate_4",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "path": [
+        [
+          5.3082,
+          7.525
+        ],
+        [
+          23.9517,
+          7.525
+        ]
+      ],
+      "carries": "cells",
+      "note": "op(s) 3 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part S7 route: 0 corner(s), 18.64 mm centreline, mouths east/west."
+    },
+    {
+      "id": "ch_conn_3",
+      "from": "separate_4",
+      "to": "separate_8",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "path": [
+        [
+          26.0599,
+          7.525
+        ],
+        [
+          44.7034,
+          7.525
+        ]
+      ],
+      "carries": "cells",
+      "note": "op(s) 7 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part S7 route: 0 corner(s), 18.64 mm centreline, mouths east/west."
+    },
+    {
+      "id": "ch_conn_4",
+      "from": "separate_8",
+      "to": "separate_12",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "path": [
+        [
+          46.8116,
+          7.525
+        ],
+        [
+          65.455,
+          7.525
+        ]
+      ],
+      "carries": "cells",
+      "note": "op(s) 11 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part S7 route: 0 corner(s), 18.64 mm centreline, mouths east/west."
+    },
+    {
+      "id": "ch_conn_5",
+      "from": "separate_12",
+      "to": "lyse_14",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "path": [
+        [
+          67.5632,
+          7.525
+        ],
+        [
+          86.2067,
+          7.525
+        ]
+      ],
+      "carries": "cells",
+      "note": "flow order: op 12 (separate) feeds op 14 (lyse) S7 route: 0 corner(s), 18.64 mm centreline, mouths east/west."
+    },
+    {
+      "id": "ch_conn_6",
+      "from": "lyse_14",
+      "to": "incubate_16",
+      "width_mm": 0.21,
+      "depth_mm": 0.3,
+      "block": "channel_corner",
+      "path": [
+        [
+          93.425,
+          3.2
+        ],
+        [
+          93.425,
+          2.675
+        ],
+        [
+          114.175,
+          2.675
+        ],
+        [
+          114.175,
+          3.725
+        ],
+        [
+          114.7052,
+          3.725
+        ]
+      ],
+      "carries": "capsules",
+      "note": "op(s) 15 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part S7 route: 3 corner(s), 22.86 mm centreline, mouths south/west."
+    },
+    {
+      "id": "ch_conn_7",
+      "from": "reagent_in_pad",
+      "to": "inlet_1_pad",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "channel_corner",
+      "path": [
+        [
+          3.65,
+          1.075
+        ],
+        [
+          1.075,
+          1.075
+        ],
+        [
+          1.075,
+          7.4
+        ]
+      ],
+      "carries": "liquid",
+      "note": "the off-chip selector decides which of the two lines is live; the pad is the junction, so nothing has to enter the part twice S7 route: 1 corner(s), 8.90 mm centreline, mouths west/south."
+    },
+    {
+      "id": "ch_conn_8",
+      "from": "lyse_14",
+      "to": "waste_pad",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "channel_corner",
+      "path": [
+        [
+          96.0617,
+          12.325
+        ],
+        [
+          96.075,
+          12.325
+        ],
+        [
+          96.075,
+          84.425
+        ],
+        [
+          91.85,
+          84.425
+        ]
+      ],
+      "carries": "liquid",
+      "note": "spent liquid leaves to waste here, at the last place on this chip that drains (op 14, lyse), through the retention crest, so no particles go with it; the effluent of the places upstream reaches it through the chain, which is the price of one shared drain S7 route: 2 corner(s), 76.34 mm centreline, mouths east/east."
+    },
+    {
+      "id": "ch_conn_9",
+      "from": "incubate_16",
+      "to": "outlet_1_pad",
+      "width_mm": 0.21,
+      "depth_mm": 0.3,
+      "block": "channel_corner",
+      "path": [
+        [
+          121.925,
+          3.2
+        ],
+        [
+          121.925,
+          2.675
+        ],
+        [
+          126.675,
+          2.675
+        ],
+        [
+          126.675,
+          7.4
+        ]
+      ],
+      "carries": "capsules",
+      "note": "the product leaves op 16 (incubate) at 'outlet_1' S7 route: 2 corner(s), 10.00 mm centreline, mouths south/south."
+    }
+  ],
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "position": [
+        1.0,
+        8.0,
+        1.8
+      ],
+      "role": "load",
+      "width_um": 800.0,
+      "note": "the chip's entry: op 2 (wash) is the first thing on it, fed by the hand-off from e2e_pdf_methods_excerpt_bench"
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "position": [
+        126.76,
+        8.0,
+        1.8
+      ],
+      "role": "harvest",
+      "capsule_passable": true,
+      "width_um": 800.0,
+      "note": "the chip's product outlet, after op 16 (incubate), handed off to e2e_pdf_methods_excerpt_c2"
+    },
+    {
+      "id": "reagent_in",
+      "type": "inlet",
+      "position": [
+        4.25,
+        1.0,
+        1.8
+      ],
+      "role": "reagent",
+      "capsule_passable": false,
+      "width_um": 800.0,
+      "note": "one reagent feed for op(s) 2, 4, 8, 12, 14, 3, 7, 11, 15; WHICH reagent is selected OFF chip by a rotary or selector valve, because an on-chip valve needs a second fluidic layer and contracts/blocks.json excludes those"
+    },
+    {
+      "id": "waste",
+      "type": "outlet",
+      "position": [
+        91.25,
+        84.48,
+        1.8
+      ],
+      "role": "waste",
+      "capsule_passable": false,
+      "width_um": 800.0,
+      "note": "spent liquid from op(s) 2, 4, 8, 12, 14 leaves here, behind the retention crest, so no particles pass it"
+    }
+  ],
+  "generator": {
+    "script": "assay2chip/stages/s6_build.py",
+    "params": {
+      "scale": "target",
+      "envelope_mm": [
+        127.76,
+        85.48
+      ],
+      "etch_depth_mm": 0.3,
+      "rows": 1,
+      "rotated_parts": 0,
+      "chain_length_mm": 516.76,
+      "crossing_risk": 0,
+      "ops": [
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        10,
+        12,
+        13,
+        14,
+        16
+      ],
+      "blocks": {
+        "wash_2": "polygon_chamber",
+        "separate_4": "polygon_chamber",
+        "separate_8": "polygon_chamber",
+        "separate_12": "polygon_chamber",
+        "lyse_14": "trap_chamber",
+        "incubate_16": "trap_chamber"
+      },
+      "ops_per_part": {
+        "wash_2": [
+          2
+        ],
+        "separate_4": [
+          4,
+          5,
+          6
+        ],
+        "separate_8": [
+          8,
+          9,
+          10
+        ],
+        "separate_12": [
+          12,
+          13
+        ],
+        "lyse_14": [
+          14
+        ],
+        "incubate_16": [
+          16
+        ]
+      },
+      "sized_from": {
+        "wash_2": "suspension_volume",
+        "separate_4": "suspension_volume",
+        "separate_8": "suspension_volume",
+        "separate_12": "suspension_volume",
+        "lyse_14": "packed_volume",
+        "incubate_16": "packed_volume"
+      },
+      "ops_realised_as_channels": [
+        3,
+        7,
+        11,
+        15
+      ],
+      "part_registry": "assay2chip/parts/registry.py",
+      "material_choice": "hot_embossing route; 90 C max working temperature covers the 37 C hold; DNA adsorption Low: hydrophobic, little DNA binding; protein/enzyme adsorption possible",
+      "layer_convention": "the layer stack of 16 built chip(s): chip/e2e_bead_capture_assay_c1.json, chip/e2e_bead_capture_assay_c2.json, chip/e2e_bead_capture_assay_c3.json, chip/e2e_bead_capture_assay_c4.json",
+      "routed": false
+    }
+  },
+  "thermal_zones": [
+    {
+      "id": "wash_2_zone",
+      "chambers": [
+        "wash_2"
+      ],
+      "max_temp_c": 37.0,
+      "purpose": "wash"
+    },
+    {
+      "id": "wash_6_zone",
+      "chambers": [
+        "separate_4"
+      ],
+      "max_temp_c": 37.0,
+      "purpose": "wash"
+    },
+    {
+      "id": "wash_10_zone",
+      "chambers": [
+        "separate_8"
+      ],
+      "max_temp_c": 25.0,
+      "purpose": "wash"
+    },
+    {
+      "id": "lyse_14_zone",
+      "chambers": [
+        "lyse_14"
+      ],
+      "max_temp_c": 25.0,
+      "purpose": "lysis"
+    },
+    {
+      "id": "incubate_16_zone",
+      "chambers": [
+        "incubate_16"
+      ],
+      "max_temp_c": 25.0,
+      "purpose": "incubation"
+    }
+  ],
+  "capsule": {
+    "diameter_um": 70.0,
+    "swell_factor": 2.0
+  },
+  "trap": {
+    "gap_um": 25.0
+  },
+  "scale": "target"
+}

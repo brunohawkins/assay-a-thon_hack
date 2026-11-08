@@ -821,7 +821,13 @@ def fv_solution(
             "nCellsInCoarsestLevel": 100,
             "mergeLevels": 1,
         },
-        '"(U|k|epsilon|omega|T|s|age)"': {
+        # `(Final)?` is not decoration. On the last PIMPLE corrector the solvers are
+        # looked up as `UFinal`, `ageFinal` and so on, and a regex without it does not
+        # match them - so a transient run dies at the first time step with
+        # `Entry 'UFinal' not found in dictionary "system/fvSolution/solvers"`. It took
+        # out pimpleFoam on spc_demo_v1 step 1 (and would take out every interFoam and
+        # every transient scalar transport case in this package the same way).
+        '"(U|k|epsilon|omega|T|s|age)(Final)?"': {
             "solver": "smoothSolver",
             "smoother": "symGaussSeidel",
             "tolerance": u_tolerance,
@@ -1198,6 +1204,99 @@ def build_case(
         steady=steady,
         n_cores=max(int(n_cores), 1),
     )
+
+
+# --- WHERE A CASE LIVES: one convention, used by every module ----------------
+#
+# This existed in four places and they did not agree, which cost a real OpenFOAM job:
+# `mesh.py` was handed `foam/<chip>/1/` while `flow.py` wrote its case to
+# `foam/foam/<chip>/step_1/`, so the mesh and the dictionaries landed in different
+# directories and `checkMesh` failed on an empty one. The doubled `foam/` came from
+# joining a run directory that was already called `foam` to a literal `foam`; the
+# different step name came from one module writing `<step>` and another `step_<N>`.
+#
+# So there is now exactly ONE answer, here, and mesh, flow, transport, particles, vof and
+# render all ask for it rather than building a path:
+#
+#     <out>/<chip_id>/step_<N>/            the case, with its mesh at constant/polyMesh
+#     <out> = assay2chip/work/<run>/foam   by default
+#
+# `out_dir()` is idempotent about the trailing `foam`, so passing it either a run
+# directory or an already-resolved output directory gives the same answer and the doubled
+# path cannot come back.
+
+#: The run name `assay2chip/work/<run>/foam` falls back to.
+DEFAULT_RUN = "foam"
+
+#: A case directory for a whole chip rather than one step (`run.py --no-step`).
+ALL_STEPS = "all"
+
+
+def out_dir(run: str = DEFAULT_RUN, *, work: Path | str | None = None) -> Path:
+    """`assay2chip/work/<run>/foam` - the directory every case of one run lives under.
+
+    THE DOUBLED PATH IS MADE UNREPRESENTABLE HERE, not merely avoided. Whatever a caller
+    hands over - a run name, a run directory, an output directory, or an output directory
+    that has already had `foam` appended twice by somebody else's string join - collapses
+    onto the same place:
+
+        out_dir()                               -> .../work/foam
+        out_dir("e2e")                          -> .../work/e2e/foam
+        out_dir(work=".../work/e2e")            -> .../work/e2e/foam
+        out_dir(work=".../work/e2e/foam")       -> .../work/e2e/foam
+        out_dir(work=".../work/foam/foam")      -> .../work/foam
+
+    The last two lines are the point. `<out>` is `work/<run>/foam`, so the DEFAULT run -
+    which is itself called `foam` - would read `work/foam/foam`, and a caller that
+    appends `foam` to a directory already called `foam` lands in the same place. Both are
+    the bug that put a mesh in `foam/<chip>/1/` and its case in `foam/foam/<chip>/step_1/`
+    and failed `checkMesh` on the empty one. A run that genuinely wants a nested `foam`
+    directory cannot have one, and that is the right trade.
+    """
+    base = Path(work) if work is not None else (ROOT / "assay2chip" / "work" / run)
+    if base.name != "foam":
+        base = base / "foam"
+    while base.name == "foam" and base.parent.name == "foam":
+        base = base.parent
+    return base
+
+
+def case_dir(out: Path | str | None, chip_id: str, step: Any = None) -> Path:
+    """THE case directory for one chip and one protocol step.
+
+        case_dir(None, "spc_demo_v1", 1)        -> .../work/foam/spc_demo_v1/step_1
+        case_dir(out, "module1_v1", "4b")       -> <out>/module1_v1/step_4b
+        case_dir(out, "module1_v1", None)       -> <out>/module1_v1/all
+
+    The mesh goes INSIDE it, at `constant/polyMesh` - `mesh.write_polymesh(chip, case_dir)`
+    - and the dictionaries beside it in `system/`, `constant/` and `0/`. Nothing may write
+    a mesh for a step into a different directory from that step's case.
+
+    `out` may be the output directory, the run directory, or None; see `out_dir`.
+    """
+    base = out_dir(work=out) if out is not None else out_dir()
+    return base / _safe_name(chip_id) / step_name(step)
+
+
+def step_name(step: Any = None) -> str:
+    """`step_<N>` for a step, `all` for a whole-chip case.
+
+    `render.py` already looks for `step_<N>` first, so this is that spelling and not a
+    new one. A step id out of a protocol can be `4b` or `s7`, so it is used as written
+    rather than coerced to an int.
+    """
+    if step is None or step == "" or step == ALL_STEPS:
+        return ALL_STEPS
+    text = str(step)
+    return text if text.startswith("step_") else f"step_{_safe_name(text)}"
+
+
+def _safe_name(text: str) -> str:
+    """A path component: no separators, no surprises."""
+    cleaned = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(text)).strip("_")
+    if not cleaned or cleaned in (".", ".."):
+        raise CaseError(f"{text!r} is not usable as a directory name")
+    return cleaned
 
 
 # --- blockMesh, for tests and simple ducts -----------------------------------

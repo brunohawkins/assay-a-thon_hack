@@ -16,6 +16,6 @@ Platform-neutral pieces, standard library only (Python 3.9+):
     api.py         the hosted HTTP API (behind the reverse proxy, never bare)
     local.py       `python -m assay2chip.hosting.local`: everything in plain processes
 
-See assay2chip/hosting/README.md and docs/hosting.md. Nothing in the existing pipeline
+See docs/hosting.md. Nothing in the existing pipeline
 imports this package; it drives the pipeline through its CLIs.
 """

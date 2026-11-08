@@ -50,6 +50,16 @@ def _f(value, default=None):
     return default if out != out else out
 
 
+def trim(text):
+    """Drop trailing zeros only AFTER a decimal point.
+
+    A bare `.rstrip("0")` turns 140 into 14 and 1200 into 12, which is how a 140 um
+    capsule was reported as 14 um against a 100 um gap printed as 1 um. The guard is the
+    whole point of this function existing.
+    """
+    return (text.rstrip("0").rstrip(".") or "0") if "." in text else text
+
+
 def sig(value, digits=3):
     x = _f(value)
     if x is None:
@@ -59,7 +69,7 @@ def sig(value, digits=3):
     if abs(x) >= 1e5 or abs(x) < 1e-3:
         return f"{x:.2e}"
     places = max(0, digits - 1 - int(math.floor(math.log10(abs(x)))))
-    return f"{x:.{places}f}".rstrip("0").rstrip(".") or "0"
+    return trim(f"{x:.{places}f}")
 
 
 def cell(value, width=None):
@@ -146,7 +156,7 @@ def _header(result, lines):
     if not trusted:
         lines += [
             f"> ## {verdict} - ALL FINDINGS BELOW ARE UNTRUSTED",
-            f"> {detail}. Until the benchmarks in `cfd/README.md` pass "
+            f"> {str(detail).rstrip('. ')}. Until the benchmarks in `cfd/README.md` pass "
             f"(analytic duct resistance, series and parallel networks, agreement with "
             f"`operator/network.py`, mass conservation) every number in this report is "
             f"the output of an unchecked solver. Read the findings as *where to look*, "
@@ -222,7 +232,7 @@ def _findings(result, lines):
         rows = []
         for f in group:
             rows.append([
-                f"`{cell(f.get('id'), 18)}`",
+                f"`{cell(f.get('id'), 48)}`",      # the id has to be usable to grep
                 cell(f.get("class")),
                 cell(f.get("chip_id"), 22),
                 cell(f.get("feature_id"), 22),
@@ -257,22 +267,68 @@ def _fixes(result, lines):
     if not fixes:
         lines += ["_no fixes proposed_", ""]
         return
+    applied = [f for f in fixes if f.get("applied")]
+    lines += [f"{len(fixes)} candidate(s) across {len(_by_finding(fixes))} finding(s); "
+              f"{len(applied)} applied. Every candidate, with its gates, is in "
+              f"`cfd/fixes.json`.", ""]
+
+    lines += ["### Applied", ""]
+    lines += table(
+        ["finding", "action", "target", "metric", "before", "after", "verified after"],
+        [[f"`{cell(f.get('finding_id'), 44)}`", cell(f.get("action"), 26),
+          cell(f.get("target"), 22),
+          cell((f.get("predicted") or {}).get("metric"), 24),
+          sig((f.get("predicted") or {}).get("before")),
+          sig((f.get("predicted") or {}).get("after")),
+          sig(f.get("verified_after"))] for f in applied],
+        empty="_none: every candidate below failed at least one gate and is a proposal._")
+
+    # One row per FINDING, not per candidate: the fix module offers several routes to the
+    # same finding and 123 near-duplicate rows is not a short document. The best
+    # candidate and what stopped it is the decision a reader has to make.
     rows = []
-    for fix in fixes:
-        predicted = fix.get("predicted") or {}
+    for finding_id, group in _by_finding(fixes).items():
+        if all(f.get("applied") for f in group):
+            continue
+        best = min(group, key=_distance)
+        predicted = best.get("predicted") or {}
+        blocked = sorted({g for f in group for g in (f.get("blocked_by") or [])})
         rows.append([
-            f"`{cell(fix.get('finding_id'), 18)}`",
-            cell(fix.get("action"), 26),
-            cell(fix.get("target"), 22),
-            cell(predicted.get("metric"), 20),
+            f"`{cell(finding_id, 44)}`",
+            cell(best.get("action"), 26),
+            cell(best.get("target"), 22),
             sig(predicted.get("before")),
             sig(predicted.get("after")),
-            "applied" if fix.get("applied") else
-            ("auto-applicable" if fix.get("auto_applicable") else "for a human"),
-            cell(fix.get("verified_after"), 28),
+            sig(predicted.get("limit")),
+            len(group),
+            ", ".join(blocked) or ("auto-applicable" if best.get("auto_applicable")
+                                   else "not re-simulated"),
         ])
-    lines += table(["finding", "action", "target", "metric", "before", "after",
-                    "status", "verified after"], rows)
+    lines += ["### Proposed for a human - best candidate per finding", ""]
+    lines += table(["finding", "best action", "target", "before", "after", "limit",
+                    "candidates", "blocked by"], rows)
+    needs = sorted({str(f.get("needs")) for f in fixes if f.get("needs")})
+    if needs:
+        lines += [f"Blocked on a part or capability we do not have: "
+                  f"{', '.join(needs)}.", ""]
+
+
+def _by_finding(fixes):
+    out = {}
+    for fix in fixes:
+        out.setdefault(str(fix.get("finding_id")), []).append(fix)
+    return out
+
+
+def _distance(fix):
+    """How far the predicted result still is from the limit; unknown sorts last."""
+    predicted = fix.get("predicted") or {}
+    after, limit = _f(predicted.get("after")), _f(predicted.get("limit"))
+    if after is None:
+        return float("inf")
+    if limit is None or limit == 0:
+        return abs(after)
+    return abs(after / limit)
 
 
 def _handoffs(result, lines):
@@ -284,27 +340,65 @@ def _handoffs(result, lines):
     if not handoffs:
         lines += ["_no handoffs in this run_", ""]
         return
+    if not coupling:
+        lines += ["`couple.py` produced nothing for this run, so the rows below are "
+                  "only what the pipeline file DECLARES: no tubing, no dead volume and "
+                  "no cross-chip pressure budget has been computed.", ""]
     rows = []
     for hand in handoffs:
         hid = str(hand.get("id") or "")
         extra = coupling.get(hid) or {}
         source = hand.get("from") or {}
         target = hand.get("to") or {}
-        connector = (hand.get("connector") or {}).get("status", "-")
+        pressure = extra.get("pressure") or {}
+        particle = _f(extra.get("particle_um"))
+        passable = _f(extra.get("narrowest_passable_um"))
+        fits = ("-" if particle is None or passable is None else
+                (f"{sig(particle)} / {sig(passable)}"
+                 + (" **FAILS**" if particle > passable else "")))
+        dp = next((pressure.get(key) for key in
+                   ("total_dp_kpa", "dp_kpa", "line_dp_kpa") if pressure.get(key)), None)
+        if dp is None:
+            dp = _f(pressure.get("line_dp_kpa"), 0.0) + \
+                _f(pressure.get("downstream_chip_dp_kpa"), 0.0) or None
         rows.append([
-            f"`{cell(hid, 24)}`",
-            f"{cell(source.get('module') or source.get('roadmap'), 14)}."
-            f"{cell(source.get('port') or source.get('ports'), 14)}",
-            f"{cell(target.get('module') or target.get('roadmap'), 14)}."
-            f"{cell(target.get('port') or target.get('ports'), 14)}",
-            cell(hand.get("carries")),
-            connector,
+            f"`{cell(hid, 26)}`",
+            f"{cell(source.get('module') or source.get('roadmap'), 12)}."
+            f"{cell(extra.get('from_port') or source.get('port') or source.get('ports'), 12)}",
+            f"{cell(target.get('module') or target.get('roadmap'), 12)}."
+            f"{cell(extra.get('to_port') or target.get('port') or target.get('ports'), 12)}",
+            cell(extra.get("carries") or hand.get("carries")),
+            str(extra.get("severity") or "-"),
+            "yes" if extra.get("automated") else
+            ("no" if "automated" in extra else "-"),
+            fits,
             sig(extra.get("dead_volume_ul")),
-            sig(extra.get("dp_kpa")),
-            cell(extra.get("note") or (hand.get("connector") or {}).get("warning"), 60),
+            sig(dp),
+            sig(pressure.get("limit_kpa")),
         ])
-    lines += table(["handoff", "from", "to", "carries", "connector",
-                    "dead vol µL", "dP kPa", "note"], rows)
+    lines += table(["handoff", "from", "to", "carries", "severity", "automated",
+                    "particle / narrowest µm", "dead vol µL", "dP kPa", "limit kPa"],
+                   rows)
+    notes = []
+    for hand in handoffs:
+        hid = str(hand.get("id") or "")
+        extra = coupling.get(hid) or {}
+        warning = ((hand.get("connector") or {}).get("warning")
+                   or extra.get("automated_why") if not extra.get("automated") else None)
+        if str(extra.get("severity") or "") in ("blocker", "high") or warning:
+            notes.append([f"`{cell(hid, 26)}`",
+                          cell(extra.get("chain_note") or warning
+                               or hand.get("note"), 150)])
+    if notes:
+        lines += ["Why the worst of them are flagged:", ""]
+        lines += table(["handoff", "what the chain file and the coupling say"], notes)
+    manual = [h for h in handoffs
+              if (coupling.get(str(h.get("id"))) or {}).get("automated") is False]
+    if manual:
+        lines += [f"**{len(manual)} of {len(handoffs)} handoffs are NOT automated** - "
+                  f"a human carries the sample. The stated goal is no human "
+                  f"intervention, so these are counted here: "
+                  f"{', '.join('`' + str(h.get('id')) + '`' for h in manual)}.", ""]
 
 
 def _validation(result, lines):
@@ -388,10 +482,15 @@ def _limits(result, lines):
 
     assumptions = result.get("assumptions") or []
     if assumptions:
-        lines += ["### Flagged assumptions this run depended on", ""]
-        lines += table(["key or subject", "value", "where it was used", "source"],
+        lines += ["### Flagged assumptions this run depended on", "",
+                  "Every number here is a rule of thumb or a contract value marked "
+                  "`assumption: true`. A finding that rests on one is not the same as "
+                  "one that rests on a measurement.", ""]
+        lines += table(["key or subject", "value", "units", "where it was used, and why",
+                        "source"],
                        [[f"`{cell(a.get('key'), 44)}`", sig(a.get("value")),
-                         cell(a.get("used_for"), 48), cell(a.get("source"), 40)]
+                         cell(a.get("units"), 20), cell(a.get("used_for"), 150),
+                         cell(a.get("source"), 50)]
                         for a in assumptions])
 
     gaps = result.get("gaps") or []

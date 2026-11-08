@@ -2,6 +2,8 @@
 
     .venv/bin/python deploy/local/smoke.py            # fast: fakes for the slow segments
     .venv/bin/python deploy/local/smoke.py --real     # the real pipeline + OpenFOAM (slow)
+    .venv/bin/python deploy/local/smoke.py --real-foam spc_demo_v1
+        # real s0-s4, a repo chip standing in for S5-S10, and a REAL OpenFOAM job
 
 It starts the service exactly as `a2c start` does, in a throwaway data directory on a free
 port, and checks:
@@ -41,9 +43,10 @@ FAKE = ROOT / "deploy" / "local" / "fake_stage.py"
 
 
 class Smoke:
-    def __init__(self, data: Path, real: bool, verbose: bool):
+    def __init__(self, data: Path, real: bool, verbose: bool, real_foam: str = None):
         self.data = data
         self.real = real
+        self.real_foam = real_foam
         self.verbose = verbose
         self.port = self._free_port()
         self.base = "http://127.0.0.1:%d" % self.port
@@ -52,7 +55,16 @@ class Smoke:
         self.env.update({"A2C_DATA_DIR": str(data), "A2C_PORT": str(self.port),
                          "A2C_POLL_S": "0.2", "A2C_FOAM_MAX_PARALLEL": "2",
                          "A2C_LIGHT_SLOTS": "2"})
-        if not real:
+        if real_foam:
+            data.mkdir(parents=True, exist_ok=True)
+            fake = [PY, str(FAKE)]
+            (data / "overrides.json").write_text(json.dumps({
+                "design": fake + ["design_from_repo_chip", "{run_id}", real_foam],
+                "fabricate": fake + ["fabricate", "{run_id}"],
+                "report": fake + ["report", "{run_id}"],
+            }))
+            self.env["A2C_COMMAND_OVERRIDES"] = str(data / "overrides.json")
+        elif not real:
             overrides = data / "overrides.json"
             data.mkdir(parents=True, exist_ok=True)
             fake = [PY, str(FAKE)]
@@ -158,7 +170,30 @@ class Smoke:
 
     # --- the checks ---------------------------------------------------------------
 
+    def check_real_foam(self) -> dict:
+        self.start()
+        code, sub = self.submit_file(FIXTURE, {"llm": "stub", "foam": True,
+                                               "foam_max_steps": 1})
+        run_id = sub["run_id"]
+        self.say("submitted %s; a REAL OpenFOAM case follows (minutes)" % run_id)
+        run = self.wait(run_id, lambda r: r["status"] in ("done", "done_with_errors",
+                                                          "failed", "cancelled"), 4 * 3600)
+        for j in run["jobs"]:
+            self.say("    %-28s %-17s attempts %d/%d %s %s" % (
+                j["key"], j["status"], j["attempts"], j["max_attempts"], j["error"] or "",
+                (j["result"] or {}).get("seconds", "")))
+        arts = self.http("GET", "/api/queue/runs/%s/artifacts" % run_id)[1]
+        foam_files = [a["path"] for a in arts if "/foam/jobs/" in a["path"]]
+        for path in foam_files:
+            self.say("    " + path)
+        summary = self.artifact_json(run_id, "assay2chip/work/%s/foam/summary.json" % run_id)
+        self.stop()
+        return {"run": run_id, "status": run["status"], "foam_files": len(foam_files),
+                "foam_cases": summary["counts"]}
+
     def check(self) -> dict:
+        if self.real_foam:
+            return self.check_real_foam()
         results = {}
         self.start()
         status = self.http("GET", "/api/queue/status")[1]
@@ -281,11 +316,13 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--real", action="store_true",
                     help="run the real pipeline and OpenFOAM (slow)")
+    ap.add_argument("--real-foam", metavar="REPO_CHIP",
+                    help="real s0-s4 and a REAL OpenFOAM job on this repo chip")
     ap.add_argument("--data", help="data directory (default: a new temporary one)")
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
     data = Path(args.data) if args.data else Path(tempfile.mkdtemp(prefix="a2c_smoke_"))
-    smoke = Smoke(data, args.real, args.verbose)
+    smoke = Smoke(data, args.real, args.verbose, real_foam=args.real_foam)
     print("deploy smoke test (%s) in %s" % ("REAL pipeline" if args.real else "fast fakes",
                                             data))
     try:

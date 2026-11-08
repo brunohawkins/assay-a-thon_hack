@@ -154,6 +154,7 @@ class Brief:
     paper_volume_ul: float | None = None   # fluid.volume_ul: traceability ONLY
     inline: bool = False             # realise as the connecting channel, not as a part
     inline_why: str = ""
+    target_length_mm: float | None = None   # how long that channel has to be
     gaps: tuple[dict, ...] = field(default_factory=tuple)
     note: str = ""
 
@@ -263,7 +264,11 @@ def candidate_blocks(op: dict, *, particles: str, culture: bool, branches: int |
         # is a PLACE, not the inlet: ports.py plans the chip's ports, and a part that was
         # itself a port would be a second hole in the lid.
         "load": (["trap_chamber"] if retains else []) + ["polygon_chamber"],
-        "transfer": ["straight_channel", "polygon_chamber"],
+        # A transfer has no vessel of its own: moving a population from A to B IS the
+        # channel between them. A `straight_channel` part would be a channel S7 cannot
+        # route to, so the chamber is the only candidate and a transfer with nothing to
+        # hold ends up inline.
+        "transfer": ["polygon_chamber"],
         "culture": ["culture_chamber", "polygon_chamber"],
         "merge": ["curved_y_junction", "y_junction"] if shear_sensitive else ["y_junction"],
         "mix": ["herringbone_mixer", "asymmetric_serpentine", "snake_channel", "polygon_chamber"],

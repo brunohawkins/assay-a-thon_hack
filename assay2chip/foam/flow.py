@@ -105,6 +105,7 @@ from assay2chip.cfd.model import (  # noqa: E402
     Finding,
     Mesh,
 )
+from assay2chip.foam import case as foam_case  # noqa: E402
 from assay2chip.lib import contracts  # noqa: E402
 
 SCHEMA = "foam-flow/1"
@@ -122,16 +123,43 @@ VISC_SETTLE_FACTOR = 10.0
 #: The steady solvers, so a forced solver can be recognised as steady or not.
 STEADY_SOLVERS = ("simpleFoam", "potentialFoam")
 
-#: Transient by construction, whatever Re says.
+#: Transient because the SINGLE-PHASE velocity field genuinely changes in time: an abrupt
+#: change of boundary conditions that pimpleFoam can actually resolve.
 TRANSIENT_TERMS = (
-    "flood", "quench", "prime", "priming", "droplet", "encapsulat", "emulsif",
-    "back-flush", "backflush", "back flush", "purge", "burst", "shock",
+    "flood", "quench", "back-flush", "backflush", "back flush",
+    "purge", "burst", "shock",
+)
+
+#: Transient because an INTERFACE moves - priming air out of a board, forming droplets,
+#: encapsulating. A single-phase solver HAS NO INTERFACE, so `pimpleFoam` cannot resolve
+#: any of it: it would integrate a one-fluid field towards exactly the steady state
+#: `simpleFoam` reaches in a few hundred iterations, at a thousand times the cost, and
+#: still report nothing about the thing that makes the step transient.
+#:
+#: So a step like this is solved STEADY and single-phase - which is a real answer, the
+#: flow once the board is primed - and carries a finding that the transient itself is
+#: `vof.py`'s (`assay2chip/foam/README.md`: "vof.py: priming (air->liquid), droplets").
+#: spc_demo_v1 step 1 is the case in point: "Prime the board with oil before anything
+#: aqueous goes in", 505k cells, at Re 0.077.
+TWO_PHASE_TERMS = (
+    "prime", "priming", "droplet", "encapsulat", "emulsif",
+    "water-in-oil", "water in oil", "air out", "wetting front",
 )
 
 #: The patch-flow sign convention. OpenFOAM's `phi` on a boundary is positive OUT of the
 #: domain, while `Field.meta["port_flow_ul_min"]` and `PortState.q_ul_min` are positive
 #: INTO the chip. One minus sign, in one place.
 PHI_IS_OUTWARD = True
+
+#: Courant limit for a transient run. pimpleFoam is implicit so it is stable well above
+#: 1, but the time accuracy of a first-order Euler scheme is not, and 0.9 is the usual
+#: compromise. The step size ADAPTS to it (`adjustTimeStep`): a fixed deltaT small enough
+#: for the fastest cell in a chip is far too small for the rest of it.
+MAX_COURANT = 0.9
+
+#: How long the runner may spend on one solver call. The default in `runner.py` is half an
+#: hour, which a 1.5M-cell case can exceed honestly.
+DEFAULT_TIMEOUT_S = 5400.0
 
 #: Roache's two-grid safety factor for the Grid Convergence Index. 1.25 is for three
 #: grids with an OBSERVED order; with two grids the order has to be assumed, and 3.0 is
@@ -140,7 +168,11 @@ GCI_SAFETY_TWO_GRID = 3.0
 #: Formal order of a second-order finite-volume scheme on a structured hex mesh.
 ASSUMED_ORDER = 2.0
 
-DEFAULT_WORK = ROOT / "assay2chip" / "work"
+#: WHERE A CASE GOES is `assay2chip/foam/case.py`'s decision, not this module's. It was
+#: this module's once, and the result was `work/foam/foam/<chip>/step_1` next to a mesh in
+#: `work/foam/<chip>/1` - two directories for one case, and a checkMesh failure on the
+#: empty one. `case.case_dir(out, chip_id, step)` is now the only answer.
+DEFAULT_RUN = foam_case.DEFAULT_RUN
 
 
 class FlowError(RuntimeError):
@@ -171,16 +203,15 @@ class FoamStack:
         runner.run(case_dir, command, parallel=, check=False)       -> runner.RunResult
         runner.available() / runner.has_solver(name)                -> bool
 
-    `mesh.py` (F2) is not here yet, so its entry point is still probed by name and
-    `bound["mesh"]` records which one answered:
+        mesh.write_polymesh(chip, case_dir, dxy_mm=, min_cells_z=) -> FoamMesh
+            writes `case_dir/constant/polyMesh`: structured hex, one lid patch per port
+            named by port id plus `walls`, cellZones named by feature id. `FoamMesh.meta`
+            carries `cells`, `xy.dxy_mm`, `xy.narrowest_feature_mm`,
+            `xy.cells_across_narrowest`, `z.cells`, `cell_zones`, `patches` and
+            `unresolved`, all of which this module reads rather than re-deriving.
 
-        mesh.write_mesh(chip, case_dir, spacing_mm=, z_cells=) -> info
-            writes `case_dir/constant/polyMesh`: structured hex, one patch per port named
-            by port id plus `walls`, cellZones named by feature id. `info` should carry
-            `cells`, `patches` {port_id: patch_name} and `zones` {feature_id: zone_name}.
-
-    TODO(F2): replace the probing in `build_case` with the agreed signature once
-    `assay2chip/foam/mesh.py` lands. It is the only sibling call left that guesses.
+    All three are called by those signatures directly - there is no name probing left and
+    no TODO. `bound` records what was called, for the summary.
     """
 
     mesh: Any = None
@@ -1207,6 +1238,9 @@ class CasePlan:
     #: out. It travels into the summary so no reader mistakes a forced steady field at
     #: Re > 1 for the full answer.
     solver_forced_reason: str = ""
+    #: Non-empty when the transient part of this step is a moving interface. The run is
+    #: steady and single-phase, and this says what it therefore does NOT answer.
+    two_phase_reason: str = ""
     end_time_s: float = 0.0
     write_interval_s: float = 0.0
     #: What a caller ASKED for; `None` means mesh.py chooses, which is the default and the
@@ -1238,7 +1272,12 @@ class CasePlan:
     re_estimate: Optional[float] = None
     re_source: str = ""
     t_visc_s: Optional[float] = None
+    #: Time to displace one chip volume. NOT the window of a flow run - it is the window
+    #: of a washout, which is transport.py's answer - but recorded so the summary can say
+    #: what this run did not resolve.
+    flush_s: Optional[float] = None
     duration_s: Optional[float] = None
+    timeout_s: float = DEFAULT_TIMEOUT_S
     depth_mm: Optional[float] = None
     case_dir: str = ""
     assumptions: List[str] = dc_field(default_factory=list)
@@ -1318,22 +1357,50 @@ def _min_channel_mm(mesh: Mesh) -> float:
     return min(widths) if widths else 0.0
 
 
-def transient_reason(record: Any, re_estimate: Optional[float], t_visc_s: Optional[float],
-                     duration_s: Optional[float]) -> str:
-    """Why this step must be run transient, or "" when steady is the right physics."""
-    blob = " ".join(
+def _step_text(record: Any) -> str:
+    """The step's own words. NOT its targets: a feature called `ch_backflush` is a name,
+    not an event, and matching on it would make every step that touches it transient."""
+    return " ".join(
         str(x) for x in (
             getattr(record, "operation", "") or "",
             getattr(record, "note", "") or "",
             getattr(getattr(record, "fluid", None), "name", "") or "",
             getattr(record, "exchange_kind", "") or "",
-            " ".join(getattr(record, "targets", ()) or ()),
         )
     ).lower()
+
+
+def two_phase_reason(record: Any) -> str:
+    """Why the transient part of this step is an INTERFACE, and so not this module's.
+
+    Returned separately from `transient_reason` because the two call for opposite
+    actions: a single-phase transient is run with pimpleFoam, while a two-phase one is
+    run STEADY here and reported to `vof.py`. Conflating them is how a priming step
+    became a 505k-cell pimpleFoam run that could not have resolved priming.
+    """
+    hit = next((t for t in TWO_PHASE_TERMS if t in _step_text(record)), "")
+    if not hit:
+        return ""
+    return (
+        f"the step is a two-phase event ({hit!r}): what makes it transient is a moving "
+        f"gas-liquid or liquid-liquid INTERFACE, and a single-phase solver has none. "
+        f"This run therefore solves the steady single-phase field - the flow once the "
+        f"interface has passed - and the transient itself belongs to vof.py (interFoam)."
+    )
+
+
+def transient_reason(record: Any, re_estimate: Optional[float], t_visc_s: Optional[float],
+                     duration_s: Optional[float]) -> str:
+    """Why this step must be run transient, or "" when steady is the right physics.
+
+    Only reasons a SINGLE-PHASE solver can act on. See `two_phase_reason` for the rest.
+    """
+    blob = _step_text(record)
     hit = next((t for t in TRANSIENT_TERMS if t in blob), "")
     if hit:
-        return (f"the step names a transient event ({hit!r}): a flood, quench, prime or "
-                f"droplet formation is transient by construction")
+        return (f"the step names a transient event ({hit!r}): a flood, quench, back-flush "
+                f"or purge changes the boundary conditions abruptly, and the single-phase "
+                f"velocity field genuinely follows it in time")
     if re_estimate is not None and re_estimate > RE_STEADY_LIMIT:
         return (f"Re = {re_estimate:.3g} > {RE_STEADY_LIMIT:g}: inertia is part of the "
                 f"answer, so a steady SIMPLE loop would converge to a field whose "
@@ -1355,8 +1422,8 @@ def plan_case(
     z_cells: int = 8,
     n_proc: int = 1,
     reduced: Optional[Field] = None,
-    work_dir: Optional[Path] = None,
-    run_name: str = "foam",
+    out: Optional[Path] = None,
+    run: str = DEFAULT_RUN,
     force_solver: str = "",
 ) -> CasePlan:
     """Decide the solver, the end time and the fluid for one step, with reasons.
@@ -1368,13 +1435,26 @@ def plan_case(
     a steady run that turns out to be inertial.
     """
     scenario = record.scenario if hasattr(record, "scenario") else record
-    # The reduced model's own fluid resolution, which knows how to read a `Scenario` and
-    # flags an assumed density. The OpenFOAM case is built from `case.Fluid` instead
-    # (`build_case` below), and `_check_fluid_agreement` refuses to run if the two ever
-    # disagree - a cross-validation where the two models ran different liquids would be
-    # worthless, and that is exactly the kind of mismatch nobody notices.
+    # TWO FLUID RESOLUTIONS, ON PURPOSE, AND THE CASE'S ONE WINS.
+    #
+    # `case.Fluid` is what `build_case` writes into `constant/transportProperties`, so it
+    # is the viscosity the solver actually runs and the density every kinematic result has
+    # to be multiplied back by (`Fluid.pressure_pa`, `Fluid.wall_shear_pa`). Taking the
+    # conversion density from anywhere else would let the case and the post-processing
+    # drift apart by a factor nobody would notice, so `plan.rho_kg_m3` IS the case's.
+    #
+    # `cfd_solve.fluid_for` is the reduced model's independent resolution of the same
+    # step. It is kept because it says whether the density is a contract value or an
+    # assumption, and because `_check_fluid_agreement` then refuses to run at all if the
+    # two ever disagree - a cross-validation in which the two models solved different
+    # liquids would read as a few percent of "model disagreement" forever.
     fluid = cfd_solve.fluid_for(scenario)
-    nu = fluid.mu_pa_s / fluid.rho_kg_m3
+    case_fluid_obj = _case_fluid_if_available(record)
+    mu = case_fluid_obj.mu_pa_s if case_fluid_obj is not None else fluid.mu_pa_s
+    rho = case_fluid_obj.rho_kg_m3 if case_fluid_obj is not None else fluid.rho_kg_m3
+    mu_source = (f"{case_fluid_obj.source} (the case's own transportProperties)"
+                 if case_fluid_obj is not None else fluid.mu_source)
+    nu = mu / rho
     depth_mm = _chip_depth_mm(mesh)
     t_visc = ((depth_mm * 1e-3) ** 2 / nu) if (depth_mm > 0 and nu > 0) else None
 
@@ -1384,6 +1464,7 @@ def plan_case(
 
     duration = getattr(record, "duration_s", None)
     reason = transient_reason(record, re_est, t_visc, duration)
+    two_phase = two_phase_reason(record)
     forced = ""
     if force_solver:
         steady_forced = force_solver in STEADY_SOLVERS
@@ -1410,29 +1491,42 @@ def plan_case(
     vents = sorted(k for k, v in getattr(scenario, "ports", {}).items() if v.is_pressure)
     capped = sorted(k for k, v in getattr(scenario, "ports", {}).items() if v.is_closed)
 
-    # How long a transient run has to be: long enough to settle momentum AND to move a
-    # chip volume, so the field that is reported is the one the step actually runs in.
+    # HOW LONG A TRANSIENT FLOW RUN HAS TO BE, AND WHY IT IS NOT THE FLUSH TIME.
+    #
+    # A flow run reports a pressure drop, an outlet split and a wall shear, and all three
+    # are properties of the VELOCITY field. Velocity settles in the viscous diffusion time
+    # across the depth, `h^2 / nu` - 7.5 ms on spc_demo_v1's 0.15 mm etch - so ten of
+    # those is a settled field to about 5e-5.
+    #
+    # The time to flush a chip volume is a different and much larger number: 190 s on the
+    # same chip at 3.1 uL/min, 25000 viscous times. It is the right window for WASHOUT and
+    # mean age, which is `transport.py`'s answer, not this module's. Using it here asked
+    # pimpleFoam for five million Courant-limited time steps to watch a field that had
+    # stopped changing in the first 75 ms, and the run was killed at the runner's
+    # half-hour cap having reached iteration 1263 of them.
+    #
+    # So: settle momentum, and stop. `flush_s` is still recorded, because the summary
+    # should say what this run did NOT resolve.
     q_in = float(getattr(record, "q_in_ul_min", 0.0) or 0.0)
     flush_s = (mesh.volume_ul / q_in * 60.0) if q_in > 0 else None
     end_time = 0.0
     write_interval = 0.0
     if reason:
-        wanted = [v for v in (
-            (VISC_SETTLE_FACTOR * t_visc) if t_visc else None,
-            flush_s,
-        ) if v]
-        end_time = min(duration, max(wanted)) if (duration and wanted) else (
-            max(wanted) if wanted else (duration or 1.0))
+        settle_s = (VISC_SETTLE_FACTOR * t_visc) if t_visc else None
+        if settle_s and duration:
+            end_time = min(duration, settle_s)      # a step shorter than settling is the step
+        else:
+            end_time = settle_s or duration or 1.0
         end_time = float(f"{end_time:.3g}")
-        write_interval = end_time / 20.0
+        write_interval = end_time / 10.0
 
-    work = Path(work_dir) if work_dir else (DEFAULT_WORK / run_name)
-    case_dir = work / "foam" / chip_id / f"step_{step}"
+    case_path = foam_case.case_dir(out if out is not None else foam_case.out_dir(run),
+                                   chip_id, step)
 
     assumptions = list(fluid.notes)
     if fluid.rho_is_assumption:
         assumptions.append(
-            f"density {fluid.rho_kg_m3} kg/m^3 is an assumption ({fluid.rho_source}), and "
+            f"density {rho} kg/m^3 is an assumption ({fluid.rho_source}), and "
             f"EVERY pressure and shear here is linear in it because OpenFOAM's "
             f"incompressible p and wallShearStress are kinematic"
         )
@@ -1443,6 +1537,7 @@ def plan_case(
         transient=(force_solver not in STEADY_SOLVERS if force_solver else bool(reason)),
         transient_reason=reason,
         solver_forced_reason=forced,
+        two_phase_reason=two_phase,
         steady_reason=(
             "" if reason else
             (f"Re = {re_est:.3g} << 1 and the step holds for "
@@ -1460,18 +1555,19 @@ def plan_case(
         vents=vents,
         capped=capped,
         q_in_ul_min=q_in,
-        mu_pa_s=fluid.mu_pa_s,
-        rho_kg_m3=fluid.rho_kg_m3,
+        mu_pa_s=mu,
+        rho_kg_m3=rho,
         nu_m2_s=nu,
-        mu_source=fluid.mu_source,
+        mu_source=mu_source,
         rho_source=fluid.rho_source,
         rho_is_assumption=fluid.rho_is_assumption,
         re_estimate=re_est,
         re_source=re_src,
         t_visc_s=t_visc,
+        flush_s=flush_s,
         duration_s=duration,
         depth_mm=depth_mm or None,
-        case_dir=str(case_dir),
+        case_dir=str(case_path),
         assumptions=assumptions,
     )
 
@@ -1513,6 +1609,8 @@ def summarise(raw: RawFields, plan: CasePlan, *, mesh: Optional[Mesh] = None,
         "transient_reason": plan.transient_reason,
         "steady_reason": plan.steady_reason,
         "solver_forced_reason": plan.solver_forced_reason,
+        "two_phase_reason": plan.two_phase_reason,
+        "flush_s": plan.flush_s,
         "case_dir": plan.case_dir,
         "ports": {
             "feed": list(plan.feeds),
@@ -1651,6 +1749,27 @@ def findings_for(
             ),
             fix_hint="more iterations, a better initial field, or a finer mesh",
             source="openfoam",
+        ))
+
+    # --- what this run does NOT answer, said once and plainly -------------------------
+    if summary.get("two_phase_reason"):
+        out.append(Finding(
+            id=_fid(chip_id, step, "twophase", "interface"),
+            cls="unmodelled", severity="medium", chip_id=chip_id, step=step,
+            metric="two_phase_step_solved_single_phase",
+            value=None, limit=None, units="",
+            message=(
+                f"{chip_id} step {step} is a two-phase step and this is a SINGLE-PHASE "
+                f"solve. {summary.get('two_phase_reason')} The pressure drop, outlet split "
+                f"and wall shear reported here are the single-phase field and are "
+                f"trustworthy as such; trapped air, the wetting front, droplet size and "
+                f"whether the board primes at all are NOT answered and need interFoam."
+            ),
+            fix_hint="run this step through assay2chip/foam/vof.py (interFoam)",
+            source="openfoam",
+            assumption=True,
+            audit={"solver": summary.get("solver"),
+                   "flush_s": summary.get("flush_s")},
         ))
 
     # --- Re > 1: the thing the reduced model could not do -----------------------------
@@ -1821,29 +1940,6 @@ def _step_view_for(steps: Sequence[Any], step: Any, step_index: Optional[int]) -
 # ======================================================================================
 
 
-def _call(fn, *args, **kwargs):
-    """Call a sibling entry point, dropping keyword arguments it does not accept.
-
-    The three siblings are being written right now, so their signatures are not frozen.
-    Passing an unexpected keyword would turn "F1 has not added `z_cells` yet" into a
-    crash; dropping it turns the same thing into a default, which is what a parallel
-    build needs. Whatever was dropped is returned so the summary can say so.
-    """
-    import inspect
-    dropped: List[str] = []
-    try:
-        sig = inspect.signature(fn)
-    except (TypeError, ValueError):
-        return fn(*args, **kwargs), dropped
-    if any(p.kind is p.VAR_KEYWORD for p in sig.parameters.values()):
-        return fn(*args, **kwargs), dropped
-    allowed = {name for name, p in sig.parameters.items()
-               if p.kind in (p.POSITIONAL_OR_KEYWORD, p.KEYWORD_ONLY)}
-    kept = {k: v for k, v in kwargs.items() if k in allowed}
-    dropped = sorted(set(kwargs) - set(kept))
-    return fn(*args, **kept), dropped
-
-
 def build_case(chip: Mapping, record: Any, mesh: Mesh, plan: CasePlan,
                stack: Optional[FoamStack] = None) -> dict:
     """Write `polyMesh` (mesh.py) and the dictionaries (case.py) for one step.
@@ -1870,21 +1966,15 @@ def build_case(chip: Mapping, record: Any, mesh: Mesh, plan: CasePlan,
             ) from exc
     case_dir.mkdir(parents=True, exist_ok=True)
 
-    write_mesh = stack.entry("mesh", "write_polymesh", "write_mesh", "build_mesh", "build")
-    if write_mesh is None:
-        raise FlowError(
-            "assay2chip/foam/mesh.py has no write_polymesh entry point: flow.py cannot "
-            "write a polyMesh itself - that would be the fourth geometry implementation "
-            "the README forbids"
-        )
-    # `spacing_mm = None` means "mesh.py decides", which is the right default: it owns the
+    # `dxy_mm = None` means "mesh.py decides", which is the right default: it owns the
     # README's rule of at least 6 cells across the narrowest channel inside a cell budget,
     # and second-guessing it here would either break that rule or duplicate it. A spacing
     # is passed only when a caller is deliberately sweeping resolution (the grid study).
-    mesh_info, mesh_dropped = _call(
-        write_mesh, chip, case_dir,
-        dxy_mm=plan.spacing_mm, min_cells_z=plan.z_cells,
-    )
+    # `gap_um` / `gap_delta_um` are mesh.py's weir-tolerance sweep and belong to whoever
+    # is sweeping it, not to a flow run, so they are left at their defaults here.
+    mesh_info = stack.mesh.write_polymesh(chip, case_dir, dxy_mm=plan.spacing_mm,
+                                          min_cells_z=plan.z_cells)
+    stack.bound["mesh"] = "write_polymesh"
     meta = dict(getattr(mesh_info, "meta", None) or {})
     xy = dict(meta.get("xy") or {})
     plan.spacing_mm_actual = xy.get("dxy_mm")
@@ -1904,18 +1994,6 @@ def build_case(chip: Mapping, record: Any, mesh: Mesh, plan: CasePlan,
     fluid = case_fluid(record, foam_case)
     _check_fluid_agreement(fluid, plan)
     patches = foam_case.patches_from_scenario(record)
-    if plan.transient:
-        # A transient run in SECONDS. deltaT has to resolve the viscous settling time or
-        # the first step is a shock; 1/200 of `t_visc` is the convention used here and the
-        # run is written 20 times, which is what render.py needs for an animation.
-        delta_t = max(min((plan.t_visc_s or plan.end_time_s) / 200.0,
-                          plan.end_time_s / 100.0), 1e-9)
-        end_time = plan.end_time_s
-        write_interval = plan.write_interval_s or end_time / 20.0
-    else:
-        # simpleFoam: endTime is an ITERATION COUNT (case.py's own convention) and the run
-        # stops on fvSolution's residualControl long before it.
-        delta_t, end_time, write_interval = 1, 2000, 500
     # `include_age=False`: mean age is `transport.py`'s answer, not a flow run's
     # (`assay2chip/foam/README.md` gives washout and mean age to transport.py), and
     # solving an extra transport equation on every flow case costs time this module has no
@@ -1924,6 +2002,28 @@ def build_case(chip: Mapping, record: Any, mesh: Mesh, plan: CasePlan,
     # SIGILL *after* the flow had converged, which turned a good solve into a failed run.
     functions = foam_case.standard_functions(patches, write_interval=50,
                                              include_age=False)
+
+    control = None
+    if plan.transient:
+        end_time = plan.end_time_s
+        write_interval = plan.write_interval_s or end_time / 10.0
+        # The FIRST step only: `adjustTimeStep` then grows it to whatever `maxCo` allows,
+        # which is the only workable scheme on a chip mesh whose cells span two decades.
+        # A fixed deltaT sized for the fastest cell is what asked pimpleFoam for five
+        # million steps on spc_demo_v1 and got the run killed at the runner's cap.
+        delta_t = max(min((plan.t_visc_s or end_time) / 100.0, end_time / 1000.0), 1e-12)
+        control = foam_case.control_dict(
+            application=plan.solver, end_time=end_time, delta_t=delta_t,
+            write_interval=write_interval, write_control="adjustableRunTime",
+            functions=functions,
+            extra={"adjustTimeStep": True, "maxCo": MAX_COURANT,
+                   "maxDeltaT": write_interval},
+        )
+    else:
+        # simpleFoam: endTime is an ITERATION COUNT (case.py's own convention) and the run
+        # stops on fvSolution's residualControl long before it.
+        delta_t, end_time, write_interval = 1, 2000, 500
+
     built = foam_case.build_case(
         case_dir,
         fluid=fluid,
@@ -1935,12 +2035,12 @@ def build_case(chip: Mapping, record: Any, mesh: Mesh, plan: CasePlan,
         write_interval=write_interval,
         n_cores=plan.n_proc,
         functions=functions,
+        control=control,
     )
     return {
         "case_dir": str(case_dir),
         "mesh_info": _plain(mesh_info),
         "case_info": _plain(built),
-        "dropped_kwargs": {"mesh": mesh_dropped},
         "bound": dict(stack.bound),
     }
 
@@ -1965,6 +2065,25 @@ def _check_fluid_agreement(fluid: Any, plan: CasePlan, rtol: float = 1e-9) -> No
                 f"them before trusting any cross-validation - the two models would be "
                 f"solving different liquids."
             )
+
+
+def _case_fluid_if_available(record: Any) -> Any:
+    """`case.Fluid` for this step, or None when case.py cannot be imported.
+
+    `plan_case` runs before the stack is discovered (a plan is useful on its own - the
+    `--dry-run` path prints one with no OpenFOAM anywhere), so this import is local and
+    its failure is not an error: the plan then falls back to the reduced model's
+    viscosity and density, which `_check_fluid_agreement` will compare against the case's
+    the moment a case is actually built.
+    """
+    try:
+        from assay2chip.foam import case as foam_case
+    except Exception:
+        return None
+    try:
+        return case_fluid(record, foam_case)
+    except Exception:
+        return None
 
 
 def case_fluid(record: Any, foam_case: Any) -> Any:
@@ -1998,7 +2117,8 @@ def run_case(case_dir: Path, plan: CasePlan, stack: Optional[FoamStack] = None) 
     case_dir = Path(case_dir)
     steps: List[dict] = []
 
-    mesh_check = foam_runner.run(case_dir, "checkMesh", check=False)
+    mesh_check = foam_runner.run(case_dir, "checkMesh", check=False,
+                                 timeout_s=plan.timeout_s)
     steps.append({"command": "checkMesh", **_plain(mesh_check.to_dict())})
     if not mesh_check.ok:
         return {"ok": False, "stage": "checkMesh", "steps": steps,
@@ -2006,7 +2126,7 @@ def run_case(case_dir: Path, plan: CasePlan, stack: Optional[FoamStack] = None) 
 
     result = foam_runner.run(case_dir, plan.solver,
                              parallel=(plan.n_proc if plan.n_proc > 1 else None),
-                             check=False)
+                             check=False, timeout_s=plan.timeout_s)
     steps.append({"command": plan.solver, **_plain(result.to_dict())})
     return {
         "ok": bool(result.ok),
@@ -2322,8 +2442,8 @@ def run_step(
     z_cells: int = 8,
     n_proc: int = 1,
     reduced: Optional[Field] = None,
-    work_dir: Optional[Path] = None,
-    run_name: str = "foam",
+    out: Optional[Path] = None,
+    run: str = DEFAULT_RUN,
     stack: Optional[FoamStack] = None,
     escalate: bool = True,
     step_index: Optional[int] = None,
@@ -2339,7 +2459,7 @@ def run_step(
     chip = json.loads(Path(chip_path).read_text(encoding="utf-8"))
     mesh = mesh if mesh is not None else cfd_mesh.build_mesh(chip, grid_mm=0.25)
     plan = plan_case(chip, record, mesh, spacing_mm=spacing_mm, z_cells=z_cells,
-                     n_proc=n_proc, reduced=reduced, work_dir=work_dir, run_name=run_name,
+                     n_proc=n_proc, reduced=reduced, out=out, run=run,
                      force_solver=force_solver)
     stack = stack or discover_foam()
     built = build_case(chip, record, mesh, plan, stack)
@@ -2604,6 +2724,8 @@ def format_summary(summary: Mapping) -> str:
         lines.append(f"  why transient: {summary['transient_reason']}")
     if summary.get("solver_forced_reason"):
         lines.append(f"  SOLVER FORCED: {summary['solver_forced_reason']}")
+    if summary.get("two_phase_reason"):
+        lines.append(f"  TWO-PHASE: {summary['two_phase_reason']}")
     pressure = summary.get("pressure", {}) or {}
     lines.append(f"  peak pressure   {_fmt(pressure.get('peak_pa'))} Pa")
     for key, value in sorted((pressure.get("drop_pa") or {}).items()):

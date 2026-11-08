@@ -259,7 +259,7 @@ def _run_duct(stack: flow.FoamStack, case_dir: Path, length_mm: float, fluid: An
 
 
 def duct_check(stack: Optional[flow.FoamStack] = None, *,
-               work_dir: Optional[Path] = None) -> dict:
+               out: Optional[Path] = None) -> dict:
     """OpenFOAM on a straight rectangular duct against the exact series solution.
 
     The gated numbers are the fully developed pressure GRADIENT (entrance differenced out)
@@ -268,7 +268,7 @@ def duct_check(stack: Optional[flow.FoamStack] = None, *,
     so this is not a solver checking itself.
     """
     stack = stack or flow.discover_foam()
-    out: Dict[str, Any] = {
+    report: Dict[str, Any] = {
         "id": "duct_series",
         "name": "straight rectangular duct vs the exact Fourier-series solution",
         "geometry": {
@@ -288,15 +288,15 @@ def duct_check(stack: Optional[flow.FoamStack] = None, *,
         ),
     }
     if not (stack.available and stack.openfoam_available()):
-        out.update(status="skipped", passed=None,
+        report.update(status="skipped", passed=None,
                    reason=stack.reason or "OpenFOAM is not installed")
-        return out
+        return report
 
     foam_case = stack.case
     fluid = foam_case.fluid_for(37.0, name="duct benchmark (contract medium at 37 C)")
     mu = fluid.mu_pa_s
     q = DUCT_Q_UL_MIN / 6e10
-    work = Path(work_dir) if work_dir else (flow.DEFAULT_WORK / "foam" / "validate")
+    work = foam_case.out_dir(work=out) if out else foam_case.out_dir("foam_validate")
 
     # --- exact: the series solution, per unit length and at the peak ------------------
     r_exact_short = cfd_validate.duct_resistance_exact(DUCT_SHORT_MM, DUCT_WIDTH_MM,
@@ -318,13 +318,13 @@ def duct_check(stack: Optional[flow.FoamStack] = None, *,
             long = _run_duct(stack, work / f"duct_{tag}_long", DUCT_LONG_MM, fluid, q,
                              resolution)
         except flow.FlowError as exc:
-            out.update(status="fail", passed=False, reason=str(exc))
-            return out
+            report.update(status="fail", passed=False, reason=str(exc))
+            return report
         if short["dp_pa"] is None or long["dp_pa"] is None:
-            out.update(status="fail", passed=False,
+            report.update(status="fail", passed=False,
                        reason="no inlet->outlet pressure drop in the duct cases: case.py's "
                               "`p_<patch>` surfaceFieldValue objects did not write")
-            return out
+            return report
         levels.append({
             "tag": tag,
             "resolution": {"ny": resolution[0], "nz": resolution[1],
@@ -401,7 +401,7 @@ def duct_check(stack: Optional[flow.FoamStack] = None, *,
         },
     ]
     passed = all(c["passed"] for c in checks if c["passed"] is not None)
-    out.update(
+    report.update(
         status="pass" if passed else "fail",
         passed=passed,
         checks=checks,
@@ -411,7 +411,7 @@ def duct_check(stack: Optional[flow.FoamStack] = None, *,
         refinement_ratio=ratio,
         fluid=fluid.to_dict(),
     )
-    return out
+    return report
 
 
 def _order_check(name: str, coarse: Optional[float], fine: Optional[float],
@@ -546,6 +546,9 @@ class CrossRow:
     split_foam: Dict[str, float] = dc_field(default_factory=dict)
     split_reduced: Dict[str, float] = dc_field(default_factory=dict)
     gci: Optional[float] = None
+    #: Features the two models route the flow through differently (`routing_mismatch`).
+    #: Checked before every other cause, because it explains any magnitude of difference.
+    routing: List[dict] = dc_field(default_factory=list)
     verdict: str = ""
     believed: str = ""
     why: str = ""
@@ -593,6 +596,7 @@ class CrossRow:
                 "tolerance": TOL_CROSS_SPLIT,
             },
             "grid_convergence_index": self.gci,
+            "routing_mismatch": list(self.routing),
             "verdict": self.verdict,
             "believed_correct": self.believed,
             "why": self.why,
@@ -675,6 +679,65 @@ def chip_context(mesh: Mesh, spacing_mm: Optional[float], z_cells: int = 8) -> C
     return ctx
 
 
+#: A reduced-model edge carrying less than this fraction of the through-flow is carrying
+#: nothing: the solver's own floor is ~1e-10 of the through-flow, so 1e-3 is far above the
+#: numerical noise and far below any real flow split.
+ROUTING_DEAD_FRACTION = 1e-3
+#: ...while the same feature moving more than this fraction of the chip's peak velocity in
+#: the 3D field is carrying something. Between them the two models disagree about the ROUTE
+#: the liquid takes, which is a different and much more serious thing than disagreeing
+#: about a number.
+ROUTING_LIVE_FRACTION = 0.05
+
+
+def routing_mismatch(mesh: Mesh, field: Field, summary: Mapping) -> List[dict]:
+    """Features the two models route the flow through DIFFERENTLY.
+
+    This is checked before anything else, because a routing difference explains a
+    disagreement of any size and attributing it to inertia or to side walls would be
+    nonsense. It is also the fault worth finding: a feature that one model bypasses
+    entirely is not a few percent of error, it is a chip whose delay line does not exist.
+
+    The test is deliberately crude and one-directional - a `duct` edge that the reduced
+    model leaves dry while the 3D field has real velocity in the matching cellZone - so it
+    cannot fire on a genuine 60/40 split or on numerical noise. `spc_demo_v1` is the case
+    it was written for: `ch_xj_delay` and `ch_delay_out` both attach to `j:delay_1:a`, so
+    the 234 mm serpentine hangs off one node as a dead-end stub, carries exactly zero, and
+    the reduced model reports 39 Pa where the duct law and OpenFOAM both say ~1150.
+    """
+    q_in = abs(float(field.residual.q_in) or 0.0)
+    if not q_in:
+        return []
+    per_zone = dict((summary.get("reynolds") or {}).get("per_zone") or {})
+    u_chip = max((abs(float(v.get("u_max_mm_s") or 0.0)) for v in per_zone.values()),
+                 default=0.0)
+    if not u_chip:
+        return []
+    out: List[dict] = []
+    for feature in sorted(mesh.features()):
+        ducts = [e for e in mesh.edges_of(feature) if e.kind == "duct"]
+        if not ducts:
+            continue
+        reduced_q = max((abs(field.q_m3_s.get(e.id, 0.0)) for e in ducts), default=0.0)
+        u_foam = abs(float((per_zone.get(feature) or {}).get("u_max_mm_s") or 0.0))
+        if reduced_q / q_in >= ROUTING_DEAD_FRACTION:
+            continue
+        if u_foam / u_chip < ROUTING_LIVE_FRACTION:
+            continue
+        longest = max(ducts, key=lambda e: e.length_mm)
+        out.append({
+            "feature_id": feature,
+            "reduced_fraction_of_through_flow": reduced_q / q_in,
+            "openfoam_u_max_mm_s": u_foam,
+            "openfoam_fraction_of_peak_u": u_foam / u_chip,
+            "duct_length_mm": longest.length_mm,
+            "duct_width_mm": longest.width_mm,
+            "duct_depth_mm": longest.depth_mm,
+            "reduced_nodes": [longest.a, longest.b],
+        })
+    return out
+
+
 def adopt_grid(ctx: ChipContext, summary: Mapping) -> ChipContext:
     """Replace the context's guesses with what the 3D mesh ACTUALLY did.
 
@@ -720,6 +783,33 @@ def attribute(row: CrossRow, ctx: ChipContext) -> CrossRow:
     dp_ok = dp_diff is None or dp_diff <= TOL_CROSS_DP
     split_ok = split_diff is None or split_diff <= TOL_CROSS_SPLIT
     re_max = max([r for r in (row.re_reduced, row.re_foam) if r is not None] or [0.0])
+
+    # 0. THE ROUTE ITSELF. Checked before agreement, because two models that send the
+    # liquid down different paths are not validating each other even when their numbers
+    # happen to land close together.
+    if row.routing:
+        worst = max(row.routing, key=lambda r: r.get("duct_length_mm") or 0.0)
+        row.verdict = "disagree"
+        row.believed = "openfoam"
+        row.why = (
+            f"the two models route the flow DIFFERENTLY: the reduced model leaves "
+            f"{', '.join(r['feature_id'] for r in row.routing)} dry "
+            f"({worst['reduced_fraction_of_through_flow']:.1e} of the through-flow) while "
+            f"the 3D field carries "
+            f"{worst['openfoam_u_max_mm_s']:.3g} mm/s through it. {worst['feature_id']} is "
+            f"a {worst['duct_length_mm']:.4g} mm duct, so bypassing it removes essentially "
+            f"all of the chip's resistance - which is the {_pct(dp_diff)} seen here. In the "
+            f"reduced mesh both of its neighbours attach to the SAME end node "
+            f"({worst['reduced_nodes'][0]}), so the duct hangs off one point as a dead-end "
+            f"stub. The 3D mesh is a raster of the plan view and cannot make that mistake, "
+            f"so the 3D answer is correct and this is a BUG IN assay2chip/cfd/mesh.py, not "
+            f"a modelling difference."
+        )
+        row.caveats.append(
+            "every reduced-order number for this chip - pressure, shear, residence time - "
+            "is wrong for as long as the bypass stands, not just this step's"
+        )
+        return row
 
     if dp_ok and split_ok:
         row.verdict = "agree"
@@ -850,7 +940,7 @@ def cross_validate(
     max_steps: Optional[int] = 3,
     n_proc: int = 1,
     gci_by_chip: Optional[Mapping[str, float]] = None,
-    work_dir: Optional[Path] = None,
+    out: Optional[Path] = None,
 ) -> dict:
     """The cross-validation table: every chip and step both models can run.
 
@@ -922,7 +1012,7 @@ def cross_validate(
                 summary = flow.run_step(
                     chip_path, record, mesh=mesh, protocol=protocol,
                     spacing_mm=spacing_mm, n_proc=n_proc, reduced=field,
-                    work_dir=work_dir, stack=stack,
+                    out=out, stack=stack,
                 )
             except Exception as exc:
                 row.status = "error"
@@ -935,6 +1025,7 @@ def cross_validate(
             row.re_foam = (summary.get("reynolds") or {}).get("chip_max")
             row.dp_foam_pa = ((summary.get("pressure") or {}).get("drop_pa") or {}).get(label)
             adopt_grid(ctx, summary)
+            row.routing = routing_mismatch(mesh, field, summary)
             contexts[chip_id] = ctx.to_json()
             row.split_foam = {
                 k: v for k, v in (((summary.get("flow") or {})
@@ -985,18 +1076,18 @@ def _chip_paths(chip_ids: Optional[Sequence[str]]) -> List[Path]:
 
 def grid_study(chip_id: str = GRID_CHIP, spacings: Sequence[float] = GRID_SPACINGS, *,
                stack: Optional[flow.FoamStack] = None, grid_mm: float = 0.25,
-               n_proc: int = 1, work_dir: Optional[Path] = None) -> dict:
+               n_proc: int = 1, out: Optional[Path] = None) -> dict:
     """One chip, one step, two resolutions: the error bar every other number here needs.
 
     Without this the cross-validation cannot tell a real disagreement from a coarse mesh,
     so the GCI it produces is fed back into `attribute()` as `row.gci`.
     """
     stack = stack or flow.discover_foam()
-    out: Dict[str, Any] = {"id": "grid_sensitivity", "chip_id": chip_id,
+    report: Dict[str, Any] = {"id": "grid_sensitivity", "chip_id": chip_id,
                            "spacings_mm": list(spacings)}
     if not (stack.available and stack.openfoam_available()):
-        out.update(status="skipped", reason=stack.reason or "OpenFOAM is not installed")
-        return out
+        report.update(status="skipped", reason=stack.reason or "OpenFOAM is not installed")
+        return report
     chip_path = ROOT / "chip" / f"{chip_id}.json"
     chip = json.loads(chip_path.read_text(encoding="utf-8"))
     protocol_path, protocol = flow._load_protocol_for(chip_id)
@@ -1004,24 +1095,24 @@ def grid_study(chip_id: str = GRID_CHIP, spacings: Sequence[float] = GRID_SPACIN
     run = cfd_scenario.build_protocol(protocol_path, chip_path, worst_cases=False)
     record = flow.first_flowing_step(run)
     if record is None:
-        out.update(status="incomplete", reason=f"{chip_id} has no flowing step to refine")
-        return out
+        report.update(status="incomplete", reason=f"{chip_id} has no flowing step to refine")
+        return report
     reduced = cfd_solve.solve_step(mesh, record.scenario.for_mesh(mesh))
     summaries = []
     for spacing in spacings:
         try:
             summaries.append(flow.run_step(
                 chip_path, record, mesh=mesh, protocol=protocol, spacing_mm=spacing,
-                n_proc=n_proc, reduced=reduced, work_dir=work_dir, stack=stack,
-                run_name=f"foam_grid_{spacing:g}",
+                n_proc=n_proc, reduced=reduced, stack=stack,
+                report=out, run=f"foam_grid_{spacing:g}",
             ))
         except Exception as exc:
-            out.update(status="fail",
+            report.update(status="fail",
                        reason=f"the {spacing:g} mm run failed: {type(exc).__name__}: {exc}")
-            return out
-    out.update(step=record.step, operation=record.operation,
+            return report
+    report.update(step=record.step, operation=record.operation,
                **flow.grid_sensitivity(summaries, spacings))
-    return out
+    return report
 
 
 # ======================================================================================
@@ -1119,7 +1210,7 @@ def run(
     grid: bool = True,
     max_steps: Optional[int] = 3,
     n_proc: int = 1,
-    work_dir: Optional[Path] = None,
+    out: Optional[Path] = None,
 ) -> dict:
     """The whole suite. Returns the report; `write_report` puts it on disk."""
     stack = flow.discover_foam()
@@ -1131,10 +1222,10 @@ def run(
         "grid_sensitivity": {"status": "not_run"},
     }
     if duct:
-        report["duct"] = duct_check(stack, work_dir=work_dir)
+        report["duct"] = duct_check(stack, out=out)
     if grid:
         report["grid_sensitivity"] = grid_study(stack=stack, n_proc=n_proc,
-                                                work_dir=work_dir)
+                                                out=out)
     gci_by_chip: Dict[str, float] = {}
     worst = (report.get("grid_sensitivity") or {}).get("worst_gci")
     if worst is not None:
@@ -1142,7 +1233,7 @@ def run(
     if cross:
         report["cross_validation"] = cross_validate(
             chip_ids, stack=stack, spacing_mm=spacing_mm, max_steps=max_steps,
-            n_proc=n_proc, gci_by_chip=gci_by_chip, work_dir=work_dir,
+            n_proc=n_proc, gci_by_chip=gci_by_chip, out=out,
         )
 
     statuses = [report[k].get("status") for k in

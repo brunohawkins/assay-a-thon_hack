@@ -47,7 +47,8 @@ HAS_PYVISTA = foam_render.have_pyvista()
 HAS_FFMPEG = foam_render.ffmpeg() is not None
 
 
-def _synthetic_chain(tmp: Path, *, with_barcoding: bool) -> Path:
+def _synthetic_chain(tmp: Path, *, with_barcoding: bool,
+                     built_for_demo: bool | None = None) -> Path:
     """A minimal pipeline file, optionally with a stage inserted in the middle.
 
     Deliberately NOT a copy of the repo's: the point is that scene.py reads a chain, not
@@ -57,11 +58,14 @@ def _synthetic_chain(tmp: Path, *, with_barcoding: bool) -> Path:
         {"module": "a", "name": "Stage A", "status": "final",
          "chip": "chip/module1_v1.json", "protocol": "protocols/module1_v1.json"},
         {"module": "b", "name": "Stage B", "status": "final",
-         "chip": "chip/module5_v1.json", "protocol": "protocols/module5_v1.json"},
+         "chip": "chip/cell_prep_v1.json", "protocol": "protocols/cell_prep_v1.json"},
     ]
+    if built_for_demo is not None:
+        for mod in modules:
+            mod["built_for_demo"] = built_for_demo
     handoffs = [{"id": "a_to_b", "carries": "cells",
                  "from": {"module": "a", "port": "p_mid"},
-                 "to": {"module": "b", "port": "in_lib"}}]
+                 "to": {"module": "b", "port": "in_buffer"}}]
     if with_barcoding:
         modules.insert(1, {"module": "mid", "name": "Barcoding: split and pool",
                            "status": "missing",
@@ -72,7 +76,7 @@ def _synthetic_chain(tmp: Path, *, with_barcoding: bool) -> Path:
              "to": {"module": "mid", "port": "TBC"}},
             {"id": "mid_to_b", "carries": "cells",
              "from": {"module": "mid", "port": "TBC"},
-             "to": {"module": "b", "port": "in_lib"}},
+             "to": {"module": "b", "port": "in_buffer"}},
         ]
     doc = {"kind": "pipeline", "id": "synthetic", "modules": modules,
            "handoffs": handoffs,
@@ -184,6 +188,272 @@ class OffChipStagesAreLabelledPlaceholders(unittest.TestCase):
             layout, _ = foam_scene.layout_from_file(
                 _synthetic_chain(Path(tmp), with_barcoding=True))
         self.assertIn(foam_render.BOUGHT_KIT, layout.stages["mid"].badge)
+
+
+class ChipsOnThePrinterSaySo(unittest.TestCase):
+    """Six demo chips are being printed. Their cards say PRINTED FOR THE DEMO, and a
+    render never captions a suggested change to one: improvements belong to the full-spec
+    design, not to a chip that is already on the printer."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.layout, _ = foam_scene.layout_from_file(PIPELINE)
+
+    def test_the_print_queue_is_read_from_the_repo_not_listed_here(self) -> None:
+        table = foam_render.printed_chips()
+        self.assertEqual(len(table), 6, "six demo chips are being printed")
+        catalog = (ROOT / "tools" / "module_catalog.py").read_text(encoding="utf-8")
+        for chip_rel in table:
+            self.assertIn(chip_rel, catalog,
+                          "the print queue must come from tools/module_catalog.py")
+        self.assertIn("chip/module6_v1.json", table)
+
+    def test_a_printed_chip_is_badged_and_a_twin_only_chip_is_not(self) -> None:
+        printed = foam_render.Case(chip=foam_render.load_json(CHIP),
+                                   chip_id="module1_v1", chip_path="chip/module1_v1.json")
+        self.assertTrue(printed.printed)
+        self.assertEqual(printed.printed_slot, "Module 1")
+        self.assertIn(foam_render.PRINTED_FOR_DEMO, printed.badges())
+
+        twin = foam_render.Case(chip=foam_render.load_json(ROOT / "chip/cell_prep_v1.json"),
+                                chip_id="cell_prep_v1",
+                                chip_path="chip/cell_prep_v1.json")
+        self.assertFalse(twin.printed)
+        self.assertNotIn(foam_render.PRINTED_FOR_DEMO, twin.badges())
+
+    def test_five_of_the_six_are_in_the_mvp_chain_and_are_marked(self) -> None:
+        marked = {p.key: p.printed_slot for p in self.layout.chips() if p.printed}
+        self.assertEqual(sorted(marked.values()),
+                         ["Module 1", "Module 2", "Module 3", "Module 4", "Module 5"])
+        self.assertNotIn("module6", self.layout.stages,
+                         "Module 6 is not in this chain yet; it arrives with the merge")
+
+    def test_a_printed_chip_never_carries_a_suggested_change(self) -> None:
+        case = foam_render.Case(
+            chip=foam_render.load_json(CHIP), chip_id="module1_v1",
+            chip_path="chip/module1_v1.json",
+            findings=[{"severity": "high", "message": "shear is over the ceiling",
+                       "fix_hint": "widen ch_in_n to 0.4 mm"}])
+        self.assertNotIn("fix_hint", case.findings[0],
+                         "a chip on the printer gets findings as built, not change requests")
+        self.assertNotIn("widen", case.headline())
+        self.assertIn("shear is over the ceiling", case.headline())
+
+    def test_a_printed_card_says_findings_are_as_built(self) -> None:
+        place = next(p for p in self.layout.chips() if p.printed)
+        case = foam_render.Case(chip=foam_render.load_json(ROOT / place.chip_path),
+                                chip_id=place.key, chip_path=place.chip_path, step=1)
+        text = "\n".join(foam_scene.caption_for(place, case))
+        self.assertIn(foam_render.PRINTED_FOR_DEMO, text)
+        self.assertIn("AS BUILT", text)
+        self.assertIn("full-spec design", text)
+
+    def test_the_chain_file_can_say_so_itself_and_wins(self) -> None:
+        """`built_for_demo` is what a merge updates, so it beats the frozen list."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _synthetic_chain(Path(tmp), with_barcoding=False, built_for_demo=True)
+            layout, _ = foam_scene.layout_from_file(path)
+        # Stage B is cell_prep_v1, which is NOT on the printer - the chain file says it is.
+        self.assertTrue(layout.stages["b"].printed)
+        self.assertEqual(layout.stages["b"].printed_slot, "Stage B")
+
+    def test_an_off_chip_stage_is_never_printed(self) -> None:
+        for place in self.layout.placeholders():
+            self.assertFalse(place.printed, place.key)
+
+
+class TheSpecIsRenderedAsWritten(unittest.TestCase):
+    """Module 6's comb teeth are prose, not geometry. Render the gap, caption it."""
+
+    def test_module6_combs_do_not_reach_their_culture_fields(self) -> None:
+        chip = foam_render.load_json(ROOT / "chip" / "module6_v1.json")
+        gaps = foam_render.spec_gaps(chip)
+        self.assertEqual(len(gaps), 6, "three lanes, an inlet and an outlet comb each")
+        combs = sorted(g["feature_id"] for g in gaps)
+        self.assertEqual(combs, ["comb_in_a", "comb_in_g", "comb_in_n",
+                                 "comb_out_a", "comb_out_g", "comb_out_n"])
+        for gap in gaps:
+            self.assertAlmostEqual(gap["value"], 1.90, places=2)
+            self.assertEqual(gap["class"], "dead_end")
+            self.assertIn("not in the geometry", gap["message"])
+            self.assertIn("centipede_channel", gap["message"])
+
+    def test_the_note_claims_teeth_that_the_path_does_not_have(self) -> None:
+        """The evidence for the finding, straight out of the chip file."""
+        chip = foam_render.load_json(ROOT / "chip" / "module6_v1.json")
+        comb = next(c for c in chip["channels"] if c["id"] == "comb_in_n")
+        self.assertIn("teeth", comb["note"])
+        self.assertEqual(len(comb["path"]), 2,
+                         "the path is the spine only: two points, no teeth")
+
+    def test_module6_is_the_only_chip_in_the_chain_or_on_the_printer_with_a_gap(self) -> None:
+        """No false positives where it matters: the live chain and the six printed chips.
+
+        It does fire elsewhere - `chip/sctip_spc_v1.json` is retired and has twelve - and
+        that is the check working, not a bug, so retired chips are not asserted on here.
+        """
+        layout, _ = foam_scene.layout_from_file(PIPELINE)
+        paths = {ROOT / p.chip_path for p in layout.chips()}
+        paths |= {ROOT / rel for rel in foam_render.printed_chips()}
+        gappy = {}
+        for path in sorted(paths):
+            gaps = foam_render.spec_gaps(foam_render.load_json(path))
+            if gaps:
+                gappy[path.stem] = [g["feature_id"] for g in gaps]
+        self.assertEqual(sorted(gappy), ["module6_v1"], f"unexpected gaps: {gappy}")
+
+    def test_the_picture_does_not_draw_the_bridge_the_mesher_adds(self) -> None:
+        """The caption says the comb stops short, so the frame must not join it up.
+
+        The mesher redraws `comb_in_n` as a diagonal from the real spine start to the
+        culture field's edge. The spec's own path is a vertical spine at x = 2.5.
+        """
+        from assay2chip.cfd import mesh as cfd_mesh
+        chip = foam_render.load_json(ROOT / "chip" / "module6_v1.json")
+        mesh = cfd_mesh.build_mesh(chip)
+
+        redirected = next(e for e in foam_render.duct_edges(mesh, chip)
+                          if e.feature_id == "comb_in_n")
+        ends = (mesh.node(redirected.a), mesh.node(redirected.b))
+        self.assertNotAlmostEqual(ends[0].x_mm, ends[1].x_mm, places=2,
+                                  msg="the mesh edge is the diagonal, as expected")
+
+        self.assertEqual(foam_render._shape_edges(mesh, chip), [],
+                         "every duct here belongs to a channel, so the spec's paths "
+                         "shape the picture and no mesh edge does")
+        for (x0, y0), (x1, y1), _w, feature in foam_render._segments(chip, mesh):
+            if feature == "comb_in_n":
+                self.assertAlmostEqual(x0, 2.5, places=3)
+                self.assertAlmostEqual(x1, 2.5, places=3)
+
+    def test_the_culture_field_is_drawn_unconnected(self) -> None:
+        """Fluid exists in the combs and in the field, with wall in between."""
+        import numpy as np
+        if not HAS_PYVISTA:
+            self.skipTest("PyVista is not installed")
+        case = foam_render.reduced_case(ROOT / "chip" / "module6_v1.json",
+                                        ROOT / "protocols" / "module6_v1.json",
+                                        max_steps=1, cells_budget=120_000, nz=5)[0]
+        grid = case.volume.grid
+        nx, ny, nz = grid.dimensions
+        fluid = np.asarray(grid["fluid"]).reshape((nx, ny, nz), order="F")[:, :, nz // 2]
+        spacing = case.volume.spacing_mm
+        row = int(round(10.0 / spacing))              # y = 10 mm, across lane n
+        # x = 2.5 is the inlet spine, 5.0 the culture field, 3.5 the gap between them.
+        at = lambda x_mm: bool(fluid[int(round(x_mm / spacing)), row])
+        self.assertTrue(at(2.5), "the inlet comb spine is fluid")
+        self.assertTrue(at(5.0), "the culture field is fluid")
+        self.assertTrue(at(7.5), "the outlet comb spine is fluid")
+        self.assertFalse(at(3.5), "the 1.9 mm gap the spec leaves must stay wall")
+        self.assertFalse(at(6.5), "the outlet side gap must stay wall too")
+
+    def test_the_frame_says_the_numbers_are_provisional(self) -> None:
+        if not HAS_PYVISTA:
+            self.skipTest("PyVista is not installed")
+        case = foam_render.reduced_case(ROOT / "chip" / "module6_v1.json",
+                                        ROOT / "protocols" / "module6_v1.json",
+                                        max_steps=1, cells_budget=120_000, nz=5)[0]
+        self.assertIn("stops 1.90 mm short", case.headline(),
+                      "a structural gap leads over a shear number of the same severity")
+        self.assertTrue(any("provisional" in n for n in case.notes), case.notes)
+        self.assertIn(foam_render.PRINTED_FOR_DEMO, case.badges())
+
+    def test_the_gap_is_read_from_the_spec_not_from_the_forgiving_mesh(self) -> None:
+        """cfd/mesh.py attaches a loose channel end to the nearest feature so the network
+        still solves. That is right for a solver and wrong for a picture."""
+        from assay2chip.cfd import mesh as cfd_mesh
+        chip = foam_render.load_json(ROOT / "chip" / "module6_v1.json")
+        mesh = cfd_mesh.build_mesh(chip)
+        self.assertEqual(mesh.unreachable(), [],
+                         "the mesher bridges the gap, which is why spec_gaps reads the "
+                         "spec instead")
+        self.assertTrue(foam_render.spec_gaps(chip))
+
+
+class OneCaseDirectoryConvention(unittest.TestCase):
+    """A job failed because the mesh and the case went to two different folders. There is
+    one convention now: <out>/<chip_id>/step_<N>/, mesh inside at constant/polyMesh."""
+
+    def test_the_case_directory_is_chip_then_step_n(self) -> None:
+        got = foam_render.case_dir("module1_v1", 3, out=Path("/w/pipeline_e2e/foam"))
+        self.assertEqual(got, Path("/w/pipeline_e2e/foam/module1_v1/step_3"))
+
+    def test_the_mesh_lives_inside_the_case(self) -> None:
+        case = foam_render.case_dir("module3_v1_translated", 9,
+                                    out=Path("/w/run/foam"))
+        self.assertEqual((case / "constant" / "polyMesh").parent.parent, case)
+
+    def test_out_defaults_to_work_run_foam(self) -> None:
+        got = foam_render.case_dir("module6_v1", 1, run="demo")
+        self.assertEqual(got.parts[-4:], ("demo", "foam", "module6_v1", "step_1"))
+
+    def test_there_is_never_a_second_foam_level(self) -> None:
+        once = foam_render.foam_out_dir(Path("/w/run"))
+        twice = foam_render.foam_out_dir(once)
+        self.assertEqual(once, Path("/w/run/foam"))
+        self.assertEqual(twice, once, "foam/foam is the bug that broke a real job")
+        for out in (Path("/w/run"), Path("/w/run/foam")):
+            self.assertEqual(foam_render.case_dir("c", 1, out=out),
+                             Path("/w/run/foam/c/step_1"))
+
+    def test_the_convention_is_case_pys_and_is_not_reimplemented_here(self) -> None:
+        """`case.py` owns it; render.py passes through. Coordinate, do not duplicate."""
+        from assay2chip.foam import case as foam_case
+        for chip_id, step in (("module1_v1", 3), ("module6_v1", "4b"),
+                              ("spc_demo_v1", None)):
+            self.assertEqual(
+                foam_render.case_dir(chip_id, step, out=Path("/w/run")),
+                foam_case.case_dir(foam_case.out_dir(work=Path("/w/run")), chip_id, step),
+                f"{chip_id} step {step}")
+        self.assertEqual(foam_render.foam_out_dir(Path("/w/run")),
+                         foam_case.out_dir(work=Path("/w/run")))
+
+    def test_a_whole_chip_case_and_an_odd_step_id_follow_case_py(self) -> None:
+        out = Path("/w/run/foam")
+        self.assertEqual(foam_render.case_dir("m", None, out=out).name, "all")
+        self.assertEqual(foam_render.case_dir("m", "4b", out=out).name, "step_4b")
+
+    def test_nothing_builds_a_case_path_by_hand(self) -> None:
+        import re
+        for name in ("render.py", "scene.py", "run.py"):
+            text = (ROOT / "assay2chip" / "foam" / name).read_text(encoding="utf-8")
+            body = "\n".join(line for line in text.splitlines()
+                             if not line.lstrip().startswith("#"))
+            self.assertIsNone(
+                re.search(r'f"step_\{', body),
+                f"{name} formats a step directory itself instead of calling case_dir()")
+
+    def test_a_case_written_under_the_convention_is_found_again(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = foam_render.foam_out_dir(Path(tmp))
+            case = foam_render.case_dir("module1_v1", 7, out=out)
+            (case / "constant" / "polyMesh").mkdir(parents=True)
+            (case / "summary.json").write_text(
+                json.dumps({"schema": "foam-flow/1", "step": 7}), encoding="utf-8")
+            found = foam_render.foam_summary(Path(tmp), "module1_v1", 7)
+            self.assertIsNotNone(found)
+            self.assertEqual(found["step"], 7)
+
+
+class KinematicOutputIsConvertedOnce(unittest.TestCase):
+    """OpenFOAM's incompressible solvers divide through by density: p and
+    wallShearStress are m^2/s^2, not Pa. Getting rho wrong is a factor of a thousand."""
+
+    def test_the_density_comes_from_the_contract_not_a_literal(self) -> None:
+        from assay2chip.foam import case as foam_case
+        self.assertAlmostEqual(foam_render.foam_density(),
+                               foam_case.fluid_for(37.0).rho_kg_m3, places=6)
+
+    def test_the_cases_own_density_wins_when_it_states_one(self) -> None:
+        self.assertEqual(foam_render.foam_density({"rho_kg_m3": 993.0}), 993.0)
+
+    def test_kinematic_shear_becomes_dyn_cm2(self) -> None:
+        """tau[Pa] = rho * tau_kinematic[m2/s2]; dyn/cm2 is ten times that."""
+        from assay2chip.cfd.model import DYN_CM2_PER_PA
+        rho = foam_render.foam_density()
+        kinematic = 1e-5
+        self.assertAlmostEqual(kinematic * rho * DYN_CM2_PER_PA, kinematic * rho * 10.0)
+        self.assertEqual(DYN_CM2_PER_PA, 10.0)
 
 
 class HandoffTubesJoinRealPorts(unittest.TestCase):
@@ -622,6 +892,38 @@ class ItActuallyDraws(unittest.TestCase):
         floor = foam_render._layer(self.case.volume, "floor")
         self.assertGreater(floor.n_points, 100,
                            "a cutting plane laid on the boundary loses the shear frame")
+
+    def test_a_dataset_that_lost_its_field_is_coloured_flat_not_crashed(self) -> None:
+        """A filter can return points with no point data; VTK then raises
+        `Data array (speed_mm_s) not present` and takes a 20-minute run with it."""
+        import numpy as np
+        pv = foam_render.pyvista()
+        bare = pv.lines_from_points(np.array([[0.0, 0, 0], [1, 1, 0]]))
+        flat = foam_render._paint(bare, "speed_mm_s")
+        self.assertNotIn("scalars", flat)
+        self.assertIn("color", flat)
+        self.assertNotIn("show_scalar_bar", flat,
+                         "it must not collide with an explicit show_scalar_bar")
+        painted = bare.copy()
+        painted["speed_mm_s"] = np.array([1.0, 2.0])
+        self.assertEqual(foam_render._paint(painted, "speed_mm_s"),
+                         {"scalars": "speed_mm_s"})
+        self.assertEqual(foam_render._paint(None, "speed_mm_s").get("scalars"), None)
+
+    def test_every_frame_kind_renders_on_every_solved_step(self) -> None:
+        """The regression: step 5 of cell_prep_v1 crashed the whole pipeline run."""
+        cases = foam_render.reduced_case(
+            ROOT / "chip" / "cell_prep_v1.json", ROOT / "protocols" / "cell_prep_v1.json",
+            max_steps=6, cells_budget=60_000, nz=5)
+        self.assertGreater(len(cases), 1)
+        with tempfile.TemporaryDirectory() as tmp:
+            for case in cases:
+                lines = foam_render._streamlines(case.volume, case)
+                for kind in ("speed", "shear", "streamlines", "tracers"):
+                    png = foam_render.render_frame(
+                        case, kind, (320, 240), Path(tmp) / f"{case.step}_{kind}.png",
+                        lines=lines)
+                    self.assertTrue(png.exists(), f"step {case.step} {kind}")
 
     def test_a_frame_is_written(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

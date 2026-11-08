@@ -453,6 +453,41 @@ class TestStepSelection(unittest.TestCase):
 
 # --- the report ---------------------------------------------------------------------------
 
+class TestNumberFormatting(unittest.TestCase):
+    """A number the report prints must be the number the solver produced.
+
+    `f"{140.0:.0f}".rstrip("0")` is "14". That really happened: a 140 um swollen capsule
+    was tabulated as 14 um against a 100 um pre-filter gap printed as 1 um - the one
+    handoff blocker in the MVP chain, with both of its numbers wrong by 10x.
+    """
+
+    CASES = [(140.0, "140"), (100.0, "100"), (1200, "1200"), (70, "70"), (30, "30"),
+             (0.515, "0.515"), (0.3, "0.3"), (0, "0"), (12.0, "12")]
+
+    def test_report_sig_keeps_the_magnitude(self):
+        for value, expected in self.CASES:
+            self.assertEqual(report.sig(value), expected, f"report.sig({value})")
+
+    def test_figures_sig_keeps_the_magnitude(self):
+        for value, expected in self.CASES:
+            self.assertEqual(figures.sig(value), expected, f"figures.sig({value})")
+
+    def test_svg_coordinates_keep_the_magnitude(self):
+        for value, expected in ((140.0, "140"), (100, "100"), (12.5, "12.5"),
+                                (0, "0"), (1200, "1200")):
+            self.assertEqual(figures.n(value), expected, f"figures.n({value})")
+
+    def test_a_particle_size_mismatch_reads_at_the_right_magnitude(self):
+        text = report.render({
+            "run": "x", "findings": [],
+            "handoffs": [{"id": "h", "from": {"module": "a"}, "to": {"module": "b"}}],
+            "coupling": {"h": {"id": "h", "particle_um": 140.0,
+                               "narrowest_passable_um": 100.0}}})
+        row = next(line for line in text.splitlines() if line.startswith("| `h`"))
+        self.assertIn("140 / 100", row)
+        self.assertIn("**FAILS**", row)
+
+
 class TestReport(unittest.TestCase):
     def test_failed_validation_puts_untrusted_at_the_very_top(self):
         text = report.render({
@@ -502,7 +537,7 @@ class TestReport(unittest.TestCase):
         self.assertTrue(all(len(p) < 700 for p in paragraphs),
                         "a paragraph ran away")
 
-    def test_every_fix_shows_before_and_after(self):
+    def test_an_applied_fix_shows_before_after_and_what_verified_it(self):
         text = report.render({
             "run": "x",
             "validation": {"status": "pass", "trusted": True, "checks": []},
@@ -512,10 +547,54 @@ class TestReport(unittest.TestCase):
                        "predicted": {"metric": "shear_dyn_cm2", "before": 0.9,
                                      "after": 0.21},
                        "auto_applicable": True, "applied": True,
-                       "verified_after": "1 finding gone"}]})
-        row = next(line for line in text.splitlines() if "widen_channel" in line)
-        for token in ("0.9", "0.21", "applied"):
+                       "verified_after": 0.21}]})
+        applied = text.split("### Applied")[1].split("### Proposed")[0]
+        row = next(line for line in applied.splitlines() if "widen_channel" in line)
+        for token in ("f1", "ch_reagent", "shear_dyn_cm2", "0.9", "0.21"):
             self.assertIn(token, row)
+
+    def test_a_proposal_shows_the_best_candidate_and_what_blocked_it(self):
+        """One row per FINDING, not per candidate: fix.py offers several routes to each
+        and 123 near-duplicate rows is not a short document."""
+        text = report.render({
+            "run": "x", "findings": [],
+            "fixes": [
+                {"finding_id": "f2", "action": "add_pillar_row", "target": "g_cx",
+                 "predicted": {"metric": "dead_zone", "before": 0.3, "after": 0.25,
+                               "limit": 0.02},
+                 "applied": False, "blocked_by": ["measurable"]},
+                {"finding_id": "f2", "action": "change_aspect_ratio", "target": "g_cx",
+                 "predicted": {"metric": "dead_zone", "before": 0.3, "after": 0.04,
+                               "limit": 0.02},
+                 "applied": False, "blocked_by": ["cleared"]},
+            ]})
+        proposed = text.split("### Proposed")[1]
+        rows = [line for line in proposed.splitlines()
+                if line.startswith("| `f2`")]
+        self.assertEqual(len(rows), 1, "one row per finding, not per candidate")
+        self.assertIn("change_aspect_ratio", rows[0], "the best candidate wins the row")
+        self.assertIn("0.04", rows[0])
+        self.assertIn("| 2 |", rows[0], "the alternatives are counted")
+        self.assertIn("cleared", rows[0])
+        self.assertIn("measurable", rows[0])
+
+    def test_unautomated_handoffs_are_counted(self):
+        """'No human intervention' is the stated goal, so a manual join is reported."""
+        text = report.render({
+            "run": "x", "findings": [],
+            "handoffs": [{"id": "h1", "carries": "capsules",
+                          "from": {"module": "a"}, "to": {"module": "b"}}],
+            "coupling": {"h1": {"id": "h1", "carries": "capsules", "automated": False,
+                                "automated_why": "in a tube, by hand",
+                                "severity": "blocker", "particle_um": 140.0,
+                                "narrowest_passable_um": 100.0,
+                                "dead_volume_ul": 22.5,
+                                "pressure": {"line_dp_kpa": 0.01, "limit_kpa": 3.5}}}})
+        section = text.split("## 4. Handoffs")[1].split("## 5.")[0]
+        self.assertIn("1 of 1 handoffs are NOT automated", section)
+        self.assertIn("in a tube, by hand", section)
+        self.assertIn("**FAILS**", section,
+                      "a 140 um particle through a 100 um gap must read as a failure")
 
     def test_findings_are_grouped_by_severity_worst_first(self):
         text = report.render({"run": "x", "findings": [

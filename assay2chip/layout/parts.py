@@ -240,20 +240,38 @@ def size_parts(briefs: Sequence[Brief], *, flow_scale: float = 1.0) -> list[Size
     return [size_part(b, flow_scale=flow_scale) for b in briefs]
 
 
-def joinable_minimum_mm(brief: Brief) -> float:
-    """The smallest a part may be and still have a mouth a channel can enter.
+def net_count(brief: Brief) -> int:
+    """How many channels will have to meet this part. An upper bound, deliberately.
 
-    A channel of `route_width_mm` arriving at a face needs its own width plus a wall on
-    each side of it, so a face shorter than that has nowhere for the channel to land. A
-    part below this is not a small part, it is an unusable one - which is why S7 refuses
-    it with "every mouth on this part is within width/2 + min_wall of another feature.
-    This is a placement problem, not a routing one."
+    The sample in and the sample out, plus a reagent feed, a drain and a vent where the
+    op needs them - which is exactly what `connections.py` emits. Counting high is safe:
+    it only makes the part roomier.
     """
-    return brief.route_width_mm + 2 * float(contracts.floor("min_wall_mm"))
+    return (2 + int(brief.needs_reagent) + int(brief.drains)
+            + int("thermocycle" in brief.kinds))
+
+
+def joinable_minimum_mm(brief: Brief, nets: int | None = None) -> float:
+    """The smallest a part may be and still have walls every channel can attach to.
+
+    A channel of `route_width_mm` landing on a wall needs its own width plus a full
+    min_wall on each side of it, and k of them on one wall need k widths and k+1 walls.
+    With four walls to share between them, k = ceil(nets / 4). One more wall is added as
+    margin, because a wall EXACTLY as long as width + 2 walls leaves the mouth touching
+    both corners and S7 rejects it ("1.00 x 1.00 mm, 3 connection(s) have to meet it ...
+    no mouth fits this wall").
+
+    A part below this is not a small part, it is an unusable one: S7 will not move it and
+    will not cross another channel to reach it, and it is right on both counts.
+    """
+    count = net_count(brief) if nets is None else nets
+    wall = float(contracts.floor("min_wall_mm"))
+    per_wall = max(1, -(-count // 4))
+    return per_wall * brief.route_width_mm + (per_wall + 2) * wall
 
 
 def joinable(part: SizedPart) -> bool:
-    """True when both of a part's faces are long enough for a channel to attach to."""
+    """True when every wall of a part is long enough for the channels that must meet it."""
     return min(part.footprint) >= joinable_minimum_mm(part.brief) - 1e-9
 
 

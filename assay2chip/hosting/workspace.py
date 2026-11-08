@@ -62,16 +62,25 @@ def _is_number(name: str) -> bool:
         return False
 
 
-def is_bulk(rel: str) -> bool:
-    """OpenFOAM case bulk and bookkeeping that never leaves the machine."""
+def is_bulk(rel: str, root: Optional[Path] = None) -> bool:
+    """OpenFOAM case bulk and bookkeeping that never leaves the machine.
+
+    A numeric directory is a solver TIME directory (0.5/, 200/) only when it sits beside
+    the case's system/ directory; foam/run.py also names per-step case folders by number
+    (foam/<chip>/1/), and those hold summaries worth keeping. Without `root` to look,
+    a numeric directory is assumed to be a time directory.
+    """
     parts = rel.split("/")
     if parts[-1].startswith(".a2c_"):
         return True
     if "foam" in parts:
-        dirs = parts[parts.index("foam") + 1:-1]
-        for d in dirs:
-            if d in ("polyMesh", "VTK", "postProcessing") or d.startswith("processor") \
-                    or _is_number(d):
+        start = parts.index("foam") + 1
+        for i in range(start, len(parts) - 1):
+            d = parts[i]
+            if d in ("polyMesh", "VTK", "postProcessing") or d.startswith("processor"):
+                return True
+            if _is_number(d) and (root is None or
+                                  (root.joinpath(*parts[:i]) / "system").is_dir()):
                 return True
     return False
 
@@ -126,7 +135,7 @@ class Workspaces:
         synced = json.loads(synced_path.read_text()) if synced_path.exists() else {}
         out = []
         for rel, stat in sorted(_index(root).items()):
-            if is_bulk(rel) or stat[0] > MAX_SYNC_BYTES:
+            if is_bulk(rel, root) or stat[0] > MAX_SYNC_BYTES:
                 continue
             if baseline.get(rel) == stat or synced.get(rel) == stat:
                 continue

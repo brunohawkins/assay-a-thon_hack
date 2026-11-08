@@ -83,7 +83,10 @@ _UNSAFE = (
      re.compile(r"\d+(?:\.\d+)?\s*(?:[mun\u00b5]?g\s*/\s*[mun\u00b5]?[lL])", re.I)),
     ("an activity concentration", re.compile(r"\bU\s*/\s*[mun\u00b5]?L\b")),
     ("a w/v or v/v percentage", re.compile(r"%\s*\(?\s*[wv]\s*/\s*[wv]", re.I)),
-    ("a stock multiple", re.compile(r"(?<![A-Za-z0-9.])\d+(?:\.\d+)?\s?x\b(?!\s*(?:capsule|diameter))", re.I)),
+    # "10x stock" is a concentration; "3.2 x 3.2 mm" is a rectangle. The difference is
+    # what follows the x, so a dimension and a scale factor are both let through.
+    ("a stock multiple",
+     re.compile(r"(?<![A-Za-z0-9.])\d+(?:\.\d+)?\s?x\b(?!\s*(?:\d|capsule|diameter|the\b))", re.I)),
     ("a vendor or catalogue reference",
      re.compile(r"\u2122|\u00ae|\bcat\.?\s?(?:no|#)|\bcatalog|\blot\s?(?:no|#)|\bpart\s?no\b", re.I)),
     ("a named vendor",

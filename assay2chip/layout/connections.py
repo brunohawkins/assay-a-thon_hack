@@ -75,7 +75,12 @@ def _endpoint(placement: Placement, part: SizedPart, opening: Opening) -> dict:
     return {
         "part": part.part_id,
         "block": part.block,
-        "feature": part.chambers[0]["id"] if part.chambers else part.part_id,
+        # The feature a channel actually attaches to. A part that expands to a CHANNEL
+        # rather than a chamber (a straight run, a serpentine) has no chamber id, and
+        # naming the part instead gives S7 "unknown part: the placed chip has no part
+        # called ...". So: the first entry the part really emits.
+        "feature": (part.chambers[0]["id"] if part.chambers
+                    else part.ids[0] if part.ids else part.part_id),
         "opening": opening.name,
         "position": [position[0], position[1]],
         "direction": direction,
@@ -100,9 +105,46 @@ def _port_endpoint(plan: PortPlan, port_id: str) -> dict:
     }
 
 
-def connections(parts: Sequence[SizedPart], placement: Placement,
-                port_plan: PortPlan) -> list[dict]:
-    """Every join S7 must make, in flow order: entry, the chain, the services, the exit."""
+def _inline_between(inline: Sequence[Brief], after: int, before: int | None) -> list[Brief]:
+    """The inline ops whose op numbers fall between two parts in flow order."""
+    return [b for b in inline
+            if min(b.ops) > after and (before is None or max(b.ops) < before)]
+
+
+def _apply_inline(entry: dict, realised: Sequence[Brief]) -> dict:
+    """Fold inline ops into the connection that spans them.
+
+    The channel IS the op: it has to be as long as the op needs, so `target_length_mm`
+    goes on the net (S7's `meander.py` folds a route until it reaches it) and `realises`
+    records which ops that length is for. Without the length the channel would carry the
+    fluid past in a fraction of the time the assay asks for, or - for a mixer - never mix
+    it at all.
+    """
+    if not realised:
+        return entry
+    targets = [b.target_length_mm for b in realised if b.target_length_mm]
+    notes = "; ".join(b.inline_why for b in realised if b.inline_why)
+    out = dict(entry)
+    out["realises"] = [n for b in realised for n in b.ops]
+    if targets:
+        out["target_length_mm"] = round(max(targets), 3)
+    out["why"] = (f"{entry['why']}; it also PERFORMS op(s) "
+                  f"{', '.join(str(n) for b in realised for n in b.ops)} "
+                  f"({', '.join(k for b in realised for k in b.kinds)}), which are the "
+                  f"channel itself rather than parts of their own")
+    out["note"] = ((entry.get("note", "") + " " + notes).strip()
+                   or "realised as the connecting channel")
+    return out
+
+
+def connections(parts: Sequence[SizedPart], placement: Placement, port_plan: PortPlan,
+                inline: Sequence[Brief] = ()) -> list[dict]:
+    """Every join S7 must make, in flow order: entry, the chain, the services, the exit.
+
+    An op that is a CONDUIT too small to be a part of its own (`Brief.inline`) is not
+    missing from this file: it is folded into the connection that spans it, with the
+    length that channel must reach to do its job.
+    """
     out: list[dict] = []
     order = 0
 
@@ -114,7 +156,7 @@ def connections(parts: Sequence[SizedPart], placement: Placement,
     first, last = parts[0], parts[-1]
     entry_port = port_plan.inlets[0]
     width, why = min_width_mm(entry_port.request.carries or "liquid", first.brief)
-    add({
+    add(_apply_inline({
         "from": _port_endpoint(port_plan, entry_port.id),
         "to": _endpoint(placement, first, first.sample_in()),
         "carries": entry_port.request.carries or "liquid",
@@ -122,14 +164,14 @@ def connections(parts: Sequence[SizedPart], placement: Placement,
         "width_from": why,
         "why": f"the sample enters at '{entry_port.id}' and the first thing it meets is "
                f"op {first.brief.op} ({first.brief.kind})",
-    })
+    }, _inline_between(inline, 0, min(first.brief.ops))))
 
     for upstream, downstream in zip(parts, parts[1:]):
         out_opening = upstream.sample_out()
         in_opening = downstream.sample_in()
         carries = out_opening.carries or in_opening.carries or "liquid"
         width, why = min_width_mm(carries, downstream.brief)
-        add({
+        add(_apply_inline({
             "from": _endpoint(placement, upstream, out_opening),
             "to": _endpoint(placement, downstream, in_opening),
             "carries": carries,
@@ -137,7 +179,7 @@ def connections(parts: Sequence[SizedPart], placement: Placement,
             "width_from": why,
             "why": f"flow order: op {upstream.brief.op} ({upstream.brief.kind}) feeds "
                    f"op {downstream.brief.op} ({downstream.brief.kind})",
-        })
+        }, _inline_between(inline, max(upstream.brief.ops), min(downstream.brief.ops))))
 
     reagent = next((p for p in port_plan.inlets if p.request.role == "reagent"), None)
     oil = next((p for p in port_plan.inlets if p.request.role == "oil"), None)
@@ -257,7 +299,7 @@ def connections(parts: Sequence[SizedPart], placement: Placement,
                       if p.request.role != "waste" and p.id != "vent"), port_plan.outlets[0])
     carries = exit_port.request.carries or "liquid"
     width, why = min_width_mm(carries, last.brief)
-    add({
+    add(_apply_inline({
         "from": _endpoint(placement, last, last.sample_out()),
         "to": _port_endpoint(port_plan, exit_port.id),
         "carries": carries,
@@ -265,7 +307,7 @@ def connections(parts: Sequence[SizedPart], placement: Placement,
         "width_from": why,
         "why": f"the product leaves op {last.brief.op} ({last.brief.kind}) at "
                f"'{exit_port.id}'",
-    })
+    }, _inline_between(inline, max(last.brief.ops), None)))
 
     _mark_non_crossing(out)
     return out
@@ -309,6 +351,7 @@ def internal_features(parts: Sequence[SizedPart]) -> list[dict]:
 
 def connection_file(*, assay_id: str, chip_id: str, scale: str, parts: Sequence[SizedPart],
                     placement: Placement, port_plan: PortPlan,
+                    inline: Sequence[Brief] = (),
                     unresolved: Sequence[dict] = ()) -> dict:
     """The whole connections_<chip_id>.json payload."""
     env = placement.envelope
@@ -343,6 +386,9 @@ def connection_file(*, assay_id: str, chip_id: str, scale: str, parts: Sequence[
         "corridors": placement.corridors,
         "obstacles": obstacles(placement, port_plan),
         "internal_features": internal_features(parts),
-        "connections": connections(parts, placement, port_plan),
+        "connections": connections(parts, placement, port_plan, inline),
+        "realised_as_channels": [
+            {"ops": list(b.ops), "kinds": list(b.kinds), "why": b.inline_why,
+             "target_length_mm": b.target_length_mm} for b in inline],
         "unresolved": [dict(u) for u in unresolved],
     }

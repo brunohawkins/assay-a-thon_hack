@@ -29,9 +29,16 @@ PASS_THROUGH_TYPES = ("junction",)
 # Chamber types that are not a place an op can run in: they are features in the line.
 NOT_A_WORKPLACE = ("junction", "filter", "inlet", "outlet", "bubble_trap")
 
-# A part whose shape IS a channel: its flow width is the channel width, and the bounding
-# box is meaningless for shear. Matched against the chamber's `block` and `id`.
-FOLDED_BLOCKS = ("serpentine", "snake", "spiral", "tesla", "channel", "mixer", "meander")
+# A part whose shape IS a folded channel: the liquid crosses a 0.2 mm channel, not the
+# 25 x 60 mm envelope the folds occupy, so the bounding box is not merely imprecise - it is
+# the wrong rectangle. These REFUSE to be sized without their channel width.
+FOLDED_PATH_BLOCKS = ("serpentine", "snake", "spiral", "tesla", "meander")
+
+# A mixer whose grooves or lanes are internal to one chamber (a staggered herringbone, a
+# wide-short mixer). The liquid does fill the chamber's cross-section, so the box reading is
+# the right rectangle - but if the part is folded into lanes the lane is narrower, and then
+# the box reading UNDER-states shear and resistance. It is used, and said out loud.
+LANE_MIXER_BLOCKS = ("herringbone", "mixer")
 
 
 class GeometryError(ValueError):
@@ -125,10 +132,26 @@ class Chip:
             return float(chamber["height_um"]) / 1000.0
         return float(chamber["size"][2])
 
-    def is_folded(self, chamber_id: str) -> bool:
+    def _words(self, chamber_id: str) -> str:
         chamber = self.chamber(chamber_id)
-        words = f"{chamber.get('block', '')} {chamber.get('type', '')} {chamber_id}".lower()
-        return any(token in words for token in FOLDED_BLOCKS)
+        return f"{chamber.get('block', '')} {chamber.get('type', '')} {chamber_id}".lower()
+
+    def is_folded(self, chamber_id: str) -> bool:
+        """A folded PATH: the bounding box is the wrong rectangle for the flow."""
+        return any(token in self._words(chamber_id) for token in FOLDED_PATH_BLOCKS)
+
+    def is_lane_mixer(self, chamber_id: str) -> bool:
+        """A mixer with internal grooves or lanes, sized from the chamber it occupies."""
+        return any(token in self._words(chamber_id) for token in LANE_MIXER_BLOCKS)
+
+    def needs_lane_width(self, chamber_id: str) -> bool:
+        """True when a mixer's own lane width is missing, so the box reading is optimistic.
+
+        S6 writes the lane count into the chamber's prose but not into a field, and prose is
+        not a contract. The caller should record this rather than quietly trust the box.
+        """
+        return (self.is_lane_mixer(chamber_id)
+                and not (self.chamber(chamber_id).get("mixer") or {}).get("channel_width_mm"))
 
     def flow_axis(self, chamber_id: str) -> int:
         """0 if the liquid crosses the chamber along x, 1 if along y, -1 if unknown.
@@ -179,6 +202,13 @@ class Chip:
                 f"number out by 43x - so S6 must write the channel width into the spec."
             )
         sx, sy = float(chamber["size"][0]), float(chamber["size"][1])
+        if self.needs_lane_width(chamber_id):
+            narrow = min(sx, sy)
+            return CrossSection(narrow, height,
+                                f"the mixer chamber's narrower in-plane side ({narrow:g} mm), "
+                                f"because it states no mixer.channel_width_mm; if its grooves "
+                                f"fold the flow into lanes, each lane is narrower than that "
+                                f"and both the shear and the pressure here are UNDER-stated")
         axis = self.flow_axis(chamber_id)
         if axis == 0:
             return CrossSection(sy, height, f"the chamber's y side ({sy:g} mm), across a flow that "
@@ -197,6 +227,8 @@ class Chip:
 
     def channel_length_mm(self, channel: dict) -> float:
         """Polyline length of the drawn path; without a path, centre to centre."""
+        if channel.get("hole"):
+            return 0.0
         path = channel.get("path")
         if path and len(path) >= 2:
             return sum(math.dist(path[i][:2], path[i + 1][:2]) for i in range(len(path) - 1))
@@ -213,11 +245,62 @@ class Chip:
 
     # --- routes ---------------------------------------------------------------
 
+    def pad_of(self, port_id: str) -> str:
+        """The pad chamber a port is drilled into, or ''.
+
+        A generated chip gives every port a PAD - a cut square under the 0.8 mm hole, so
+        the hole opens onto real channel (the port-overlap rule) - and S7 routes to the
+        PAD, never to the port. So no channel touches a port at all, and a protocol that
+        looked for one would find the chip unreachable. The convention is `<port>_pad`, and
+        it is CHECKED here rather than trusted: the pad has to sit under the hole.
+        """
+        pad = f"{port_id}_pad"
+        if pad not in self.chambers or port_id not in self.ports:
+            return ""
+        here = self.ports[port_id]["position"]
+        there = self.chambers[pad]["center"]
+        half = [float(self.chambers[pad]["size"][i]) / 2 for i in (0, 1)]
+        if all(abs(float(here[i]) - float(there[i])) <= half[i] + 1e-6 for i in (0, 1)):
+            return pad
+        return ""
+
+    def port_of(self, pad_id: str) -> str:
+        if not pad_id.endswith("_pad"):
+            return ""
+        port = pad_id[: -len("_pad")]
+        return port if self.pad_of(port) == pad_id else ""
+
+    def _hole(self, port_id: str, pad_id: str, into_pad: bool) -> dict:
+        """The drilled hole as an edge, so a route can get from a port to its pad.
+
+        Zero length, so it adds no resistance: a 0.8 mm hole through the lid is wide and
+        short next to a 0.2 mm channel, and treating it as free is the same assumption the
+        rest of the repo makes.
+        """
+        return {"id": f"{port_id}_hole", "from": port_id if into_pad else pad_id,
+                "to": pad_id if into_pad else port_id,
+                "width_mm": float(self.ports[port_id].get("width_um") or 800.0) / 1000.0,
+                "depth_mm": float(self.chambers[pad_id]["size"][2]), "hole": True}
+
     def out_edges(self, place_id: str) -> list:
-        return [ch for ch in self.channels if ch.get("from") == place_id]
+        out = [ch for ch in self.channels if ch.get("from") == place_id]
+        pad = self.pad_of(place_id)
+        if pad:
+            out = [self._hole(place_id, pad, True)] + out
+        port = self.port_of(place_id)
+        if port:
+            out = out + [self._hole(port, place_id, False)]
+        return out
 
     def in_edges(self, place_id: str) -> list:
-        return [ch for ch in self.channels if ch.get("to") == place_id]
+        out = [ch for ch in self.channels if ch.get("to") == place_id]
+        pad = self.pad_of(place_id)
+        if pad:
+            out = [self._hole(place_id, pad, False)] + out
+        port = self.port_of(place_id)
+        if port:
+            out = out + [self._hole(port, place_id, True)]
+        return out
 
     def route(self, start: str, end: str) -> list:
         """Channels from `start` to `end`, following the drawn direction. [] if unreachable.
@@ -238,6 +321,13 @@ class Chip:
                 seen.add(nxt)
                 queue.append((nxt, so_far + [channel]))
         return []
+
+    def route_places(self, start: str, end: str) -> list:
+        """Every place the liquid passes through on the way from start to end, in order."""
+        channels = self.route(start, end)
+        if not channels and start != end:
+            return []
+        return [start] + [str(channel.get("to")) for channel in channels]
 
     def reaches(self, start: str, end: str) -> bool:
         return start == end or bool(self.route(start, end))

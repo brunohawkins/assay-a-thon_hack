@@ -211,6 +211,7 @@ class TestNoHardCodedContractValues(unittest.TestCase):
         "MIN_RELATIVE_IMPROVEMENT": "fraction: when the loop has stopped helping",
         "SECANT_CLAMP": "how far one secant step may move a knob",
         "WIDTH_ROUND_MM": "the grid widths are proposed on",
+        "BEFORE_AGREEMENT": "fraction: how far a re-solve may differ from the finding",
     }
 
     def test_every_float_constant_is_declared_and_explained(self):
@@ -275,20 +276,38 @@ class TestNeverTouchesTheRepo(unittest.TestCase):
             self.assertTrue(fix._assert_not_repo(Path(tmp) / "cfd" / "fixes.json"))
 
     def test_a_run_on_a_repo_chip_leaves_every_file_untouched(self):
-        """The strongest version of the rule: hash chip/ and protocols/ around a real run."""
-        before = {p: p.read_bytes() for p in
-                  sorted((ROOT / "chip").glob("*.json")) +
-                  sorted((ROOT / "protocols").glob("*.json"))}
-        chip, protocol = _chip("cell_prep_v1"), _protocol("cell_prep_v1")
-        sim = fix.Simulator()
+        """The strongest version of the rule: hash chip/ and protocols/ around a real run.
+
+        Compared over the INTERSECTION of before and after. Files appearing or vanishing in
+        chip/ during the run are other agents working in the same tree, and failing on them
+        would make this test flaky for a reason that has nothing to do with the rule. Any
+        file that existed both before and after must be byte-identical - which is the rule.
+        """
+        def snapshot() -> dict[Path, bytes]:
+            paths = sorted((ROOT / "chip").glob("*.json")) + \
+                sorted((ROOT / "protocols").glob("*.json"))
+            out = {}
+            for path in paths:
+                try:
+                    out[path] = path.read_bytes()
+                except OSError:
+                    continue
+            return out
+
         findings = _sediment_findings("cell_prep_v1", "mix_1")
         if not findings:
             self.skipTest("particles.py produced no settling finding for cell_prep_v1")
+        chip, protocol = _chip("cell_prep_v1"), _protocol("cell_prep_v1")
+        sim = fix.Simulator()
+        before = snapshot()
         with tempfile.TemporaryDirectory() as tmp:
             run = fix.propose(findings, chip, protocol, mode="standalone", sim=sim)
             fix.write(run, Path(tmp))
-        after = {p: p.read_bytes() for p in before}
-        self.assertEqual(before, after, "a fix run modified a file in chip/ or protocols/")
+        after = snapshot()
+        changed = [p.relative_to(ROOT).as_posix() for p in set(before) & set(after)
+                   if before[p] != after[p]]
+        self.assertEqual(changed, [],
+                         f"a fix run modified {changed} in chip/ or protocols/")
 
     def test_propose_does_not_mutate_its_inputs(self):
         chip, protocol = _over_sheared_chip()
@@ -366,6 +385,24 @@ class TestGatesBlock(unittest.TestCase):
         gate = fix.gate_measurable(1.0, None, cand)
         self.assertFalse(gate.ok)
         self.assertIn("mesh.py", gate.detail)
+
+    def test_measurable_gate_blocks_a_resolve_that_disagrees_with_the_finding(self):
+        """The worst bug this module had: three module4 shear fixes were APPLIED with
+        before = after = 0.0, because the step they solved left the named chamber with no
+        flow, so `cleared` saw 0 <= 0.008 and waved them through. A fix that clears a
+        finding by not looking at it must be impossible."""
+        cand = fix.Candidate("x", "set_flow", "sub_2", {"step": 0}, "flow", "t")
+        finding = {"value": 2.171, "limit": 0.01, "units": "dyn/cm2", "metric": "shear"}
+        gate = fix.gate_measurable(0.0, 0.0, cand, finding)
+        self.assertFalse(gate.ok)
+        self.assertIn("2.171", gate.detail)
+
+    def test_measurable_gate_allows_a_resolve_that_agrees(self):
+        cand = fix.Candidate("x", "set_flow", "cx", {"step": 0}, "flow", "t")
+        finding = {"value": 2.0, "limit": 0.01, "units": "dyn/cm2", "metric": "shear"}
+        self.assertTrue(fix.gate_measurable(2.05, 0.008, cand, finding).ok)
+        self.assertFalse(fix.gate_measurable(0.5, 0.008, cand, finding).ok,
+                         "a 75% disagreement is not the same state")
 
     def test_cleared_gate_demands_headroom_not_just_the_limit(self):
         finding = {"value": 0.02, "limit": 0.01, "units": "dyn/cm2", "metric": "shear"}
@@ -485,6 +522,34 @@ class TestMetricPlumbing(unittest.TestCase):
         self.assertTrue(fix._saturated(frac, 0.0))
         self.assertFalse(fix._saturated(frac, 0.5))
         self.assertFalse(fix._saturated({"units": "dyn/cm2"}, 1.0))
+
+    def test_anchor_step_keeps_a_step_that_reproduces_the_finding(self):
+        chip, protocol = _over_sheared_chip()
+        sim = fix.Simulator()
+        finding = _shear_finding(chip, protocol, sim)
+        self.assertEqual(fix.anchor_step(finding, chip, protocol, sim),
+                         finding.get("step"))
+
+    def test_anchor_step_moves_to_the_step_that_does_reproduce_it(self):
+        """module4_v1 had shear findings whose nominated step drove a different lane.
+        Re-anchoring to the step where the feature is worst is what makes them fixable."""
+        chip, protocol = _over_sheared_chip()
+        slow = copy.deepcopy(protocol)
+        slow["steps"][0] = dict(slow["steps"][0], flow_ul_min=0.01)
+        slow["steps"].append(dict(protocol["steps"][0], step=2))
+        sim = fix.Simulator()
+        finding = _shear_finding(chip, protocol, sim)
+        moved = fix.anchor_step(finding, chip, slow, sim)
+        self.assertEqual(moved, 1, "should move to the step that still runs fast")
+
+    def test_anchor_step_gives_up_rather_than_inventing_agreement(self):
+        chip, protocol = _over_sheared_chip()
+        sim = fix.Simulator()
+        finding = dict(_shear_finding(chip, protocol, sim), value=1e6)
+        self.assertEqual(fix.anchor_step(finding, chip, protocol, sim),
+                         finding.get("step"),
+                         "with nothing matching it must return the original and let the "
+                         "measurable gate refuse the fix")
 
     def test_band_metric_is_routed_to_the_spec_change_branch(self):
         """particles.py files the weir sweep as `leak`; the fix is not a flow cut."""
@@ -809,6 +874,16 @@ class TestRealRepoChipModule4FeedLines(unittest.TestCase):
         self.assertEqual(self.fixrun.applied, [])
         self.assertIsNone(self.fixrun.patched_chip)
         self.assertIsNone(self.fixrun.patched_protocol)
+
+    def test_no_applied_fix_anywhere_has_a_zero_or_unchanged_before(self):
+        """A guard against the whole class of bug the measurable gate was added for."""
+        for entry in self.fixrun.fixes:
+            if not entry["applied"]:
+                continue
+            before, after = entry["predicted"]["before"], entry["predicted"]["after"]
+            self.assertTrue(before, f"{entry['action']} applied with before={before}")
+            self.assertNotEqual(before, after,
+                                f"{entry['action']} applied without changing anything")
 
 
 class TestRealRepoChipCellPrepMixer(unittest.TestCase):

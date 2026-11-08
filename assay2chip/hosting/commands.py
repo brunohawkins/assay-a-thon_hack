@@ -72,6 +72,8 @@ def default_argv(kind: str, ctx: dict, settings) -> List[str]:
                 "--resolution", "720p", "--no-glb"]
         if not settings.foam_video:
             argv.append("--no-video")
+        if settings.foam_solve:
+            argv.append("--solve")          # without it foam/run.py renders reduced-order
         return argv
     raise ValueError("job kind %r has no command" % kind)
 

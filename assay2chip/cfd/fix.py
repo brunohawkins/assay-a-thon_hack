@@ -93,6 +93,17 @@ MAX_REFINEMENTS = 2
 target. Stokes flow is linear, so one is usually enough; two covers the duct correction
 term (1 - 0.63 h/w) changing as a channel is widened."""
 
+BEFORE_AGREEMENT = 0.25
+"""How far this module's own `before` may differ from the finding's `value`, as a fraction.
+
+This gate caught a real and nasty bug. On module4_v1 three shear fixes were APPLIED with
+before = after = 0.0: the finding said 2.17 dyn/cm2, but the step the candidate resolved
+left that feature with no flow in it, so the re-solve measured zero, the `cleared` gate saw
+0 <= 0.008 and waved it through. A fix that "clears" a finding by not looking at it is the
+worst failure this module can have - worse than missing the fix - so disagreeing with the
+analyser is now a blocking condition rather than a silent pass.
+"""
+
 SECANT_CLAMP = 20.0
 """How far one secant step may move the knob. The scaling law is local and the metric can
 be saturated, so an unclamped correction can walk the knob off the map in two steps."""
@@ -344,6 +355,11 @@ def process_assumptions() -> list[dict]:
          "contract_key": None, "assumption": True},
         {"name": "MIN_RELATIVE_IMPROVEMENT", "value": MIN_RELATIVE_IMPROVEMENT,
          "units": "fraction", "why": "Stop the loop when an iteration stops helping.",
+         "contract_key": None, "assumption": True},
+        {"name": "BEFORE_AGREEMENT", "value": BEFORE_AGREEMENT, "units": "fraction",
+         "why": "How far this module's re-solve may differ from the finding's own value "
+                "before the fix is refused. A fix measured on a state the finding does not "
+                "describe is worse than no fix.",
          "contract_key": None, "assumption": True},
     ]
 
@@ -1817,18 +1833,6 @@ def gate_planar(before: dict, after: dict) -> Gate:
                 f"(was {tight_was:.3f} mm, min wall {wall:g} mm)")
 
 
-BEFORE_AGREEMENT = 0.25
-"""How far this module's own `before` may differ from the finding's `value`, as a fraction.
-
-This gate caught a real and nasty bug. On module4_v1 three shear fixes were APPLIED with
-before = after = 0.0: the finding said 2.17 dyn/cm2, but the step the candidate resolved
-left that feature with no flow in it, so the re-solve measured zero, the `cleared` gate saw
-0 <= 0.008 and waved it through. A fix that "clears" a finding by not looking at it is the
-worst failure this module can have - worse than missing the fix - so disagreeing with the
-analyser is now a blocking condition rather than a silent pass.
-"""
-
-
 def gate_measurable(before: float | None, after: float | None, cand: Candidate,
                     finding: dict | None = None) -> Gate:
     if before is None or after is None:
@@ -2287,6 +2291,49 @@ def _z_tolerance_um(sol: Solution) -> float | None:
             return None
 
 
+def anchor_step(finding: dict, chip: dict, protocol: dict, sim: Simulator) -> Any:
+    """Which step to judge this finding on: the one where its feature is actually worst.
+
+    `group_findings` keeps one representative per (class, feature), and analyse.py's own
+    deduplication can attach a value seen on one lane to a finding whose `step` drives a
+    different lane. On module4_v1 that produced three shear findings all stating
+    2.17 dyn/cm2 whose nominated step left the named chamber with no flow at all.
+
+    So: if the finding's own step does not reproduce its number, look for a step that does,
+    and take the one where the metric is worst. Monotone in flow, so the worst step is the
+    one that sets the fix - the same reasoning as `WORST`. Returns the original key when
+    nothing matches, and the `measurable` gate then refuses the fix rather than inventing
+    agreement.
+    """
+    stated = _scalar(finding.get("value"))
+    original = finding.get("step")
+    if stated in (None, 0.0):
+        return original
+    step0 = _step(protocol, original)
+    if step0 is not None:
+        try:
+            here = measure(finding, sim.run(chip, step0), chip)
+        except Exception:
+            here = None
+        if here is not None and abs(here - stated) <= BEFORE_AGREEMENT * abs(stated):
+            return original
+    best_key, best_value = original, None
+    for index, step in enumerate(protocol.get("steps", [])):
+        if not step.get("flow_ul_min"):
+            continue
+        try:
+            value = measure(finding, sim.run(chip, step), chip)
+        except Exception:
+            continue
+        if value is None:
+            continue
+        if best_value is None or abs(value) > abs(best_value):
+            best_key, best_value = index, value
+    if best_value is not None and abs(best_value - stated) <= BEFORE_AGREEMENT * abs(stated):
+        return best_key
+    return original
+
+
 def predict(finding: dict, cand: Candidate, chip: dict, protocol: dict,
             sim: Simulator) -> Prediction:
     """Re-mesh, re-solve, re-analyse the modified copy, and run all six gates.
@@ -2432,6 +2479,18 @@ def propose(findings: list[dict], chip: dict, protocol: dict, *, mode: str = "st
             break
         progressed = False
         for fid, finding in list(open_findings.items()):
+            # Anchor the finding to a step that reproduces its own number before building
+            # any candidate, so the candidate's flow and the gate's measurement agree.
+            anchored = anchor_step(finding, cur_chip, cur_proto, sim)
+            if anchored != finding.get("step"):
+                run.log.append({"iteration": iteration, "finding_id": fid,
+                                "event": "re_anchored",
+                                "from_step": finding.get("step"), "to_step": anchored,
+                                "reason": "the finding's own step did not reproduce its "
+                                          "value; using the step where this feature is "
+                                          "worst"})
+                finding = dict(finding, step=anchored)
+                open_findings[fid] = finding
             cands = candidates_for(finding, cur_chip, cur_proto,
                                    sol=_safe_sol(sim, cur_chip, cur_proto, finding))
             if not cands:

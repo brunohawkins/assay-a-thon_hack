@@ -126,7 +126,7 @@ def thermal_zones(parts: Sequence[SizedPart]) -> list[dict]:
 def build_chip_spec(*, chip_id: str, parts: Sequence[SizedPart], placement: Placement,
                     port_plan: PortPlan, material: Material, scale: str, reason: str = "",
                     unresolved: Sequence[dict] = (), registry: str = "",
-                    name: str | None = None) -> tuple[dict, list[dict]]:
+                    inline: Sequence = (), name: str | None = None) -> tuple[dict, list[dict]]:
     """The chip spec, and the `unresolved` entries S6 should report.
 
     Channels BETWEEN parts stay empty on purpose: routing is S7's.
@@ -162,7 +162,7 @@ def build_chip_spec(*, chip_id: str, parts: Sequence[SizedPart], placement: Plac
         "id": chip_id,
         "name": name or f"{chip_id}: {', '.join(dict.fromkeys(b.kind for b in briefs))}",
         "description": _description(chip_id, parts, placement, port_plan, material, scale,
-                                    reason, convention, registry),
+                                    reason, convention, registry, inline),
         "placeholder": any(b.gaps for b in briefs) or bool(port_plan.unresolved),
         "units": "mm",
         "footprint": {"x": env.x_mm, "y": env.y_mm},
@@ -192,6 +192,7 @@ def build_chip_spec(*, chip_id: str, parts: Sequence[SizedPart], placement: Plac
                 "blocks": {p.part_id: p.block for p in parts},
                 "ops_per_part": {p.part_id: list(p.brief.ops) for p in parts},
                 "sized_from": {p.part_id: p.brief.load_basis for p in parts},
+                "ops_realised_as_channels": [n for b in inline for n in b.ops],
                 "part_registry": registry,
                 "material_choice": material.why,
                 "layer_convention": convention.source,
@@ -257,7 +258,8 @@ def build_chip_spec(*, chip_id: str, parts: Sequence[SizedPart], placement: Plac
 
 def _description(chip_id: str, parts: Sequence[SizedPart], placement: Placement,
                  port_plan: PortPlan, material: Material, scale: str, reason: str,
-                 convention: LayerConvention, registry: str) -> str:
+                 convention: LayerConvention, registry: str,
+                 inline: Sequence = ()) -> str:
     env = placement.envelope
     briefs = [p.brief for p in parts]
     ops = ", ".join(
@@ -306,6 +308,13 @@ def _description(chip_id: str, parts: Sequence[SizedPart], placement: Placement,
         f"is unconnected on purpose, and every rule that needs a channel - channel width "
         f"against capsule diameter, channel crossings, protocol targets - can only be "
         f"checked after S7.",
+        (f"REALISED AS CHANNELS, not as parts: "
+         + "; ".join(f"op(s) {', '.join(str(n) for n in b.ops)} "
+                     f"({', '.join(b.kinds)}) - {b.inline_why}" for b in inline)
+         + ". A conduit is sized from flow and residence time, and one that comes out "
+           "smaller than a face a channel can attach to is not a small part but an "
+           "unusable one, so it becomes the channel instead, lengthened to the length it "
+           "needs.") if inline else "",
         f"Parts sized by {registry}." if registry else "",
         ("RISKS carried from sizing: " + "; ".join(risks) + ".") if risks else "",
     ]

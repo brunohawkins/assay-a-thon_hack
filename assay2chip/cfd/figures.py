@@ -124,8 +124,19 @@ def esc(s: object) -> str:
     return (str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
 
 
+def trim(text: str) -> str:
+    """Drop trailing zeros only AFTER a decimal point.
+
+    A bare `.rstrip("0")` turns 140 into 14 and 1200 into 12. `n()` gets away with it
+    because `:.2f` always leaves a decimal point; `sig()` at 0 decimal places does not,
+    which is how a 140 um capsule was once labelled 14 um. One guarded helper, used by
+    both.
+    """
+    return (text.rstrip("0").rstrip(".") or "0") if "." in text else text
+
+
 def n(v: float) -> str:
-    return f"{float(v):.2f}".rstrip("0").rstrip(".") or "0"
+    return trim(f"{float(v):.2f}")
 
 
 def sig(v, digits=3):
@@ -137,8 +148,8 @@ def sig(v, digits=3):
         return "0"
     if abs(x) >= 1e5 or abs(x) < 1e-3:
         return f"{x:.1e}"
-    return f"{x:.{max(0, digits - 1 - int(math.floor(math.log10(abs(x)))))}f}".rstrip(
-        "0").rstrip(".") or "0"
+    places = max(0, digits - 1 - int(math.floor(math.log10(abs(x)))))
+    return trim(f"{x:.{places}f}")
 
 
 def _hex(c):

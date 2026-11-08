@@ -72,6 +72,13 @@ class WorkspaceTest(unittest.TestCase):
         self.assertFalse(is_bulk("assay2chip/work/r/foam/render/c.png"))
         self.assertFalse(is_bulk("assay2chip/work/r/report.md"))
 
+    def test_numeric_dir_is_a_time_dir_only_beside_system(self):
+        root = Path(tempfile.mkdtemp(prefix="a2c_b_"))
+        (root / "w/foam/c/all/system").mkdir(parents=True)
+        self.assertTrue(is_bulk("w/foam/c/all/0.5/U", root))
+        self.assertFalse(is_bulk("w/foam/c/1/summary.json", root),
+                         "foam/run.py names step folders by number")
+
     def test_copy_excludes_and_sync_uploads_only_changes(self):
         src = Path(tempfile.mkdtemp(prefix="a2c_src_"))
         (src / "chip").mkdir()

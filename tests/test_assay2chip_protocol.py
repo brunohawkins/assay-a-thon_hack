@@ -49,10 +49,10 @@ def on_chip_ops(unitops=None):
             if op["placement"]["where"] == "on_chip"]
 
 
-def mixer_chip(channel_width_mm=None, zone=True):
+def mixer_chip(channel_width_mm=None, zone=True, block="serpentine_channel"):
     """A two-chamber chip: a trap and a folded mixer, for the cases module 3 has none of."""
-    mixer = {"id": "mix_1", "type": "mixer", "center": [20, 10, 1.15], "size": [8, 6, 0.3],
-             "volume_ul": 10.0}
+    mixer = {"id": "mix_1", "type": "mixer", "block": block, "center": [20, 10, 1.15],
+             "size": [8, 6, 0.3], "volume_ul": 10.0}
     if channel_width_mm:
         mixer["mixer"] = {"kind": "serpentine", "channel_width_mm": channel_width_mm,
                           "turns": 6, "length_mm": 40}
@@ -122,6 +122,17 @@ class CrossSections(unittest.TestCase):
         self.assertAlmostEqual(narrow.width_mm, 0.5)
         with self.assertRaisesRegex(geometry.GeometryError, "43x"):
             geometry.Chip(mixer_chip()).cross_section("mix_1")
+
+    def test_a_lane_mixer_uses_the_chamber_and_says_the_lane_is_narrower(self):
+        # A staggered herringbone fills its chamber, so the box IS the flow path - but S6
+        # states the lane count only in prose, so the reading is optimistic and says so.
+        chip = geometry.Chip(mixer_chip(block="herringbone_mixer"))
+        section = chip.cross_section("mix_1")
+        self.assertAlmostEqual(section.width_mm, 6.0)          # the narrower in-plane side
+        self.assertIn("UNDER-stated", section.why)
+        self.assertTrue(chip.needs_lane_width("mix_1"))
+        self.assertFalse(geometry.Chip(
+            mixer_chip(block="herringbone_mixer", channel_width_mm=1.5)).needs_lane_width("mix_1"))
 
     def test_the_bounding_box_would_be_43x_wrong_on_a_library_serpentine(self):
         # chip/components/catalogue.json serpentine_channel is 25 x 60 mm; its channel is
@@ -245,7 +256,7 @@ class ExchangeKind(unittest.TestCase):
         sizing = exchange.size(exchange.PARTIAL, 40.0, ratio=1.0)
         self.assertEqual(sizing.washes, 1)
         self.assertAlmostEqual(sizing.chamber_volumes, math.log(2))
-        self.assertAlmostEqual(sizing.volume_ul, round(40.0 * math.log(2), 3))
+        self.assertAlmostEqual(sizing.volume_ul, exchange.floor_ul(40.0 * math.log(2)))
         self.assertAlmostEqual(sizing.fraction, 0.5)          # 1:1 reagent to sample
         self.assertIn("%", sizing.note)
         self.assertAlmostEqual(exchange.chamber_volumes_for_ratio(1 / 9), math.log(10 / 9))
@@ -577,7 +588,7 @@ class WhichChamber(unittest.TestCase):
         added = next(s for s in protocol["steps"] if s["operation"] == "exchange")
         volume = spec["chambers"][0]["volume_ul"]
         self.assertEqual(added["exchange_kind"], "partial")
-        self.assertAlmostEqual(added["volume_ul"], round(volume * math.log(2), 3))
+        self.assertAlmostEqual(added["volume_ul"], exchange.floor_ul(volume * math.log(2)))
         self.assertIn("1:1 reagent-to-sample", added["note"])
         self.assertNotIn(500, [s.get("volume_ul") for s in protocol["steps"]])
         self.assertEqual(s8_protocol.check(protocol, spec, {"cult_1": "none"}), [])
@@ -716,6 +727,177 @@ class Grouping(unittest.TestCase):
         again = s5_group.group(entry, self.ops, UNITOPS)
         self.assertEqual(json.dumps(again, sort_keys=True),
                          json.dumps(self.design, sort_keys=True))
+
+
+class GeneratedChips(unittest.TestCase):
+    """What a chip built by S6 and routed by S7 brings that a hand-made one does not."""
+
+    def chip(self):
+        """A generated chip, in the shape S6 and S7 actually emit."""
+        return {
+            "id": "gen_c1", "units": "mm", "placeholder": True,
+            "footprint": {"x": 30, "y": 20},
+            "layers": [{"id": "base", "material": "coc", "thickness_mm": 1.0},
+                       {"id": "fluidic", "material": "coc", "thickness_mm": 0.3},
+                       {"id": "lid", "material": "coc", "thickness_mm": 1.0}],
+            "chambers": [
+                {"id": "wash_2", "type": "exchange", "block": "polygon_chamber",
+                 "center": [8, 10, 0.65], "size": [2.1082, 2.1082, 0.3],
+                 "volume_ul": 1.3334, "height_um": 300.0},
+                {"id": "lyse_4", "type": "exchange", "block": "trap_chamber",
+                 "center": [18, 10, 0.65], "size": [4.0, 4.0, 0.3], "volume_ul": 4.0616,
+                 "height_um": 300.0,
+                 "retention": {"type": "weir", "opening_um": 25.0, "source": "fabricated"}},
+                # the pads: cut squares under each 0.8 mm hole, which S7 routes INTO
+                {"id": "inlet_1_pad", "type": "inlet", "block": "port", "shape": "cylinder",
+                 "center": [1.0, 10.0, 0.65], "size": [1.2, 1.2, 0.3], "volume_ul": 0.3393},
+                {"id": "reagent_in_pad", "type": "inlet", "block": "port",
+                 "shape": "cylinder", "center": [1.0, 3.0, 0.65], "size": [1.2, 1.2, 0.3],
+                 "volume_ul": 0.3393},
+                {"id": "waste_pad", "type": "outlet", "block": "port", "shape": "cylinder",
+                 "center": [29.0, 10.0, 0.65], "size": [1.2, 1.2, 0.3], "volume_ul": 0.3393},
+            ],
+            "channels": [
+                {"id": "ch_conn_1", "from": "inlet_1_pad", "to": "wash_2", "width_mm": 0.2,
+                 "depth_mm": 0.3, "path": [[1.6, 10], [6.9, 10]]},
+                # the conduit that IS op 3: chip_spec.schema.json has no field for saying so,
+                # which is why `generator.params.ops_realised_as_channels` is the record.
+                {"id": "ch_conn_2", "from": "wash_2", "to": "lyse_4", "width_mm": 0.2,
+                 "depth_mm": 0.3, "path": [[9.1, 10], [16, 10]]},
+                {"id": "ch_conn_3", "from": "reagent_in_pad", "to": "inlet_1_pad",
+                 "width_mm": 0.2, "depth_mm": 0.3, "path": [[1.0, 3.6], [1.0, 9.4]]},
+                {"id": "ch_conn_4", "from": "lyse_4", "to": "waste_pad", "width_mm": 0.2,
+                 "depth_mm": 0.3, "path": [[20, 10], [28.4, 10]]},
+            ],
+            "ports": [
+                {"id": "inlet_1", "type": "inlet", "position": [1.0, 10.0, 1.8],
+                 "role": "load", "width_um": 800.0},
+                {"id": "reagent_in", "type": "inlet", "position": [1.0, 3.0, 1.8],
+                 "role": "reagent", "capsule_passable": False, "width_um": 800.0},
+                {"id": "waste", "type": "outlet", "position": [29.0, 10.0, 1.8],
+                 "role": "waste", "capsule_passable": False, "width_um": 800.0},
+            ],
+            # A generated zone states its CEILING only: there is no floor to quote.
+            "thermal_zones": [{"id": "lyse_4_zone", "chambers": ["lyse_4"],
+                               "max_temp_c": 25.0, "purpose": "lysis"}],
+            "generator": {"script": "assay2chip/stages/s6_build.py", "params": {
+                "ops": [2, 4], "ops_per_part": {"wash_2": [2], "lyse_4": [4]},
+                "ops_realised_as_channels": [3], "routed": True}},
+        }
+
+    def ops(self):
+        return [op(2, "wash", particles="cells", shear_class="prelysis_rinse",
+                   volume_ul=300, part="polygon_chamber"),
+                op(3, "mix", particles="cells", shear_class="none", part="herringbone_mixer"),
+                op(4, "lyse", particles="cells", shear_class="none", temp_c=25,
+                   duration_s=600, part="trap_chamber")]
+
+    def build(self):
+        spec = self.chip()
+        return spec, s8_protocol.build_protocol(
+            spec, {"id": "gen", "ops": self.ops(), "unresolved": []}, None, None, "gen")
+
+    def test_a_port_reaches_its_pad_even_though_no_channel_touches_it(self):
+        chip = geometry.Chip(self.chip())
+        self.assertEqual(chip.pad_of("inlet_1"), "inlet_1_pad")
+        self.assertEqual(chip.port_of("waste_pad"), "waste")
+        self.assertEqual(chip.pad_of("wash_2"), "")
+        self.assertEqual(chip.feeds("wash_2"), ["inlet_1", "reagent_in"])
+        self.assertEqual(chip.drains("lyse_4"), ["waste"])
+        # ... and the hole costs no length, so it adds no resistance
+        self.assertEqual(chip.channel_length_mm(chip.out_edges("inlet_1")[0]), 0.0)
+
+    def test_a_pad_is_only_a_pad_if_it_sits_under_the_hole(self):
+        spec = self.chip()
+        spec["ports"][0]["position"] = [20.0, 10.0, 1.8]      # nowhere near its pad
+        self.assertEqual(geometry.Chip(spec).pad_of("inlet_1"), "")
+
+    def test_the_chip_says_which_op_runs_where(self):
+        chip = geometry.Chip(self.chip())
+        self.assertEqual(build.declared_ops(chip), {2: "wash_2", 4: "lyse_4"})
+        self.assertEqual(build.inline_ops(chip), {3})
+        self.assertEqual(build.assign(chip, self.ops(), None),
+                         {2: "wash_2", 3: build.AS_A_CHANNEL, 4: "lyse_4"})
+
+    def test_from_ops_still_wins_over_the_generator_block(self):
+        spec = self.chip()
+        spec["chambers"][0]["from_ops"] = [2, 4]
+        self.assertEqual(build.declared_ops(geometry.Chip(spec))[4], "wash_2")
+
+    def test_an_op_realised_as_a_channel_gets_no_step_and_is_recorded(self):
+        _, (protocol, plan) = self.build()
+        self.assertEqual(plan.realised_as_channels, [3])
+        self.assertTrue(any("AS A CHANNEL" in gap.question for gap in plan.gaps))
+        self.assertNotIn("ch_conn_2", json.dumps(protocol["steps"]))
+
+    def test_a_generated_chip_gives_a_protocol_that_passes_every_rule(self):
+        spec, (protocol, plan) = self.build()
+        self.assertEqual(schema_io.schema_errors("protocol", protocol), [])
+        self.assertEqual(s8_protocol.check(protocol, spec, plan.classes), [])
+        self.assertEqual(planner.check_inputs(protocol, spec), [])
+        planner.plan(protocol, spec)
+        places = geometry.Chip(spec).place_ids
+        for step in protocol["steps"]:
+            for target in [step.get("target")] + list(step.get("targets") or []):
+                if target:
+                    self.assertIn(target, places)
+
+    def test_a_chamber_is_held_to_the_strictest_class_any_op_in_it_declares(self):
+        spec, (protocol, plan) = self.build()
+        self.assertEqual(plan.classes["wash_2"], "prelysis_rinse")
+        ceiling = contracts.shear_ceiling_for("prelysis_rinse").ceiling_dyn_cm2
+        mu = contracts.viscosity_for(None).pa_s
+        section = geometry.Chip(spec).cross_section("wash_2")
+        for step in protocol["steps"]:
+            if "wash_2" not in [step.get("target")] or not step.get("flow_ul_min"):
+                continue
+            self.assertLessEqual(
+                flows.wall_shear_dyn_cm2(step["flow_ul_min"], section.width_mm,
+                                         section.height_mm, mu), ceiling)
+
+    def test_a_downstream_chamber_holds_the_step_before_it(self):
+        # A transfer out of the trap runs through nothing stricter; reverse the chip so the
+        # strict chamber is downstream and the flow has to drop for it.
+        spec = self.chip()
+        ops = self.ops()
+        chip = geometry.Chip(spec)
+        strict = flows.derive(chip, "lyse_4", "none", "reagent_in", "waste", temp_c=25,
+                              also_bounded=[("wash_2", "prelysis_rinse")])
+        loose = flows.derive(chip, "lyse_4", "none", "reagent_in", "waste", temp_c=25)
+        self.assertLess(strict.flow_ul_min, loose.flow_ul_min)
+        self.assertEqual(strict.bound_by, "wall_shear")
+
+    def test_a_zone_with_no_floor_is_quoted_without_inventing_one(self):
+        _, (protocol, _) = self.build()
+        hold = next(s for s in protocol["steps"] if s["operation"] == "hold_temp")
+        self.assertIn("lyse_4_zone", hold["note"])
+        self.assertIn("states no floor", hold["note"])
+        self.assertNotIn("0-25", hold["note"])
+
+    def test_a_chip_whose_ops_cannot_be_written_is_still_driven_through(self):
+        # The hold this chip exists for has neither a time nor a temperature, so no step
+        # can be written for it - but the chip is in the chain and has to be filled and
+        # emptied. That plumbing is written, with the reason in the step itself.
+        spec = self.chip()
+        spec.pop("thermal_zones")
+        spec["generator"]["params"] = {"ops": [4], "ops_per_part": {"lyse_4": [4]}}
+        blind = op(4, "incubate", particles="cells", shear_class="none", part="trap_chamber")
+        protocol, plan = s8_protocol.build_protocol(
+            spec, {"id": "blind", "ops": [blind], "unresolved": []}, None, None, "blind")
+        self.assertEqual([s["operation"] for s in protocol["steps"]], ["load", "transfer"])
+        self.assertIn("NO ASSAY STEP OF ITS OWN", protocol["steps"][0]["note"])
+        self.assertEqual(protocol["steps"][1]["target"], "waste")
+        self.assertTrue(any("pass-through" in gap.question for gap in plan.gaps))
+        self.assertEqual(s8_protocol.check(protocol, spec, plan.classes), [])
+        planner.plan(protocol, spec)
+
+    def test_a_volume_never_exceeds_the_chamber_by_a_rounding_step(self):
+        spec, (protocol, _) = self.build()
+        volumes = {c["id"]: c["volume_ul"] for c in spec["chambers"]}
+        for step in protocol["steps"]:
+            if step.get("volume_ul") and step.get("target") in volumes:
+                self.assertLessEqual(step["volume_ul"], volumes[step["target"]])
+        self.assertEqual(exchange.floor_ul(28.0616), 28.061)
 
 
 class TheHandWrittenProtocol(unittest.TestCase):

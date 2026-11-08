@@ -1,6 +1,7 @@
 """A fast stand-in for the slow job kinds, used ONLY by the deployment smoke test.
 
     python deploy/local/fake_stage.py design|foam|fabricate|report RUN_ID [CHIP STEP OUT]
+    python deploy/local/fake_stage.py design_from_repo_chip RUN_ID REPO_CHIP_ID
 
 It proves the queue, the fan-out, retries, cancellation and artefact storage without
 spending minutes in S5-S10 or hours in OpenFOAM. Every file it writes says FAKE. It runs
@@ -69,6 +70,21 @@ def design(run_id: str) -> None:
     print("  s5..s10 FAKE design: %d chip(s)" % len(chips))
 
 
+def design_from_repo_chip(run_id: str, source: str) -> None:
+    """Stand a hand-designed repo chip in for the run's first chip, so the REAL OpenFOAM
+    job can be exercised through the queue while S5-S10 are still being written."""
+    chips = [c["chip_id"] for c in
+             json.loads((work(run_id) / "partition.json").read_text())["chips"]]
+    chip = chips[0]
+    spec = json.loads((Path("chip") / ("%s.json" % source)).read_text())
+    spec["id"] = chip
+    write(Path("chip") / ("%s.json" % chip), spec)
+    proto = json.loads((Path("protocols") / ("%s.json" % source)).read_text())
+    write(Path("protocols") / ("%s.json" % chip), proto)
+    manifest(run_id, ["s5", "s6", "s7", "s8", "s9", "s10"])
+    print("  s5..s10 FAKE design: repo chip %s stands in for %s" % (source, chip))
+
+
 def foam(run_id: str, chip: str, step: str, out: str) -> None:
     out_dir = Path(out)
     marker = out_dir / ".failed_once"
@@ -82,6 +98,7 @@ def foam(run_id: str, chip: str, step: str, out: str) -> None:
     # Bulk that must NOT be uploaded: a mesh and a time directory.
     write(out_dir / "foam" / chip / "all" / "constant" / "polyMesh" / "points", "(0 0 0)")
     write(out_dir / "foam" / chip / "all" / "0.5" / "U", "uniform (0 0 0)")
+    write(out_dir / "foam" / chip / "all" / "system" / "controlDict", "// FAKE")
     print("  FAKE foam %s step %s" % (chip, step))
 
 
@@ -104,6 +121,8 @@ def main(argv) -> int:
     kind, run_id = argv[0], argv[1]
     if kind == "design":
         design(run_id)
+    elif kind == "design_from_repo_chip":
+        design_from_repo_chip(run_id, argv[2])
     elif kind == "foam":
         foam(run_id, argv[2], argv[3], argv[4])
     elif kind == "fabricate":

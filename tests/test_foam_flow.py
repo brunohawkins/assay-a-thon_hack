@@ -534,12 +534,36 @@ class TestSolverChoice(unittest.TestCase):
         why = flow.transient_reason(_Rec(duration_s=0.2), 0.01, self.T_VISC, 0.2)
         self.assertIn("viscous settling time", why)
 
-    def test_every_transient_term_is_recognised(self):
-        for term in ("quench", "prime", "droplet", "encapsulate", "backflush"):
+    def test_single_phase_transient_terms_force_pimplefoam(self):
+        for term in ("quench", "flood", "backflush", "purge"):
             with self.subTest(term=term):
                 self.assertNotEqual(
                     flow.transient_reason(_Rec(operation=term), 0.01, 0.1, 600.0), ""
                 )
+
+    def test_a_two_phase_step_is_solved_STEADY_and_handed_to_vof(self):
+        """Priming, droplet formation and encapsulation are transient because an
+        INTERFACE moves. A single-phase solver has none, so pimpleFoam would integrate a
+        one-fluid field to exactly the steady state simpleFoam reaches - at a thousand
+        times the cost, and still saying nothing about the interface. spc_demo_v1 step 1
+        is the case: 505k cells, Re 0.077, and the note says "Prime the board with oil"."""
+        for term in ("prime", "droplet", "encapsulate", "emulsify"):
+            with self.subTest(term=term):
+                rec = _Rec(operation=term)
+                self.assertEqual(flow.transient_reason(rec, 0.01, 0.1, 600.0), "",
+                                 "a moving interface is not a single-phase transient")
+                self.assertIn("vof.py", flow.two_phase_reason(rec))
+
+    def test_a_two_phase_step_at_high_re_is_still_transient(self):
+        """The interface is vof.py's, but inertia is still this module's."""
+        rec = _Rec(operation="droplet")
+        self.assertIn("Re", flow.transient_reason(rec, 9.0, 0.1, 600.0))
+
+    def test_a_feature_name_is_not_an_event(self):
+        """`ch_backflush` is a channel. A step that merely targets it is not a back-flush,
+        and matching on target names made every step that touched it transient."""
+        rec = _Rec(operation="exchange", targets=("ch_backflush", "main_trap"))
+        self.assertEqual(flow.transient_reason(rec, 0.01, 0.1, 600.0), "")
 
 
 class TestPlanCase(unittest.TestCase):
@@ -593,6 +617,20 @@ class TestPlanCase(unittest.TestCase):
         self.assertFalse(plan.transient)
         self.assertIn("STEADY LIMIT", plan.solver_forced_reason)
         self.assertIn("transient run is still required", plan.solver_forced_reason)
+
+    def test_the_conversion_density_is_the_cases_own(self):
+        """`plan.rho_kg_m3` must be the density `constant/transportProperties` was written
+        with, because it is also the number every kinematic result is multiplied by. If
+        the case and the post-processing could read different densities they would drift
+        apart by a factor nobody would spot."""
+        from assay2chip.foam import case as foam_case
+        plan = flow.plan_case({"id": "synthetic"}, self._record(), self._mesh())
+        self.assertAlmostEqual(plan.rho_kg_m3, foam_case.density_kg_m3())
+        self.assertIn("transportProperties", plan.mu_source)
+        # and the two independent resolutions agree, which is what makes a comparison mean
+        # anything at all
+        self.assertIsNone(flow._check_fluid_agreement(
+            foam_case.fluid_for(37.0), plan))
 
     def test_an_assumed_density_is_carried_as_an_assumption(self):
         plan = flow.plan_case({"id": "synthetic"}, self._record(), self._mesh())
@@ -659,6 +697,100 @@ def summary_with_shear(zone: str, dyn_cm2: float, step=3, **kw) -> dict:
         converged=True, cells=1000,
     )
     return flow.summarise(raw, plan)
+
+
+class TestCaseDirectoryConvention(unittest.TestCase):
+    """ONE case directory, `<out>/<chip_id>/step_<N>/`, with the mesh inside it.
+
+    This is a regression suite for a bug that cost a real OpenFOAM job: the mesh went to
+    `foam/<chip>/1/` and the flow case to `foam/foam/<chip>/step_1/`, so `checkMesh` ran
+    on an empty directory. Two separate mistakes - a doubled `foam/` from joining a run
+    directory already called `foam` to a literal `foam`, and `<step>` against `step_<N>`.
+    `case.case_dir` is now the only answer and `flow.plan_case` asks it.
+    """
+
+    def test_no_doubled_foam_for_the_default_run(self):
+        from assay2chip.foam import case as foam_case
+        out = foam_case.out_dir()
+        self.assertEqual(out.name, "foam")
+        self.assertNotEqual(out.parent.name, "foam", "work/foam/foam is the bug")
+        self.assertNotIn("foam/foam", foam_case.case_dir(None, "spc_demo_v1", 1).as_posix())
+
+    def test_out_dir_is_idempotent(self):
+        from assay2chip.foam import case as foam_case
+        run_dir = ROOT / "assay2chip" / "work" / "e2e"
+        self.assertEqual(foam_case.out_dir(work=run_dir),
+                         foam_case.out_dir(work=run_dir / "foam"))
+
+    def test_step_name_is_step_underscore_n(self):
+        from assay2chip.foam import case as foam_case
+        self.assertEqual(foam_case.step_name(1), "step_1")
+        self.assertEqual(foam_case.step_name("4b"), "step_4b")
+        self.assertEqual(foam_case.step_name("step_7"), "step_7")   # already prefixed
+        self.assertEqual(foam_case.step_name(None), foam_case.ALL_STEPS)
+
+    def test_a_step_id_cannot_escape_its_directory(self):
+        from assay2chip.foam import case as foam_case
+        self.assertEqual(foam_case.case_dir(None, "chip", "../../etc").name,
+                         "step_.._.._etc")
+        with self.assertRaises(Exception):
+            foam_case.case_dir(None, "..", 1)
+
+    def test_plan_case_uses_the_helper(self):
+        from assay2chip.foam import case as foam_case
+        mesh = Mesh([Node(id="a", kind="port", depth_mm=0.3)],
+                    [Edge(id="e", a="a", b="a", kind="duct", width_mm=0.2, depth_mm=0.3,
+                          length_mm=1.0)],
+                    {"p_in": "a"}, {"chip_id": "spc_demo_v1", "mu_pa_s": MU})
+        mesh.edges[0].b = "a"
+        scenario = Scenario(step=1, ports={"p_in": PortState.flow(10.0)},
+                            fluid="medium", temp_c=37.0, mu_pa_s=MU)
+        plan = flow.plan_case({"id": "spc_demo_v1"}, _Rec(scenario=scenario), mesh)
+        self.assertEqual(Path(plan.case_dir),
+                         foam_case.case_dir(None, "spc_demo_v1", 1))
+        self.assertEqual(Path(plan.case_dir).name, "step_1")
+
+    def test_a_named_run_puts_the_case_under_that_run(self):
+        from assay2chip.foam import case as foam_case
+        mesh = Mesh([Node(id="a", kind="port", depth_mm=0.3)], [],
+                    {"p_in": "a"}, {"chip_id": "x", "mu_pa_s": MU})
+        scenario = Scenario(step=2, ports={"p_in": PortState.flow(1.0)},
+                            fluid="medium", temp_c=37.0, mu_pa_s=MU)
+        plan = flow.plan_case({"id": "x"}, _Rec(scenario=scenario, step=2), mesh,
+                              run="e2e")
+        self.assertEqual(Path(plan.case_dir),
+                         foam_case.out_dir("e2e") / "x" / "step_2")
+
+    def test_a_doubled_foam_collapses_whoever_built_it(self):
+        """`work/foam/foam` is the reported bug. It must resolve to `work/foam` even when
+        a caller has already joined `foam` onto a directory called `foam`."""
+        from assay2chip.foam import case as foam_case
+        doubled = ROOT / "assay2chip" / "work" / "foam" / "foam"
+        self.assertEqual(foam_case.out_dir(work=doubled), foam_case.out_dir())
+        self.assertEqual(foam_case.case_dir(doubled, "spc_demo_v1", 1),
+                         foam_case.case_dir(None, "spc_demo_v1", 1))
+
+    def test_render_py_looks_in_the_same_place(self):
+        """`render.py` discovers and writes cases too, and it reached the path by its own
+        route. The two agreeing on EVERY input is the only thing that keeps the mesh and
+        the case in one directory, so it is asserted rather than assumed."""
+        from assay2chip.foam import case as foam_case
+        from assay2chip.foam import render
+        for out in (None, ROOT / "assay2chip" / "work" / "e2e",
+                    ROOT / "assay2chip" / "work" / "e2e" / "foam",
+                    ROOT / "assay2chip" / "work" / "foam" / "foam"):
+            for step in (1, "4b", None):
+                with self.subTest(out=out, step=step):
+                    self.assertEqual(
+                        Path(render.case_dir("spc_demo_v1", step, out=out)),
+                        foam_case.case_dir(out, "spc_demo_v1", step),
+                    )
+        run_dir = ROOT / "assay2chip" / "work" / "e2e"
+        self.assertEqual(render.foam_out_dir(run_dir), foam_case.out_dir(work=run_dir))
+        # ...and render still READS the old bare `<chip>/<N>` layout, so a half-finished
+        # run from before the fix is not silently invisible
+        self.assertIn(foam_case.case_dir(run_dir, "module1_v1", 1),
+                      render._step_dirs(foam_case.out_dir(work=run_dir), "module1_v1", 1))
 
 
 class TestShearScoping(unittest.TestCase):
@@ -938,6 +1070,99 @@ class TestAttribution(unittest.TestCase):
         self.assertEqual(blob["believed_correct"], "openfoam")
         self.assertAlmostEqual(blob["pressure_drop"]["difference_percent"], 40.0, places=6)
         json.dumps(blob)
+
+
+class TestRoutingMismatch(unittest.TestCase):
+    """Two models that send the liquid down different paths are not validating each other.
+
+    Written for `spc_demo_v1`, where the reduced mesh attaches both of the delay line's
+    neighbours to the SAME end node, so its 234 mm serpentine hangs off one point as a
+    dead-end stub and carries exactly zero. The reduced model then reports 39 Pa where the
+    exact duct law says 1194 Pa and OpenFOAM says 1136 Pa. A routing fault explains a
+    disagreement of ANY size, so it is tested for before inertia or side walls.
+    """
+
+    def _mesh(self, bypass: bool) -> Mesh:
+        """`xj -> delay -> out`, with the delay line correctly in line or stubbed off."""
+        nodes = [Node(id="j_xj", kind="junction", depth_mm=0.15, feature_id="xj_1"),
+                 Node(id="j_a", kind="junction", depth_mm=0.15, feature_id="delay_1"),
+                 Node(id="j_b", kind="junction", depth_mm=0.15, feature_id="delay_1"),
+                 Node(id="p_out", kind="port", depth_mm=0.15, feature_id="out")]
+        out_from = "j_a" if bypass else "j_b"
+        edges = [
+            Edge(id="d:delay_1", a="j_a", b="j_b", kind="duct", length_mm=234.0,
+                 width_mm=0.2, depth_mm=0.15, feature_id="delay_1",
+                 conductance_m3_per_pa_s=1.585e-13, g_geom_m3=4.755e-16),
+            Edge(id="d:in", a="j_xj", b="j_a", kind="duct", length_mm=0.85,
+                 width_mm=0.2, depth_mm=0.15, feature_id="ch_xj_delay",
+                 conductance_m3_per_pa_s=4.4e-11, g_geom_m3=1.3e-13),
+            Edge(id="d:out", a=out_from, b="p_out", kind="duct", length_mm=0.7,
+                 width_mm=0.2, depth_mm=0.15, feature_id="ch_delay_out",
+                 conductance_m3_per_pa_s=5.3e-11, g_geom_m3=1.6e-13),
+        ]
+        return Mesh(nodes, edges, {"p_in": "j_xj", "p_out": "p_out"},
+                    {"chip_id": "spc_demo_v1", "mu_pa_s": 3e-3})
+
+    def _summary(self, delay_u_mm_s: float) -> dict:
+        return {"reynolds": {"per_zone": {
+            "delay_1": {"u_max_mm_s": delay_u_mm_s, "re_max": 0.2},
+            "ch_xj_delay": {"u_max_mm_s": 3.4, "re_max": 0.2},
+            "ch_delay_out": {"u_max_mm_s": 3.4, "re_max": 0.2},
+        }}}
+
+    def _field(self, delay_q: float):
+        from assay2chip.cfd.model import Field, Residual
+        q_in = 5.178e-11
+        return Field(q_m3_s={"d:delay_1": delay_q, "d:in": q_in, "d:out": q_in},
+                     residual=Residual(q_in=q_in, q_out=q_in))
+
+    def test_a_bypassed_duct_is_found(self):
+        found = vf.routing_mismatch(self._mesh(bypass=True),
+                                    self._field(9.4e-30), self._summary(3.46))
+        self.assertEqual([r["feature_id"] for r in found], ["delay_1"])
+        self.assertAlmostEqual(found[0]["duct_length_mm"], 234.0)
+        self.assertLess(found[0]["reduced_fraction_of_through_flow"], 1e-10)
+
+    def test_a_correctly_routed_chip_reports_nothing(self):
+        found = vf.routing_mismatch(self._mesh(bypass=False),
+                                    self._field(5.178e-11), self._summary(3.46))
+        self.assertEqual(found, [])
+
+    def test_a_duct_both_models_leave_quiet_is_not_a_mismatch(self):
+        """A capped branch is dry in BOTH models. That is agreement, not a fault."""
+        found = vf.routing_mismatch(self._mesh(bypass=True),
+                                    self._field(0.0), self._summary(0.0))
+        self.assertEqual(found, [])
+
+    def test_routing_outranks_every_other_cause(self):
+        row = a_row(dp_foam_pa=1136.0, dp_reduced_pa=39.4, re_foam=5.0,
+                    routing=[{"feature_id": "delay_1", "duct_length_mm": 234.0,
+                              "reduced_fraction_of_through_flow": 1.8e-19,
+                              "openfoam_u_max_mm_s": 3.46,
+                              "reduced_nodes": ["j:delay_1:a", "j:delay_1:b"]}])
+        # Re > 1 AND a narrow lane are both present; neither may win
+        row = vf.attribute(row, a_context(min_aspect_w_over_h=1.33))
+        self.assertEqual(row.believed, "openfoam")
+        self.assertIn("route the flow DIFFERENTLY", row.why)
+        self.assertIn("assay2chip/cfd/mesh.py", row.why)
+        self.assertNotIn("side-wall drag, nor staircase", row.why)
+        self.assertTrue(row.caveats)
+
+    def test_the_3d_answer_matches_the_exact_duct_law(self):
+        """The claim "the 3D answer is correct" is only worth making because a third,
+        independent reference agrees with it: the exact series for the same duct.
+
+        234 mm x 0.2 x 0.15 mm at 3.107 uL/min in the step's 3e-3 Pa s oil.
+        """
+        from assay2chip.cfd import validate as cfd_validate
+        q = 3.107e-9 / 60.0
+        analytic = cfd_validate.duct_resistance_exact(234.0, 0.2, 0.15, 3e-3) * q
+        self.assertAlmostEqual(analytic, 1193.7, delta=1.0)
+        foam, reduced = 1136.16, 39.38
+        self.assertLess(abs(foam - analytic) / analytic, 0.06,
+                        "OpenFOAM is within a few percent of the exact duct law")
+        self.assertGreater(abs(reduced - analytic) / analytic, 0.9,
+                           "the reduced model is not, because it bypasses the duct")
 
 
 class TestChipContext(unittest.TestCase):

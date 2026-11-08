@@ -1,0 +1,567 @@
+{
+  "id": "e2e_bead_capture_assay_c4",
+  "name": "e2e_bead_capture_assay_c4: incubate, lyse",
+  "description": "UNROUTED. Built by assay2chip/stages/s6_build.py from partition.json: op 20 incubate -> serpentine_channel 'incubate_20', op 21 incubate -> trap_chamber 'incubate_21', op 22 lyse -> trap_chamber 'lyse_22', op 24 incubate -> trap_chamber 'incubate_24'. mix, incubate, lyse share one board; they run between 4 and 4 C; 5 of the 6 ports allowed at demo scale; 42% of the envelope 30 x 20 mm (demo envelope), ONE fluidic layer at ONE 0.3 mm etch depth, base and lid 0.5 / 1 mm. COP (Zeonor 1060R) because hot_embossing route; 90 C max working temperature covers the 4 C hold; DNA adsorption Low: hydrophobic, little DNA binding; protein/enzyme adsorption possible. The hottest hold here is 4 C. SIZED FROM THE LOAD, never from the paper's tube volumes (assay2chip/README.md, 'Bench volumes do not transfer'): incubate_20 from 2,000 cells at 1500 per uL = 1.33 uL of suspension; incubate_21 from a stated packed bed of 28.0616 uL; lyse_22 from 2,000 capsules at 1500 per uL = 1.33 uL of suspension; incubate_24 from 2,000 capsules at 1500 per uL = 1.33 uL of suspension. PLACEMENT: parts sit in flow order in 1 row(s) (left to right), spread across the usable 23.6 x 13.6 mm so the slack between them is routing corridor. Total chain length 37.2 mm, crossing risk 0, nothing rotated; every feature keeps at least 0.4 mm to its neighbours and to the chip edge. PORTS: 5 (inlet_1, outlet_1, reagent_in, oil_in, waste), each over a PORT PAD the registry sized, so the bore opens entirely onto cut area and the port-overlap rule in tools/check_chip_spec.py passes. Inlets and outlets are on opposite edges, which is what keeps the layout planar in one layer, and no two ports are closer than 5 mm. CHANNELS BETWEEN PARTS ARE DELIBERATELY EMPTY: S7 routes them from assay2chip/work/<id>/connections_e2e_bead_capture_assay_c4.json. Until it has run, a chamber here is unconnected on purpose, and every rule that needs a channel - channel width against capsule diameter, channel crossings, protocol targets - can only be checked after S7. REALISED AS CHANNELS, not as parts: op(s) 19 (mix) - op(s) 19 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part; op(s) 23 (mix) - op(s) 23 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part. A conduit is sized from flow and residence time, and one that comes out smaller than a face a channel can attach to is not a small part but an unusable one, so it becomes the channel instead, lengthened to the length it needs. Parts sized by assay2chip/parts/registry.py. RISKS carried from sizing: Z TOLERANCE: the gap is 25 um and published z tolerance on these processes is +/-20 um, which is +/-80% of it, so the weir could close or leak outright. blocks.json calls this the biggest unknown in the retention scheme: coupon 21, 24 and 27 um gaps before committing. If it fails, the lever is capsule size (tunable 35-260 um), which buys a proportionally larger gap.; flow distribution across a wide weir is explicitly NOT scale-free (blocks.json target_envelope.not_scale_free); this crest is 2.11 mm wide; flow distribution across a wide weir is explicitly NOT scale-free (blocks.json target_envelope.not_scale_free); this crest is 9.67 mm wide; this is a delay line, not a mixer: at Re << 1 folding adds residence time and nothing else (blocks.json herringbone_mixer is the mixing block).",
+  "placeholder": true,
+  "units": "mm",
+  "footprint": {
+    "x": 30.0,
+    "y": 20.0
+  },
+  "layers": [
+    {
+      "id": "base",
+      "material": "cop_zeonor_1060r",
+      "thickness_mm": 0.5,
+      "note": "COP (Zeonor 1060R): hot_embossing route; 90 C max working temperature covers the 4 C hold; DNA adsorption Low: hydrophobic, little DNA binding; protein/enzyme adsorption possible"
+    },
+    {
+      "id": "fluidic",
+      "material": "cop_zeonor_1060r",
+      "thickness_mm": 0.3,
+      "note": "the ONE fluidic layer, at the one etch depth (contracts/blocks.json envelope.max_depth_mm = 0.3 mm)"
+    },
+    {
+      "id": "lid",
+      "material": "cop_zeonor_1060r",
+      "thickness_mm": 1.0,
+      "note": "bonded lid; the ports are drilled through it onto their pads"
+    }
+  ],
+  "chambers": [
+    {
+      "block": "serpentine_channel",
+      "id": "incubate_20",
+      "type": "mixer",
+      "shape": "box",
+      "center": [
+        4.8018,
+        8.0357,
+        0.65
+      ],
+      "size": [
+        3.2037,
+        3.2,
+        0.3
+      ],
+      "volume_ul": 1.3333,
+      "mixer": {
+        "kind": "serpentine",
+        "channel_width_mm": 0.2,
+        "turns": 5,
+        "length_mm": 22.2222
+      },
+      "height_um": 300.0,
+      "note": "delay line: residence time by centreline length. Not a mixer."
+    },
+    {
+      "block": "trap_chamber",
+      "id": "incubate_21",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        13.3173,
+        8.0357,
+        0.65
+      ],
+      "size": [
+        9.8549,
+        9.6715,
+        0.3
+      ],
+      "volume_ul": 28.0616,
+      "height_um": 300.0,
+      "retention": {
+        "type": "weir",
+        "opening_um": 25.0,
+        "source": "fabricated",
+        "crest_height_um": 275.0,
+        "crest_thickness_um": 200.0,
+        "retains_um": 70.0
+      },
+      "note": "depth weir at the outlet: 25 um gap in z under the lid, 275 um crest (300 um etch depth minus the gap), 200 um thick in plane. Volume is the box minus the crest."
+    },
+    {
+      "block": "trap_chamber",
+      "id": "lyse_22",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        21.3767,
+        8.0357,
+        0.65
+      ],
+      "size": [
+        2.2915,
+        2.1082,
+        0.3
+      ],
+      "volume_ul": 1.3333,
+      "height_um": 300.0,
+      "retention": {
+        "type": "weir",
+        "opening_um": 25.0,
+        "source": "fabricated",
+        "crest_height_um": 275.0,
+        "crest_thickness_um": 200.0,
+        "retains_um": 70.0
+      },
+      "note": "depth weir at the outlet: 25 um gap in z under the lid, 275 um crest (300 um etch depth minus the gap), 200 um thick in plane. Volume is the box minus the crest."
+    },
+    {
+      "block": "trap_chamber",
+      "id": "incubate_24",
+      "type": "exchange",
+      "shape": "box",
+      "center": [
+        25.6543,
+        8.0357,
+        0.65
+      ],
+      "size": [
+        2.2915,
+        2.1082,
+        0.3
+      ],
+      "volume_ul": 1.3333,
+      "height_um": 300.0,
+      "retention": {
+        "type": "weir",
+        "opening_um": 25.0,
+        "source": "fabricated",
+        "crest_height_um": 275.0,
+        "crest_thickness_um": 200.0,
+        "retains_um": 70.0
+      },
+      "note": "depth weir at the outlet: 25 um gap in z under the lid, 275 um crest (300 um etch depth minus the gap), 200 um thick in plane. Volume is the box minus the crest."
+    },
+    {
+      "block": "port",
+      "id": "inlet_1_pad",
+      "type": "inlet",
+      "shape": "cylinder",
+      "center": [
+        1.0,
+        8.0,
+        0.65
+      ],
+      "size": [
+        1.2,
+        1.2,
+        0.3
+      ],
+      "volume_ul": 0.3393,
+      "height_um": 300.0,
+      "note": "0.8 mm through-hole on a 1.2 mm pad. The pad exists so the hole opens onto cut channel, which is the port-overlap rule tools/check_chip_spec.py enforces. S7 routes INTO this pad, not to the hole centre."
+    },
+    {
+      "block": "port",
+      "id": "outlet_1_pad",
+      "type": "outlet",
+      "shape": "cylinder",
+      "center": [
+        29.0,
+        8.0,
+        0.65
+      ],
+      "size": [
+        1.2,
+        1.2,
+        0.3
+      ],
+      "volume_ul": 0.3393,
+      "height_um": 300.0,
+      "note": "0.8 mm through-hole on a 1.2 mm pad. The pad exists so the hole opens onto cut channel, which is the port-overlap rule tools/check_chip_spec.py enforces. S7 routes INTO this pad, not to the hole centre."
+    },
+    {
+      "block": "port",
+      "id": "reagent_in_pad",
+      "type": "inlet",
+      "shape": "cylinder",
+      "center": [
+        21.5,
+        1.0,
+        0.65
+      ],
+      "size": [
+        1.2,
+        1.2,
+        0.3
+      ],
+      "volume_ul": 0.3393,
+      "height_um": 300.0,
+      "note": "0.8 mm through-hole on a 1.2 mm pad. The pad exists so the hole opens onto cut channel, which is the port-overlap rule tools/check_chip_spec.py enforces. S7 routes INTO this pad, not to the hole centre."
+    },
+    {
+      "block": "port",
+      "id": "oil_in_pad",
+      "type": "inlet",
+      "shape": "cylinder",
+      "center": [
+        13.25,
+        1.0,
+        0.65
+      ],
+      "size": [
+        1.2,
+        1.2,
+        0.3
+      ],
+      "volume_ul": 0.3393,
+      "height_um": 300.0,
+      "note": "0.8 mm through-hole on a 1.2 mm pad. The pad exists so the hole opens onto cut channel, which is the port-overlap rule tools/check_chip_spec.py enforces. S7 routes INTO this pad, not to the hole centre."
+    },
+    {
+      "block": "port",
+      "id": "waste_pad",
+      "type": "outlet",
+      "shape": "cylinder",
+      "center": [
+        21.5,
+        19.0,
+        0.65
+      ],
+      "size": [
+        1.2,
+        1.2,
+        0.3
+      ],
+      "volume_ul": 0.3393,
+      "height_um": 300.0,
+      "note": "0.8 mm through-hole on a 1.2 mm pad. The pad exists so the hole opens onto cut channel, which is the port-overlap rule tools/check_chip_spec.py enforces. S7 routes INTO this pad, not to the hole centre."
+    }
+  ],
+  "channels": [
+    {
+      "id": "ch_conn_1",
+      "from": "inlet_1_pad",
+      "to": "incubate_20",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "path": [
+        [
+          1.6,
+          7.925
+        ],
+        [
+          3.2,
+          7.925
+        ]
+      ],
+      "carries": "cells",
+      "note": "op(s) 19 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part S7 route: 0 corner(s), 1.60 mm centreline, mouths east/west."
+    },
+    {
+      "id": "ch_conn_2",
+      "from": "incubate_20",
+      "to": "incubate_21",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "channel_corner",
+      "path": [
+        [
+          3.2,
+          6.975
+        ],
+        [
+          3.175,
+          6.975
+        ],
+        [
+          3.175,
+          5.925
+        ],
+        [
+          8.3898,
+          5.925
+        ]
+      ],
+      "carries": "cells",
+      "note": "flow order: op 20 (incubate) feeds op 21 (incubate) S7 route: 2 corner(s), 6.29 mm centreline, mouths west/west."
+    },
+    {
+      "id": "ch_conn_3",
+      "from": "incubate_21",
+      "to": "lyse_22",
+      "width_mm": 0.21,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "path": [
+        [
+          18.2447,
+          7.525
+        ],
+        [
+          20.2309,
+          7.525
+        ]
+      ],
+      "carries": "capsules",
+      "note": "flow order: op 21 (incubate) feeds op 22 (lyse) S7 route: 0 corner(s), 1.99 mm centreline, mouths east/west."
+    },
+    {
+      "id": "ch_conn_4",
+      "from": "lyse_22",
+      "to": "incubate_24",
+      "width_mm": 0.21,
+      "depth_mm": 0.3,
+      "block": "channel_corner",
+      "path": [
+        [
+          21.775,
+          6.9816
+        ],
+        [
+          21.775,
+          6.975
+        ],
+        [
+          23.975,
+          6.975
+        ],
+        [
+          23.975,
+          7.525
+        ],
+        [
+          24.5085,
+          7.525
+        ]
+      ],
+      "carries": "capsules",
+      "note": "op(s) 23 (mix) carry a stream and nothing states a residence time, so there is no length or volume to build to; realised as the connecting channel rather than as a part S7 route: 3 corner(s), 3.29 mm centreline, mouths south/west."
+    },
+    {
+      "id": "ch_conn_5",
+      "from": "reagent_in_pad",
+      "to": "inlet_1_pad",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "channel_corner",
+      "path": [
+        [
+          21.425,
+          1.6
+        ],
+        [
+          21.425,
+          2.675
+        ],
+        [
+          1.075,
+          2.675
+        ],
+        [
+          1.075,
+          7.4
+        ]
+      ],
+      "carries": "liquid",
+      "note": "the off-chip selector decides which of the two lines is live; the pad is the junction, so nothing has to enter the part twice S7 route: 2 corner(s), 26.15 mm centreline, mouths north/south."
+    },
+    {
+      "id": "ch_conn_6",
+      "from": "lyse_22",
+      "to": "waste_pad",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "channel_corner",
+      "path": [
+        [
+          22.5224,
+          8.575
+        ],
+        [
+          22.525,
+          8.575
+        ],
+        [
+          22.525,
+          17.875
+        ],
+        [
+          21.575,
+          17.875
+        ],
+        [
+          21.575,
+          18.4
+        ]
+      ],
+      "carries": "liquid",
+      "note": "spent liquid leaves to waste here, at the last place on this chip that drains (op 22, lyse), through the retention crest, so no particles go with it S7 route: 3 corner(s), 10.78 mm centreline, mouths east/south."
+    },
+    {
+      "id": "ch_conn_7",
+      "from": "incubate_24",
+      "to": "outlet_1_pad",
+      "width_mm": 0.21,
+      "depth_mm": 0.3,
+      "block": "channel_corner",
+      "path": [
+        [
+          26.075,
+          6.9816
+        ],
+        [
+          26.075,
+          6.975
+        ],
+        [
+          27.875,
+          6.975
+        ],
+        [
+          27.875,
+          7.925
+        ],
+        [
+          28.4,
+          7.925
+        ]
+      ],
+      "carries": "capsules",
+      "note": "the product leaves op 24 (incubate) at 'outlet_1' S7 route: 3 corner(s), 3.28 mm centreline, mouths south/west."
+    }
+  ],
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "position": [
+        1.0,
+        8.0,
+        1.8
+      ],
+      "role": "load",
+      "width_um": 800.0,
+      "note": "the chip's entry: op 20 (incubate) is the first thing on it, fed by the hand-off from e2e_bead_capture_assay_c3"
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "position": [
+        29.0,
+        8.0,
+        1.8
+      ],
+      "role": "harvest",
+      "capsule_passable": true,
+      "width_um": 800.0,
+      "note": "the chip's product outlet, after op 24 (incubate), handed off to e2e_bead_capture_assay_c5"
+    },
+    {
+      "id": "reagent_in",
+      "type": "inlet",
+      "position": [
+        21.5,
+        1.0,
+        1.8
+      ],
+      "role": "reagent",
+      "capsule_passable": false,
+      "width_um": 800.0,
+      "note": "one reagent feed for op(s) 22, 19, 23; WHICH reagent is selected OFF chip by a rotary or selector valve, because an on-chip valve needs a second fluidic layer and contracts/blocks.json excludes those"
+    },
+    {
+      "id": "oil_in",
+      "type": "inlet",
+      "position": [
+        13.25,
+        1.0,
+        1.8
+      ],
+      "role": "oil",
+      "capsule_passable": false,
+      "width_um": 800.0,
+      "note": "the oil phase for op 21 on its own line: it must never share a feed with the aqueous reagents"
+    },
+    {
+      "id": "waste",
+      "type": "outlet",
+      "position": [
+        21.5,
+        19.0,
+        1.8
+      ],
+      "role": "waste",
+      "capsule_passable": false,
+      "width_um": 800.0,
+      "note": "spent liquid from op(s) 22 leaves here, behind the retention crest, so no particles pass it"
+    }
+  ],
+  "generator": {
+    "script": "assay2chip/stages/s6_build.py",
+    "params": {
+      "scale": "demo",
+      "envelope_mm": [
+        30.0,
+        20.0
+      ],
+      "etch_depth_mm": 0.3,
+      "rows": 1,
+      "rotated_parts": 0,
+      "chain_length_mm": 37.2,
+      "crossing_risk": 0,
+      "ops": [
+        20,
+        21,
+        22,
+        24
+      ],
+      "blocks": {
+        "incubate_20": "serpentine_channel",
+        "incubate_21": "trap_chamber",
+        "lyse_22": "trap_chamber",
+        "incubate_24": "trap_chamber"
+      },
+      "ops_per_part": {
+        "incubate_20": [
+          20
+        ],
+        "incubate_21": [
+          21
+        ],
+        "lyse_22": [
+          22
+        ],
+        "incubate_24": [
+          24
+        ]
+      },
+      "sized_from": {
+        "incubate_20": "suspension_volume",
+        "incubate_21": "packed_volume",
+        "lyse_22": "suspension_volume",
+        "incubate_24": "suspension_volume"
+      },
+      "ops_realised_as_channels": [
+        19,
+        23
+      ],
+      "part_registry": "assay2chip/parts/registry.py",
+      "material_choice": "hot_embossing route; 90 C max working temperature covers the 4 C hold; DNA adsorption Low: hydrophobic, little DNA binding; protein/enzyme adsorption possible",
+      "layer_convention": "the layer stack of 16 built chip(s): chip/e2e_bead_capture_assay_c1.json, chip/e2e_bead_capture_assay_c2.json, chip/e2e_bead_capture_assay_c3.json, chip/e2e_bead_capture_assay_c4.json",
+      "routed": false
+    }
+  },
+  "thermal_zones": [
+    {
+      "id": "incubate_20_zone",
+      "chambers": [
+        "incubate_20"
+      ],
+      "max_temp_c": 4.0,
+      "purpose": "incubation"
+    }
+  ],
+  "capsule": {
+    "diameter_um": 70.0,
+    "swell_factor": 2.0
+  },
+  "trap": {
+    "gap_um": 25.0
+  },
+  "scale": "demo"
+}

@@ -24,6 +24,12 @@ WHAT IS DRAWN
                         TBC is drawn amber and labelled: an unnamed port is a real gap in
                         the design, not something to tidy away.
 
+SIX CHIPS ARE ON THE PRINTER, AND THEIR CARDS SAY SO. A stage whose chip is on the print
+queue - `tools/module_catalog.py`, or `built_for_demo` in the pipeline file, whichever
+the data says - is badged PRINTED FOR THE DEMO, and its caption records its findings AS
+BUILT. The scene never captions a suggested change to one: improvements belong to the
+full-spec design, not to a chip that is already being made.
+
 THE WALK. The camera opens on the whole bench, then moves stage to stage in chain order.
 On each stage its field animates; between stages the handoff tube carries a slug of
 material. A caption on every frame gives the stage, the protocol step, the flow and the
@@ -136,10 +142,16 @@ class Placement:
     h_mm: float
     note: str = ""
     stage_kind: str = "module"      # module | roadmap, straight from the chain
+    #: The slot this chip is being printed for, or "" when it exists in the twin only.
+    printed_slot: str = ""
 
     @property
     def on_chip(self) -> bool:
         return self.kind == "chip"
+
+    @property
+    def printed(self) -> bool:
+        return bool(self.printed_slot)
 
     @property
     def center(self) -> tuple[float, float]:
@@ -233,6 +245,7 @@ class Layout:
             "bench_mm": [round(v, 2) for v in self.bench_mm],
             "stages": [
                 {"key": p.key, "name": p.name, "kind": p.kind, "badge": p.badge,
+                 "printed_for_demo": p.printed, "printed_slot": p.printed_slot,
                  "status": p.status, "chip": p.chip_path, "protocol": p.protocol_path,
                  "x_mm": round(p.x_mm, 3), "y_mm": round(p.y_mm, 3),
                  "w_mm": round(p.w_mm, 3), "h_mm": round(p.h_mm, 3),
@@ -312,6 +325,43 @@ def badge_for(stage: Any) -> str:
     return f"{R.OFF_CHIP} / {R.BOUGHT_KIT}"
 
 
+def built_for_demo_map(path: Path | str) -> dict[str, bool]:
+    """`{module key: built_for_demo}` straight out of a pipeline file, if it says.
+
+    `built_for_demo` is in `contracts/schemas/pipeline.schema.json` but is not part of
+    `couple.Stage`, so it is read here rather than guessed. A partition file has no such
+    key and gets an empty map.
+    """
+    try:
+        doc = R.load_json(path)
+    except Exception:
+        return {}
+    out: dict[str, bool] = {}
+    for mod in (doc.get("modules") or []) if isinstance(doc, dict) else []:
+        key = mod.get("module")
+        if key is not None and "built_for_demo" in mod:
+            out[str(key)] = bool(mod["built_for_demo"])
+    return out
+
+
+def printed_slot_for(stage: Any, built_for_demo: bool | None = None) -> str:
+    """Which slot this stage's chip is printed for, or "" - from the data, in order.
+
+    1. the chain file's own `built_for_demo` for this module. It is what a merge updates,
+       so it wins when it is set true.
+    2. the frozen print queue in `tools/module_catalog.py`, which is the one place that
+       currently says which six chips are on the printer.
+
+    Nothing is listed here, so when the corrected pipeline arrives with Module 6 - and
+    whenever `built_for_demo` is turned on - the cards change by themselves.
+    """
+    if not getattr(stage, "chip_path", None):
+        return ""
+    if built_for_demo:
+        return str(getattr(stage, "name", "") or stage.key)
+    return R.is_printed(stage.chip_path) or ""
+
+
 def _chip_size(chip_path: str | None) -> tuple[float, float, dict | None]:
     if not chip_path:
         return (*PLACEHOLDER_MM, None)
@@ -326,7 +376,9 @@ def _chip_size(chip_path: str | None) -> tuple[float, float, dict | None]:
     return fx, fy, chip
 
 
-def layout_for(chain: Any, *, per_row: int = STAGES_PER_ROW) -> tuple[Layout, dict[str, dict]]:
+def layout_for(chain: Any, *, per_row: int = STAGES_PER_ROW,
+               built_for_demo: dict[str, bool] | None = None
+               ) -> tuple[Layout, dict[str, dict]]:
     """Place every stage of the chain on one bench, in chain order. Pure data.
 
     The rows SERPENTINE - left to right, then right to left - so two consecutive stages
@@ -368,6 +420,7 @@ def layout_for(chain: Any, *, per_row: int = STAGES_PER_ROW) -> tuple[Layout, di
                 chip_path=stage.chip_path, protocol_path=stage.protocol_path,
                 x_mm=x0, y_mm=y + (row_h - h) / 2.0, w_mm=w, h_mm=h,
                 note=stage.off_chip_reason or "", stage_kind=stage.kind,
+                printed_slot=printed_slot_for(stage, (built_for_demo or {}).get(key)),
             )
         row_tops.append(y + row_h)
         y += row_h + GAP_Y_MM
@@ -406,7 +459,8 @@ def layout_for(chain: Any, *, per_row: int = STAGES_PER_ROW) -> tuple[Layout, di
 def layout_from_file(path: Path | str, *, per_row: int = STAGES_PER_ROW
                      ) -> tuple[Layout, dict[str, dict]]:
     """`protocols/pipeline_mvp.json` or a `partition.json` -> a bench. Offline, no VTK."""
-    return layout_for(cfd_couple.read_chain(path), per_row=per_row)
+    return layout_for(cfd_couple.read_chain(path), per_row=per_row,
+                      built_for_demo=built_for_demo_map(path))
 
 
 # --- captions (pure text, so the wording is testable without rendering) --------------
@@ -418,6 +472,8 @@ def caption_for(place: Placement, case: Any | None, *, phase: str = "stage",
     head = f"{place.name}"
     if place.badge:
         head = f"{head}    [{place.badge}]"
+    if place.printed:
+        head = f"{head}    [{R.PRINTED_FOR_DEMO}]"
     lines = [head]
     if phase == "handoff" and tube is not None:
         src = tube.from_port or "an unnamed port (TBC)"
@@ -442,6 +498,8 @@ def caption_for(place: Placement, case: Any | None, *, phase: str = "stage",
                  + (f"  ·  {case.fluid}" if case.fluid else "")
                  + (f" at {case.temp_c:g} C" if case.temp_c else ""))
     lines.append(f"finding: {R._wrap(case.headline(), 96)}")
+    if place.printed or case.printed:
+        lines.append(R._wrap(R.AS_BUILT_NOTE, 96))
     lines.append(f"field: {case.source}")
     return lines
 
@@ -849,6 +907,8 @@ def render_pipeline(chain_path: Path | str, *, out_dir: Path | str,
         "stages": [
             {"key": s.key, "name": s.place.name, "kind": s.place.kind,
              "badge": s.place.badge, "source": s.source,
+             "printed_for_demo": bool(s.place.printed),
+             "printed_slot": s.place.printed_slot,
              "steps": [v.case.step for v in s.steps],
              "headline": s.case.headline() if s.case else None,
              "chip": s.place.chip_path}
@@ -911,11 +971,12 @@ def _describe(layout: Layout, stage: SceneStage | None, place: Placement | None,
     if not place.on_chip:
         return (f"{place.name}, a placeholder block badged {place.badge}; "
                 f"{place.note or place.status}")
+    printed = f" [{R.PRINTED_FOR_DEMO}]" if place.printed else ""
     case = shown_case(stage)
     if case is None:
         return f"{place.name}, no solved field"
-    return (f"{place.name}: {case.source} field, step {case.step} ({case.operation}), "
-            f"{case.q_ul_min or 0:g} uL/min, streamlines from "
+    return (f"{place.name}{printed}: {case.source} field, step {case.step} "
+            f"({case.operation}), {case.q_ul_min or 0:g} uL/min, streamlines from "
             f"{len(case.feeds)} feed port(s); {case.headline()}")
 
 
@@ -987,6 +1048,8 @@ def _draw_bench(plotter, layout: Layout, stages: dict[str, SceneStage],
         text = [label]
         if place.badge:
             text.append(place.badge)
+        if place.printed:
+            text.append(R.PRINTED_FOR_DEMO)
         if place.on_chip:
             text.append(stage.source)
         plotter.add_point_labels(
@@ -1052,6 +1115,8 @@ def _update_dynamic(plotter, layout: Layout, stages: dict[str, SceneStage], shot
     badges = [R.SIMULATED]
     if place is not None and place.on_chip and place.w_mm <= 30.5 and place.h_mm <= 20.5:
         badges.append(R.DEMO_SCALE)
+    if place is not None and place.printed:
+        badges.append(R.PRINTED_FOR_DEMO)
     if stage is not None and stage.source and place is not None and place.on_chip:
         badges.append(stage.source)
     plotter.add_text("   ".join(badges), position=(int(w / 70), h - int(h / 16)),
@@ -1139,6 +1204,8 @@ def write_labels(layout: Layout, stages: dict[str, SceneStage], path: Path | str
         out["stages"].append({
             "key": key, "name": place.name, "badge": place.badge,
             "kind": place.kind, "source": stage.source,
+            "printed_for_demo": bool(place.printed), "printed_slot": place.printed_slot,
+            "as_built_note": R.AS_BUILT_NOTE if place.printed else "",
             "position_m": [cx * 1e-3, (place.y_mm - 2.0) * 1e-3, 0.0],
             "demo_scale": bool(place.on_chip and place.w_mm <= 30.5 and place.h_mm <= 20.5),
             "caption": caption_for(place, case),

@@ -181,6 +181,7 @@ class Settings:
     llm_kinds: List[str]
     command_overrides: Optional[Path]
     foam_video: bool
+    foam_solve: bool
     foam_max_steps_per_chip: int
     foam_timeout_s: int
     light_timeout_s: int
@@ -220,7 +221,7 @@ class Settings:
         return {"data_dir": str(self.data_dir), "host": self.host, "port": self.port,
                 "store": self.store, "s3_endpoint": self.s3_endpoint,
                 "s3_bucket": self.s3_bucket, "llm_mode": self.llm_mode,
-                "foam_video": self.foam_video,
+                "foam_video": self.foam_video, "foam_solve": self.foam_solve,
                 "foam_max_steps_per_chip": self.foam_max_steps_per_chip}
 
 
@@ -255,6 +256,7 @@ def load(env: Optional[dict] = None) -> Settings:
                        .split(",") if k.strip()],
             command_overrides=Path(overrides) if overrides else None,
             foam_video=_env_bool("A2C_FOAM_VIDEO", False),
+            foam_solve=_env_bool("A2C_FOAM_SOLVE", True),
             foam_max_steps_per_chip=_env_int("A2C_FOAM_MAX_STEPS_PER_CHIP", 4),
             foam_timeout_s=_env_int("A2C_FOAM_TIMEOUT_S", 4 * 3600),
             light_timeout_s=_env_int("A2C_LIGHT_TIMEOUT_S", 1800),

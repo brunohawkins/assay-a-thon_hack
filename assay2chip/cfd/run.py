@@ -479,17 +479,51 @@ def standing_assumptions():
 
 
 def collect_assumptions(blob, used_for, into):
-    """Pull whatever `assumptions`/`unresolved` a sibling reported into one list."""
-    for item in jsonable(attr(blob, "assumptions", default=[]) or []):
+    """Pull whatever `assumptions` a sibling reported into one list.
+
+    Siblings publish them three ways - a list of dicts, a dict KEYED by name, and a
+    list of Assumption dataclasses - so this goes through `figures._rows`, which keys a
+    mapping by its own key. Iterating the mapping directly yields its keys as bare
+    strings and silently loses every value, which is exactly what the first
+    whole-pipeline report printed: eight flagged assumptions with no numbers.
+    """
+    for item in figures._rows(attr(blob, "assumptions", default=[]) or [],
+                              id_keys=("key",)):
+        item = jsonable(item)
         if not isinstance(item, dict):
-            item = {"key": str(item)}
-        entry = {"key": item.get("key") or item.get("name") or "-",
+            continue
+        entry = {"key": str(item.get("key") or item.get("name") or "-"),
                  "value": item.get("value"),
-                 "used_for": f"{used_for}: {item.get('why') or item.get('note') or ''}"
-                             .strip(" :"),
+                 "units": item.get("units"),
+                 "why": item.get("why") or item.get("note") or "",
+                 "used_for": used_for,
                  "source": item.get("source") or "sibling-local assumption"}
-        if entry not in into:
-            into.append(entry)
+        into.append(entry)
+
+
+def merge_assumptions(entries):
+    """One row per (key, value): the same rule of thumb used on six chips is one
+    assumption, not six, and a long report is one nobody reads to the end."""
+    merged = {}
+    for entry in entries:
+        slot = merged.setdefault((entry["key"], json.dumps(entry.get("value"))),
+                                 dict(entry, used_for=[]))
+        used = entry.get("used_for")
+        for item in (used if isinstance(used, list) else [used]):
+            if item and item not in slot["used_for"]:
+                slot["used_for"].append(item)
+    out = []
+    for entry in merged.values():
+        where = entry["used_for"]
+        shown = ", ".join(where[:3]) + (f" (+{len(where) - 3} more)"
+                                        if len(where) > 3 else "")
+        detail = f"{shown}. {entry.get('why', '')}".strip()
+        out.append({"key": entry["key"],
+                    "value": entry.get("value"),
+                    "units": entry.get("units"),
+                    "used_for": detail,
+                    "source": entry.get("source")})
+    return out
 
 
 def collect_gaps(blob, subject, into):
@@ -1200,7 +1234,8 @@ class Run:
             "fixes": fixes,
             "validation": self.validation,
             "unmodelled": self.unmodelled,
-            "assumptions": standing_assumptions() + self.assumptions,
+            "assumptions": merge_assumptions(standing_assumptions()
+                                             + self.assumptions),
             "gaps": self.gaps,
             "figures": self.figure_paths,
             "loops": self.loops,
@@ -1226,6 +1261,35 @@ def _read_chip(path):
     if not isinstance(chip, dict) or "footprint" not in chip:
         raise ValueError(f"{rel(path)} is not a chip spec (no footprint)")
     return chip
+
+
+def protocol_for(chip_id, run=None):
+    """The protocol that drives this chip. -> (path, how it was found).
+
+    `protocols/<chip_id>.json` covers most of the repo, but not all of it:
+    `chip/ipsc_to_mgl_chip_v1.json` is driven by `protocols/ipsc_to_mgl_v1.json`. Rather
+    than keep a hand-written table here, ask `scenario.py` - it owns the pairing and has
+    `chip_for_protocol()` for exactly this. Falling back to the name convention keeps
+    standalone mode working while scenario.py is unavailable.
+    """
+    direct = PROTOCOL_DIR / f"{chip_id}.json"
+    if direct.exists():
+        return direct, "protocols/<chip_id>.json"
+    caller = run.callers["scenario"] if run is not None else None
+    if caller is not None and caller.module is not None:
+        matcher = caller.func("chip_for_protocol")
+        if matcher is not None:
+            for path in sorted(PROTOCOL_DIR.glob("*.json")):
+                try:
+                    protocol = load_json(path)
+                except ValueError:
+                    continue
+                if protocol.get("kind") == "pipeline":
+                    continue
+                pair, ok = caller.call(matcher, protocol, quiet=True)
+                if ok and pair and str(pair[0]) == chip_id:
+                    return path, f"scenario.chip_for_protocol: {pair[1]}"
+    return None, "no protocol found"
 
 
 def run_pipeline(pipeline_path, out_dir=None, run_id=None, verbose=False,
@@ -1283,15 +1347,16 @@ def run_chip(chip_path, protocol_path=None, out_dir=None, run_id=None, verbose=F
              timeout=CALL_TIMEOUT_S):
     chip = _read_chip(chip_path)
     chip_id = str(chip.get("id") or Path(chip_path).stem)
-    if protocol_path is None:
-        guess = PROTOCOL_DIR / f"{chip_id}.json"
-        protocol_path = guess if guess.exists() else None
-    protocol = load_json(protocol_path) if protocol_path else None
     run_id = run_id or chip_id
     run = Run(run_id, out_dir or (WORK / run_id / "cfd"), "chip", verbose, max_steps,
               max_loops, pipeline_mode=False, n_particles=n_particles,
               timeout=timeout)
     run.log(f"S10 CFD: {chip_id} ({rel(chip_path)})")
+    if protocol_path is None:
+        protocol_path, how = protocol_for(chip_id, run)
+        if protocol_path is not None and how != "protocols/<chip_id>.json":
+            run.log(f"  protocol: {rel(protocol_path)} ({how})")
+    protocol = load_json(protocol_path) if protocol_path else None
     run.validate()
     run.simulate_chip(chip, protocol, chip_path, protocol_path)
     return run.finish(chip.get("name") or chip_id)
@@ -1314,8 +1379,13 @@ def run_all_chips(out_dir=None, run_id="all_chips", verbose=False,
             run.gaps.append({"subject": chip_path.name, "question": str(exc)})
             continue
         chip_id = str(chip.get("id") or chip_path.stem)
-        guess = PROTOCOL_DIR / f"{chip_id}.json"
-        protocol_path = guess if guess.exists() else None
+        protocol_path, how = protocol_for(chip_id, run)
+        if protocol_path is None:
+            run.gaps.append({
+                "subject": chip_id,
+                "question": "no protocol drives this chip, by name or by "
+                            "scenario.chip_for_protocol: no port is driven or vented, "
+                            "so only its geometry was drawn."})
         protocol = load_json(protocol_path) if protocol_path else None
         run.simulate_chip(chip, protocol, chip_path, protocol_path)
     return run.finish("Every chip in chip/")

@@ -30,8 +30,14 @@ with that reason, the mesh is still written, and every frame is drawn from the
 reduced-order field and says `reduced-order (2.5D)` on its face. `--render-only` goes
 further and skips the mesh too.
 
-WHERE THINGS GO (foam/README.md): cases under `assay2chip/work/<run>/foam/<chip_id>/<step>/`
-and every image, video and glTF under `assay2chip/work/<run>/foam/render/`.
+WHERE THINGS GO, AND THERE IS ONLY ONE ANSWER. The case directory is
+`<out>/<chip_id>/step_<N>/` with the mesh inside it at `constant/polyMesh`, `<out>`
+defaulting to `assay2chip/work/<run>/foam`. It comes from ONE helper -
+`render.case_dir()`, which defers to `assay2chip/foam/case.py` - and nothing here builds
+that path itself. A job has already failed because the mesh and the case were written to
+two different folders (`foam/<chip>/1/` against `foam/foam/<chip>/step_1/`), so there is
+no second convention and no extra `foam/` level. Images, video and glTF go under
+`<out>/render/`.
 """
 
 from __future__ import annotations
@@ -135,6 +141,30 @@ def first_flowing_record(chip_path: Path, protocol_path: Path | None, step: Any 
     return flowing[0] if flowing else None
 
 
+def solve_chip(chip_path: Path, protocol_path: Path | None, foam_dir: Path, chip_id: str,
+               *, step: Any = None, cells_budget: int = R.DEFAULT_CELLS_BUDGET,
+               solve: bool = False, log=print) -> list[StageReport]:
+    """Run the solver chain for one chip into THE case directory for its step.
+
+    One convention, one helper: `render.case_dir(chip_id, step, out=foam_dir)` gives
+    `<out>/<chip_id>/step_<N>/` and the mesh goes inside it at `constant/polyMesh`. The
+    step is the chip's first flowing one, because a case directory named for no step is
+    how the mesh and the case ended up in two different folders.
+    """
+    record = first_flowing_record(chip_path, protocol_path, step)
+    use_step = step if step is not None else getattr(record, "step", None)
+    if use_step is None:
+        return [StageReport(name, "skipped",
+                            "no protocol step on this chip moves liquid, so there is no "
+                            "case to write")
+                for name, _, _ in SOLVER_STAGES]
+    case = R.case_dir(chip_id, use_step, out=foam_dir)
+    case.mkdir(parents=True, exist_ok=True)
+    log(f"    case {case.relative_to(ROOT) if case.is_absolute() else case}")
+    return solver_stages(chip_path, protocol_path, case, step=use_step,
+                         cells_budget=cells_budget, solve=solve, log=log)
+
+
 def solver_stages(chip_path: Path, protocol_path: Path | None, out_dir: Path,
                   step: Any = None, cells_budget: int = R.DEFAULT_CELLS_BUDGET,
                   solve: bool = False, log=print) -> list[StageReport]:
@@ -173,8 +203,10 @@ def solver_stages(chip_path: Path, protocol_path: Path | None, out_dir: Path,
             "chip": chip_path, "chip_path": chip_path, "path": chip_path,
             "protocol": protocol_path, "protocol_path": protocol_path,
             "out_dir": out_dir, "case_dir": out_dir, "case": out_dir, "out": out_dir,
-            "step": step, "cells_budget": cells_budget,
-            "record": record, "work_dir": out_dir.parent.parent,
+            "step": step, "cells_budget": cells_budget, "record": record,
+            # `work_dir` means `<out>` - the foam directory the case tree lives under -
+            # which is this case directory's grandparent (<out>/<chip_id>/step_<N>).
+            "work_dir": out_dir.parent.parent,
         }
         try:
             params = inspect.signature(fn).parameters
@@ -262,9 +294,8 @@ def run_chip(chip_path: Path | str, protocol_path: Path | str | None = None, *,
     elif not Path(protocol_path).is_absolute():
         protocol_path = ROOT / protocol_path
     run_dir = Path(out_dir) if out_dir else ROOT / "assay2chip/work" / run
-    foam_dir = run_dir / "foam"
+    foam_dir = R.foam_out_dir(run_dir)
     render_dir = foam_dir / "render"
-    case_dir = foam_dir / chip_id / (str(step) if step is not None else "all")
     render_dir.mkdir(parents=True, exist_ok=True)
 
     log(f"  {chip_id}  (protocol: "
@@ -274,9 +305,8 @@ def run_chip(chip_path: Path | str, protocol_path: Path | str | None = None, *,
         stages = [StageReport(name, "skipped", "--render-only")
                   for name, _, _ in SOLVER_STAGES]
     else:
-        case_dir.mkdir(parents=True, exist_ok=True)
-        stages = solver_stages(chip_path, protocol_path, case_dir, step=step,
-                               cells_budget=cells_budget, solve=solve, log=log)
+        stages = solve_chip(chip_path, protocol_path, foam_dir, chip_id, step=step,
+                            cells_budget=cells_budget, solve=solve, log=log)
 
     manifest = R.render_chip(
         chip_path, protocol_path, out_dir=render_dir, run_dir=foam_dir, step=step,
@@ -306,7 +336,7 @@ def run_pipeline(pipeline_path: Path | str, *, run: str = DEFAULT_RUN,
     pipeline_path = (Path(pipeline_path) if Path(pipeline_path).is_absolute()
                      else ROOT / pipeline_path)
     run_dir = Path(out_dir) if out_dir else ROOT / "assay2chip/work" / run
-    foam_dir = run_dir / "foam"
+    foam_dir = R.foam_out_dir(run_dir)
     render_dir = foam_dir / "render"
     render_dir.mkdir(parents=True, exist_ok=True)
     findings = findings_for(run_dir)
@@ -318,14 +348,14 @@ def run_pipeline(pipeline_path: Path | str, *, run: str = DEFAULT_RUN,
     solver: dict[str, list[dict]] = {}
     if not render_only:
         for place in layout.chips():
-            case_dir = foam_dir / Path(place.chip_path).stem / "all"
-            case_dir.mkdir(parents=True, exist_ok=True)
+            chip_path = ROOT / place.chip_path
+            chip_id = str(R.load_json(chip_path).get("id") or chip_path.stem)
             log(f"  solver stages for {place.key}")
             solver[place.key] = [
-                s.to_json() for s in solver_stages(
-                    ROOT / place.chip_path,
+                s.to_json() for s in solve_chip(
+                    chip_path,
                     (ROOT / place.protocol_path) if place.protocol_path else None,
-                    case_dir, cells_budget=cells_budget, solve=solve, log=log)
+                    foam_dir, chip_id, cells_budget=cells_budget, solve=solve, log=log)
             ]
 
     per_chip_manifests: list[dict] = []

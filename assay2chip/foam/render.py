@@ -22,10 +22,24 @@ HONEST LABELS, on every single frame (foam/README.md, "Honest labels"):
 
     SIMULATED            always
     DEMO SCALE           every chip on the 30 x 20 mm demo envelope
+    PRINTED FOR THE DEMO every chip on the print queue in `tools/module_catalog.py`, or
+                         that its pipeline file marks `built_for_demo`
     the source           `openfoam` or `reduced-order (2.5D)`
     z exaggerated xN     a 0.3 mm layer under a 30 mm footprint is invisible at true
                          scale, so z is stretched and the factor is written down
     assumptions          anything the field rests on but did not read from a contract
+
+A PRINTED CHIP GETS NO CHANGE REQUESTS. Its findings are a record of what was made, so
+`fix_hint` is stripped from them and the frame says so; improvements belong to the
+full-spec design beside it, which is a different card and a different render.
+
+AND THE SPEC IS DRAWN AS WRITTEN. The chip file owns the geometry and the mesh owns the
+numbers, which are not the same thing: `assay2chip/cfd/mesh.py` will move a loose channel
+end onto the chamber it names so the network solves at all, and drawing that would put a
+connection on screen the chip does not have. Module 6's comb spines stop 1.9 mm short of
+their culture fields - the teeth are in the prose, not in the path - so they are rendered
+short, `spec_gaps()` says so in the caption, and every number on that chip is marked
+provisional.
 
 GEOMETRY IS NEVER RE-IMPLEMENTED HERE. The plan view comes from the chip spec through
 `assay2chip.cfd.figures` (`footprint`, `channel_path`, `anchors`, `is_demo_scale`) and
@@ -71,6 +85,14 @@ SOURCE_FOAM = "openfoam"
 SOURCE_REDUCED = "reduced-order (2.5D)"
 OFF_CHIP = "OFF-CHIP"
 BOUGHT_KIT = "BOUGHT KIT"
+PRINTED_FOR_DEMO = "PRINTED FOR THE DEMO"
+
+#: What a render may say about a chip that is already on the printer. A finding on a
+#: printed chip is a measurement of what was made; it is NOT a change request, and this
+#: renderer never captions one. Improvements belong to the full-spec design beside it
+#: (`chip/<base>_target_v*.json`), which is a different card and a different render.
+AS_BUILT_NOTE = ("printed for the demo: findings here are recorded AS BUILT, not proposed "
+                 "changes - improvements belong to the full-spec design")
 
 #: A 0.3 mm fluidic layer under a 30 mm footprint is one pixel tall at true scale, so z is
 #: stretched for the picture. Every frame prints the factor.
@@ -210,10 +232,114 @@ def footprint_mm(chip: dict) -> tuple[float, float]:
     return cfd_figures.footprint(chip)
 
 
+def printed_chips() -> dict[str, str]:
+    """`chip/<id>.json` -> the pipeline slot it is being printed for. Read, never listed.
+
+    The frozen print queue lives in `tools/module_catalog.py` (`PRINTED`), which is the
+    one place in the repo that says which chips are on the printer, and it is explicit
+    that it is there only to label them. It is loaded by path - `tools/` is not a package
+    and has no `__init__.py` - and its import is side-effect free.
+
+    A pipeline file may also say so per module (`built_for_demo` in
+    `contracts/schemas/pipeline.schema.json`); `scene.py` prefers that when it is set,
+    because the chain file is the thing a merge updates.
+    """
+    import importlib.util
+
+    path = ROOT / "tools" / "module_catalog.py"
+    if not path.is_file():
+        return {}
+    try:
+        spec = importlib.util.spec_from_file_location("_module_catalog", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        table = dict(getattr(module, "PRINTED_BY_CHIP", {}) or {})
+    except Exception:
+        return {}
+    return {str(k): str(v) for k, v in table.items()}
+
+
+def is_printed(chip_path: Path | str | None, chip: dict | None = None) -> str | None:
+    """The slot this chip is printed for, or None. Matches on path and on chip id."""
+    table = printed_chips()
+    if chip_path:
+        rel = Path(chip_path)
+        try:
+            rel = rel.relative_to(ROOT)
+        except ValueError:
+            pass
+        slot = table.get(rel.as_posix())
+        if slot:
+            return slot
+    chip_id = str((chip or {}).get("id") or (Path(chip_path).stem if chip_path else ""))
+    for key, slot in table.items():
+        if Path(key).stem == chip_id:
+            return slot
+    return None
+
+
 def narrowest_mm(chip: dict) -> float:
     widths = [_f(c.get("width_mm")) for c in (chip or {}).get("channels") or []]
     widths = [w for w in widths if w > 0]
     return min(widths) if widths else 0.2
+
+
+def _box_distance(point: Sequence[float], chamber: dict) -> float:
+    """Distance in plan from a point to a chamber's footprint, 0 inside it."""
+    cx, cy = _f(chamber["center"][0]), _f(chamber["center"][1])
+    sx, sy = _f(chamber["size"][0]), _f(chamber["size"][1])
+    dx = max(abs(_f(point[0]) - cx) - sx / 2.0, 0.0)
+    dy = max(abs(_f(point[1]) - cy) - sy / 2.0, 0.0)
+    return math.hypot(dx, dy)
+
+
+def spec_gaps(chip: dict) -> list[dict]:
+    """Channels whose GEOMETRY does not reach the chamber their own spec names.
+
+    A chip spec can say two different things at once: `from`/`to` claim a connection and
+    the `note` describes the teeth that would make it, while the `path` stops short. That
+    is exactly Module 6: each lane's inlet and outlet combs are `centipede_channel`
+    blocks whose notes describe "13 side teeth 0.2 x 1.5 mm", but the path in the file is
+    the SPINE only, ending 1.9 mm from the culture field it feeds. The teeth are prose.
+
+    This renders what the spec says and says what is missing. It is deliberately NOT read
+    off the mesh: `assay2chip/cfd/mesh.py` attaches a loose channel end to the nearest
+    feature so the network still solves, which is the right call for a solver and the
+    wrong one for a picture - it would quietly draw a connection the chip does not have.
+
+    One finding per channel end, in the `Finding` JSON shape, class `dead_end`.
+    """
+    chambers = {str(c.get("id")): c for c in (chip or {}).get("chambers") or []
+                if c.get("center") and c.get("size")}
+    table = cfd_figures.anchors(chip)
+    chip_id = str((chip or {}).get("id") or "")
+    out: list[dict] = []
+    for ch in (chip or {}).get("channels") or []:
+        pts = cfd_figures.channel_path(chip, ch, table)
+        if len(pts) < 2:
+            continue
+        width = _f(ch.get("width_mm"), 0.2) or 0.2
+        tol = max(width, 0.1)
+        for point, target in ((pts[0], ch.get("from")), (pts[-1], ch.get("to"))):
+            chamber = chambers.get(str(target))
+            if chamber is None:
+                continue
+            gap = _box_distance(point, chamber)
+            if gap <= tol:
+                continue
+            out.append({
+                "class": "dead_end", "severity": "high", "chip_id": chip_id,
+                "feature_id": str(ch.get("id")), "step": None,
+                "metric": "gap between the channel path and the chamber it names",
+                "value": round(gap, 3), "limit": round(tol, 3), "units": "mm",
+                "message": (
+                    f"{ch.get('id')} ({ch.get('block') or 'channel'}) stops {gap:.2f} mm "
+                    f"short of {target}, which its own spec says it connects to: the "
+                    f"openings are described in the note but are not in the geometry, so "
+                    f"the field is drawn with the gap the file has"),
+                "source": f"chip/{chip_id}.json: channel path vs chamber footprint",
+            })
+    return out
 
 
 # --- what a frame needs --------------------------------------------------------------
@@ -298,6 +424,22 @@ class Case:
     track_source: str = ""
     mesh: Mesh | None = None
     field: Field | None = None
+    #: The pipeline slot this chip is being printed for, or "" when it is twin-only.
+    printed_slot: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.printed_slot:
+            self.printed_slot = is_printed(self.chip_path or None, self.chip) or ""
+        if self.printed:
+            # A printed chip's findings are a record of what was MADE. Strip the fix hints
+            # so no caption downstream can turn one into a change request on a chip that
+            # is already on the printer.
+            self.findings = [{k: v for k, v in f.items() if k != "fix_hint"}
+                             for f in self.findings]
+
+    @property
+    def printed(self) -> bool:
+        return bool(self.printed_slot)
 
     @property
     def demo_scale(self) -> bool:
@@ -312,11 +454,20 @@ class Case:
         return self.source != SOURCE_FOAM
 
     def headline(self) -> str:
-        """The one finding a caption leads with, worst first, or the honest absence."""
+        """The one finding a caption leads with, worst first, or the honest absence.
+
+        Severity decides, and a STRUCTURAL finding breaks the tie: a channel that does not
+        reach the chamber it names, or a region nothing can prime, invalidates every
+        number measured on that geometry, so it leads over a shear or pressure figure of
+        the same severity rather than queueing behind it.
+        """
         if not self.findings:
             return "no finding on this step"
         order = {"blocker": 0, "high": 1, "medium": 2, "low": 3}
-        worst = sorted(self.findings, key=lambda f: order.get(str(f.get("severity")), 9))[0]
+        structural = {"dead_end": 0, "bubble": 1, "clog": 2}
+        worst = sorted(self.findings,
+                       key=lambda f: (order.get(str(f.get("severity")), 9),
+                                      structural.get(str(f.get("class")), 5)))[0]
         msg = str(worst.get("message") or worst.get("metric") or worst.get("class") or "")
         return f"{str(worst.get('severity', '?')).upper()}: {msg}"[:160]
 
@@ -324,6 +475,8 @@ class Case:
         out = [SIMULATED]
         if self.demo_scale:
             out.append(DEMO_SCALE)
+        if self.printed:
+            out.append(PRINTED_FOR_DEMO)
         out.append(self.source)
         return out
 
@@ -349,21 +502,24 @@ def _segments(chip: dict, mesh: Mesh | None) -> list[tuple[tuple[float, float], 
     if mesh is None:
         return out
     nodes = {n.id: n for n in mesh.nodes}
-    for e in duct_edges(mesh):
+    for e in _shape_edges(mesh, chip):
         a, b = nodes[e.a], nodes[e.b]
         width = e.width_mm if e.width_mm > 0 else 0.2
         out.append(((a.x_mm, a.y_mm), (b.x_mm, b.y_mm), width, e.feature_id or e.id))
     return out
 
 
-def duct_edges(mesh: Mesh) -> list:
-    """The mesh edges that are a RUN of fluid in plan, and so have a footprint to draw.
+def duct_edges(mesh: Mesh, chip: dict | None = None) -> list:
+    """The mesh edges that carry a NUMBER this renderer draws: every duct outside a
+    chamber that is already rasterised into cells.
 
     Not every edge is one. A `slit` is a weir crest INSIDE a chamber whose cells are
     already rasterised, and it is as wide as the chamber it crosses - painting it as a
     band of its own width inflates that chamber into a blob the chip does not have. A
     `hs_face` is a face between two cells of the same chamber, and a `mouth` is the
-    opening a channel already covers. Only ducts outside a celled chamber are drawn.
+    opening a channel already covers.
+
+    THIS IS NOT THE SAME QUESTION AS "where is there fluid" - see `_shape_edges`.
     """
     nodes = {n.id: n for n in mesh.nodes}
     celled = {n.feature_id for n in mesh.nodes if n.kind == "cell" and n.feature_id}
@@ -379,9 +535,33 @@ def duct_edges(mesh: Mesh) -> list:
     return out
 
 
+def _shape_edges(mesh: Mesh, chip: dict | None) -> list:
+    """The duct edges that may CREATE fluid in the picture, as opposed to colour it.
+
+    The chip spec owns the geometry; the mesh owns the numbers. The mesher is allowed to
+    move a loose channel end onto the chamber it names so the network solves at all - on
+    Module 6 it redraws each comb spine as a diagonal running from the real spine start
+    to the culture field's edge - and drawing that would put a connection on screen that
+    the chip does not have, directly contradicting the caption next to it.
+
+    So an edge whose `feature_id` is a CHANNEL in the spec never shapes the picture: that
+    channel's own `path` does, through `cfd.figures.channel_path`. What is left is the
+    channel-LIKE chambers (a serpentine stored as a bounding box), whose real lane only
+    the mesher knows, and they are spec features in their own right.
+    """
+    if chip is None:
+        return duct_edges(mesh)
+    channel_ids = {str(c.get("id")) for c in (chip.get("channels") or [])}
+    return [e for e in duct_edges(mesh) if e.feature_id not in channel_ids]
+
+
 def _paint_segment(mask: np.ndarray, p0, p1, width_mm: float, spacing: float,
-                   setter=None) -> None:
-    """Mark grid points within `width_mm`/2 of the segment (and optionally set values)."""
+                   setter=None, grow: bool = True) -> None:
+    """Grid points within `width_mm`/2 of the segment: mark them, and/or set values.
+
+    `grow=False` colours only points that are ALREADY fluid. That is how a mesh edge
+    supplies numbers without being allowed to invent geometry the chip spec does not have.
+    """
     nx, ny = mask.shape
     half = max(width_mm / 2.0, spacing * 0.6)
     x0, y0 = float(p0[0]), float(p0[1])
@@ -403,10 +583,15 @@ def _paint_segment(mask: np.ndarray, p0, p1, width_mm: float, spacing: float,
         t = np.clip(((gx - x0) * dx + (gy - y0) * dy) / length2, 0.0, 1.0)
     d = np.hypot(gx - (x0 + t * dx), gy - (y0 + t * dy))
     hit = d <= half
-    if not hit.any():
-        return
     sub = (slice(lo_i, hi_i + 1), slice(lo_j, hi_j + 1))
-    mask[sub] |= hit
+    if grow:
+        if not hit.any():
+            return
+        mask[sub] |= hit
+    else:
+        hit &= mask[sub]
+        if not hit.any():
+            return
     if setter is not None:
         setter(sub, hit, t)
 
@@ -560,11 +745,15 @@ def build_volume(chip: dict, mesh: Mesh, field: Field, *, step: dict | None = No
     grid_mm = _f(mesh.meta.get("grid_mm"), spacing) or spacing
     nodes = {n.id: n for n in mesh.nodes}
 
-    # 1. ducts first, so a chamber's own cells overwrite them where the two meet.
+    # 1. SHAPE, from the chip spec: channel paths and any channel-like chamber's lane.
+    #    A chamber's own cells overwrite these in pass 2 where the two meet.
     for p0, p1, width, feature in _segments(chip, mesh):
         _paint_segment(fluid, p0, p1, width, spacing)
 
-    for e in duct_edges(mesh):
+    # 2. VALUES, from the mesh, into fluid the spec already put there (`grow=False`).
+    #    The mesher may redirect a loose channel end onto the chamber it names; that is
+    #    the right call for a solver and would be a lie in a picture.
+    for e in duct_edges(mesh, chip):
         a, b = nodes[e.a], nodes[e.b]
         area_mm2 = max(e.area_mm2, 1e-9)
         q_ul_min = _f(field.q_m3_s.get(e.id)) * 60.0 * 1e9      # m^3/s -> uL/min
@@ -589,9 +778,9 @@ def build_volume(chip: dict, mesh: Mesh, field: Field, *, step: dict | None = No
                 np.copyto(age[sub], blend, where=hit)
 
         _paint_segment(fluid, (a.x_mm, a.y_mm), (b.x_mm, b.y_mm),
-                       e.width_mm if e.width_mm > 0 else 0.2, spacing, setter)
+                       e.width_mm if e.width_mm > 0 else 0.2, spacing, setter, grow=False)
 
-    # 2. the Hele-Shaw chambers: one tile per cell node, the mesher's own raster.
+    # 3. the Hele-Shaw chambers: one tile per cell node, the mesher's own raster.
     half = grid_mm / 2.0
     for n in mesh.nodes:
         if n.kind != "cell":
@@ -641,7 +830,7 @@ def build_volume(chip: dict, mesh: Mesh, field: Field, *, step: dict | None = No
     if no_ceiling_names:
         notes.append("escape-pressure bounded, no shear ceiling: " + ", ".join(no_ceiling_names))
 
-    # 3. extrude: the parabolic profile the depth-averaged model already assumes.
+    # 4. extrude: the parabolic profile the depth-averaged model already assumes.
     dz = depth / max(nz - 1, 1)
     grid = pv.ImageData(dimensions=(nx, ny, nz), spacing=(spacing, spacing, dz),
                         origin=(0.0, 0.0, 0.0))
@@ -713,12 +902,13 @@ def _ports_for(chip: dict, record: Any) -> list[PortMark]:
 
 
 def _field_findings(chip_id: str, mesh: Mesh, field: Field, volume: Volume | None,
-                    step: Any) -> list[dict]:
+                    step: Any, chip: dict | None = None) -> list[dict]:
     """What this field itself says, so a frame always has an honest headline.
 
     These are measurements, not a replacement for `analyse.py`: peak pressure, the worst
-    shear as a fraction of its own ceiling, and any edge where Re > 1 and the Stokes model
-    is out of its validity (`unmodelled` in cfd/README.md).
+    shear as a fraction of its own ceiling, any edge where Re > 1 and the Stokes model is
+    out of its validity (`unmodelled` in cfd/README.md), and any channel whose geometry
+    does not reach the chamber its own spec names (`spec_gaps`).
     """
     out: list[dict] = []
     over = field.over_re(1.0)
@@ -747,6 +937,7 @@ def _field_findings(chip_id: str, mesh: Mesh, field: Field, volume: Volume | Non
                             f"the ceiling that governs the chamber it is in"),
                 "source": "assay2chip/cfd/figures.py chamber_ceilings()",
             })
+    out.extend(spec_gaps(chip) if chip else [])
     peak_pa = field.max_pressure_pa()
     if peak_pa:
         out.append({
@@ -815,9 +1006,17 @@ def reduced_case(chip_path: Path | str, protocol_path: Path | str | None = None,
         notes = list(volume.notes)
         if fallback_note:
             notes.append(fallback_note)
+        gaps = spec_gaps(chip)
+        if gaps:
+            # Say it on the frame: the mesher bridged a gap the chip does not have, so
+            # every number on this render is for a connection the spec has not drawn.
+            notes.append(
+                f"{len(gaps)} channel end(s) do not reach the chamber they name; the "
+                f"mesher bridges them to solve at all, so these numbers are provisional "
+                f"until the geometry is completed")
         assumptions = [u.get("message", "") or u.get("question", "")
                        for u in (sc.unresolved or [])]
-        mine = _field_findings(chip_id, mesh, fld, volume, rec.step)
+        mine = _field_findings(chip_id, mesh, fld, volume, rec.step, chip)
         cases.append(Case(
             chip=chip, chip_id=chip_id, chip_path=chip_path.as_posix(), step=rec.step,
             label=_label_for(rec), operation=rec.operation,
@@ -907,7 +1106,7 @@ def _nominal_case(chip: dict, chip_id: str, chip_path: Path, base: Mesh,
         fluid="water (assumed)", temp_c=20.0, q_ul_min=1.0, source=SOURCE_REDUCED,
         volume=volume, ports=marks,
         findings=[*_for_chip(findings, chip_id, None),
-                  *_field_findings(chip_id, base, fld, volume, "nominal")],
+                  *_field_findings(chip_id, base, fld, volume, "nominal", chip)],
         assumptions=["flow and fluid are ASSUMED, not read from a protocol: " + note],
         notes=[note, *volume.notes], mesh=base, field=fld,
     )
@@ -921,10 +1120,69 @@ FOAM_SCHEMA_PREFIX = "foam-flow"
 FOAM_SUMMARY_NAMES = ("summary.json", "flow.json", "foam.json", "post.json", "result.json")
 
 
+# ONE case-directory convention, and `assay2chip/foam/case.py` owns it:
+#
+#     case.out_dir(run=..., work=...)       -> assay2chip/work/<run>/foam
+#     case.case_dir(out, chip_id, step)     -> <out>/<chip_id>/step_<N>/
+#
+# with the mesh INSIDE the case at `constant/polyMesh`. A real job failed because the mesh
+# went to `foam/<chip>/1/` and the case to `foam/foam/<chip>/step_1/`, so `case.out_dir`
+# makes the doubled path unrepresentable rather than merely avoided. Nothing in render.py,
+# scene.py or run.py builds either path any other way; these two are thin passes through
+# to it, kept only so the rest of this package has one import to reach for.
+
+
+def foam_out_dir(run_dir: Path | str | None = None) -> Path:
+    """`<out>`: `assay2chip/work/<run>/foam`, through `case.out_dir`.
+
+    A caller may hand over the run directory or the foam directory; both collapse onto
+    the same place.
+    """
+    from assay2chip.foam import case as foam_case
+    return foam_case.out_dir(work=run_dir) if run_dir is not None else foam_case.out_dir()
+
+
+def case_dir(chip_id: str, step: Any = None, *, out: Path | str | None = None,
+             run: str | None = None) -> Path:
+    """THE case directory for one chip and one step, through `case.case_dir`.
+
+    `step=None` means a whole-chip case and `case.py` names it `all`; a step id that is
+    not an integer (`4b`, `s7`) is used as written.
+    """
+    from assay2chip.foam import case as foam_case
+    if out is not None:
+        base = foam_out_dir(out)
+    else:
+        base = foam_case.out_dir(run) if run else foam_case.out_dir()
+    return foam_case.case_dir(base, chip_id, step)
+
+
 def foam_run_dir(run_dir: Path | str) -> Path:
-    """`assay2chip/work/<run>/foam/`, the directory flow.py writes cases under."""
-    run_dir = Path(run_dir)
-    return run_dir if run_dir.name == "foam" else run_dir / "foam"
+    """Deprecated spelling of `foam_out_dir`, kept so nothing breaks mid-merge."""
+    return foam_out_dir(run_dir)
+
+
+def foam_density(summary: dict | None = None) -> float:
+    """The density that turns OpenFOAM's KINEMATIC output into Pa, from the contracts.
+
+    The incompressible solvers divide through by density, so `p` is m^2/s^2 and
+    `wallShearStress` is m^2/s^2 as well - NOT Pa. Multiplying by the wrong rho is a
+    silent error of a factor of a thousand in a number this renderer colours against a
+    contract ceiling, so it comes from the case's own `rho_kg_m3` when the summary states
+    it, and otherwise from `assay2chip.foam.case`, which reads the contract. It is never
+    a literal in this file.
+    """
+    stated = _f((summary or {}).get("rho_kg_m3"), 0.0)
+    if stated > 0:
+        return stated
+    try:
+        from assay2chip.foam import case as foam_case
+        temp = (summary or {}).get("temp_c")
+        fluid = foam_case.fluid_for(_f(temp, 37.0) if temp is not None else 37.0)
+        return float(fluid.rho_kg_m3)
+    except Exception:
+        from assay2chip.cfd import solve as cfd_solve
+        return float(cfd_solve.density()[0])
 
 
 def _is_flow_summary(doc: Any) -> bool:
@@ -934,11 +1192,16 @@ def _is_flow_summary(doc: Any) -> bool:
             or doc.get("source") == SOURCE_FOAM)
 
 
-def _step_dirs(base: Path, step: Any) -> list[Path]:
-    """`flow.py` names its case directories `step_<N>`; older runs used `<N>`."""
+def _step_dirs(out: Path, chip_id: str, step: Any) -> list[Path]:
+    """Where this chip/step's case could be, newest convention first.
+
+    `case_dir()` is the one convention. The bare `<chip>/<N>/` form is the layout that
+    caused the mesh and the case to land in two different folders; it is still READ so a
+    half-finished run is not silently ignored, and never written.
+    """
     if step is None:
         return []
-    return [base / f"step_{step}", base / str(step)]
+    return [case_dir(chip_id, step, out=out), out / str(chip_id) / str(step)]
 
 
 def foam_summary(run_dir: Path | str, chip_id: str, step: Any = None) -> dict | None:
@@ -949,8 +1212,8 @@ def foam_summary(run_dir: Path | str, chip_id: str, step: Any = None) -> dict | 
     this step, then the chip's directory, then the run's, and accepts any JSON that stamps
     itself a flow summary. A file that does not is left alone.
     """
-    base = foam_run_dir(run_dir)
-    folders = _step_dirs(base / chip_id, step) + [base / chip_id, base]
+    out = foam_out_dir(run_dir)
+    folders = _step_dirs(out, chip_id, step) + [out / chip_id, out]
     candidates: list[Path] = []
     for folder in folders:
         candidates.extend(folder / name for name in FOAM_SUMMARY_NAMES)
@@ -978,8 +1241,9 @@ def foam_vtk(run_dir: Path | str, chip_id: str, step: Any = None) -> Path | None
     `foamToVTK` leaves `case/VTK/...`; a case that has not been converted has no field
     this renderer can draw, and None is the honest answer.
     """
-    base = foam_run_dir(run_dir) / chip_id
-    for folder in _step_dirs(base, step):
+    out = foam_out_dir(run_dir)
+    base = out / chip_id
+    for folder in _step_dirs(out, chip_id, step):
         if folder.is_dir():
             base = folder
             break
@@ -1038,7 +1302,7 @@ def foam_case(run_dir: Path | str, chip_path: Path | str, step: Any = None, *,
     data["U_mm_s"] = vectors.astype(np.float32)
     data["speed_mm_s"] = np.linalg.norm(vectors, axis=1).astype(np.float32)
     data["fluid"] = np.ones(data.n_points, dtype=np.float32)
-    rho = _f((summary or {}).get("rho_kg_m3"), 993.0) or 993.0
+    rho = foam_density(summary)
     for want, keys in (("shear_dyn_cm2", ("shear_dyn_cm2", "wallshearstress", "tau")),
                        ("age_s", ("age_s", "age", "meanage"))):
         key = next((names[k] for k in keys if k in names), None)
@@ -1192,6 +1456,8 @@ def _chrome(plotter, case: Case, title: str, size: tuple[int, int], *,
                      color="#9fb0c0", name="left")
 
     lines = [f"finding: {_wrap(case.headline(), 86)}"]
+    if case.printed:
+        lines.append(_wrap(f"{case.printed_slot}: {AS_BUILT_NOTE}", 86))
     for note in list(extra)[:2] + list(case.notes)[:2]:
         if note:
             lines.append(_wrap(str(note), 86))
@@ -1368,16 +1634,18 @@ def render_frame(case: Case, kind: str, size: tuple[int, int], out_path: Path | 
     if kind == "speed":
         mid = _layer(volume, "mid")
         clim, note = _clim(volume.grid, "speed_mm_s", 99.5)
-        plotter.add_mesh(mid, scalars="speed_mm_s", cmap=SPEED_CMAP, nan_opacity=0.0,
-                         clim=clim, scalar_bar_args=_bar("|u| [mm/s]", size))
+        plotter.add_mesh(mid, cmap=SPEED_CMAP, nan_opacity=0.0, clim=clim,
+                         scalar_bar_args=_bar("|u| [mm/s]", size),
+                         **_paint(mid, "speed_mm_s"))
         field_label = f"velocity magnitude, mid-depth slice (z = {volume.mid_z_mm * 1000:.0f} um)"
         if note:
             extra.append(note)
     elif kind == "shear":
         floor = _layer(volume, "floor")
-        plotter.add_mesh(floor, scalars="shear_frac", cmap=FLOOR_CMAP, clim=(0.0, 1.0),
+        plotter.add_mesh(floor, cmap=FLOOR_CMAP, clim=(0.0, 1.0),
                          nan_color="#4b5058", nan_opacity=1.0, above_color="#ff2d55",
-                         scalar_bar_args=_bar("wall shear / this chamber's ceiling [-]", size))
+                         scalar_bar_args=_bar("wall shear / this chamber's ceiling [-]", size),
+                         **_paint(floor, "shear_frac", "#4b5058"))
         field_label = "wall shear on the floor, as a fraction of the ceiling that governs " \
                       "each chamber"
         extra.append("grey = no wall-shear ceiling applies (capsules: bounded by escape "
@@ -1392,22 +1660,25 @@ def render_frame(case: Case, kind: str, size: tuple[int, int], out_path: Path | 
                     f"volume at this step's flow): a dead zone, not a colour-scale artefact")
         else:
             clim, note = _clim(volume.grid, "age_s", 99.0)
-        plotter.add_mesh(fluid, scalars="age_s", cmap=AGE_CMAP, nan_opacity=0.0,
-                         clim=clim, above_color="#ffffff", opacity=0.75,
-                         scalar_bar_args=_bar("mean age [s]", size))
+        plotter.add_mesh(fluid, cmap=AGE_CMAP, nan_opacity=0.0, clim=clim,
+                         above_color="#ffffff", opacity=0.75,
+                         scalar_bar_args=_bar("mean age [s]", size),
+                         **_paint(fluid, "age_s"))
         field_label = "mean age (residence time): the bright corners are the dead zones"
         if note:
             extra.append(note)
     elif kind in ("streamlines", "tracers"):
         mid = _layer(volume, "mid")
-        plotter.add_mesh(mid, scalars="speed_mm_s", cmap=SPEED_CMAP, opacity=0.35,
-                         nan_opacity=0.0, scalar_bar_args=_bar("|u| [mm/s]", size))
+        plotter.add_mesh(mid, cmap=SPEED_CMAP, opacity=0.35, nan_opacity=0.0,
+                         scalar_bar_args=_bar("|u| [mm/s]", size),
+                         **_paint(mid, "speed_mm_s"))
         if lines is None:
             lines = _streamlines(volume, case)
         if lines is not None and lines.n_points:
             fx, _ = volume.footprint_mm
-            plotter.add_mesh(lines.tube(radius=max(fx * 0.0012, volume.spacing_mm * 0.35)),
-                             scalars="speed_mm_s", cmap=SPEED_CMAP, show_scalar_bar=False)
+            tubes = lines.tube(radius=max(fx * 0.0012, volume.spacing_mm * 0.35))
+            plotter.add_mesh(tubes, cmap=SPEED_CMAP, show_scalar_bar=False,
+                             **_paint(tubes, "speed_mm_s", "#9fd4ff"))
         else:
             extra.append("no streamline could be seeded: every feed port is capped in this step")
         field_label = "streamlines seeded at every feed port"
@@ -1467,6 +1738,22 @@ def _clim(grid, name: str, hi_pct: float = 99.0) -> tuple[tuple[float, float] | 
         note = (f"colour scale clipped at the {hi_pct:g}th percentile ({hi:.3g}); "
                 f"{over} cell(s) run to {top:.3g} and are a trap finding, not a colour")
     return (0.0, hi), note
+
+
+def _paint(mesh, name: str, fallback: str = "#8fa6bb") -> dict:
+    """`add_mesh` kwargs that colour by `name` if the mesh really carries it.
+
+    A filter can return a dataset that has points but has dropped the point data: a
+    streamline tracer that seeded nothing useful, or a threshold that kept no cells. VTK
+    then raises `Data array (speed_mm_s) not present`, which killed a twenty-minute run
+    on one frame of one step. Colouring flat is the right answer - the field is not there
+    to show - and the caller says so on the frame.
+    """
+    try:
+        has = mesh is not None and name in mesh.point_data
+    except Exception:
+        has = False
+    return {"scalars": name} if has else {"color": fallback}
 
 
 def _bar(title: str, size: tuple[int, int]) -> dict:
@@ -1715,15 +2002,25 @@ def render_chip(chip_path: Path | str, protocol_path: Path | str | None = None, 
             png = out_dir / f"{chip_id}_s{case.step}_{kind}.png"
             try:
                 render_frame(case, kind, size, png, lines=lines)
-            except RenderError as exc:
-                log(f"    skip {kind}: {exc}")
+            except Exception as exc:
+                manifest["notes"].append(
+                    f"{chip_id} step {case.step} {kind}: {type(exc).__name__}: {exc}")
+                log(f"    skip {kind}: {type(exc).__name__}: {exc}")
                 continue
             keyframes.append(png)
         tmp = out_dir / "frames"
         tmp.mkdir(exist_ok=True)
         for i in range(FRAMES_PER_STEP if video else 1):
             frame = tmp / f"{chip_id}_s{case.step}_t{i:03d}.png"
-            render_frame(case, "tracers", size, frame, phase=i / FRAMES_PER_STEP, lines=lines)
+            try:
+                render_frame(case, "tracers", size, frame, phase=i / FRAMES_PER_STEP,
+                             lines=lines)
+            except Exception as exc:
+                # One unhappy frame must not throw away the other several hundred.
+                manifest["notes"].append(
+                    f"{chip_id} step {case.step} frame {i}: {type(exc).__name__}: {exc}")
+                log(f"    frame {i} failed: {type(exc).__name__}: {exc}")
+                break
             movie.append(frame)
         manifest["steps"].append({
             "step": case.step, "label": case.label, "source": case.source,

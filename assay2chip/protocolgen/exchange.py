@@ -100,6 +100,15 @@ class Sizing:
         return self.volume_ul * self.washes
 
 
+def floor_ul(volume_ul: float) -> float:
+    """Microlitres rounded DOWN to the nearest nanolitre.
+
+    Rounding to nearest would let a step ask for 28.062 uL of a 28.0616 uL chamber, which
+    is a rule break caused purely by formatting. Down, always.
+    """
+    return math.floor(float(volume_ul) * 1000.0) / 1000.0
+
+
 def target_fraction() -> float:
     """exchange.target_fraction: how much of the old liquid a sweep has to remove."""
     return float(contracts.param(TARGET_FRACTION_KEY))
@@ -223,7 +232,7 @@ def size(kind: str, chamber_volume_ul: float, ratio: float = None,
     """
     if chamber_volume_ul <= 0:
         raise ExchangeError("an exchange needs a chamber with a positive volume_ul")
-    volume = round(chamber_volume_ul, 3)
+    volume = floor_ul(chamber_volume_ul)
 
     if kind == FILL:
         return Sizing(FILL, volume, 1, 1.0, replaced_fraction(1.0),
@@ -248,7 +257,7 @@ def size(kind: str, chamber_volume_ul: float, ratio: float = None,
                 "`ratio`, or classify the step as a sweep"
             )
         cv = chamber_volumes_for_ratio(ratio)
-        volume = round(cv * chamber_volume_ul, 3)
+        volume = floor_ul(cv * chamber_volume_ul)
         replaced = replaced_fraction(cv)
         return Sizing(PARTIAL, volume, 1, cv, replaced,
                       "partial", f"{volume:g} uL is {cv:.2f} chamber volumes and leaves the "

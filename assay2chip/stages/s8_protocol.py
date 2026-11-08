@@ -117,7 +117,15 @@ def build_protocol(chip_spec: dict, unitops: dict, ops: list = None, mapping: di
                    assay_id: str = "") -> tuple:
     """(protocol, plan). Raises BuildError or ProtocolError rather than write a bad file."""
     chip = Chip(chip_spec)
-    ops = list(ops if ops is not None else unitops.get("ops", []))
+    if ops is None:
+        # Without a partition to say which ops are this chip's, the chip itself says: S6
+        # records them (`ops_per_part`, `ops_realised_as_channels`, `ops`). Only when the
+        # chip records nothing - a hand-made chip - is every op taken as its own.
+        claimed = (set(build.declared_ops(chip)) | build.inline_ops(chip)
+                   | {int(n) for n in build.generator_params(chip).get("ops") or []})
+        ops = [op for op in unitops.get("ops", [])
+               if not claimed or int(op["op"]) in claimed]
+    ops = list(ops)
     on_chip = [op for op in ops if (op.get("placement") or {}).get("where") == "on_chip"]
     elsewhere = [op for op in ops if op not in on_chip]
     if not on_chip:
@@ -127,13 +135,26 @@ def build_protocol(chip_spec: dict, unitops: dict, ops: list = None, mapping: di
         )
 
     assignment = build.assign(chip, on_chip, mapping)
+    if not [t for t in assignment.values() if t != build.AS_A_CHANNEL]:
+        raise ProtocolError(
+            f"every op on chip {chip_spec.get('id')} was realised as a channel rather than "
+            f"as a part, so there is no chamber for a step to target: the chip is a conduit, "
+            f"and whatever drives it belongs to the chip either side of it"
+        )
     plan = build.Plan(chip, assay_id or unitops.get("id", ""))
+    # Whoever built the protocol also knows which ops went where, so no caller has to
+    # work the assignment out again - and they cannot disagree about it.
+    plan.ops, plan.assignment = ops, assignment
+    plan.classes = build.classes_for(on_chip, assignment)
     previous = None
     for index, op in enumerate(on_chip):
         target = assignment[int(op["op"])]
         following = on_chip[index + 1] if index + 1 < len(on_chip) else {}
-        build.steps_for_op(plan, op, target, previous, str(following.get("kind", "")))
-        previous = target
+        later = [assignment.get(int(o["op"])) for o in on_chip[index + 1:]]
+        build.steps_for_op(plan, op, target, previous, str(following.get("kind", "")),
+                           last_in_chamber=target not in later)
+        if target != build.AS_A_CHANNEL:
+            previous = target
     build.finish(plan)
     for op in elsewhere:
         placement = op.get("placement") or {}
@@ -142,11 +163,16 @@ def build_protocol(chip_spec: dict, unitops: dict, ops: list = None, mapping: di
                            f"this protocol has no step for it: {placement.get('why', '')}"))
 
     if not plan.steps:
-        raise ProtocolError(
-            f"every op placed on chip {chip_spec.get('id')} turned into a gap rather than a "
-            f"step, so there is nothing to run:\n  "
-            + "\n  ".join(gap.line() for gap in plan.gaps)
-        )
+        # Nothing the ops asked for could be written. The chip is still in the chain, so
+        # it is driven as a pass-through and every reason is carried in the steps.
+        chambers = [t for t in assignment.values() if t != build.AS_A_CHANNEL]
+        if not chambers:
+            raise ProtocolError(
+                f"chip {chip_spec.get('id')} has no chamber any op runs in, so there is "
+                f"nothing for a protocol to target"
+            )
+        build.passthrough(plan, chambers[0],
+                          " ".join(gap.question + "." for gap in plan.gaps[:3]))
 
     chip_id = chip_spec["id"]
     kinds = []
@@ -211,20 +237,8 @@ def description(plan: build.Plan, chip_spec: dict, unitops: dict, kinds: list) -
 # --------------------------------------------------------------------------------------
 
 def classes_from_ops(ops: list, assignment: dict) -> dict:
-    """{chamber: shear_class}: the strictest class any op in that chamber declares."""
-    order = ["none", "capsules", "prelysis_rinse", "adherent_cells"]
-    out = {}
-    for op in ops:
-        number = int(op["op"])
-        if number not in assignment:
-            continue
-        chamber = assignment[number]
-        klass = str(op.get("shear_class") or "none")
-        if klass not in order:
-            klass = "none"
-        if order.index(klass) > order.index(out.get(chamber, "none")):
-            out[chamber] = klass
-    return out
+    """{chamber: shear_class}, the strictest per chamber. One ordering, in protocolgen."""
+    return build.classes_for(ops, assignment)
 
 
 def check(protocol: dict, chip_spec: dict, classes: dict = None) -> list:
@@ -298,16 +312,21 @@ def run(assay_id: str = "", id: str = "", ctx=None, force: bool = False, log=Non
     unitops = read_stage(assay_id, "unitops")
     say = log or (ctx.log if ctx else (lambda message: None))
 
-    written, results = [], []
+    written, results, skipped = [], [], []
     wanted = [chip_id] if chip_id else [c["chip_id"] for c in partition.get("chips", [])]
     for one in wanted:
         spec = load_json(chip_path(one))
         ops = ops_for_chip(unitops, partition, one)
-        protocol, plan = build_protocol(spec, unitops, ops, mapping, assay_id)
-        assignment = build.assign(Chip(spec), [o for o in ops
-                                               if (o.get("placement") or {}).get("where")
-                                               == "on_chip"], mapping)
-        problems = check(protocol, spec, classes_from_ops(ops, assignment))
+        try:
+            protocol, plan = build_protocol(spec, unitops, ops, mapping, assay_id)
+        except ProtocolError as error:
+            # One chip with nothing steppable does not invalidate the others, and the
+            # reason is upstream: a hold whose time the source never gave, or a chip that
+            # is only a conduit. Said out loud, and carried into the result.
+            skipped.append({"chip_id": one, "why": str(error)})
+            say(f"no protocol for {one}: {error}")
+            continue
+        problems = check(protocol, spec, classes_from_ops(plan.ops, plan.assignment))
         if problems:
             raise ProtocolError(
                 f"the protocol S8 built for {one} breaks its own rules, so it was not "
@@ -321,7 +340,11 @@ def run(assay_id: str = "", id: str = "", ctx=None, force: bool = False, log=Non
             f"{sum(s['duration_s'] for s in protocol['steps']) / 3600:.1f} h, "
             f"{len(plan.gaps)} gap(s)")
         results.append({"chip_id": one, "protocol": protocol, "plan": plan})
-    return {"written": written, "protocols": results}
+    if skipped and not results:
+        raise ProtocolError(
+            f"no chip of '{assay_id}' has a protocol:\n  - "
+            + "\n  - ".join(f"{s['chip_id']}: {s['why']}" for s in skipped))
+    return {"written": written, "protocols": results, "skipped": skipped}
 
 
 def main(argv: list = None) -> int:
@@ -365,10 +388,7 @@ def main(argv: list = None) -> int:
             spec = load_json(Path(args.chip))
             unitops = load_json(Path(args.unitops))
             protocol, plan = build_protocol(spec, unitops, None, mapping)
-            on_chip = [o for o in unitops.get("ops", [])
-                       if (o.get("placement") or {}).get("where") == "on_chip"]
-            assignment = build.assign(Chip(spec), on_chip, mapping)
-            problems = check(protocol, spec, classes_from_ops(on_chip, assignment))
+            problems = check(protocol, spec, classes_from_ops(plan.ops, plan.assignment))
             if args.report:
                 print(report(protocol, plan))
             for line in problems:

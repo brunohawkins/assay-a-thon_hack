@@ -127,27 +127,108 @@ def _tokens(name: str) -> set:
     return {t for t in str(name).split("_") if t and t not in _COMMON_TOKENS}
 
 
-def assign(chip: Chip, ops: list, mapping: dict = None) -> dict:
-    """{op number: chamber id}: where each on-chip op runs. Refuses to guess."""
+AS_A_CHANNEL = "<channel>"      # the op IS the conduit; no chamber to target
+
+# Shear classes from the least to the most constraining. A chamber is held to the
+# STRICTEST class any op in it declares, for the whole sequence: cells about to be lysed do
+# not leave the chamber between two ops, so a flow derived for the op that happens not to
+# mention them would still be pushing them around.
+SHEAR_STRICTNESS = ("none", "capsules", "prelysis_rinse", "adherent_cells")
+
+
+def strictest(*classes) -> str:
+    """The most constraining of several shear classes."""
+    known = [c for c in classes if c in SHEAR_STRICTNESS]
+    return max(known, key=SHEAR_STRICTNESS.index) if known else "none"
+
+
+def classes_for(ops: list, assignment: dict) -> dict:
+    """{chamber: shear class}: the strictest class any op in that chamber declares."""
     out = {}
-    declared = {}
+    for op in ops:
+        chamber = assignment.get(int(op["op"]))
+        if not chamber or chamber == AS_A_CHANNEL:
+            continue
+        out[chamber] = strictest(out.get(chamber), str(op.get("shear_class") or "none"))
+    return out
+
+
+def generator_params(chip: Chip) -> dict:
+    """What S6 recorded about the chip it built, under `generator`."""
+    generator = chip.spec.get("generator") or {}
+    return generator.get("params") or generator.get("parameters") or {}
+
+
+def inline_ops(chip: Chip) -> set:
+    """Ops S6 realised AS A CHANNEL rather than as a part of their own.
+
+    A delay line or a mixer can be the conduit itself: the channel is made as long as the
+    op needs (`target_length_mm`) and `realises` records which op that length is for. The
+    protocol contract can only target a chamber or a port, so these ops have no target -
+    and inventing one would point a step at the wrong feature.
+    """
+    params = generator_params(chip)
+    out = {int(n) for n in params.get("ops_realised_as_channels") or []}
+    for channel in chip.channels:
+        out |= {int(n) for n in channel.get("realises") or []}
+    return out
+
+
+def declared_ops(chip: Chip) -> dict:
+    """{op number: chamber id} from the chip itself, which is the authority.
+
+    Two spellings, both honoured: `chambers[].from_ops` (the documented shape) and S6's
+    `generator.params.ops_per_part`, which is what the built chips actually carry.
+    """
+    out = {}
     for chamber_id, chamber in chip.chambers.items():
         for number in chamber.get("from_ops") or []:
-            declared[int(number)] = chamber_id
+            out[int(number)] = chamber_id
+    for chamber_id, numbers in (generator_params(chip).get("ops_per_part") or {}).items():
+        if chamber_id in chip.chambers:
+            for number in numbers or []:
+                out.setdefault(int(number), chamber_id)
+    return out
+
+
+def _by_id_convention(chip: Chip, number: int, kind: str) -> str:
+    """S6 names a part `<kind>_<op>`, so the op number is in the id. Exact match only."""
+    hits = [c for c in chip.workplaces() if c.rsplit("_", 1)[-1] == str(number)]
+    if len(hits) == 1:
+        return hits[0]
+    exact = [c for c in hits if c == f"{kind}_{number}"]
+    return exact[0] if len(exact) == 1 else ""
+
+
+def assign(chip: Chip, ops: list, mapping: dict = None) -> dict:
+    """{op number: chamber id}: where each on-chip op runs. Refuses to guess.
+
+    In order: an explicit mapping from the caller, then what the chip says (`from_ops` or
+    S6's `ops_per_part`), then S6's `<kind>_<op>` id convention, then the chip's only
+    usable chamber, then a match on chamber type. An op S6 realised as a channel is
+    mapped to AS_A_CHANNEL, which has no target and is recorded instead of stepped.
+    """
+    out = {}
+    declared = declared_ops(chip)
+    inline = inline_ops(chip)
     for op in ops:
         number = int(op["op"])
         if (op.get("placement") or {}).get("where") != "on_chip":
             continue
+        kind = str(op.get("kind", ""))
         if mapping and number in mapping:
             out[number] = mapping[number]
         elif number in declared:
             out[number] = declared[number]
+        elif number in inline:
+            out[number] = AS_A_CHANNEL
+            continue
         else:
-            out[number] = _match_chamber(chip, op)
+            out[number] = _by_id_convention(chip, number, kind) or _match_chamber(chip, op)
         if out[number] not in chip.chambers:
             raise BuildError(
                 f"op {number} is mapped to '{out[number]}', which is not a chamber on chip "
-                f"{chip.id}"
+                f"{chip.id} (chambers: {', '.join(sorted(chip.chambers))})"
             )
     return out
 
@@ -195,6 +276,13 @@ class Plan:
         self.flows: list = []           # (step number, Flow), for the report
         self.assumptions: set = set()
         self.next_kind: str = ""        # the kind of the op after this one, for reagents
+        self.last_in_chamber: bool = True   # no later op uses this chamber
+        self.realised_as_channels: list = []
+        self.soaked: int = 0
+        self.warned_lanes: set = set()
+        self.classes: dict = {}         # chamber -> strictest shear class seen there
+        self.ops: list = []
+        self.assignment: dict = {}
 
     # --- bookkeeping ----------------------------------------------------------
 
@@ -303,9 +391,30 @@ class Plan:
                      question=("the op states no shear_class, so the flow could not be held to "
                                "a scoped ceiling by the op itself"),
                      assumed=shear_class, assumed_from="particles.kind")
+        # Held to the strictest class this chamber sees, not just this op's: see
+        # SHEAR_STRICTNESS. Without this, the gentle op in a chamber sets a flow that the
+        # op before it would have refused.
+        here = self.classes.get(target)
+        if here and strictest(here, shear_class) != shear_class:
+            shear_class = strictest(here, shear_class)
         particles = str((op.get("particles") or {}).get("kind", "none"))
+        if self.chip.needs_lane_width(target) and target not in self.warned_lanes:
+            self.warned_lanes.add(target)
+            self.gap(op=op.get("op"), field="mixer.channel_width_mm",
+                     question=(f"'{target}' is a mixer whose lane width the spec does not "
+                               f"state, so its shear and its pressure drop are computed on "
+                               f"the whole chamber and are UNDER-stated if the grooves fold "
+                               f"the flow into lanes: S6 should write "
+                               f"mixer.channel_width_mm"))
+        # The same Q passes through every chamber on the route, so a chamber further down
+        # it constrains this step too: a transfer out of a capsule trap runs through the
+        # next chamber, and if THAT one holds cells about to be rinsed, its ceiling wins.
+        downstream = [(c, self.classes[c])
+                      for c in self.chip.route_places(feed, vent)
+                      if c != target and c in self.chip.chambers and c in self.classes]
         flow = flows.derive(self.chip, target, shear_class, feed, vent,
-                            temp_c=op.get("temp_c"), particles=particles, purpose=purpose)
+                            temp_c=op.get("temp_c"), particles=particles, purpose=purpose,
+                            also_bounded=downstream)
         if purpose == "lift" and flow.bound_by != "lift_flow":
             self.gap(op=op.get("op"), field="flow_ul_min",
                      question=(f"the flow that lifts a retained bed ({flows.LIFT_FLOW_KEY}) "
@@ -347,6 +456,25 @@ class Plan:
     def margin_note(self) -> str:
         return (f"Duration is volume x washes / flow plus {DURATION_MARGIN - 1:.0%} for pump "
                 f"ramp, line dead volume and settling")
+
+    def zone_phrase(self, target: str, temp_c) -> str:
+        """The sentence a step with a temperature has to carry, naming the zone that holds it.
+
+        EVERY temperature step references a declared thermal zone - that is the rule - so
+        this is the one place a temperature is allowed to reach a step, and a temperature
+        no zone can reach stops the build instead of being written down.
+        """
+        if temp_c is None:
+            return ""
+        reason = self.chip.zone_holds(target, float(temp_c))
+        if reason:
+            raise BuildError(
+                f"'{target}' is held at {float(temp_c):g} C by this step, but {reason}. Either "
+                f"S6 declares a zone that can reach it or the op belongs on another chip."
+            )
+        zone = self.chip.thermal_zone(target)
+        return (f" It runs at {float(temp_c):g} C in thermal zone '{zone['id']}', which "
+                f"{_zone_range(zone)}.")
 
     # --- steps ----------------------------------------------------------------
 
@@ -507,8 +635,8 @@ class Plan:
                 else f"Hold '{target}' at {temp_c:g} C")
         self.add("hold_temp",
                  f"{what} for {_clock(held)} at {temp_c:g} C with every port capped, in "
-                 f"thermal zone '{zone['id']}', which holds "
-                 f"{zone['min_temp_c']:g}-{zone['max_temp_c']:g} C. No flow during the "
+                 f"thermal zone '{zone['id']}', which "
+                 f"{_zone_range(zone)}. No flow during the "
                  f"hold.{longer}",
                  held, target=target, temp_c=temp_c, ports=self.port_state([], []))
 
@@ -559,13 +687,13 @@ class Plan:
         flow = self.flow_for(target, op, feed, vent)
         self.add("culture",
                  f"Keep '{target}' in culture for {_clock(duration)} at {temp_c:g} C in "
-                 f"thermal zone '{zone['id']}' ({zone['min_temp_c']:g}-{zone['max_temp_c']:g} C), "
+                 f"thermal zone '{zone['id']}' ({_zone_range(zone)}), "
                  f"with a batch of {chamber_volume:g} uL of {reagent} - one chamber volume, "
                  f"from the built chamber and not from the source's flask volume - every "
                  f"{_clock(interval)} and the flow stopped in between. {flow.why}. "
                  f"{self.margin_note()}.",
                  duration, targets=[target], reagents=[reagent], reagent=reagent,
-                 volume_ul=round(chamber_volume, 3), temp_c=temp_c,
+                 volume_ul=exchange.floor_ul(chamber_volume), temp_c=temp_c,
                  flow_ul_min=flow.flow_ul_min, exchange_interval_s=float(interval),
                  ports=self.port_state([feed], [vent]))
         self.filled.add(target)
@@ -620,7 +748,7 @@ class Plan:
         feed = self.feed_for(target, "forward", reagent)
         vent = self.vent_for(target, "harvest" if operation == "harvest" else "forward", reagent)
         flow = self.flow_for(target, op, feed, vent)
-        volume = round(self.chip.volume_ul(target), 3)
+        volume = exchange.floor_ul(self.chip.volume_ul(target))
         what = ("the cells, which leave through" if operation == "harvest"
                 else "the supernatant, leaving what is retained behind, through")
         self.add(operation,
@@ -632,14 +760,18 @@ class Plan:
                  ports=self.port_state([feed], [vent]))
 
     def count(self, op: dict, target: str) -> None:
-        if self.chip.chambers[target].get("type") != "qc_window":
+        kind = self.chip.chambers[target].get("type")
+        if kind != "qc_window":
+            # S6 put this op in this chamber, so the chamber IS where the reading happens;
+            # the chip simply does not type it as a window. Reading it is still the honest
+            # step - what is lost is the window's optics, and that is said rather than the
+            # step being dropped.
             self.gap(op=op.get("op"), field="placement",
-                     question=(f"the contract's only readout operation is `count` at a QC "
-                               f"window, and '{target}' is a "
-                               f"{self.chip.chambers[target].get('type')}: this imaging op "
-                               f"belongs off chip (chip/designs rule 6) and no step was "
-                               f"written for it"))
-            return
+                     question=(f"the readout runs in '{target}', which the chip types as a "
+                               f"{kind} and not a qc_window: the step reads it in place, but "
+                               f"nothing in the spec says it has the optical access a count "
+                               f"needs, so S6 should type it or the op belongs off chip "
+                               f"(chip/designs rule 6)"))
         duration = op.get("duration_s")
         if not duration:
             self.gap(op=op.get("op"), field="duration_s",
@@ -660,7 +792,7 @@ class Plan:
         # paper is the reagent-to-sample RATIO, which is what the two pump rates are set
         # from; its absolute volumes describe a tube and do not transfer.
         chamber_volume = self.chip.volume_ul(target)
-        volume = round(chamber_volume, 3)
+        volume = exchange.floor_ul(chamber_volume)
         ratio = (op.get("ratio") or {}).get("reagent_to_sample")
         if ratio:
             share = (f"The two feeds run at {ratio:g} parts {reagent} to 1 part sample, which "
@@ -680,7 +812,8 @@ class Plan:
                  f"Co-flow {reagent} into the stream in '{target}' through '{feed}', draining "
                  f"to '{vent}'. {volume:g} uL is one chamber volume of the mixer; the folded "
                  f"path is there because diffusion across the channel is too slow at this "
-                 f"scale. {share}{flow.why}. {self.margin_note()}.",
+                 f"scale. {share}{flow.why}. {self.margin_note()}."
+                 f"{self.zone_phrase(target, op.get('temp_c'))}",
                  self.seconds(volume, 1, flow.flow_ul_min, particles=particles),
                  target=target, reagent=reagent, volume_ul=volume,
                  flow_ul_min=flow.flow_ul_min, temp_c=op.get("temp_c"),
@@ -704,7 +837,7 @@ class Plan:
         feed = self.feed_for(target, "forward", reagent)
         vent = self.vent_for(target, "forward", reagent)
         flow = self.flow_for(target, op, feed, vent)
-        volume = round(self.chip.volume_ul(target), 3)
+        volume = exchange.floor_ul(self.chip.volume_ul(target))
         self.add(operation,
                  f"{lead} One {volume:g} uL chamber volume moves, driven from '{feed}' and "
                  f"vented at '{vent}'. {flow.why}. {self.margin_note()}.",
@@ -770,6 +903,17 @@ class Plan:
                  ports=self.port_state([], []))
 
 
+def _zone_range(zone: dict) -> str:
+    """A zone's range in words. A generated zone states only its ceiling, so saying
+    "4-50 C" there would invent a floor."""
+    low, high = zone.get("min_temp_c"), zone.get("max_temp_c")
+    if low is not None and high is not None:
+        return f"holds {low:g}-{high:g} C"
+    if high is not None:
+        return f"is rated to {high:g} C (the spec states no floor for it)"
+    return "states no temperature range at all"
+
+
 def _particles(op: dict) -> str:
     """What this op carries, which decides whether diffusion sets the duration floor."""
     return str((op.get("particles") or {}).get("kind", "none"))
@@ -823,6 +967,11 @@ def operation_for(plan: Plan, op: dict, target: str) -> str:
     mapping = mapping_for(kind)
     particles = str((op.get("particles") or {}).get("kind", "none"))
     if kind == "collect":
+        # Only the LAST op in a chamber can send what it holds away: a `collect` with more
+        # ops to come in the same chamber is the liquid phase leaving while the particles
+        # stay, which is the contract's `collect`.
+        if not plan.last_in_chamber:
+            return "collect"
         if particles == "capsules" or plan.chip.retention(target):
             return "release"
         return "harvest" if particles == "cells" else "collect"
@@ -840,7 +989,7 @@ def operation_for(plan: Plan, op: dict, target: str) -> str:
 
 
 def steps_for_op(plan: Plan, op: dict, target: str, previous: str = None,
-                 next_kind: str = "") -> None:
+                 next_kind: str = "", last_in_chamber: bool = True) -> None:
     """Append every step one op needs, in order.
 
     `next_kind` is the kind of the op that follows, which is how a reagent delivered into
@@ -849,6 +998,16 @@ def steps_for_op(plan: Plan, op: dict, target: str, previous: str = None,
     """
     kind = str(op.get("kind", ""))
     plan.next_kind = next_kind
+    plan.last_in_chamber = last_in_chamber
+    if target == AS_A_CHANNEL:
+        plan.gap(op=op.get("op"), field="placement",
+                 question=(f"S6 realised this '{kind}' AS A CHANNEL rather than as a part of "
+                           f"its own, and the protocol contract can only target a chamber or "
+                           f"a port: the stream performs it while flowing to the next "
+                           f"chamber, and the channel's own length is what makes it happen, "
+                           f"so no separate step was written"))
+        plan.realised_as_channels.append(int(op["op"]))
+        return
     operation = operation_for(plan, op, target)
     if kind != ADHERENT_KIND and op.get("shear_class") == "adherent_cells":
         plan.gap(op=op.get("op"), field="shear_class",
@@ -894,6 +1053,45 @@ def steps_for_op(plan: Plan, op: dict, target: str, previous: str = None,
     if kind == "lyse" and op.get("temp_c") is not None and op.get("duration_s"):
         # S2's mapping marks lyse as exchange + hold_temp: deliver the reagent, then dwell.
         plan.hold(op, target, dwell=True)
+
+
+def passthrough(plan: Plan, target: str, why: str) -> None:
+    """The protocol for a chip whose own ops could not be written: move the material through.
+
+    A chip can end up with no steppable op - the one thing it does is a hold whose time and
+    temperature the source never gave, say. The chip still has to be filled and emptied,
+    because S4 routed a hand-off into it and another one out of it, and that plumbing is
+    the chip's own geometry rather than anything invented here. So this writes exactly
+    that, and says in both steps which ops are missing and why, instead of leaving no
+    protocol at all and hiding the gap behind a missing file.
+    """
+    feed = plan.feed_for(target, "load", "reagent")
+    outlets = [p for p in plan.chip.drains(target)
+               if plan.chip.port_role(p) in ("release", "harvest", "collect")
+               or plan.chip.capsule_passable(p)]
+    vent = outlets[0] if outlets else plan.vent_for(target, "forward", "reagent")
+    op = {"op": 0, "kind": "load", "particles": {"kind": "none"}, "shear_class": "none"}
+    sizing = exchange.size(exchange.FILL, plan.chip.volume_ul(target))
+    flow = plan.flow_for(target, op, feed, vent)
+    plan.add("load",
+             f"Fill '{target}' from '{feed}' with one chamber volume. THIS CHIP HAS NO "
+             f"ASSAY STEP OF ITS OWN: {why} So this protocol only moves the material "
+             f"through the chip, and whatever those ops ask for has to come from the "
+             f"source before the chip can do its job. {sizing.note}. {flow.why}. "
+             f"{plan.margin_note()}.",
+             plan.seconds(sizing.volume_ul, 1, flow.flow_ul_min),
+             target=target, reagent="reagent", volume_ul=sizing.volume_ul,
+             flow_ul_min=flow.flow_ul_min, ports=plan.port_state([feed], [vent]))
+    plan.add("transfer",
+             f"Carry what '{target}' holds out through '{vent}', driven from '{feed}', to "
+             f"the next chip in the chain. Nothing is done to it here, for the reason the "
+             f"step before gives. {flow.why}. {plan.margin_note()}.",
+             plan.seconds(sizing.volume_ul, 1, flow.flow_ul_min),
+             target=vent, source=target, flow_ul_min=flow.flow_ul_min,
+             ports=plan.port_state([feed], [vent]))
+    plan.gap(question=(f"this chip performs none of its ops in the protocol: {why} It is "
+                       f"driven as a pass-through, which is plumbing, not the assay"),
+             field="steps")
 
 
 def finish(plan: Plan) -> None:
