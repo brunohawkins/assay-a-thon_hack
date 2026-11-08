@@ -35,10 +35,32 @@ class Geometry(unittest.TestCase):
         self.assertEqual({g["source"] for g in NET.geometry.values()}, {"DXF"})
 
     def test_resistance_formula(self):
-        # 12 mu L / (w h^3 (1 - 0.63 h/w)) for a 10 mm, 0.8 x 0.3 mm channel at mu = 0.8 mPa s
-        r = nw.rect_resistance(10, 0.8, 0.3, 0.8e-3)
-        expect = 12 * 0.8e-3 * 0.01 / (0.8e-3 * (0.3e-3) ** 3 * (1 - 0.63 * 0.3 / 0.8))
-        self.assertAlmostEqual(r / expect, 1.0, places=12)
+        # The exact rectangular-duct series, checked against the textbook Poiseuille numbers
+        # (Shah & London): f Re = 56.91 for a square and 62.19 for a 2:1 rectangle, with
+        # f Re = 2 R A Dh^2 / (mu L). This used to pin 1 - 0.63 h/w, which is 14% high on a
+        # square; for the 0.8 x 0.3 mm duct it pinned, the two agree to 2e-5, which is why the
+        # old test could not see the error.
+        mu, L = 0.8e-3, 10.0
+        for (w, h), fre in (((0.3, 0.3), 56.91), ((0.6, 0.3), 62.19)):
+            a = w * h * 1e-6
+            dh = 2 * w * h / (w + h) * 1e-3
+            r = nw.rect_resistance(L, w, h, mu)
+            self.assertAlmostEqual(2 * r * a * dh ** 2 / (mu * L * 1e-3), fre, delta=0.01, msg=(w, h))
+        self.assertAlmostEqual(12 / nw.flow_calc.duct_shape_factor(1, 1), 28.454, places=3)
+
+    def test_the_weir_crests_are_in_the_model(self):
+        """g_cx and a_cx declare a 25 um weir; each opening crosses a crest as wide as its wall,
+        crest_thickness_um (blocks.json weir_geometry, 200 um) long: 12 mu L / (W g^3)."""
+        crests = [c for e in NET.edges for c in e["weir_crests"]]
+        self.assertEqual({c["chamber"] for c in crests}, {"g_cx", "a_cx"})
+        self.assertEqual(len(crests), 6)          # three openings each
+        for c in crests:
+            expect = 12 * NET.mu * (c["length_um"] * 1e-6) / (c["width_mm"] * 1e-3 * (c["gap_um"] * 1e-6) ** 3)
+            self.assertAlmostEqual(c["R"] / expect, 1.0, places=12)
+            self.assertEqual((c["gap_um"], c["length_um"]), (25.0, 200.0))
+        # The CFD suite's figure for one crest across a 2.503 mm wall: 49.1e9 Pa s/m3.
+        side = next(c for c in crests if abs(c["width_mm"] - 2.503) < 1e-6)
+        self.assertAlmostEqual(side["R"] / 1e9, 49.1, delta=0.1)
 
 
 class Conservation(unittest.TestCase):
@@ -82,6 +104,18 @@ class Modes(unittest.TestCase):
             self.assertNotIn(src, sol["routing"]["foreign_medium"], msg=mode)
             through = [sol["chambers"][c]["throughput_ul_min"] for c in others]
             self.assertAlmostEqual(sum(through), nw.DEFAULT_FEED_UL_MIN, places=6)
+
+    def test_interaction_split_follows_the_weirs(self):
+        """In int_g the conditioned medium reaches n_cx through no crest and a_cx through two,
+        so it does NOT split evenly: about 72/28, as assay2chip/cfd/validate.py's CFD found.
+        The weir-less model this replaces said 50/50."""
+        for mode, src, other in (("int_g", "g_cx", "a_cx"), ("int_a", "a_cx", "g_cx")):
+            sol = NET.solve(nw.mode_ports(mode))
+            n, o = (sol["chambers"][c]["throughput_ul_min"] for c in ("n_cx", other))
+            self.assertAlmostEqual(n / (n + o), 0.72, delta=0.02, msg=mode)
+            plain = nw.Network(NET.chip, dxf=NET.dxf, weirs=False).solve(nw.mode_ports(mode))
+            n0, o0 = (plain["chambers"][c]["throughput_ul_min"] for c in ("n_cx", other))
+            self.assertAlmostEqual(n0 / (n0 + o0), 0.5, delta=0.01, msg=mode)
 
     def test_n_to_g_and_a_splits_evenly_by_symmetry(self):
         sol = NET.solve(nw.mode_ports("int_n"))

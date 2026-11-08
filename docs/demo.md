@@ -34,15 +34,15 @@ Every number below is derived. Nothing is typed in.
 
 | chip                  | feed       | vent          | uL/min | headline fill | filmable | kPa   |
 | ---                   | ---        | ---           | ---:   | ---:          | ---:     | ---:  |
-| cell_prep_v1          | in_buffer  | out_cells     | 7.9    | 36 s          | 2        | 0.052 |
+| cell_prep_v1          | in_buffer  | out_cells     | 7.9    | 36 s          | 2        | 0.051 |
 | ipsc_to_mgl_chip_v1   | inlet_1    | waste_1       | 8.8    | 30 s          | 2        | 0.012 |
 | module1_v1            | p_in       | p_mid         | 6.3    | 30 s          | 2        | 0.007 |
-| module3_v1_translated | reagent_in | to_split_tree | 77     | 30 s          | 1        | 0.080 |
+| module3_v1_translated | reagent_in | to_split_tree | 77     | 30 s          | 1        | 0.105 |
 | module4_v1            | in_s1      | p_vent        | 16     | 30 s          | 1        | 0.009 |
-| module5_v1            | in_prot    | out_lib       | 16     | 30 s          | 2        | 0.011 |
-| module6_v1            | in_n       | out_n         | 5.8    | 30 s          | 1        | 0.002 |
-| placeholder_chip_v1   | inlet_1    | outlet_1      | 7.3    | 30 s          | 3        | 0.016 |
-| sctip_spc_v1          | in_reagent | out_waste     | 2.2    | 30 s          | 1        | 0.021 |
+| module5_v1            | in_prot    | out_lib       | 16     | 30 s          | 2        | 0.010 |
+| module6_v1            | in_n       | out_n         | 5.8    | 30 s          | 1        | 0.001 |
+| placeholder_chip_v1   | inlet_1    | outlet_1      | 7.3    | 30 s          | 3        | 0.064 |
+| sctip_spc_v1          | in_reagent | out_waste     | 2.2    | 30 s          | 1        | 0.020 |
 | spc_demo_v1           | in_core    | out_caps      | 9.4    | 30 s          | 1        | 0.309 |
 
 `headline fill` is the largest chamber on the route; `filmable` counts the chambers whose fill time lands inside the 10-60 s window.
@@ -55,7 +55,7 @@ One feed, one vent, everything else plugged. Each chain below is the order the d
 
 `in_buffer` hole 1.0 s -> `ch_buf_cult` 0.7 s -> **`cult_1` 36 s** -> `ch_cult_mix` 0.5 s -> **`mix_1` 10 s** -> `ch_mix_qc` 0.7 s -> `qc_1` 5.8 s -> `ch_qc_out` 0.6 s -> out of `out_cells` at 55 s.
 
-7.287 uL in all (0.128 uL of it lost in the feed port before anything shows). Drive pressure 0.052 kPa, 0.3% of the assumed limit. Clear-water wash-out of `cult_1`: 1/e every 36 s, clear by about 108 s (well-mixed chamber, APPROXIMATE).
+7.287 uL in all (0.128 uL of it lost in the feed port before anything shows). Drive pressure 0.051 kPa, 0.3% of the assumed limit. Clear-water wash-out of `cult_1`: 1/e every 36 s, clear by about 108 s (well-mixed chamber, APPROXIMATE).
 
 Repeat from `in_enz`, `in_quench` one at a time for the rest of the chip.
 
@@ -85,7 +85,7 @@ Other vents, same flow: `p_a_out` carries the dye on into `j_mid`, `a_cx` (+52 s
 
 `reagent_in` hole 0.5 s -> `ch_reagent` 0.2 s -> **`main_trap` 30 s** -> `ch_to_split_tree` 0.1 s -> out of `to_split_tree` at 31 s.
 
-39.514 uL in all (0.64 uL of it lost in the feed port before anything shows). Drive pressure 0.080 kPa, 0.4% of the assumed limit. Clear-water wash-out of `main_trap`: 1/e every 30 s, clear by about 90 s (well-mixed chamber, APPROXIMATE).
+39.466 uL in all (0.64 uL of it lost in the feed port before anything shows). Drive pressure 0.105 kPa, 0.5% of the assumed limit. Clear-water wash-out of `main_trap`: 1/e every 30 s, clear by about 90 s (well-mixed chamber, APPROXIMATE).
 
 Repeat from `backflush_in`, `capsule_in` one at a time for the rest of the chip.
 
@@ -105,7 +105,7 @@ Other vents, same flow: `out_sub` carries the dye on into `node_1`, `node_2`, `n
 
 `in_prot` hole 2.4 s -> `ch_in_prot` 1.7 s -> **`react_cx` 30 s** -> `ch_react_bead` 5.0 s -> **`bead_cx` 22 s** -> `ch_out_lib` 2.0 s -> out of `out_lib` at 64 s.
 
-17.057 uL in all (0.64 uL of it lost in the feed port before anything shows). Drive pressure 0.011 kPa, <0.1% of the assumed limit. Clear-water wash-out of `react_cx`: 1/e every 30 s, clear by about 91 s (well-mixed chamber, APPROXIMATE).
+17.057 uL in all (0.64 uL of it lost in the feed port before anything shows). Drive pressure 0.010 kPa, <0.1% of the assumed limit. Clear-water wash-out of `react_cx`: 1/e every 30 s, clear by about 91 s (well-mixed chamber, APPROXIMATE).
 
 Other vents, same flow: `out_waste` carries the dye on into `bead_cx` (+34 s). Repeat from `in_bead`, `in_lib` one at a time for the rest of the chip.
 
@@ -113,9 +113,9 @@ Other vents, same flow: `out_waste` carries the dye on into `bead_cx` (+34 s). R
 
 ### `module6_v1` - feed `in_n` at 5.8 uL/min, vent `out_n`, plug `in_a`, `in_g`, `out_a`, `out_g`
 
-`in_n` hole 6.6 s -> `comb_in_n` 21 s -> **`cx_n` 30 s** -> `comb_out_n` 21 s -> out of `out_n` at 78 s.
+`in_n` hole 6.6 s -> `comb_in_n` 20 s -> **`cx_n` 30 s** -> `comb_out_n` 20 s -> out of `out_n` at 76 s.
 
-7.552 uL in all (0.64 uL of it lost in the feed port before anything shows). Drive pressure 0.002 kPa, <0.1% of the assumed limit. Clear-water wash-out of `cx_n`: 1/e every 30 s, clear by about 89 s (well-mixed chamber, APPROXIMATE).
+7.36 uL in all (0.64 uL of it lost in the feed port before anything shows). Drive pressure 0.001 kPa, <0.1% of the assumed limit. Clear-water wash-out of `cx_n`: 1/e every 30 s, clear by about 89 s (well-mixed chamber, APPROXIMATE).
 
 Repeat from `in_a`, `in_g` one at a time for the rest of the chip.
 
@@ -125,7 +125,7 @@ Repeat from `in_a`, `in_g` one at a time for the rest of the chip.
 
 `inlet_1` hole 10 s -> `ch_1` 1.3 s -> **`exchange_1` 30 s** -> `ch_3` 2.1 s -> **`split_2` 10 s** -> `ch_7` 1.6 s -> **`pool_1` 24 s** -> `ch_10` 2.6 s -> out of `outlet_1` at 82 s.
 
-10.024 uL in all (1.28 uL of it lost in the feed port before anything shows). Drive pressure 0.016 kPa, <0.1% of the assumed limit. Clear-water wash-out of `exchange_1`: 1/e every 30 s, clear by about 90 s (well-mixed chamber, APPROXIMATE).
+10.024 uL in all (1.28 uL of it lost in the feed port before anything shows). Drive pressure 0.064 kPa, 0.3% of the assumed limit. Clear-water wash-out of `exchange_1`: 1/e every 30 s, clear by about 90 s (well-mixed chamber, APPROXIMATE).
 
 **Cannot show:** retention in exchange_1, split_1, split_2, split_3, split_4, pool_1: a weir at 25 um retains NOTHING with no particles in the liquid. Dye passes it either way, so the demo says nothing about whether it would hold a capsule; every thermal step protocols/placeholder_culture_then_scrnaseq.json, protocols/placeholder_scdnaseq.json, protocols/placeholder_scrnaseq.json asks for (37, 40, 50, 80 C): no thermocycler and no incubator on the bench; split_1, split_3, split_4: not on the one-pump route, so they stay empty (a second run with a different vent, or a second pump, would reach them).
 
@@ -133,7 +133,7 @@ Repeat from `in_a`, `in_g` one at a time for the rest of the chip.
 
 `in_reagent` hole 3.5 s -> `ch_wash_trap` 10 s -> **`trap_1` 30 s** -> `ch_trap_waste` 3.4 s -> out of `out_waste` at 47 s.
 
-1.716 uL in all (0.128 uL of it lost in the feed port before anything shows). Drive pressure 0.021 kPa, 0.1% of the assumed limit. Clear-water wash-out of `trap_1`: 1/e every 30 s, clear by about 89 s (well-mixed chamber, APPROXIMATE).
+1.716 uL in all (0.128 uL of it lost in the feed port before anything shows). Drive pressure 0.020 kPa, 0.1% of the assumed limit. Clear-water wash-out of `trap_1`: 1/e every 30 s, clear by about 89 s (well-mixed chamber, APPROXIMATE).
 
 Repeat from `in_load`, `in_oil` one at a time for the rest of the chip.
 
@@ -211,24 +211,17 @@ and no number from the demo should be quoted for any of them:
 | 30 x 20 mm is too small to see | The audience sees a thumbnail-sized blank rectangle; the whole chip is smaller than a credit card and the chambers are a few millimetres. | Phone on a stand, macro mode, locked focus and exposure, chip taped down so nothing drifts. Put a ruler in the shot for scale, and frame one chamber rather than the whole board. Record, do not rely on anyone leaning in. |
 | One chip, one chance | A split boss, a leak, a stained chamber or a blocked channel ends the demo if it is the only chip. | Print spares - at least two of each chip you intend to show - and have a second syringe, a second set of plugs and pre-cut spare tubing on the table. Run every chip through a water prime the day before, not on the day. |
 
-## Which chips to print
+## The printed chips
 
-A recommendation only. `built_for_demo` in `protocols/pipeline_mvp.json` is left
-untouched: only the owner knows what is actually on the print bed. Order is
-films-at-all, then pipeline module, then filmable chambers, then whether moving
-the vent reroutes the dye.
+6 chips are printed for the demo, confirmed by the project lead: `module1_v1`, `module3_v1_translated`, `module4_v1`, `module5_v1`, `module6_v1`, `spc_demo_v1`. `built_for_demo` in the pipeline files is set from that list by `tools/build_assay_variants.py` (`PRINTED_FOR_DEMO`). They are FROZEN: `cad/make_train_cad.py` refuses to rewrite their exports, and a change means a new versioned spec. Each one's procedure, in full in its section above:
 
-| chip | verdict | why |
-|---|---|---|
-| `module1_v1` | print | 2 chambers fill in 30 s and 16 s; an MVP pipeline module; and moving the vent to `p_a_out`, `p_g_out` reroutes the dye, which is the design's actual claim |
-| `module5_v1` | print | 2 chambers fill in 30 s and 22 s; an MVP pipeline module; and moving the vent to `out_waste` reroutes the dye, which is the design's actual claim |
-| `cell_prep_v1` | print | 2 chambers fill in 36 s and 10 s; an MVP pipeline module |
-| `module4_v1` | print | 1 chamber fills in 30 s; an MVP pipeline module; and moving the vent to `out_sub` reroutes the dye, which is the design's actual claim |
-| `module3_v1_translated` | print | 1 chamber fills in 30 s; an MVP pipeline module |
-| `spc_demo_v1` | print | 1 chamber fills in 30 s; an MVP pipeline module |
-| `sctip_spc_v1` | print | 1 chamber fills in 30 s; an MVP pipeline module |
-| `ipsc_to_mgl_chip_v1` | print | 2 chambers fill in 30 s and 30 s; not a pipeline module; and moving the vent to `outlet_1` reroutes the dye, which is the design's actual claim |
-| `module6_v1` | print | 1 chamber fills in 30 s; not a pipeline module |
-| `placeholder_chip_v1` | skip | placeholder spec, and no pipeline module uses it |
+| chip | feed | flow | vent | plug | readable fills |
+|---|---|---:|---|---|---|
+| `module1_v1` | `p_in` | 6.3 uL/min | `p_mid` | `p_a_in`, `p_a_out`, `p_g_in`, `p_g_out` | `n_cx` 30 s, `j_mid` 16 s |
+| `module3_v1_translated` | `reagent_in` | 77 uL/min | `to_split_tree` | `backflush_in`, `capsule_in`, `lysis_waste`, `waste` | `main_trap` 30 s |
+| `module4_v1` | `in_s1` | 16 uL/min | `p_vent` | `in_s2`, `in_s3`, `in_s4`, `out_sub` | `sub_1` 30 s |
+| `module5_v1` | `in_prot` | 16 uL/min | `out_lib` | `in_bead`, `in_lib`, `out_waste` | `react_cx` 30 s, `bead_cx` 22 s |
+| `module6_v1` | `in_n` | 5.8 uL/min | `out_n` | `in_a`, `in_g`, `out_a`, `out_g` | `cx_n` 30 s |
+| `spc_demo_v1` | `in_core` | 9.4 uL/min | `out_caps` | `in_oil`, `in_shell` | `delay_1` 30 s |
 
-**If only a few can be printed, print `module1_v1`, `module5_v1`, `cell_prep_v1`**, two of each. Between them they show the three things a dye test can honestly show: a chamber filling in a readable time, liquid arriving in a second chamber in the right order, and the route changing when you move the plug to a different port - which on a valve-free chip is the whole design claim. Everything else on the list is a single chamber filling, which the first chip already demonstrates.
+Not printed, so their sections above are for reference only: `cell_prep_v1`, `ipsc_to_mgl_chip_v1`, `placeholder_chip_v1`, `sctip_spc_v1`.

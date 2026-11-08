@@ -5,13 +5,21 @@
 
 Model
   Nodes   every chamber (junctions included) and every port.
-  Edges   every channel: R = 12 mu L / (w h^3 (1 - 0.63 h/w)), h the smaller side, L its
-          centreline length (from the DXF when given, else from the spec's path or the
-          straight line between the parts, trimmed at their outlines, as cad/make_train_cad.py
-          cuts it). Each channel also crosses part of the chamber it enters: from the entry
-          edge to the chamber centre, as a slab of the chamber's width and height.
-          Port holes in the lid (2 mm x 3 mm) add next to nothing and are left out, as is
-          any tubing off the chip.
+  Edges   every channel: R = 12 mu L / (w h^3 f), h the smaller side, f the EXACT series for a
+          rectangular duct (operator/flow_calc.py duct_shape_factor; the old 1 - 0.63 h/w was
+          14% high on a square), L its centreline length: the cut centreline from
+          cad/make_train_cad.py centrelines(), the ONE helper the CAD, the drawing and the
+          checks share (it follows a channel's "path" and stops a channel on its port's pad),
+          with the DXF's length for straight channels when given. Each channel also crosses
+          part of the chamber it enters: from the entry edge to the chamber centre, as a slab
+          of the chamber's width and height.
+  Weirs   a chamber with a retention WEIR adds a crest at every opening a channel enters it
+          by: a slit of gap opening_um, as wide as the wall the opening is in, and
+          crest_thickness_um long (else contracts/blocks.json retention.weir_geometry); flow
+          goes as gap^3. Leaving these out made module1_v1's pressures 57% low and split
+          interaction medium 50/50 where the CFD gives 72/28 (assay2chip/cfd/validate.py).
+          Port holes in the lid, port pads and any tubing off the chip add next to nothing
+          and are left out.
   Ports   FEED  a fixed flow source (a syringe pump), uL/min
           VENT  pressure 0 (an open outlet)
           CAP   closed: no flow
@@ -65,6 +73,23 @@ def _port_hole_mm() -> float:
 
 
 PORT_HOLE_MM = _port_hole_mm()   # cad/make_train_cad.py PORT_SIZE_MM, same source
+
+sys.path.insert(0, str(ROOT / "operator"))
+sys.path.insert(0, str(ROOT / "cad"))
+import flow_calc  # noqa: E402
+import make_train_cad  # noqa: E402  the shared centreline, so the model and the cut agree
+
+
+def _weir_crest_default_um() -> float:
+    """A weir's crest thickness when the spec does not give one: blocks.json's own figure."""
+    b = json.loads((ROOT / "contracts" / "blocks.json").read_text())
+    for section in b.values():
+        if isinstance(section, dict) and "weir_geometry" in section:
+            return float(section["weir_geometry"]["crest_thickness_um"])
+    raise KeyError("contracts/blocks.json has no retention weir_geometry.crest_thickness_um")
+
+
+WEIR_CREST_DEFAULT_UM = _weir_crest_default_um()
 DYN_CM2_PER_PA = 10.0
 
 
@@ -101,45 +126,25 @@ def dxf_channel_segments(dxf_path: Path) -> list[dict]:
     return rects
 
 
-def _clip_to_box(p0, p1, center, size):
-    """Same rule as cad/make_train_cad.py: move p0 along p0->p1 until it leaves the box."""
-    (cx, cy), (sx, sy) = center[:2], size[:2]
-    x0, x1, y0, y1 = cx - sx / 2, cx + sx / 2, cy - sy / 2, cy + sy / 2
-    dx, dy = p1[0] - p0[0], p1[1] - p0[1]
-    best = 0.0
-    for lo, hi, start, delta in ((x0, x1, p0[0], dx), (y0, y1, p0[1], dy)):
-        if abs(delta) < 1e-9:
-            continue
-        for bound in (lo, hi):
-            t = (bound - start) / delta
-            if 0.0 <= t <= 1.0:
-                px, py = p0[0] + dx * t, p0[1] + dy * t
-                if x0 - 1e-6 <= px <= x1 + 1e-6 and y0 - 1e-6 <= py <= y1 + 1e-6:
-                    best = max(best, t)
-    return (p0[0] + dx * best, p0[1] + dy * best)
-
-
 def channel_geometry(chip: dict, dxf_path: Path | None = None) -> dict[str, dict]:
-    """id -> {a, b, length_mm, width_mm, depth_mm, source}: the cut centreline of every channel."""
-    boxes = {c["id"]: (c["center"], c["size"]) for c in chip["chambers"]}
-    for p in chip.get("ports", []):
-        boxes[p["id"]] = (p["position"], [PORT_HOLE_MM, PORT_HOLE_MM, 0])
+    """id -> {a, b, length_mm, width_mm, depth_mm, source}: the cut centreline of every channel.
+
+    From cad/make_train_cad.py centrelines(): a pathed channel follows its path (cut back at
+    each end to the part it leaves), a straight one runs between the parts' outlines, and a
+    channel at a port with a pad stops on the pad - so the port still is the node the channel
+    connects to, through its pad.
+    """
     out = {}
-    for ch in chip["channels"]:
-        if ch.get("path"):
-            pts = ch["path"]
-            length = sum(math.dist(p, q) for p, q in zip(pts[:-1], pts[1:]))
-            out[ch["id"]] = {"a": tuple(pts[0]), "b": tuple(pts[-1]), "length_mm": length, "width_mm": ch["width_mm"],
-                             "depth_mm": ch["depth_mm"], "source": "spec path"}
-            continue
-        (ca, sa), (cb, sb) = boxes[ch["from"]], boxes[ch["to"]]
-        a = _clip_to_box(ca[:2], cb[:2], ca, sa)
-        b = _clip_to_box(cb[:2], ca[:2], cb, sb)
-        out[ch["id"]] = {"a": a, "b": b, "length_mm": math.dist(a, b), "width_mm": ch["width_mm"],
-                         "depth_mm": ch["depth_mm"], "source": "spec (straight, trimmed)"}
+    for ch, pts in make_train_cad.centrelines(chip):
+        length = sum(math.dist(p, q) for p, q in zip(pts[:-1], pts[1:]))
+        out[ch["id"]] = {"a": tuple(pts[0]), "b": tuple(pts[-1]), "length_mm": length, "width_mm": ch["width_mm"],
+                         "depth_mm": ch["depth_mm"],
+                         "source": "spec path" if ch.get("path") else "spec (straight, trimmed)"}
     if dxf_path and dxf_path.exists():
         rects = dxf_channel_segments(dxf_path)
         for cid, g in out.items():   # match each DXF rectangle to the channel whose ends it shares
+            if g["source"] == "spec path":
+                continue             # one rectangle per segment in the DXF: the polyline is the length
             best = min(rects, key=lambda r: min(math.dist(r["a"], g["a"]) + math.dist(r["b"], g["b"]),
                                                 math.dist(r["a"], g["b"]) + math.dist(r["b"], g["a"])), default=None)
             if best and min(math.dist(best["a"], g["a"]) + math.dist(best["b"], g["b"]),
@@ -154,9 +159,17 @@ def channel_geometry(chip: dict, dxf_path: Path | None = None) -> dict[str, dict
 
 
 def rect_resistance(length_mm: float, width_mm: float, depth_mm: float, mu: float) -> float:
-    """Pa s / m^3. R = 12 mu L / (w h^3 (1 - 0.63 h / w)), h the smaller side."""
-    w, h = max(width_mm, depth_mm) / 1000, min(width_mm, depth_mm) / 1000
-    return 12 * mu * (length_mm / 1000) / (w * h ** 3 * (1 - 0.63 * h / w))
+    """Pa s / m^3. R = 12 mu L / (w h^3 f), h the smaller side, f the exact series
+    (operator/flow_calc.py: one implementation, not a copy)."""
+    return flow_calc.rect_channel_resistance_pa_s_m3(length_mm, width_mm, depth_mm, mu)
+
+
+def weir_crest(chamber: dict) -> tuple[float, float] | None:
+    """(gap_um, crest_thickness_um) of a chamber's retention weir, or None if it has none."""
+    ret = chamber.get("retention") or {}
+    if ret.get("type") != "weir" or not ret.get("opening_um"):
+        return None
+    return float(ret["opening_um"]), float(ret.get("crest_thickness_um") or WEIR_CREST_DEFAULT_UM)
 
 
 def shear_dyn_cm2(flow_ul_min: float, width_mm: float, depth_mm: float, mu: float) -> float:
@@ -178,6 +191,7 @@ class Network:
     chip: dict
     mu: float = MU_37C
     dxf: Path | None = None
+    weirs: bool = True      # False only to reproduce the old weir-less model in a comparison
     geometry: dict = field(init=False)
     edges: list[dict] = field(init=False)
     nodes: list[str] = field(init=False)
@@ -192,12 +206,21 @@ class Network:
         for ch in self.chip["channels"]:
             g = self.geometry[ch["id"]]
             r = rect_resistance(g["length_mm"], g["width_mm"], g["depth_mm"], self.mu)
+            crests = []
             for end, pt in ((ch["from"], g["a"]), (ch["to"], g["b"])):
                 if end in chambers:
                     leg, width = _chamber_leg(chambers[end], pt)
                     r += rect_resistance(leg, width, chambers[end]["size"][2], self.mu)
                     self.entry_width_mm[end][ch["id"]] = width
-            self.edges.append({"id": ch["id"], "from": ch["from"], "to": ch["to"], "R": r, **g})
+                    weir = weir_crest(chambers[end])
+                    if weir and self.weirs:
+                        # The crest spans the whole wall this opening is in: a slit that wide.
+                        r_slit = flow_calc.slit_resistance_pa_s_m3(width, weir[0], weir[1] / 1000, self.mu)
+                        r += r_slit
+                        crests.append({"chamber": end, "width_mm": width, "gap_um": weir[0],
+                                       "length_um": weir[1], "R": r_slit})
+            self.edges.append({"id": ch["id"], "from": ch["from"], "to": ch["to"], "R": r,
+                               "weir_crests": crests, **g})
 
     # ------------------------------------------------------------------ solving
 
