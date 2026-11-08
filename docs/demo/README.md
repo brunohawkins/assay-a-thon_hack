@@ -44,9 +44,12 @@ The normal twin keeps every id, rate and status.
 | 5 | Module 1: interaction | Only the neurons are fed: red crosses the junction into the microglia and astrocyte chambers. ![](step_5_interact.jpg) |
 | 6 | Unsafe request refused | “Close the middle outlet and open the microglia outlet” is typed; the operator answers in one sentence from the live safety check (the microglia chamber would get 33% neuron and 33% astrocyte medium); blocked, ports unchanged. ![](step_6_refuse.jpg) |
 | 7 | Harvest, and on down the line | Each chamber's cells pick up that chamber's own label; all three chambers flush out by the middle outlet; then, in the pipeline scene, the cells move on to cell prep and encapsulation. ![](step_7_harvest.jpg) |
-| 8 | Module 4 | The capsules are split between four chambers, each with its own index, then the whole chip is thermocycled. ![](step_8_m4.jpg) |
-| 9 | Module 5 | The capsules are dissolved to free the DNA; magnetic beads catch and clean it, one sublibrary at a time. ![](step_9_m5.jpg) |
-| 10 | Scale: many conditions, few cells | A card over the whole line playing: a condition needs a few thousand cells, not a million. One single-cell run reads about 20,000 cells (one well of a 10x Genomics chip, the usual benchmark; our pipeline makes its own library, so this is only the yardstick). Today one Module 1 has three chambers: 3 conditions per run, 24 in eight runs. At about 2,000 cells per condition: 10 per run, 80 in eight. Next: ten or more chambers per chip, more chips in parallel, membrane valves to connect cultures on demand. ![](step_10_scale.jpg) |
+| 8 | Module 2: one cell per capsule | The encapsulation chip: oil cuts the cells and the capsule material into droplets that become capsules; most stay empty, so two cells rarely share one. ![](step_8_m2.jpg) |
+| 9 | Module 3: lysis and RT inside each capsule | First the pipeline scene on the tube between Modules 2 and 3, labelled with its off-chip step (break the emulsion, wash off the oil, cure the capsules); then Module 3 traps the capsules, lyses the cells and reverse-transcribes the RNA. ![](step_9_m3.jpg) |
+| 10 | Single-cell barcoding | Each capsule in its own oil droplet with one random barcode, copied and joined to its cDNA: one barcode per cell. Our chemistry on a bought droplet kit. ![](step_10_bc.jpg) |
+| 11 | Module 4 | The capsules are split between four chambers, each with its own index, then the whole chip is thermocycled. ![](step_11_m4.jpg) |
+| 12 | Module 5 | The capsules are dissolved to free the DNA; magnetic beads catch and clean it, one sublibrary at a time. ![](step_12_m5.jpg) |
+| 13 | Scale: many conditions, few cells | A card over the whole line playing: a condition needs a few thousand cells, not a million. One single-cell run reads about 20,000 cells (one well of a 10x Genomics chip, the usual benchmark; our pipeline makes its own library, so this is only the yardstick). Today one Module 1 has three chambers: 3 conditions per run, 24 in eight runs. At about 2,000 cells per condition: 10 per run, 80 in eight. Next: ten or more chambers per chip, more chips in parallel, membrane valves to connect cultures on demand. ![](step_13_scale.jpg) |
 
 Each step is a big title and one short caption at the bottom. The first and last steps add a
 card on the left, and the chip or the pipeline is fitted beside it; no other panels.
@@ -88,7 +91,7 @@ talks to the pump. After changing a chip: `python tools/demo_plan.py --write` an
 
 ## Backup video
 
-[presenter_backup.webm](presenter_backup.webm): the full sequence at 1920×1080, about two minutes.
+[presenter_backup.webm](presenter_backup.webm): the full sequence at 1920×1080, under three minutes.
 [presenter_demo.mp4](presenter_demo.mp4) is the same video as H.264, for slides (Keynote, PowerPoint
 and Google Slides play it).
 Re-record after changing the twin:

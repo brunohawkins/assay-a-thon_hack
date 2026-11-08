@@ -199,6 +199,55 @@ function makeSteps(api) {
       },
     },
     {
+      id: 'm2', seconds: 9,
+      title: 'Module 2 · one cell per capsule',
+      caption: 'The cells and the capsule material meet oil at a junction, which cuts them into droplets that become capsules. Most stay empty, so two cells rarely share one.',
+      async enter(s) {
+        await s.show('enc');
+        const tl = player.timeline();
+        const train = tl.findIndex((x) => x.ev.command === 'hold_temp');   // the droplet train in the serpentine
+        api.frame();
+        player.seek(0);
+        player.setSpeed(2);
+        player.setPlaying(true);
+        player.stopAt = train >= 0 ? tl[train].start + tl[train].duration : null;
+      },
+    },
+    {
+      // The link between the two chips: the off-chip step on the tube, then Module 3 itself.
+      id: 'm3', seconds: 15,
+      title: 'Module 3 · lysis and RT inside each capsule',
+      caption: 'Off-chip, in a tube: the emulsion is broken, the oil washed off and the capsules cured.',
+      async enter(s) {
+        await s.show('pipeline');
+        const pt = pipeline.timeline();
+        const h = pt.findIndex((x) => (x.ev.id ?? x.ev.command) === 'pl_module2_to_module3');
+        if (h >= 0) { pipeline.setSpeed(1.6); pipeline.playRange(h, Math.min(h + 1, pt.length - 1)); }
+        await s.wait(4000);
+        s.caption('Module 3 traps the capsules, lyses the cells and copies their RNA into cDNA, all inside each capsule.');
+        await s.show('m3v1');
+        api.frame();
+        player.seek(0);
+        player.setSpeed(3);
+        player.setPlaying(true);
+        player.stopAt = null;
+      },
+    },
+    {
+      id: 'bc', seconds: 11,
+      title: 'Single-cell barcoding · one barcode per cell',
+      caption: 'Each capsule goes into its own oil droplet with one random barcode, which is copied and joined to its cDNA. Our chemistry, on a bought droplet kit.',
+      async enter(s) {
+        await s.show('bc');
+        const tl = player.timeline();
+        api.frame();
+        player.seek(0);
+        player.setSpeed(1.5);
+        player.setPlaying(true);
+        player.stopAt = tl.length > 2 ? tl[2].start + tl[2].duration : null;   // into droplets, to the tube, thermocycled
+      },
+    },
+    {
       id: 'm4', seconds: 12,
       title: 'Module 4 · split four ways, index PCR',
       caption: 'The capsules are split between four chambers, each with its own index; then the whole chip is thermocycled.',
