@@ -4,7 +4,7 @@
   "chip_id": "chip4_shell_release_bead_capture_wash_elution",
   "chip_spec": "autochip/examples/live/protocol_resin_multilayer/chips/chip4_shell_release_bead_capture_wash_elution.json",
   "operator": "planner",
-  "created_at": "2026-11-08T09:36:02Z",
+  "created_at": "2026-11-08T10:13:06Z",
   "placeholder": true,
   "total_duration_s": 2820.0,
   "events": [

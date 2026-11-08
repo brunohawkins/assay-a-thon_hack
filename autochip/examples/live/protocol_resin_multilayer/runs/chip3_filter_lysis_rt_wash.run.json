@@ -4,7 +4,7 @@
   "chip_name": "Capsule filter, lysis, reverse transcription and wash chip",
   "purpose": "Removes aggregates from the capsules, then lyses the cells, washes, reverse transcribes and washes again in a trap.",
   "placeholder": true,
-  "created_at": "2026-11-08T09:36:02Z",
+  "created_at": "2026-11-08T10:13:06Z",
   "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
   "limits": {
     "pump_channels": 6,
@@ -103,7 +103,7 @@
           "reaction_trap"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0027,
+        "max_pressure_kpa": 0.0031,
         "target_shear_dyn_cm2": 0.01778,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
@@ -176,7 +176,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0027,
+        "max_pressure_kpa": 0.003,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "reagent_line_in": 20.0,
@@ -285,7 +285,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0027,
+        "max_pressure_kpa": 0.003,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "reagent_line_in": 20.0,
@@ -353,7 +353,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0027,
+        "max_pressure_kpa": 0.003,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "reagent_line_in": 20.0,
@@ -462,7 +462,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0027,
+        "max_pressure_kpa": 0.003,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "reagent_line_in": 20.0,
@@ -524,7 +524,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0023,
+        "max_pressure_kpa": 0.0027,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "outlet_1": -20.0,

@@ -4,7 +4,7 @@
   "chip_id": "chip3_lysis_wash_rt",
   "chip_spec": "autochip/examples/live/paper_assayathon_demo/chips/chip3_lysis_wash_rt.json",
   "operator": "planner",
-  "created_at": "2026-11-08T09:36:00Z",
+  "created_at": "2026-11-08T10:13:07Z",
   "placeholder": true,
   "total_duration_s": 7425.0,
   "events": [

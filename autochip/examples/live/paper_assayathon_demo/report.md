@@ -1,6 +1,6 @@
 # autochip report: Single-cell processing inside semi-permeable capsules
 
-> **Agent:** replay of /tmp/agent_paper_assayathon_demo
+> **Agent:** replay of autochip/examples/live/paper_assayathon_demo/agent
 
 **26** protocol steps · **3** chips · **4** modules · **9 / 16 / 1** on chip / bench / missing · **2** layout errors · **0 / 0** flow-check errors / warnings
 
@@ -23,7 +23,7 @@
 | **Citation** | Leonaviciene & Mazutis, Nucleic Acids Research 2023; Baronas et al., Science 2026 |
 | **User goal** | - |
 | **Protocol goal (as extracted)** | Take adherent cells through dissociation, capsule generation, photocuring, lysis, reverse transcription and index PCR to a cleaned-up, quality-checked sequencing library. |
-| **Agent** | replay of /tmp/agent_paper_assayathon_demo |
+| **Agent** | replay of autochip/examples/live/paper_assayathon_demo/agent |
 | **Constraints** | assayathon_demo: Assay-a-thon demo (resin print + hot embossing, 30 x 20 mm) |
 
 ## Constraints
@@ -48,8 +48,8 @@ Why the protocol is split this way: Objective is simplest_to_make. Cell preparat
 
 | Chip | Purpose | Steps | Modules (part) | Ports | Footprint (mm) | Layers | Constraint findings |
 |---|---|---|---|---|---|---|---|
-| **chip1_encapsulation** Encapsulation chip | Cells in core solution are pinched into shell-polymer droplets by fluorinated oil at a flow-focusing junction. | 10 | droplets_1 (droplet_junction) | 4 (3 in, 1 out) | 13 x 9.5 | 3 (resin, sealing film) | none |
-| **chip2_emulsion_break_curing_wash_filter** Emulsion break, curing, wash and capsule filter chip | Breaks the emulsion, photocures the shells, washes the capsules and removes aggregates. | 12, 13, 14, 15 | capsule_trap (trap_chamber), aggregate_filter (pillar_filter) | 5 (3 in, 2 out) | 27.5 x 19 | 3 (resin, sealing film) | 1 error, 1 warning |
+| **chip1_encapsulation** Encapsulation chip | Cells in core solution are pinched into shell-polymer droplets by fluorinated oil at a flow-focusing junction. | 10 | droplets_1 (droplet_junction) | 4 (3 in, 1 out) | 13 x 10 | 3 (resin, sealing film) | none |
+| **chip2_emulsion_break_curing_wash_filter** Emulsion break, curing, wash and capsule filter chip | Breaks the emulsion, photocures the shells, washes the capsules and removes aggregates. | 12, 13, 14, 15 | capsule_trap (trap_chamber), aggregate_filter (pillar_filter) | 5 (3 in, 2 out) | 27.5 x 19.5 | 3 (resin, sealing film) | 1 error, 1 warning |
 | **chip3_lysis_wash_rt** Lysis, wash and reverse transcription chip | Lyses the cells, washes, and runs reverse transcription inside the capsules held in one trap. | 16, 17, 18, 19 | lysis_rt_trap (trap_chamber) | 4 (2 in, 2 out) | 26.5 x 15.5 | 3 (resin, sealing film) | 1 error |
 
 *chip1_encapsulation is its own chip because:* First chip: the pump-driven cell stream starts the flow. Oil must not reach any other chip, and the gelation that follows is off chip.
@@ -148,7 +148,7 @@ Every step's port states were solved with operator/network.py on the chip spec: 
 
 | # | IR step | Module | What | Port states | Through target (µL/min) | Max kPa | Shear (dyn/cm2) | Result |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 10 | droplets_1 | Encapsulate (co-flow) | FEED inlet_1 2 µL/min (cells_in_core_solution); shell_polymer_in 2 µL/min (shell_polymer); fluorinated_oil_in 10 µL/min (fluorinated_oil) / VENT outlet_1 / rest capped | 14 | 0.003 | 0.0415 | OK |
+| 1 | 10 | droplets_1 | Encapsulate (co-flow) | FEED inlet_1 2 µL/min (cells_in_core_solution); shell_polymer_in 2 µL/min (shell_polymer); fluorinated_oil_in 10 µL/min (fluorinated_oil) / VENT outlet_1 / rest capped | 14 | 0.0029 | 0.0415 | OK |
 
 Operator planner: accepted, 1 events in `runs/chip1_encapsulation.twin_run.json`.
 
@@ -156,12 +156,12 @@ Operator planner: accepted, 1 events in `runs/chip1_encapsulation.twin_run.json`
 
 | # | IR step | Module | What | Port states | Through target (µL/min) | Max kPa | Shear (dyn/cm2) | Result |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 12 | capsule_trap | Load droplets from the hand-off from chip1_encapsulation | FEED inlet_1 5 µL/min (droplets_sample) / VENT trap_waste_out / rest capped | 5 | 0.0012 | 0.00344 | OK |
-| 2 | 12 | capsule_trap | Exchange: emulsion_breaking_agent | FEED emulsion_breaking_agent_in 5 µL/min (emulsion_breaking_agent) / VENT trap_waste_out / rest capped | 5 | 0.0018 | 0.00344 | OK |
+| 1 | 12 | capsule_trap | Load droplets from the hand-off from chip1_encapsulation | FEED inlet_1 5 µL/min (droplets_sample) / VENT trap_waste_out / rest capped | 5 | 0.0011 | 0.00344 | OK |
+| 2 | 12 | capsule_trap | Exchange: emulsion_breaking_agent | FEED emulsion_breaking_agent_in 5 µL/min (emulsion_breaking_agent) / VENT trap_waste_out / rest capped | 5 | 0.0017 | 0.00344 | OK |
 | 3 | 13 | capsule_trap | Exchange: photoinitiator | FEED inlet_1 20 µL/min (photoinitiator) / VENT trap_waste_out / rest capped | 20 | 0.0046 | 0.0138 | OK |
 | 4 | 13 | capsule_trap | Cure (405 nm) | all capped |  |  |  | no flow: every port capped |
 | 5 | 14 | capsule_trap | Exchange: wash_buffer x3 | FEED inlet_1 20 µL/min (wash_buffer) / VENT trap_waste_out / rest capped | 20 | 0.0046 | 0.0138 | OK |
-| 6 | 15 | aggregate_filter | Pass through | FEED inlet_1 20 µL/min (carrier_buffer) / VENT outlet_1 / rest capped | 20 | 0.0027 | 0.0178 | OK |
+| 6 | 15 | aggregate_filter | Pass through | FEED inlet_1 20 µL/min (carrier_buffer) / VENT outlet_1 / rest capped | 20 | 0.0031 | 0.0178 | OK |
 
 Operator planner: accepted, 6 events in `runs/chip2_emulsion_break_curing_wash_filter.twin_run.json`.
 
@@ -169,14 +169,14 @@ Operator planner: accepted, 6 events in `runs/chip2_emulsion_break_curing_wash_f
 
 | # | IR step | Module | What | Port states | Through target (µL/min) | Max kPa | Shear (dyn/cm2) | Result |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 16 | lysis_rt_trap | Load capsules from the hand-off from chip2_emulsion_break_curing_wash_filter | FEED inlet_1 20 µL/min (capsules_sample) / VENT trap_waste_out / rest capped | 20 | 0.005 | 0.0195 | OK |
-| 2 | 16 | lysis_rt_trap | Exchange: lysis_buffer | FEED inlet_1 20 µL/min (lysis_buffer) / VENT trap_waste_out / rest capped | 20 | 0.005 | 0.0195 | OK |
+| 1 | 16 | lysis_rt_trap | Load capsules from the hand-off from chip2_emulsion_break_curing_wash_filter | FEED inlet_1 20 µL/min (capsules_sample) / VENT trap_waste_out / rest capped | 20 | 0.0044 | 0.0195 | OK |
+| 2 | 16 | lysis_rt_trap | Exchange: lysis_buffer | FEED inlet_1 20 µL/min (lysis_buffer) / VENT trap_waste_out / rest capped | 20 | 0.0044 | 0.0195 | OK |
 | 3 | 16 | lysis_rt_trap | Incubate | all capped |  |  |  | no flow: every port capped |
-| 4 | 17 | lysis_rt_trap | Exchange: wash_buffer x3 | FEED inlet_1 20 µL/min (wash_buffer) / VENT trap_waste_out / rest capped | 20 | 0.005 | 0.0195 | OK |
-| 5 | 18 | lysis_rt_trap | Exchange: rt_mix | FEED inlet_1 20 µL/min (rt_mix) / VENT trap_waste_out / rest capped | 20 | 0.005 | 0.0195 | OK |
+| 4 | 17 | lysis_rt_trap | Exchange: wash_buffer x3 | FEED inlet_1 20 µL/min (wash_buffer) / VENT trap_waste_out / rest capped | 20 | 0.0044 | 0.0195 | OK |
+| 5 | 18 | lysis_rt_trap | Exchange: rt_mix | FEED inlet_1 20 µL/min (rt_mix) / VENT trap_waste_out / rest capped | 20 | 0.0044 | 0.0195 | OK |
 | 6 | 18 | lysis_rt_trap | Incubate | all capped |  |  |  | no flow: every port capped |
-| 7 | 19 | lysis_rt_trap | Exchange: wash_buffer x2 | FEED inlet_1 20 µL/min (wash_buffer) / VENT trap_waste_out / rest capped | 20 | 0.005 | 0.0195 | OK |
-| 8 | 19 | lysis_rt_trap | Collect the capsules (outlet_1) | FEED reagent_line_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0051 | 0.0195 | OK |
+| 7 | 19 | lysis_rt_trap | Exchange: wash_buffer x2 | FEED inlet_1 20 µL/min (wash_buffer) / VENT trap_waste_out / rest capped | 20 | 0.0044 | 0.0195 | OK |
+| 8 | 19 | lysis_rt_trap | Collect the capsules (outlet_1) | FEED reagent_line_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0045 | 0.0195 | OK |
 
 Operator planner: accepted, 8 events in `runs/chip3_lysis_wash_rt.twin_run.json`.
 

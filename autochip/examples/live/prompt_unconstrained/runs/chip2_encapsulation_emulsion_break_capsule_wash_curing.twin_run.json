@@ -4,7 +4,7 @@
   "chip_id": "chip2_encapsulation_emulsion_break_capsule_wash_curing",
   "chip_spec": "autochip/examples/live/prompt_unconstrained/chips/chip2_encapsulation_emulsion_break_capsule_wash_curing.json",
   "operator": "planner",
-  "created_at": "2026-11-08T09:35:58Z",
+  "created_at": "2026-11-08T10:13:38Z",
   "placeholder": true,
   "total_duration_s": 6210.0,
   "events": [

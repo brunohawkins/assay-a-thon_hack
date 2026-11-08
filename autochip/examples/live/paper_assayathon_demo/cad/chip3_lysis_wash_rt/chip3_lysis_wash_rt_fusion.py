@@ -16,8 +16,8 @@ except NameError:
     PARTS_DIR = globals()["PARTS_DIR"]
 BOARD = [26.5, 15.5]
 PARTS = [["lysis_rt_trap", "trap_chamber"]]
-CHANNELS = [["ch_inlet_1_lysis_rt_trap", 0.5, [[1.5, 7.75], [4.0, 7.75]]], ["ch_lysis_rt_trap_outlet_1", 0.5, [[22.2574, 7.75], [25.0, 7.75]]], ["ch_reagent_line_in_lysis_rt_trap", 0.2, [[13.13, 14.0], [13.13, 12.3144]]], ["ch_lysis_rt_trap_trap_waste_out", 0.2, [[13.13, 3.1856], [13.13, 1.5]]]]
-OUTLINES = [["ch_inlet_1_lysis_rt_trap", [[1.5, 8.0], [4.0, 8.0], [4.0, 7.5], [1.5, 7.5]]], ["ch_lysis_rt_trap_outlet_1", [[22.2574, 8.0], [25.0, 8.0], [25.0, 7.5], [22.2574, 7.5]]], ["ch_reagent_line_in_lysis_rt_trap", [[13.23, 14.0], [13.23, 12.3144], [13.03, 12.3144], [13.03, 14.0]]], ["ch_lysis_rt_trap_trap_waste_out", [[13.23, 3.1856], [13.23, 1.5], [13.03, 1.5], [13.03, 3.1856]]]]
+CHANNELS = [["ch_inlet_1_lysis_rt_trap", 0.5, [[1.0, 7.75], [1.5, 7.75], [4.0, 7.75]]], ["ch_lysis_rt_trap_outlet_1", 0.5, [[22.2574, 7.75], [25.0, 7.75], [25.5, 7.75]]], ["ch_reagent_line_in_lysis_rt_trap", 0.25, [[13.13, 14.5], [13.13, 14.0], [13.13, 12.3144]]], ["ch_lysis_rt_trap_trap_waste_out", 0.25, [[13.13, 3.1856], [13.13, 1.5], [13.13, 1.0]]]]
+OUTLINES = [["ch_inlet_1_lysis_rt_trap", [[1.0, 8.0], [4.0, 8.0], [4.0, 7.5], [1.0, 7.5]]], ["ch_lysis_rt_trap_outlet_1", [[22.2574, 8.0], [25.5, 8.0], [25.5, 7.5], [22.2574, 7.5]]], ["ch_reagent_line_in_lysis_rt_trap", [[13.255, 14.5], [13.255, 12.3144], [13.005, 12.3144], [13.005, 14.5]]], ["ch_lysis_rt_trap_trap_waste_out", [[13.255, 3.1856], [13.255, 1.0], [13.005, 1.0], [13.005, 3.1856]]]]
 PORTS = [["inlet_1", 1.5, 7.75, 1.0], ["outlet_1", 25.0, 7.75, 1.0], ["reagent_line_in", 13.13, 14.0, 1.0], ["trap_waste_out", 13.13, 1.5, 1.0]]
 
 

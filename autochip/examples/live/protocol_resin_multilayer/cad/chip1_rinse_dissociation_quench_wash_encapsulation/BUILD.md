@@ -34,28 +34,28 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 3. Channels
 
-Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.
+Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs through the port centre on to the far edge of the hole.
 
-1. **ch_inlet_1_culture_1**: inlet_1 -> culture_1, 0.5 mm wide, 0.3 mm deep, carries cells, 2.20 mm long. Path: (2.5, 63.15) -> (4.7, 63.15).
+1. **ch_inlet_1_culture_1**: inlet_1 -> culture_1, 0.5 mm wide, 0.3 mm deep, carries cells, 2.70 mm long. Path: (2, 63.15) -> (2.5, 63.15) -> (4.7, 63.15).
 2. **ch_culture_1_quench_join**: culture_1 -> quench_join, 0.5 mm wide, 0.3 mm deep, carries cells, 1.70 mm long. Path: (24.7, 63.15) -> (26.4, 63.15).
 3. **ch_quench_join_quench_mix**: quench_join -> quench_mix, 0.5 mm wide, 0.3 mm deep, carries cells, 1.70 mm long. Path: (29.4, 63.15) -> (31.1, 63.15).
 4. **ch_quench_mix_cell_wash**: quench_mix -> cell_wash, 0.5 mm wide, 0.3 mm deep, carries cells, 23.30 mm long. Path: (39.6, 63.15) -> (40.4, 63.15) -> (40.4, 41.25) -> (39.8, 41.25).
 5. **ch_cell_wash_core_join**: cell_wash -> core_join, 0.5 mm wide, 0.3 mm deep, carries cells, 1.70 mm long. Path: (21.4, 41.25) -> (19.7, 41.25).
 6. **ch_core_join_core_mix**: core_join -> core_mix, 0.5 mm wide, 0.3 mm deep, carries cells, 1.70 mm long. Path: (16.7, 41.25) -> (15, 41.25).
 7. **ch_core_mix_droplets_1**: core_mix -> droplets_1, 0.5 mm wide, 0.3 mm deep, carries cells, 29.90 mm long. Path: (6.5, 41.25) -> (4.1, 41.25) -> (4.1, 14.35) -> (4.7, 14.35).
-8. **ch_droplets_1_outlet_1**: droplets_1 -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries droplets, 17.30 mm long. Path: (24.7, 14.35) -> (42, 14.35).
-9. **ch_reagent_line_in_culture_1**: reagent_line_in -> culture_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.85 mm long. Path: (14.7, 70) -> (14.7, 68.15).
-10. **ch_culture_1_culture_1_waste_out**: culture_1 -> culture_1_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.85 mm long. Path: (14.7, 58.15) -> (14.7, 56.3).
-11. **ch_quench_medium_in_quench_join**: quench_medium_in -> quench_join, 0.5 mm wide, 0.3 mm deep, carries liquid, 5.35 mm long. Path: (27.9, 70) -> (27.9, 64.65).
-12. **ch_wash_buffer_in_cell_wash**: wash_buffer_in -> cell_wash, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.85 mm long. Path: (30.6, 52.3) -> (30.6, 50.45).
-13. **ch_cell_wash_cell_wash_waste_out**: cell_wash -> cell_wash_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.85 mm long. Path: (30.6, 32.05) -> (30.6, 30.2).
-14. **ch_core_solution_in_core_join**: core_solution_in -> core_join, 0.5 mm wide, 0.3 mm deep, carries liquid, 9.55 mm long. Path: (18.2, 52.3) -> (18.2, 42.75).
-15. **ch_shell_polymer_in_droplets_1**: shell_polymer_in -> droplets_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.85 mm long. Path: (14.7, 26.2) -> (14.7, 24.35).
-16. **ch_fluorinated_oil_in_droplets_1**: fluorinated_oil_in -> droplets_1, 0.5 mm wide, 0.3 mm deep, carries oil, 1.85 mm long. Path: (14.7, 2.5) -> (14.7, 4.35).
+8. **ch_droplets_1_outlet_1**: droplets_1 -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries droplets, 17.80 mm long. Path: (24.7, 14.35) -> (42, 14.35) -> (42.5, 14.35).
+9. **ch_reagent_line_in_culture_1**: reagent_line_in -> culture_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.35 mm long. Path: (14.7, 70.5) -> (14.7, 70) -> (14.7, 68.15).
+10. **ch_culture_1_culture_1_waste_out**: culture_1 -> culture_1_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.35 mm long. Path: (14.7, 58.15) -> (14.7, 56.3) -> (14.7, 55.8).
+11. **ch_quench_medium_in_quench_join**: quench_medium_in -> quench_join, 0.5 mm wide, 0.3 mm deep, carries liquid, 5.85 mm long. Path: (27.9, 70.5) -> (27.9, 70) -> (27.9, 64.65).
+12. **ch_wash_buffer_in_cell_wash**: wash_buffer_in -> cell_wash, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.35 mm long. Path: (30.6, 52.8) -> (30.6, 52.3) -> (30.6, 50.45).
+13. **ch_cell_wash_cell_wash_waste_out**: cell_wash -> cell_wash_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.35 mm long. Path: (30.6, 32.05) -> (30.6, 30.2) -> (30.6, 29.7).
+14. **ch_core_solution_in_core_join**: core_solution_in -> core_join, 0.5 mm wide, 0.3 mm deep, carries liquid, 10.05 mm long. Path: (18.2, 52.8) -> (18.2, 52.3) -> (18.2, 42.75).
+15. **ch_shell_polymer_in_droplets_1**: shell_polymer_in -> droplets_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.35 mm long. Path: (14.7, 26.7) -> (14.7, 26.2) -> (14.7, 24.35).
+16. **ch_fluorinated_oil_in_droplets_1**: fluorinated_oil_in -> droplets_1, 0.5 mm wide, 0.3 mm deep, carries oil, 2.35 mm long. Path: (14.7, 2) -> (14.7, 2.5) -> (14.7, 4.35).
 
 ## 4. Ports
 
-Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.
+Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs across the whole hole.
 
 - **inlet_1** (inlet, load): 1 mm hole at (2.5, 63.15), from z = 3 down to z = 1. main inlet: inlet_1 from external.
 - **outlet_1** (outlet, transfer): 1 mm hole at (42, 14.35), from z = 3 down to z = 1. main outlet -> chip2_gelation_emulsion_break_cure_wash.inlet_1.

@@ -6,7 +6,7 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 1. Board
 
-1. Draw a 59 x 49 mm rectangle with its bottom-left corner at (0, 0).
+1. Draw a 59 x 50 mm rectangle with its bottom-left corner at (0, 0).
 2. Layer stack, bottom to top (total 2.5 mm):
    - `base`: unspecified, 1 mm (z 0 to 1) - other
    - `fluidic`: unspecified, 0.5 mm (z 1 to 1.5) - fluidic layer
@@ -15,71 +15,71 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 2. Modules (chambers), in flow order
 
-1. **split_1** - 2 x 30.1 mm, 0.5 mm deep, bottom-left corner at (4.300, 9.450), centre (5.3, 24.5); 13.5 uL; type split. Draw it as a split (splitter, parametric).
+1. **split_1** - 2 x 30.5 mm, 0.5 mm deep, bottom-left corner at (4.300, 9.750), centre (5.3, 25); 13.5 uL; type split. Draw it as a split (splitter, parametric).
    - Does (steps -): Feeds the seeded cells from inlet_1 to the three culture chambers, one population each.
-2. **culture_neurons** - 20 x 10 mm, 0.5 mm deep, bottom-left corner at (7.300, 34.300), centre (17.3, 39.3); 100 uL; type culture. Draw it as a culture (culture_chamber_param, parametric).
+2. **culture_neurons** - 20 x 10 mm, 0.5 mm deep, bottom-left corner at (7.300, 35.000), centre (17.3, 40); 100 uL; type culture. Draw it as a culture (culture_chamber_param, parametric).
    - Does (steps 1, 2, 3): Neurons grow in their own chamber fed from their own medium line. This line also carries the dissociation enzyme later. In the shared phase this chamber is the one fed, and medium crosses the junction to the others.
-3. **culture_microglia** - 20 x 10 mm, 0.5 mm deep, bottom-left corner at (7.300, 19.500), centre (17.3, 24.5); 100 uL; type culture. Draw it as a culture (culture_chamber_param, parametric).
+3. **culture_microglia** - 20 x 10 mm, 0.5 mm deep, bottom-left corner at (7.300, 20.000), centre (17.3, 25); 100 uL; type culture. Draw it as a culture (culture_chamber_param, parametric).
    - Does (steps 1, 2, 3): Microglia grow in their own chamber fed from their own medium line, which also carries the dissociation enzyme. It vents through its own outlet when medium is shared.
-4. **culture_astrocytes** - 20 x 10 mm, 0.5 mm deep, bottom-left corner at (7.300, 4.700), centre (17.3, 9.7); 100 uL; type culture. Draw it as a culture (culture_chamber_param, parametric).
+4. **culture_astrocytes** - 20 x 10 mm, 0.5 mm deep, bottom-left corner at (7.300, 5.000), centre (17.3, 10); 100 uL; type culture. Draw it as a culture (culture_chamber_param, parametric).
    - Does (steps 1, 2, 3): Astrocytes grow in their own chamber fed from their own medium line, which also carries the dissociation enzyme. It vents through its own outlet when medium is shared.
-5. **junction_mid** - 2 x 30.1 mm, 0.5 mm deep, bottom-left corner at (28.300, 9.450), centre (29.3, 24.5); 13.5 uL; type pool. Draw it as a pool (pool, parametric).
+5. **junction_mid** - 2 x 30.5 mm, 0.5 mm deep, bottom-left corner at (28.300, 9.750), centre (29.3, 25); 13.5 uL; type pool. Draw it as a pool (pool, parametric).
    - Does (steps 2, 3): Central junction joining the three chambers: apart, each vents through it; sharing, medium crosses here. After detaching, cells from all chambers leave through it.
-6. **quench_join** - 1.8 x 1.8 mm, 0.3 mm deep, bottom-left corner at (31.900, 23.600), centre (32.8, 24.5); 0.972 uL; type junction. Draw it as a junction (merge, parametric).
+6. **quench_join** - 1.8 x 1.8 mm, 0.3 mm deep, bottom-left corner at (31.900, 24.100), centre (32.8, 25); 0.972 uL; type junction. Draw it as a junction (merge, parametric).
    - Does (steps 4): Quench solution joins the detached cell stream.
-7. **quench_mix** - 2.6 x 2.5 mm, 0.3 mm deep, bottom-left corner at (35.300, 23.250), centre (36.6, 24.5); 0.9 uL; type mixer. Draw it as a mixer (mixer, parametric).
+7. **quench_mix** - 2.6 x 2.5 mm, 0.3 mm deep, bottom-left corner at (35.300, 23.750), centre (36.6, 25); 0.9 uL; type mixer. Draw it as a mixer (mixer, parametric).
    - Does (steps 4): Mixes the quench solution into the cell stream.
    - Inside: a serpentine of 30 mm of 0.1 mm channel, 12 lanes filling the box.
-8. **cell_wash** - 12.8 x 12.8 mm, 0.5 mm deep, bottom-left corner at (38.900, 18.100), centre (45.3, 24.5); 41 uL; type cell_wash. Draw it as a cell_wash (spiral_separator, parametric).
+8. **cell_wash** - 12.8 x 12.8 mm, 0.5 mm deep, bottom-left corner at (38.900, 18.600), centre (45.3, 25); 41 uL; type cell_wash. Draw it as a cell_wash (spiral_separator, parametric).
    - Does (steps 5, 6): Inertial spiral moves cells into clean wash buffer, replacing the centrifuge pellet and the resuspension in wash buffer.
-9. **cell_filter** - 2 x 2 mm, 0.3 mm deep, bottom-left corner at (52.700, 23.500), centre (53.7, 24.5); 0.6 uL; type filter. Draw it as a filter (pillar_filter, parametric).
+9. **cell_filter** - 2 x 2 mm, 0.3 mm deep, bottom-left corner at (52.700, 24.000), centre (53.7, 25); 0.6 uL; type filter. Draw it as a filter (pillar_filter, parametric).
    - Does (steps 7): Pillar filter with 30 um gaps (below 0.75 x the 50 um nozzle on the next chip) removes clumps, replacing the bigger cell strainer so clumps cannot block the nozzle.
    - Inside: a row of pillars with 30 um gaps across the flow (cells).
 
 ## 3. Channels
 
-Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.
+Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs through the port centre on to the far edge of the hole.
 
-1. **ch_inlet_1_split_1**: inlet_1 -> split_1, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.80 mm long. Path: (2.5, 24.5) -> (4.3, 24.5).
-2. **ch_junction_mid_quench_join**: junction_mid -> quench_join, 0.3 mm wide, 0.3 mm deep, carries cells, 1.60 mm long. Path: (30.3, 24.5) -> (31.9, 24.5).
-3. **ch_quench_join_quench_mix**: quench_join -> quench_mix, 0.3 mm wide, 0.3 mm deep, carries cells, 1.60 mm long. Path: (33.7, 24.5) -> (35.3, 24.5).
-4. **ch_quench_mix_cell_wash**: quench_mix -> cell_wash, 0.3 mm wide, 0.3 mm deep, carries cells, 1.00 mm long. Path: (37.9, 24.5) -> (38.9, 24.5).
-5. **ch_cell_wash_cell_filter**: cell_wash -> cell_filter, 0.3 mm wide, 0.3 mm deep, carries cells, 1.00 mm long. Path: (51.7, 24.5) -> (52.7, 24.5).
-6. **ch_cell_filter_outlet_1**: cell_filter -> outlet_1, 0.3 mm wide, 0.3 mm deep, carries cells, 1.80 mm long. Path: (54.7, 24.5) -> (56.5, 24.5).
-7. **ch_split_1_culture_neurons**: split_1 -> culture_neurons, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.00 mm long. Path: (6.3, 39.3) -> (7.3, 39.3).
-8. **ch_split_1_culture_microglia**: split_1 -> culture_microglia, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.00 mm long. Path: (6.3, 24.5) -> (7.3, 24.5).
-9. **ch_split_1_culture_astrocytes**: split_1 -> culture_astrocytes, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.00 mm long. Path: (6.3, 9.7) -> (7.3, 9.7).
-10. **ch_culture_neurons_junction_mid**: culture_neurons -> junction_mid, 0.3 mm wide, 0.3 mm deep, carries cells, 1.00 mm long. Path: (27.3, 39.3) -> (28.3, 39.3).
-11. **ch_culture_microglia_junction_mid**: culture_microglia -> junction_mid, 0.3 mm wide, 0.3 mm deep, carries cells, 1.00 mm long. Path: (27.3, 24.5) -> (28.3, 24.5).
-12. **ch_culture_astrocytes_junction_mid**: culture_astrocytes -> junction_mid, 0.3 mm wide, 0.3 mm deep, carries cells, 1.00 mm long. Path: (27.3, 9.7) -> (28.3, 9.7).
-13. **ch_culture_medium_neurons_in_culture_neurons**: culture_medium_neurons_in -> culture_neurons, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (17.3, 45.2) -> (17.3, 44.3).
-14. **ch_culture_neurons_culture_neurons_vent_out**: culture_neurons -> culture_neurons_vent_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (17.3, 34.3) -> (17.3, 33.4).
-15. **ch_culture_medium_microglia_in_culture_microglia**: culture_medium_microglia_in -> culture_microglia, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (17.3, 30.4) -> (17.3, 29.5).
-16. **ch_culture_microglia_microglia_vent_out**: culture_microglia -> microglia_vent_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (15.8, 19.5) -> (15.8, 18.6).
-17. **ch_culture_microglia_culture_microglia_vent_out**: culture_microglia -> culture_microglia_vent_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (18.8, 19.5) -> (18.8, 18.6).
-18. **ch_culture_medium_astrocytes_in_culture_astrocytes**: culture_medium_astrocytes_in -> culture_astrocytes, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (17.3, 15.6) -> (17.3, 14.7).
-19. **ch_culture_astrocytes_astrocytes_vent_out**: culture_astrocytes -> astrocytes_vent_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (15.8, 4.7) -> (15.8, 3.8).
-20. **ch_culture_astrocytes_culture_astrocytes_vent_out**: culture_astrocytes -> culture_astrocytes_vent_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (18.8, 4.7) -> (18.8, 3.8).
-21. **ch_quench_solution_in_quench_join**: quench_solution_in -> quench_join, 0.2 mm wide, 0.3 mm deep, carries liquid, 21.10 mm long. Path: (32.8, 46.5) -> (32.8, 25.4).
-22. **ch_wash_buffer_in_cell_wash**: wash_buffer_in -> cell_wash, 0.2 mm wide, 0.3 mm deep, carries liquid, 15.60 mm long. Path: (45.3, 46.5) -> (45.3, 30.9).
-23. **ch_cell_wash_cell_wash_waste_out**: cell_wash -> cell_wash_waste_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 15.60 mm long. Path: (45.3, 18.1) -> (45.3, 2.5).
+1. **ch_inlet_1_split_1**: inlet_1 -> split_1, 0.25 mm wide, 0.3 mm deep, carries liquid, 2.30 mm long. Path: (2, 25) -> (2.5, 25) -> (4.3, 25).
+2. **ch_junction_mid_quench_join**: junction_mid -> quench_join, 0.3 mm wide, 0.3 mm deep, carries cells, 1.60 mm long. Path: (30.3, 25) -> (31.9, 25).
+3. **ch_quench_join_quench_mix**: quench_join -> quench_mix, 0.3 mm wide, 0.3 mm deep, carries cells, 1.60 mm long. Path: (33.7, 25) -> (35.3, 25).
+4. **ch_quench_mix_cell_wash**: quench_mix -> cell_wash, 0.3 mm wide, 0.3 mm deep, carries cells, 1.00 mm long. Path: (37.9, 25) -> (38.9, 25).
+5. **ch_cell_wash_cell_filter**: cell_wash -> cell_filter, 0.3 mm wide, 0.3 mm deep, carries cells, 1.00 mm long. Path: (51.7, 25) -> (52.7, 25).
+6. **ch_cell_filter_outlet_1**: cell_filter -> outlet_1, 0.3 mm wide, 0.3 mm deep, carries cells, 2.30 mm long. Path: (54.7, 25) -> (56.5, 25) -> (57, 25).
+7. **ch_split_1_culture_neurons**: split_1 -> culture_neurons, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.00 mm long. Path: (6.3, 40) -> (7.3, 40).
+8. **ch_split_1_culture_microglia**: split_1 -> culture_microglia, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.00 mm long. Path: (6.3, 25) -> (7.3, 25).
+9. **ch_split_1_culture_astrocytes**: split_1 -> culture_astrocytes, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.00 mm long. Path: (6.3, 10) -> (7.3, 10).
+10. **ch_culture_neurons_junction_mid**: culture_neurons -> junction_mid, 0.3 mm wide, 0.3 mm deep, carries cells, 1.00 mm long. Path: (27.3, 40) -> (28.3, 40).
+11. **ch_culture_microglia_junction_mid**: culture_microglia -> junction_mid, 0.3 mm wide, 0.3 mm deep, carries cells, 1.00 mm long. Path: (27.3, 25) -> (28.3, 25).
+12. **ch_culture_astrocytes_junction_mid**: culture_astrocytes -> junction_mid, 0.3 mm wide, 0.3 mm deep, carries cells, 1.00 mm long. Path: (27.3, 10) -> (28.3, 10).
+13. **ch_culture_medium_neurons_in_culture_neurons**: culture_medium_neurons_in -> culture_neurons, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (17.3, 46.5) -> (17.3, 46) -> (17.3, 45).
+14. **ch_culture_neurons_culture_neurons_vent_out**: culture_neurons -> culture_neurons_vent_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (17.3, 35) -> (17.3, 34) -> (17.3, 33.5).
+15. **ch_culture_medium_microglia_in_culture_microglia**: culture_medium_microglia_in -> culture_microglia, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (17.3, 31.5) -> (17.3, 31) -> (17.3, 30).
+16. **ch_culture_microglia_microglia_vent_out**: culture_microglia -> microglia_vent_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (15.8, 20) -> (15.8, 19) -> (15.8, 18.5).
+17. **ch_culture_microglia_culture_microglia_vent_out**: culture_microglia -> culture_microglia_vent_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (18.8, 20) -> (18.8, 19) -> (18.8, 18.5).
+18. **ch_culture_medium_astrocytes_in_culture_astrocytes**: culture_medium_astrocytes_in -> culture_astrocytes, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (17.3, 16.5) -> (17.3, 16) -> (17.3, 15).
+19. **ch_culture_astrocytes_astrocytes_vent_out**: culture_astrocytes -> astrocytes_vent_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (15.8, 5) -> (15.8, 4) -> (15.8, 3.5).
+20. **ch_culture_astrocytes_culture_astrocytes_vent_out**: culture_astrocytes -> culture_astrocytes_vent_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (18.8, 5) -> (18.8, 4) -> (18.8, 3.5).
+21. **ch_quench_solution_in_quench_join**: quench_solution_in -> quench_join, 0.25 mm wide, 0.3 mm deep, carries liquid, 22.10 mm long. Path: (32.8, 48) -> (32.8, 47.5) -> (32.8, 25.9).
+22. **ch_wash_buffer_in_cell_wash**: wash_buffer_in -> cell_wash, 0.25 mm wide, 0.3 mm deep, carries liquid, 16.60 mm long. Path: (45.3, 48) -> (45.3, 47.5) -> (45.3, 31.4).
+23. **ch_cell_wash_cell_wash_waste_out**: cell_wash -> cell_wash_waste_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 16.60 mm long. Path: (45.3, 18.6) -> (45.3, 2.5) -> (45.3, 2).
 
 ## 4. Ports
 
-Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.
+Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs across the whole hole.
 
-- **inlet_1** (inlet, load): 1 mm hole at (2.5, 24.5), from z = 2.5 down to z = 1. main inlet: inlet_1 from external.
-- **outlet_1** (outlet, transfer): 1 mm hole at (56.5, 24.5), from z = 2.5 down to z = 1. main outlet -> chip2_encapsulation_emulsion_break_capsule_wash_curing.inlet_1.
-- **culture_medium_neurons_in** (inlet, medium): 1 mm hole at (17.3, 45.2), from z = 2.5 down to z = 1. reagent 'culture_medium_neurons' into culture_neurons.
-- **culture_neurons_vent_out** (outlet, waste): 1 mm hole at (17.3, 33.4), from z = 2.5 down to z = 1. vent of lane 1: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
-- **culture_medium_microglia_in** (inlet, medium): 1 mm hole at (17.3, 30.4), from z = 2.5 down to z = 1. reagent 'culture_medium_microglia' into culture_microglia.
-- **microglia_vent_out** (outlet, waste): 1 mm hole at (15.8, 18.6), from z = 2.5 down to z = 1. 'microglia_vent' out of culture_microglia.
-- **culture_microglia_vent_out** (outlet, waste): 1 mm hole at (18.8, 18.6), from z = 2.5 down to z = 1. vent of lane 2: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
-- **culture_medium_astrocytes_in** (inlet, medium): 1 mm hole at (17.3, 15.6), from z = 2.5 down to z = 1. reagent 'culture_medium_astrocytes' into culture_astrocytes.
-- **astrocytes_vent_out** (outlet, waste): 1 mm hole at (15.8, 3.8), from z = 2.5 down to z = 1. 'astrocytes_vent' out of culture_astrocytes.
-- **culture_astrocytes_vent_out** (outlet, waste): 1 mm hole at (18.8, 3.8), from z = 2.5 down to z = 1. vent of lane 3: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
-- **quench_solution_in** (inlet, reagent): 1 mm hole at (32.8, 46.5), from z = 2.5 down to z = 1. reagent 'quench_solution' into quench_join.
-- **wash_buffer_in** (inlet, reagent): 1 mm hole at (45.3, 46.5), from z = 2.5 down to z = 1. reagent 'wash_buffer' into cell_wash.
+- **inlet_1** (inlet, load): 1 mm hole at (2.5, 25), from z = 2.5 down to z = 1. main inlet: inlet_1 from external.
+- **outlet_1** (outlet, transfer): 1 mm hole at (56.5, 25), from z = 2.5 down to z = 1. main outlet -> chip2_encapsulation_emulsion_break_capsule_wash_curing.inlet_1.
+- **culture_medium_neurons_in** (inlet, medium): 1 mm hole at (17.3, 46), from z = 2.5 down to z = 1. reagent 'culture_medium_neurons' into culture_neurons.
+- **culture_neurons_vent_out** (outlet, waste): 1 mm hole at (17.3, 34), from z = 2.5 down to z = 1. vent of lane 1: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
+- **culture_medium_microglia_in** (inlet, medium): 1 mm hole at (17.3, 31), from z = 2.5 down to z = 1. reagent 'culture_medium_microglia' into culture_microglia.
+- **microglia_vent_out** (outlet, waste): 1 mm hole at (15.8, 19), from z = 2.5 down to z = 1. 'microglia_vent' out of culture_microglia.
+- **culture_microglia_vent_out** (outlet, waste): 1 mm hole at (18.8, 19), from z = 2.5 down to z = 1. vent of lane 2: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
+- **culture_medium_astrocytes_in** (inlet, medium): 1 mm hole at (17.3, 16), from z = 2.5 down to z = 1. reagent 'culture_medium_astrocytes' into culture_astrocytes.
+- **astrocytes_vent_out** (outlet, waste): 1 mm hole at (15.8, 4), from z = 2.5 down to z = 1. 'astrocytes_vent' out of culture_astrocytes.
+- **culture_astrocytes_vent_out** (outlet, waste): 1 mm hole at (18.8, 4), from z = 2.5 down to z = 1. vent of lane 3: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
+- **quench_solution_in** (inlet, reagent): 1 mm hole at (32.8, 47.5), from z = 2.5 down to z = 1. reagent 'quench_solution' into quench_join.
+- **wash_buffer_in** (inlet, reagent): 1 mm hole at (45.3, 47.5), from z = 2.5 down to z = 1. reagent 'wash_buffer' into cell_wash.
 - **cell_wash_waste_out** (outlet, waste): 1 mm hole at (45.3, 2.5), from z = 2.5 down to z = 1. 'cell_wash_waste' out of cell_wash.
 
 ## 5. Make and seal

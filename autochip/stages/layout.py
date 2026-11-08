@@ -16,7 +16,9 @@ How a chip is laid out
      (<name>_in) sit in the slot on the top edge and its extra outlets (<name>_out) on the bottom
      edge, at least ports.min_pitch_mm apart and edge_margin_mm from the edge.
   3. Route orthogonal channels with `path` waypoints from the edge of the from-node to the edge of
-     the to-node (ending at port centres). Main path along the row midline, row changes in the side
+     the to-node. A line to a port runs through the port centre on to the far edge of the hole and is
+     at least checks.port_line_min_width_mm wide, so the hole opens onto enough cut channel for the
+     port-overlap rule in tools/check_chip_spec.py. Main path along the row midline, row changes in the side
      columns, reagent lines straight down/up (or a non-crossing dog-leg when a slot's ports are
      wider than its module). The arrangement is planar by construction; any crossing left over is
      moved to a second fluidic layer when the process allows it, else checks reports an error.
@@ -833,6 +835,16 @@ def _route_side(md: dict, side: str, port_y: float, geo: dict, proc: Process, wi
     return out
 
 
+def _across_hole(path: list, port_d: float) -> list:
+    """path starts at a port centre: start it instead at the far edge of the hole, port_d / 2 back along its first leg."""
+    x0, y0 = path[0]
+    for x1, y1 in path[1:]:
+        n = math.hypot(x1 - x0, y1 - y0)
+        if n > 1e-9:
+            return [(R(x0 - (x1 - x0) / n * port_d / 2), R(y0 - (y1 - y0) / n * port_d / 2))] + list(path)
+    return list(path)
+
+
 # --------------------------------------------------------------------------- spec assembly
 
 
@@ -1030,7 +1042,8 @@ def layout_chip(chip: dict, plan: dict, ir: dict | None, cons: dict, reg: dict) 
     carries = {md["id"]: _carries_for(md["plan"], steps, "out") for md in mods}
     first_in = _carries_for(mods[0]["plan"], steps, "in")
     width = {c: channel_width(c, proc, cap_um) for c in set(carries.values()) | {first_in, "liquid"}}
-    reagent_w = width["liquid"]
+    port_w = checks.port_line_min_width_mm(proc.port_d)     # a port line run across its hole opens enough of it
+    reagent_w = R(max(width["liquid"], port_w))
     main_w = max(width.values())
     for md in mods:
         md.update(size_module(md["plan"], md["part"], md["kind"], proc, steps, main_w))
@@ -1121,7 +1134,8 @@ def layout_chip(chip: dict, plan: dict, ir: dict | None, cons: dict, reg: dict) 
                 xt = R(xt_r if ra["dir"] == 1 else xt_l)
                 path = [(xa, ya), (xt, ya), (xt, yb), (xb, yb)]
             frm, too, carry = A["id"], B["id"], carries[A["id"]]
-        channels.append({"id": cid(frm, too), "from": frm, "to": too, "width_mm": width[carry], "path": path, "carries": carry,
+        w = R(max(width[carry], port_w)) if isinstance(a, str) or isinstance(b, str) else width[carry]
+        channels.append({"id": cid(frm, too), "from": frm, "to": too, "width_mm": w, "path": path, "carries": carry,
                          "note": "main path"})
     lane_info = []
     for u in units:
@@ -1168,6 +1182,16 @@ def layout_chip(chip: dict, plan: dict, ir: dict | None, cons: dict, reg: dict) 
                         blk["lane_vents"][md["lane"]].append(pid)
                     channels.append({"id": cid(md["id"], pid), "from": md["id"], "to": pid, "width_mm": reagent_w,
                                      "path": list(reversed(it["path"])), "carries": "liquid"})
+
+    # ---- every fluid port line runs on through the port centre to the far edge of the hole, so the hole opens onto
+    # (line width x hole) of cut channel, as tools/check_chip_spec.py's port-overlap rule asks; a line that stopped at
+    # the centre would open only half that
+    fluid_ports = {p["id"] for p in ports if p["type"] != "control"}
+    for ch in channels:
+        if ch["from"] in fluid_ports:
+            ch["path"] = _across_hole(ch["path"], pd)
+        if ch["to"] in fluid_ports:
+            ch["path"] = _across_hole(ch["path"][::-1], pd)[::-1]
 
     # ---- crossings left over -> second fluidic layer when the process allows it (checks reports the rest)
     n_fluidic = 1

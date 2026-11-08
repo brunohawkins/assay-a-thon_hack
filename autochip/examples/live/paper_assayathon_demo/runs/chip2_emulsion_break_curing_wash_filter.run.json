@@ -4,7 +4,7 @@
   "chip_name": "Emulsion break, curing, wash and capsule filter chip",
   "purpose": "Breaks the emulsion, photocures the shells, washes the capsules and removes aggregates.",
   "placeholder": true,
-  "created_at": "2026-11-08T09:36:00Z",
+  "created_at": "2026-11-08T10:13:07Z",
   "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
   "limits": {
     "pump_channels": 4,
@@ -107,7 +107,7 @@
         "total_feed_ul_min": 5.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0012,
+        "max_pressure_kpa": 0.0011,
         "target_shear_dyn_cm2": 0.00344,
         "port_flow_ul_min": {
           "inlet_1": 5.0,
@@ -176,7 +176,7 @@
         "total_feed_ul_min": 5.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0018,
+        "max_pressure_kpa": 0.0017,
         "target_shear_dyn_cm2": 0.00344,
         "port_flow_ul_min": {
           "emulsion_breaking_agent_in": 5.0,
@@ -432,7 +432,7 @@
           "capsule_trap"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0027,
+        "max_pressure_kpa": 0.0031,
         "target_shear_dyn_cm2": 0.01778,
         "port_flow_ul_min": {
           "inlet_1": 20.0,

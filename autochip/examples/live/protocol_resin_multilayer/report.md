@@ -1,6 +1,6 @@
 # autochip report: Semi-permeable capsule (SPC) workflow
 
-> **Agent:** replay of /tmp/agent_protocol_resin_multilayer
+> **Agent:** replay of autochip/examples/live/protocol_resin_multilayer/agent
 
 **26** protocol steps · **4** chips · **13** modules · **20 / 5 / 1** on chip / bench / missing · **0** layout errors · **0 / 4** flow-check errors / warnings
 
@@ -21,7 +21,7 @@
 | **Citation** | Leonaviciene & Mazutis, Nucleic Acids Research 2023; Baronas et al., Science 2026 |
 | **User goal** | - |
 | **Protocol goal (as extracted)** | Prepare adherent cells, encapsulate them in semi-permeable capsules, process them inside the capsules (lysis, reverse transcription, indexing PCR), release cDNA and purify and measure a library. |
-| **Agent** | replay of /tmp/agent_protocol_resin_multilayer |
+| **Agent** | replay of autochip/examples/live/protocol_resin_multilayer/agent |
 | **Constraints** | resin_print_multilayer: Resin print, multilayer (SLA/DLP) |
 
 ## Constraints
@@ -149,16 +149,16 @@ Every step's port states were solved with operator/network.py on the chip spec: 
 
 | # | IR step | Module | What | Port states | Through target (µL/min) | Max kPa | Shear (dyn/cm2) | Result |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 2 | culture_1 | Load cells from the bench | FEED inlet_1 10 µL/min (cells_sample) / VENT culture_1_waste_out / rest capped | 10 | 0.0008 | 0.0032 | OK |
-| 2 | 2 | culture_1 | Exchange: wash_buffer | FEED inlet_1 10 µL/min (wash_buffer) / VENT culture_1_waste_out / rest capped | 10 | 0.0008 | 0.0032 | OK |
-| 3 | 3 | culture_1 | Exchange: dissociation_enzyme | FEED inlet_1 10 µL/min (dissociation_enzyme) / VENT culture_1_waste_out / rest capped | 10 | 0.0008 | 0.0032 | OK |
+| 1 | 2 | culture_1 | Load cells from the bench | FEED inlet_1 10 µL/min (cells_sample) / VENT culture_1_waste_out / rest capped | 10 | 0.001 | 0.0032 | OK |
+| 2 | 2 | culture_1 | Exchange: wash_buffer | FEED inlet_1 10 µL/min (wash_buffer) / VENT culture_1_waste_out / rest capped | 10 | 0.001 | 0.0032 | OK |
+| 3 | 3 | culture_1 | Exchange: dissociation_enzyme | FEED inlet_1 10 µL/min (dissociation_enzyme) / VENT culture_1_waste_out / rest capped | 10 | 0.001 | 0.0032 | OK |
 | 4 | 3 | culture_1 | Incubate | all capped |  |  |  | no flow: every port capped |
-| 5 | 4 | quench_join | Mix quench_medium into the stream | FEED inlet_1 10 µL/min (carrier_buffer); quench_medium_in 10 µL/min (quench_medium) / VENT cell_wash_waste_out / rest capped | 20 | 0.0115 | 0.0593 | OK |
-| 6 | 5 | cell_wash | Exchange: wash_buffer | FEED wash_buffer_in 10 µL/min (wash_buffer) / VENT cell_wash_waste_out / rest capped | 10 | 0.0007 | 0.00174 | OK |
+| 5 | 4 | quench_join | Mix quench_medium into the stream | FEED inlet_1 10 µL/min (carrier_buffer); quench_medium_in 10 µL/min (quench_medium) / VENT cell_wash_waste_out / rest capped | 20 | 0.0118 | 0.0593 | OK |
+| 6 | 5 | cell_wash | Exchange: wash_buffer | FEED wash_buffer_in 10 µL/min (wash_buffer) / VENT cell_wash_waste_out / rest capped | 10 | 0.0009 | 0.00174 | OK |
 | 7 | 5 | cell_wash | Incubate | all capped |  |  |  | no flow: every port capped |
-| 8 | 6 | cell_wash | Exchange: wash_buffer x2 | FEED wash_buffer_in 10 µL/min (wash_buffer) / VENT cell_wash_waste_out / rest capped | 10 | 0.0007 | 0.00174 | OK |
-| 9 | 9 | core_join | Mix core_solution into the stream | FEED inlet_1 10 µL/min (carrier_buffer); core_solution_in 10 µL/min (core_solution) / VENT outlet_1 / rest capped | 20 | 0.0248 | 0.0593 | OK |
-| 10 | 10 | droplets_1 | Encapsulate (co-flow) | FEED inlet_1 2 µL/min (core_solution); shell_polymer_in 2 µL/min (shell_polymer); fluorinated_oil_in 10 µL/min (fluorinated_oil) / VENT outlet_1 / rest capped | 14 | 0.007 | 0.00056 | OK |
+| 8 | 6 | cell_wash | Exchange: wash_buffer x2 | FEED wash_buffer_in 10 µL/min (wash_buffer) / VENT cell_wash_waste_out / rest capped | 10 | 0.0009 | 0.00174 | OK |
+| 9 | 9 | core_join | Mix core_solution into the stream | FEED inlet_1 10 µL/min (carrier_buffer); core_solution_in 10 µL/min (core_solution) / VENT outlet_1 / rest capped | 20 | 0.0251 | 0.0593 | OK |
+| 10 | 10 | droplets_1 | Encapsulate (co-flow) | FEED inlet_1 2 µL/min (core_solution); shell_polymer_in 2 µL/min (shell_polymer); fluorinated_oil_in 10 µL/min (fluorinated_oil) / VENT outlet_1 / rest capped | 14 | 0.0072 | 0.00056 | OK |
 
 Operator planner: accepted, 10 events in `runs/chip1_rinse_dissociation_quench_wash_encapsulation.twin_run.json`.
 
@@ -166,14 +166,14 @@ Operator planner: accepted, 10 events in `runs/chip1_rinse_dissociation_quench_w
 
 | # | IR step | Module | What | Port states | Through target (µL/min) | Max kPa | Shear (dyn/cm2) | Result |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 11 | gelation_delay | Load droplets from the hand-off from chip1_rinse_dissociation_quench_wash_encapsulation | FEED inlet_1 5 µL/min (droplets_sample) / VENT capsule_trap_waste_out / rest capped | 5 | 0.0019 | 0.00129 | OK |
+| 1 | 11 | gelation_delay | Load droplets from the hand-off from chip1_rinse_dissociation_quench_wash_encapsulation | FEED inlet_1 5 µL/min (droplets_sample) / VENT capsule_trap_waste_out / rest capped | 5 | 0.002 | 0.00129 | OK |
 | 2 | 11 | gelation_delay | Hold | all capped |  |  |  | no flow: every port capped |
-| 3 | 12 | capsule_trap | Move droplets: gelation_delay → capsule_trap | FEED inlet_1 5 µL/min (carrier_buffer) / VENT capsule_trap_waste_out / rest capped | 5 | 0.0019 | 0.00226 | OK |
-| 4 | 12 | capsule_trap | Exchange: emulsion_breaking_agent | FEED emulsion_breaking_agent_in 5 µL/min (emulsion_breaking_agent) / VENT capsule_trap_waste_out / rest capped | 5 | 0.003 | 0.00226 | OK |
-| 5 | 13 | capsule_trap | Exchange: photoinitiator | FEED photoinitiator_in 20 µL/min (photoinitiator) / VENT capsule_trap_waste_out / rest capped | 20 | 0.012 | 0.00905 | OK |
+| 3 | 12 | capsule_trap | Move droplets: gelation_delay → capsule_trap | FEED inlet_1 5 µL/min (carrier_buffer) / VENT capsule_trap_waste_out / rest capped | 5 | 0.002 | 0.00226 | OK |
+| 4 | 12 | capsule_trap | Exchange: emulsion_breaking_agent | FEED emulsion_breaking_agent_in 5 µL/min (emulsion_breaking_agent) / VENT capsule_trap_waste_out / rest capped | 5 | 0.0031 | 0.00226 | OK |
+| 5 | 13 | capsule_trap | Exchange: photoinitiator | FEED photoinitiator_in 20 µL/min (photoinitiator) / VENT capsule_trap_waste_out / rest capped | 20 | 0.0124 | 0.00905 | OK |
 | 6 | 13 | capsule_trap | Cure (405 nm) | all capped |  |  |  | no flow: every port capped |
-| 7 | 14 | capsule_trap | Exchange: wash_buffer x3 | FEED wash_buffer_in 20 µL/min (wash_buffer) / VENT capsule_trap_waste_out / rest capped | 20 | 0.012 | 0.00905 | OK |
-| 8 | 14 | capsule_trap | Collect the capsules (outlet_1) | FEED wash_buffer_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.007 | 0.00905 | OK |
+| 7 | 14 | capsule_trap | Exchange: wash_buffer x3 | FEED wash_buffer_in 20 µL/min (wash_buffer) / VENT capsule_trap_waste_out / rest capped | 20 | 0.0124 | 0.00905 | OK |
+| 8 | 14 | capsule_trap | Collect the capsules (outlet_1) | FEED wash_buffer_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0074 | 0.00905 | OK |
 
 Operator planner: accepted, 8 events in `runs/chip2_gelation_emulsion_break_cure_wash.twin_run.json`.
 
@@ -181,14 +181,14 @@ Operator planner: accepted, 8 events in `runs/chip2_gelation_emulsion_break_cure
 
 | # | IR step | Module | What | Port states | Through target (µL/min) | Max kPa | Shear (dyn/cm2) | Result |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 15 | aggregate_filter | Pass through | FEED inlet_1 20 µL/min (capsules_suspension) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0027 | 0.0178 | OK |
-| 2 | 16 | reaction_trap | Exchange: lysis_buffer | FEED reagent_line_in 20 µL/min (lysis_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0027 | 0.00905 | OK |
+| 1 | 15 | aggregate_filter | Pass through | FEED inlet_1 20 µL/min (capsules_suspension) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0031 | 0.0178 | OK |
+| 2 | 16 | reaction_trap | Exchange: lysis_buffer | FEED reagent_line_in 20 µL/min (lysis_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.003 | 0.00905 | OK |
 | 3 | 16 | reaction_trap | Incubate | all capped |  |  |  | no flow: every port capped |
-| 4 | 17 | reaction_trap | Exchange: wash_buffer x3 | FEED reagent_line_in 20 µL/min (wash_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0027 | 0.00905 | OK |
-| 5 | 18 | reaction_trap | Exchange: rt_mix | FEED reagent_line_in 20 µL/min (rt_mix) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0027 | 0.00905 | OK |
+| 4 | 17 | reaction_trap | Exchange: wash_buffer x3 | FEED reagent_line_in 20 µL/min (wash_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.003 | 0.00905 | OK |
+| 5 | 18 | reaction_trap | Exchange: rt_mix | FEED reagent_line_in 20 µL/min (rt_mix) / VENT reaction_trap_waste_out / rest capped | 20 | 0.003 | 0.00905 | OK |
 | 6 | 18 | reaction_trap | Incubate | all capped |  |  |  | no flow: every port capped |
-| 7 | 19 | reaction_trap | Exchange: wash_buffer x2 | FEED reagent_line_in 20 µL/min (wash_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0027 | 0.00905 | OK |
-| 8 | 19 | reaction_trap | Collect the capsules (outlet_1) | FEED reagent_line_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0023 | 0.00905 | OK |
+| 7 | 19 | reaction_trap | Exchange: wash_buffer x2 | FEED reagent_line_in 20 µL/min (wash_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.003 | 0.00905 | OK |
+| 8 | 19 | reaction_trap | Collect the capsules (outlet_1) | FEED reagent_line_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0027 | 0.00905 | OK |
 
 - **warning** step 16: module reaction_trap has no inlet named for lysis_buffer; it goes in through reagent_line_in (swap that syringe and prime the line first)
 - **warning** step 17: module reaction_trap has no inlet named for wash_buffer; it goes in through reagent_line_in (swap that syringe and prime the line first)
@@ -201,15 +201,15 @@ Operator planner: accepted, 8 events in `runs/chip3_filter_lysis_rt_wash.twin_ru
 
 | # | IR step | Module | What | Port states | Through target (µL/min) | Max kPa | Shear (dyn/cm2) | Result |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 22 | release_trap | Load capsules from the hand-off from chip3_filter_lysis_rt_wash | FEED inlet_1 20 µL/min (capsules_sample) / VENT release_trap_waste_out / rest capped | 20 | 0.0016 | 0.00905 | OK |
-| 2 | 22 | release_trap | Release with shell_digesting_enzyme | FEED shell_digesting_enzyme_in 20 µL/min (shell_digesting_enzyme) / VENT release_trap_waste_out / rest capped | 20 | 0.0015 | 0.00905 | OK |
-| 3 | 23 | beads_1 | Exchange: magnetic_beads | FEED magnetic_beads_in 20 µL/min (magnetic_beads) / VENT beads_1_waste_out / rest capped | 20 | 0.0015 | 0.00905 | OK |
-| 4 | 23 | beads_1 | Load nucleic_acid from the hand-off from chip3_filter_lysis_rt_wash | FEED inlet_1 20 µL/min (nucleic_acid_sample) / VENT beads_1_waste_out / rest capped | 20 | 0.0021 | 0.00905 | OK |
+| 1 | 22 | release_trap | Load capsules from the hand-off from chip3_filter_lysis_rt_wash | FEED inlet_1 20 µL/min (capsules_sample) / VENT release_trap_waste_out / rest capped | 20 | 0.002 | 0.00905 | OK |
+| 2 | 22 | release_trap | Release with shell_digesting_enzyme | FEED shell_digesting_enzyme_in 20 µL/min (shell_digesting_enzyme) / VENT release_trap_waste_out / rest capped | 20 | 0.0019 | 0.00905 | OK |
+| 3 | 23 | beads_1 | Exchange: magnetic_beads | FEED magnetic_beads_in 20 µL/min (magnetic_beads) / VENT beads_1_waste_out / rest capped | 20 | 0.0019 | 0.00905 | OK |
+| 4 | 23 | beads_1 | Load nucleic_acid from the hand-off from chip3_filter_lysis_rt_wash | FEED inlet_1 20 µL/min (nucleic_acid_sample) / VENT beads_1_waste_out / rest capped | 20 | 0.0025 | 0.00905 | OK |
 | 5 | 23 | beads_1 | Incubate | all capped |  |  |  | no flow: every port capped |
-| 6 | 24 | beads_1 | Exchange: ethanol_wash x2 | FEED ethanol_wash_in 20 µL/min (ethanol_wash) / VENT beads_1_waste_out / rest capped | 20 | 0.0015 | 0.00905 | OK |
-| 7 | 25 | beads_1 | Exchange: elution_buffer | FEED elution_buffer_in 20 µL/min (elution_buffer) / VENT beads_1_waste_out / rest capped | 20 | 0.0015 | 0.00905 | OK |
+| 6 | 24 | beads_1 | Exchange: ethanol_wash x2 | FEED ethanol_wash_in 20 µL/min (ethanol_wash) / VENT beads_1_waste_out / rest capped | 20 | 0.0019 | 0.00905 | OK |
+| 7 | 25 | beads_1 | Exchange: elution_buffer | FEED elution_buffer_in 20 µL/min (elution_buffer) / VENT beads_1_waste_out / rest capped | 20 | 0.0019 | 0.00905 | OK |
 | 8 | 25 | beads_1 | Incubate | all capped |  |  |  | no flow: every port capped |
-| 9 | 25 | beads_1 | Collect the library (outlet_1) | FEED elution_buffer_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0017 | 0.00905 | OK |
+| 9 | 25 | beads_1 | Collect the library (outlet_1) | FEED elution_buffer_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.002 | 0.00905 | OK |
 
 Operator planner: accepted, 9 events in `runs/chip4_shell_release_bead_capture_wash_elution.twin_run.json`.
 

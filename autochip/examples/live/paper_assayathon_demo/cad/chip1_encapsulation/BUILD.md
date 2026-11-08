@@ -6,7 +6,7 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 1. Board
 
-1. Draw a 13 x 9.5 mm rectangle with its bottom-left corner at (0, 0).
+1. Draw a 13 x 10 mm rectangle with its bottom-left corner at (0, 0).
 2. Layer stack, bottom to top (total 1.9 mm):
    - `substrate`: resin, 1.5 mm (z 0 to 1.5) - printed / embossed body (clear resin); the fluidic relief is embossed into its top face
    - `fluidic`: resin, 0.3 mm (z 1.5 to 1.8) - embossed channels and chambers, one depth
@@ -15,25 +15,25 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 2. Modules (chambers), in flow order
 
-1. **droplets_1** - 3 x 3 mm, 0.3 mm deep, bottom-left corner at (5.000, 3.250), centre (6.5, 4.75); 2.7 uL; type junction. Draw it as a junction (droplet_junction, parametric).
+1. **droplets_1** - 3 x 3 mm, 0.3 mm deep, bottom-left corner at (5.000, 3.500), centre (6.5, 5); 2.7 uL; type junction. Draw it as a junction (droplet_junction, parametric).
    - Does (steps 10): The cell/core stream arrives on the main line (centre). The shell_polymer and fluorinated_oil lines pinch it into droplets. The nozzle is the smallest the part allows (200 um), so droplets will be larger than the 70 um target.
 
 ## 3. Channels
 
-Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.
+Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs through the port centre on to the far edge of the hole.
 
-1. **ch_inlet_1_droplets_1**: inlet_1 -> droplets_1, 0.3 mm wide, 0.3 mm deep, carries cells, 3.50 mm long. Path: (1.5, 4.75) -> (5, 4.75).
-2. **ch_droplets_1_outlet_1**: droplets_1 -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries droplets, 3.50 mm long. Path: (8, 4.75) -> (11.5, 4.75).
-3. **ch_shell_polymer_in_droplets_1**: shell_polymer_in -> droplets_1, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.75 mm long. Path: (6.5, 8) -> (6.5, 6.25).
-4. **ch_fluorinated_oil_in_droplets_1**: fluorinated_oil_in -> droplets_1, 0.2 mm wide, 0.3 mm deep, carries oil, 1.75 mm long. Path: (6.5, 1.5) -> (6.5, 3.25).
+1. **ch_inlet_1_droplets_1**: inlet_1 -> droplets_1, 0.3 mm wide, 0.3 mm deep, carries cells, 4.00 mm long. Path: (1, 5) -> (1.5, 5) -> (5, 5).
+2. **ch_droplets_1_outlet_1**: droplets_1 -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries droplets, 4.00 mm long. Path: (8, 5) -> (11.5, 5) -> (12, 5).
+3. **ch_shell_polymer_in_droplets_1**: shell_polymer_in -> droplets_1, 0.25 mm wide, 0.3 mm deep, carries liquid, 2.50 mm long. Path: (6.5, 9) -> (6.5, 8.5) -> (6.5, 6.5).
+4. **ch_fluorinated_oil_in_droplets_1**: fluorinated_oil_in -> droplets_1, 0.25 mm wide, 0.3 mm deep, carries oil, 2.50 mm long. Path: (6.5, 1) -> (6.5, 1.5) -> (6.5, 3.5).
 
 ## 4. Ports
 
-Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.
+Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs across the whole hole.
 
-- **inlet_1** (inlet, load): 1 mm hole at (1.5, 4.75), from z = 1.9 down to z = 1.5. main inlet: inlet_1 from external.
-- **outlet_1** (outlet, transfer): 1 mm hole at (11.5, 4.75), from z = 1.9 down to z = 1.5. main outlet -> chip2_emulsion_break_curing_wash_filter.inlet_1.
-- **shell_polymer_in** (inlet, reagent): 1 mm hole at (6.5, 8), from z = 1.9 down to z = 1.5. reagent 'shell_polymer' into droplets_1.
+- **inlet_1** (inlet, load): 1 mm hole at (1.5, 5), from z = 1.9 down to z = 1.5. main inlet: inlet_1 from external.
+- **outlet_1** (outlet, transfer): 1 mm hole at (11.5, 5), from z = 1.9 down to z = 1.5. main outlet -> chip2_emulsion_break_curing_wash_filter.inlet_1.
+- **shell_polymer_in** (inlet, reagent): 1 mm hole at (6.5, 8.5), from z = 1.9 down to z = 1.5. reagent 'shell_polymer' into droplets_1.
 - **fluorinated_oil_in** (inlet, oil): 1 mm hole at (6.5, 1.5), from z = 1.9 down to z = 1.5. reagent 'fluorinated_oil' into droplets_1.
 
 ## 5. Make and seal

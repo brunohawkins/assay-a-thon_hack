@@ -23,21 +23,21 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 3. Channels
 
-Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.
+Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs through the port centre on to the far edge of the hole.
 
-1. **ch_inlet_1_release_trap**: inlet_1 -> release_trap, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.20 mm long. Path: (2.5, 8) -> (4.7, 8).
+1. **ch_inlet_1_release_trap**: inlet_1 -> release_trap, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.70 mm long. Path: (2, 8) -> (2.5, 8) -> (4.7, 8).
 2. **ch_release_trap_beads_1**: release_trap -> beads_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.20 mm long. Path: (18.8421, 8) -> (20.04, 8).
-3. **ch_beads_1_outlet_1**: beads_1 -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.32 mm long. Path: (34.1821, 8) -> (36.5, 8).
-4. **ch_shell_digesting_enzyme_in_release_trap**: shell_digesting_enzyme_in -> release_trap, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.96 mm long. Path: (11.77, 13.5) -> (11.77, 11.5355).
-5. **ch_release_trap_release_trap_waste_out**: release_trap -> release_trap_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.96 mm long. Path: (11.77, 4.4645) -> (11.77, 2.5).
-6. **ch_magnetic_beads_in_beads_1**: magnetic_beads_in -> beads_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.96 mm long. Path: (25.11, 13.5) -> (25.11, 11.5355).
-7. **ch_ethanol_wash_in_beads_1**: ethanol_wash_in -> beads_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.96 mm long. Path: (29.11, 13.5) -> (29.11, 11.5355).
-8. **ch_beads_1_beads_1_waste_out**: beads_1 -> beads_1_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.96 mm long. Path: (25.11, 4.4645) -> (25.11, 2.5).
-9. **ch_elution_buffer_in_beads_1**: elution_buffer_in -> beads_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 1.96 mm long. Path: (29.11, 2.5) -> (29.11, 4.4645).
+3. **ch_beads_1_outlet_1**: beads_1 -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.82 mm long. Path: (34.1821, 8) -> (36.5, 8) -> (37, 8).
+4. **ch_shell_digesting_enzyme_in_release_trap**: shell_digesting_enzyme_in -> release_trap, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.46 mm long. Path: (11.77, 14) -> (11.77, 13.5) -> (11.77, 11.5355).
+5. **ch_release_trap_release_trap_waste_out**: release_trap -> release_trap_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.46 mm long. Path: (11.77, 4.4645) -> (11.77, 2.5) -> (11.77, 2).
+6. **ch_magnetic_beads_in_beads_1**: magnetic_beads_in -> beads_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.46 mm long. Path: (25.11, 14) -> (25.11, 13.5) -> (25.11, 11.5355).
+7. **ch_ethanol_wash_in_beads_1**: ethanol_wash_in -> beads_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.46 mm long. Path: (29.11, 14) -> (29.11, 13.5) -> (29.11, 11.5355).
+8. **ch_beads_1_beads_1_waste_out**: beads_1 -> beads_1_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.46 mm long. Path: (25.11, 4.4645) -> (25.11, 2.5) -> (25.11, 2).
+9. **ch_elution_buffer_in_beads_1**: elution_buffer_in -> beads_1, 0.5 mm wide, 0.3 mm deep, carries liquid, 2.46 mm long. Path: (29.11, 2) -> (29.11, 2.5) -> (29.11, 4.4645).
 
 ## 4. Ports
 
-Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.
+Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs across the whole hole.
 
 - **inlet_1** (inlet, load): 1 mm hole at (2.5, 8), from z = 2.5 down to z = 1. main inlet: inlet_1 from external.
 - **outlet_1** (outlet, harvest): 1 mm hole at (36.5, 8), from z = 2.5 down to z = 1. main outlet -> external.

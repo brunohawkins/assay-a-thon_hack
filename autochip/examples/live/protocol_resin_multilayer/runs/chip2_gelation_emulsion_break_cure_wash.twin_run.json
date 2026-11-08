@@ -4,7 +4,7 @@
   "chip_id": "chip2_gelation_emulsion_break_cure_wash",
   "chip_spec": "autochip/examples/live/protocol_resin_multilayer/chips/chip2_gelation_emulsion_break_cure_wash.json",
   "operator": "planner",
-  "created_at": "2026-11-08T09:36:02Z",
+  "created_at": "2026-11-08T10:13:06Z",
   "placeholder": true,
   "total_duration_s": 13005.0,
   "events": [

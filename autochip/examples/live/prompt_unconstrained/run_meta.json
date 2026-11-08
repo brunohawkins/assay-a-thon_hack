@@ -1,6 +1,6 @@
 {
-  "backend": "claude-cli",
+  "backend": "replay",
   "model": null,
-  "replay": null,
+  "replay": "autochip/examples/live/prompt_unconstrained/agent",
   "constraints": "unconstrained"
 }

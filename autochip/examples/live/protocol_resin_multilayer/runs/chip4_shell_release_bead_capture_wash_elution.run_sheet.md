@@ -47,15 +47,15 @@ Before step 1: fill every syringe, prime each feed line up to its port (no air),
 
 | # | Through target (µL/min) | Max pressure (kPa) | Target shear (dyn/cm2) | Result |
 |---|---|---|---|---|
-| 1 | 20 | 0.0016 | 0.00905 | OK |
-| 2 | 20 | 0.0015 | 0.00905 | OK |
-| 3 | 20 | 0.0015 | 0.00905 | OK |
-| 4 | 20 | 0.0021 | 0.00905 | OK |
+| 1 | 20 | 0.002 | 0.00905 | OK |
+| 2 | 20 | 0.0019 | 0.00905 | OK |
+| 3 | 20 | 0.0019 | 0.00905 | OK |
+| 4 | 20 | 0.0025 | 0.00905 | OK |
 | 5 | | | | no flow: every port capped |
-| 6 | 20 | 0.0015 | 0.00905 | OK |
-| 7 | 20 | 0.0015 | 0.00905 | OK |
+| 6 | 20 | 0.0019 | 0.00905 | OK |
+| 7 | 20 | 0.0019 | 0.00905 | OK |
 | 8 | | | | no flow: every port capped |
-| 9 | 20 | 0.0017 | 0.00905 | OK |
+| 9 | 20 | 0.002 | 0.00905 | OK |
 
 ## Digital twin replay
 

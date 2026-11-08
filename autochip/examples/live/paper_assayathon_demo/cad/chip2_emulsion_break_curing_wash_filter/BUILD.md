@@ -6,7 +6,7 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 1. Board
 
-1. Draw a 27.5 x 19 mm rectangle with its bottom-left corner at (0, 0).
+1. Draw a 27.5 x 19.5 mm rectangle with its bottom-left corner at (0, 0).
 2. Layer stack, bottom to top (total 1.9 mm):
    - `substrate`: resin, 1.5 mm (z 0 to 1.5) - printed / embossed body (clear resin); the fluidic relief is embossed into its top face
    - `fluidic`: resin, 0.3 mm (z 1.5 to 1.8) - embossed channels and chambers, one depth
@@ -15,32 +15,32 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 2. Modules (chambers), in flow order
 
-1. **capsule_trap** - 12.9 x 12.9 mm, 0.3 mm deep, bottom-left corner at (4.000, 3.045), centre (10.455, 9.5); 50 uL; type cell_wash. Draw it as a cell_wash (trap_chamber, parametric).
+1. **capsule_trap** - 12.9 x 12.9 mm, 0.3 mm deep, bottom-left corner at (4.000, 3.295), centre (10.455, 9.75); 50 uL; type cell_wash. Draw it as a cell_wash (trap_chamber, parametric).
    - Does (steps 12, 13, 14): A mesh with 25 um pores (under 0.4 x the capsule size) holds the capsules. Emulsion-breaking agent (own line) flushes the oil out, then photoinitiator is flushed in and cured under 405 nm. The same water-based reagent_line carries photoinitiator and then wash buffer, with the syringe swapped between steps.
    - Floor: a 25 um mesh (bought sheet, inserted at assembly).
-2. **aggregate_filter** - 5 x 10 mm, 0.3 mm deep, bottom-left corner at (18.110, 4.500), centre (20.61, 9.5); 7.5 uL; type filter. Draw it as a filter (pillar_filter, parametric).
+2. **aggregate_filter** - 5 x 10 mm, 0.3 mm deep, bottom-left corner at (18.110, 4.750), centre (20.61, 9.75); 7.5 uL; type filter. Draw it as a filter (pillar_filter, parametric).
    - Does (steps 15): Pillar filter with 100 um gaps removes capsule aggregates as the capsules flow on.
    - Inside: a row of pillars with 100 um gaps across the flow (capsule_aggregates).
 
 ## 3. Channels
 
-Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.
+Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs through the port centre on to the far edge of the hole.
 
-1. **ch_inlet_1_capsule_trap**: inlet_1 -> capsule_trap, 0.5 mm wide, 0.3 mm deep, carries droplets, 2.50 mm long. Path: (1.5, 9.5) -> (4, 9.5).
-2. **ch_capsule_trap_aggregate_filter**: capsule_trap -> aggregate_filter, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.20 mm long. Path: (16.9099, 9.5) -> (18.11, 9.5).
-3. **ch_aggregate_filter_outlet_1**: aggregate_filter -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.89 mm long. Path: (23.11, 9.5) -> (26, 9.5).
-4. **ch_emulsion_breaking_agent_in_capsule_trap**: emulsion_breaking_agent_in -> capsule_trap, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.54 mm long. Path: (7.95, 17.5) -> (7.95, 15.955).
-5. **ch_reagent_line_in_capsule_trap**: reagent_line_in -> capsule_trap, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.54 mm long. Path: (12.95, 17.5) -> (12.95, 15.955).
-6. **ch_capsule_trap_trap_waste_out**: capsule_trap -> trap_waste_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.54 mm long. Path: (10.45, 3.045) -> (10.45, 1.5).
+1. **ch_inlet_1_capsule_trap**: inlet_1 -> capsule_trap, 0.5 mm wide, 0.3 mm deep, carries droplets, 3.00 mm long. Path: (1, 9.75) -> (1.5, 9.75) -> (4, 9.75).
+2. **ch_capsule_trap_aggregate_filter**: capsule_trap -> aggregate_filter, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.20 mm long. Path: (16.9099, 9.75) -> (18.11, 9.75).
+3. **ch_aggregate_filter_outlet_1**: aggregate_filter -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 3.39 mm long. Path: (23.11, 9.75) -> (26, 9.75) -> (26.5, 9.75).
+4. **ch_emulsion_breaking_agent_in_capsule_trap**: emulsion_breaking_agent_in -> capsule_trap, 0.25 mm wide, 0.3 mm deep, carries liquid, 2.30 mm long. Path: (7.95, 18.5) -> (7.95, 18) -> (7.95, 16.205).
+5. **ch_reagent_line_in_capsule_trap**: reagent_line_in -> capsule_trap, 0.25 mm wide, 0.3 mm deep, carries liquid, 2.30 mm long. Path: (12.95, 18.5) -> (12.95, 18) -> (12.95, 16.205).
+6. **ch_capsule_trap_trap_waste_out**: capsule_trap -> trap_waste_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 2.29 mm long. Path: (10.45, 3.295) -> (10.45, 1.5) -> (10.45, 1).
 
 ## 4. Ports
 
-Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.
+Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs across the whole hole.
 
-- **inlet_1** (inlet, load): 1 mm hole at (1.5, 9.5), from z = 1.9 down to z = 1.5. main inlet: inlet_1 from chip1_encapsulation.outlet_1.
-- **outlet_1** (outlet, transfer): 1 mm hole at (26, 9.5), from z = 1.9 down to z = 1.5. main outlet -> chip3_lysis_wash_rt.inlet_1.
-- **emulsion_breaking_agent_in** (inlet, reagent): 1 mm hole at (7.95, 17.5), from z = 1.9 down to z = 1.5. reagent 'emulsion_breaking_agent' into capsule_trap.
-- **reagent_line_in** (inlet, reagent): 1 mm hole at (12.95, 17.5), from z = 1.9 down to z = 1.5. reagent 'reagent_line' into capsule_trap.
+- **inlet_1** (inlet, load): 1 mm hole at (1.5, 9.75), from z = 1.9 down to z = 1.5. main inlet: inlet_1 from chip1_encapsulation.outlet_1.
+- **outlet_1** (outlet, transfer): 1 mm hole at (26, 9.75), from z = 1.9 down to z = 1.5. main outlet -> chip3_lysis_wash_rt.inlet_1.
+- **emulsion_breaking_agent_in** (inlet, reagent): 1 mm hole at (7.95, 18), from z = 1.9 down to z = 1.5. reagent 'emulsion_breaking_agent' into capsule_trap.
+- **reagent_line_in** (inlet, reagent): 1 mm hole at (12.95, 18), from z = 1.9 down to z = 1.5. reagent 'reagent_line' into capsule_trap.
 - **trap_waste_out** (outlet, waste): 1 mm hole at (10.45, 1.5), from z = 1.9 down to z = 1.5. 'trap_waste' out of capsule_trap.
 
 ## 5. Make and seal

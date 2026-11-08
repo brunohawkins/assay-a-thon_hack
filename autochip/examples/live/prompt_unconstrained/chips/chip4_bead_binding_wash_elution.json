@@ -44,7 +44,7 @@
   },
   "footprint": {
     "x": 23.0,
-    "y": 14.0,
+    "y": 14.5,
     "note": "1 row(s); no size limit"
   },
   "layers": [
@@ -73,7 +73,7 @@
       "type": "exchange",
       "center": [
         11.2711,
-        7.0,
+        7.25,
         1.25
       ],
       "size": [
@@ -92,17 +92,21 @@
       "id": "ch_inlet_1_bead_chamber",
       "from": "inlet_1",
       "to": "bead_chamber",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
+          2.0,
+          7.25
+        ],
+        [
           2.5,
-          7.0
+          7.25
         ],
         [
           4.2,
-          7.0
+          7.25
         ]
       ],
       "note": "layer fluidic; main path"
@@ -111,17 +115,21 @@
       "id": "ch_bead_chamber_outlet_1",
       "from": "bead_chamber",
       "to": "outlet_1",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           18.3421,
-          7.0
+          7.25
         ],
         [
           20.5,
-          7.0
+          7.25
+        ],
+        [
+          21.0,
+          7.25
         ]
       ],
       "note": "layer fluidic; main path"
@@ -130,17 +138,21 @@
       "id": "ch_magnetic_beads_in_bead_chamber",
       "from": "magnetic_beads_in",
       "to": "bead_chamber",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           9.77,
-          11.5
+          12.5
         ],
         [
           9.77,
-          10.5355
+          12.0
+        ],
+        [
+          9.77,
+          10.7855
         ]
       ],
       "note": "layer fluidic"
@@ -149,17 +161,21 @@
       "id": "ch_ethanol_wash_in_bead_chamber",
       "from": "ethanol_wash_in",
       "to": "bead_chamber",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           12.77,
-          11.5
+          12.5
         ],
         [
           12.77,
-          10.5355
+          12.0
+        ],
+        [
+          12.77,
+          10.7855
         ]
       ],
       "note": "layer fluidic"
@@ -168,17 +184,21 @@
       "id": "ch_bead_chamber_bead_waste_out",
       "from": "bead_chamber",
       "to": "bead_waste_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           9.77,
-          3.4645
+          3.7145
         ],
         [
           9.77,
           2.5
+        ],
+        [
+          9.77,
+          2.0
         ]
       ],
       "note": "layer fluidic"
@@ -187,17 +207,21 @@
       "id": "ch_elution_buffer_in_bead_chamber",
       "from": "elution_buffer_in",
       "to": "bead_chamber",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
+        [
+          12.77,
+          2.0
+        ],
         [
           12.77,
           2.5
         ],
         [
           12.77,
-          3.4645
+          3.7145
         ]
       ],
       "note": "layer fluidic"
@@ -209,7 +233,7 @@
       "type": "inlet",
       "position": [
         2.5,
-        7.0,
+        7.25,
         2.5
       ],
       "role": "load",
@@ -221,7 +245,7 @@
       "type": "outlet",
       "position": [
         20.5,
-        7.0,
+        7.25,
         2.5
       ],
       "role": "harvest",
@@ -233,7 +257,7 @@
       "type": "inlet",
       "position": [
         9.77,
-        11.5,
+        12.0,
         2.5
       ],
       "role": "reagent",
@@ -245,7 +269,7 @@
       "type": "inlet",
       "position": [
         12.77,
-        11.5,
+        12.0,
         2.5
       ],
       "role": "reagent",

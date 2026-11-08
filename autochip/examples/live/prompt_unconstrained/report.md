@@ -1,6 +1,6 @@
 # autochip report: iPSC tri-culture to capsule-based single-cell RNA library
 
-> **Agent:** replay of autochip/out/live_prompt_unconstrained/agent
+> **Agent:** replay of autochip/examples/live/prompt_unconstrained/agent
 
 **25** protocol steps · **4** chips · **22** modules · **23 / 2 / 0** on chip / bench / missing · **0** layout errors · **0 / 3** flow-check errors / warnings
 
@@ -21,7 +21,7 @@ None found: no errors, missing parts or unassigned steps.
 | **Citation** | - |
 | **User goal** | Grow three iPSC-derived cell types (neurons, microglia, astrocytes) side by side, first apart and then sharing medium. Then detach the cells, wrap single cells in semi-permeable hydrogel capsules, break the emulsion and cure the capsule shells with light, lyse the cells inside the capsules, wash, and reverse transcribe the RNA. Split the capsules into four sublibraries for index PCR, release the cDNA from the capsules and clean the library up with magnetic beads so it is ready for sequencing. |
 | **Protocol goal (as extracted)** | Grow iPSC-derived neurons, microglia and astrocytes side by side (first apart, then sharing medium), then encapsulate single cells in semi-permeable hydrogel capsules, lyse, reverse transcribe, split into four index-PCR sublibraries, release the cDNA and clean up the library with magnetic beads for sequencing. |
-| **Agent** | replay of autochip/out/live_prompt_unconstrained/agent |
+| **Agent** | replay of autochip/examples/live/prompt_unconstrained/agent |
 | **Constraints** | unconstrained: No limits |
 
 ## Constraints
@@ -45,10 +45,10 @@ Why the protocol is split this way: Four chips. Chip 1 is the 37 °C culture and
 
 | Chip | Purpose | Steps | Modules (part) | Ports | Footprint (mm) | Layers | Constraint findings |
 |---|---|---|---|---|---|---|---|
-| **chip1_triculture_dissociation_quench_cell_wash_filter** Tri-culture, dissociation, quench, cell wash and filter chip | Grows three iPSC-derived populations in separate chambers (apart, then sharing medium through the central junction), detaches them, quenches the enzyme, moves the cells into clean buffer and filters out clumps. | 1, 2, 3, 4, 5, 6, 7 | split_1 (splitter), culture_neurons (culture_chamber_param), culture_microglia (culture_chamber_param), culture_astrocytes (culture_chamber_param), junction_mid (pool), quench_join (merge), quench_mix (mixer), cell_wash (spiral_separator), cell_filter (pillar_filter) | 13 (6 in, 7 out) | 59 x 49 | 3 (unspecified) | 1 warning |
-| **chip2_encapsulation_emulsion_break_capsule_wash_curing** Encapsulation, emulsion break, capsule wash and curing chip | Merges cells into core solution, makes single-cell shell/core droplets in fluorinated oil, then breaks the emulsion, washes, cures and washes the capsules in a trap. | 9, 10, 11, 12, 13 | core_join (merge), core_mix (mixer), encap_junction (droplet_junction), capsule_trap (trap_chamber) | 8 (6 in, 2 out) | 23.5 x 32 | 3 (unspecified) | none |
-| **chip3_lysis_rt_split_index_pcr_pool_release** Lysis, RT, split, index PCR, pool and release chip | Lyses cells in capsules, reverse transcribes, splits into four portions for index PCR, pools them and releases the cDNA. | 14, 15, 16, 17, 18, 19, 20, 24 | reaction_trap (trap_chamber), split_2 (splitter), pcr_1 (thermal_chamber), pcr_2 (thermal_chamber), pcr_3 (thermal_chamber), pcr_4 (thermal_chamber), pool_2 (pool), release_trap (trap_chamber) | 15 (8 in, 7 out) | 55.5 x 44 | 3 (unspecified) | 1 warning |
-| **chip4_bead_binding_wash_elution** Bead binding, ethanol wash and elution chip | Binds cDNA to magnetic beads, washes on the magnet and elutes the library. | 21, 22, 23 | bead_chamber (magnetic_chamber) | 6 (4 in, 2 out) | 23 x 14 | 3 (unspecified) | none |
+| **chip1_triculture_dissociation_quench_cell_wash_filter** Tri-culture, dissociation, quench, cell wash and filter chip | Grows three iPSC-derived populations in separate chambers (apart, then sharing medium through the central junction), detaches them, quenches the enzyme, moves the cells into clean buffer and filters out clumps. | 1, 2, 3, 4, 5, 6, 7 | split_1 (splitter), culture_neurons (culture_chamber_param), culture_microglia (culture_chamber_param), culture_astrocytes (culture_chamber_param), junction_mid (pool), quench_join (merge), quench_mix (mixer), cell_wash (spiral_separator), cell_filter (pillar_filter) | 13 (6 in, 7 out) | 59 x 50 | 3 (unspecified) | 1 warning |
+| **chip2_encapsulation_emulsion_break_capsule_wash_curing** Encapsulation, emulsion break, capsule wash and curing chip | Merges cells into core solution, makes single-cell shell/core droplets in fluorinated oil, then breaks the emulsion, washes, cures and washes the capsules in a trap. | 9, 10, 11, 12, 13 | core_join (merge), core_mix (mixer), encap_junction (droplet_junction), capsule_trap (trap_chamber) | 8 (6 in, 2 out) | 27.5 x 20.5 | 3 (unspecified) | none |
+| **chip3_lysis_rt_split_index_pcr_pool_release** Lysis, RT, split, index PCR, pool and release chip | Lyses cells in capsules, reverse transcribes, splits into four portions for index PCR, pools them and releases the cDNA. | 14, 15, 16, 17, 18, 19, 20, 24 | reaction_trap (trap_chamber), split_2 (splitter), pcr_1 (thermal_chamber), pcr_2 (thermal_chamber), pcr_3 (thermal_chamber), pcr_4 (thermal_chamber), pool_2 (pool), release_trap (trap_chamber) | 15 (8 in, 7 out) | 55.5 x 45 | 3 (unspecified) | 1 warning |
+| **chip4_bead_binding_wash_elution** Bead binding, ethanol wash and elution chip | Binds cDNA to magnetic beads, washes on the magnet and elutes the library. | 21, 22, 23 | bead_chamber (magnetic_chamber) | 6 (4 in, 2 out) | 23 x 14.5 | 3 (unspecified) | none |
 
 ### chip1_triculture_dissociation_quench_cell_wash_filter: constraint findings
 
@@ -158,21 +158,21 @@ Every step's port states were solved with operator/network.py on the chip spec: 
 
 | # | IR step | Module | What | Port states | Through target (µL/min) | Max kPa | Shear (dyn/cm2) | Result |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 1 | culture_neurons | Load cells from the bench | FEED culture_medium_neurons_in 10 µL/min (cells_for_culture_neurons) / VENT culture_neurons_vent_out / rest capped | 10 | 0.0021 | 0.0032 | OK |
-| 2 | 1 | culture_microglia | Load cells from the bench | FEED culture_medium_microglia_in 10 µL/min (cells_for_culture_microglia) / VENT microglia_vent_out / rest capped | 10 | 0.0021 | 0.0032 | OK |
-| 3 | 1 | culture_astrocytes | Load cells from the bench | FEED culture_medium_astrocytes_in 10 µL/min (cells_for_culture_astrocytes) / VENT astrocytes_vent_out / rest capped | 10 | 0.0021 | 0.0032 | OK |
-| 4 | 1 | culture_neurons | Culture apart 7 d (3 chambers, own medium each, change every 1 d) | FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons); culture_medium_microglia_in 10 µL/min (culture_medium_microglia); culture_medium_astrocytes_in 10 µL/min (culture_medium_astrocytes) / VENT culture_neurons_vent_out, microglia_vent_out, astrocytes_vent_out / rest capped | 10 | 0.0021 | 0.0032 | OK |
-| 5 | 2 | culture_neurons | Culture apart 1 d (3 chambers, own medium each, change every 12 h) | FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons); culture_medium_microglia_in 10 µL/min (culture_medium_microglia); culture_medium_astrocytes_in 10 µL/min (culture_medium_astrocytes) / VENT culture_neurons_vent_out, microglia_vent_out, astrocytes_vent_out / rest capped | 10 | 0.0021 | 0.0032 | OK |
-| 6 | 2 | culture_neurons | Culture sharing medium 1 d (feed culture_neurons, vent the others) | FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons) / VENT microglia_vent_out, astrocytes_vent_out / rest capped | 10 | 0.0021 | 0.0032 | OK |
-| 7 | 3 | culture_neurons | Exchange: dissociation_enzyme | FEED culture_medium_neurons_in 10 µL/min (dissociation_enzyme) / VENT culture_neurons_vent_out / rest capped | 10 | 0.0021 | 0.0032 | OK |
-| 8 | 3 | culture_microglia | Exchange: dissociation_enzyme | FEED culture_medium_microglia_in 10 µL/min (dissociation_enzyme) / VENT microglia_vent_out / rest capped | 10 | 0.0021 | 0.0032 | OK |
-| 9 | 3 | culture_astrocytes | Exchange: dissociation_enzyme | FEED culture_medium_astrocytes_in 10 µL/min (dissociation_enzyme) / VENT astrocytes_vent_out / rest capped | 10 | 0.0021 | 0.0032 | OK |
+| 1 | 1 | culture_neurons | Load cells from the bench | FEED culture_medium_neurons_in 10 µL/min (cells_for_culture_neurons) / VENT culture_neurons_vent_out / rest capped | 10 | 0.0022 | 0.0032 | OK |
+| 2 | 1 | culture_microglia | Load cells from the bench | FEED culture_medium_microglia_in 10 µL/min (cells_for_culture_microglia) / VENT microglia_vent_out / rest capped | 10 | 0.0022 | 0.0032 | OK |
+| 3 | 1 | culture_astrocytes | Load cells from the bench | FEED culture_medium_astrocytes_in 10 µL/min (cells_for_culture_astrocytes) / VENT astrocytes_vent_out / rest capped | 10 | 0.0022 | 0.0032 | OK |
+| 4 | 1 | culture_neurons | Culture apart 7 d (3 chambers, own medium each, change every 1 d) | FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons); culture_medium_microglia_in 10 µL/min (culture_medium_microglia); culture_medium_astrocytes_in 10 µL/min (culture_medium_astrocytes) / VENT culture_neurons_vent_out, microglia_vent_out, astrocytes_vent_out / rest capped | 10 | 0.0022 | 0.0032 | OK |
+| 5 | 2 | culture_neurons | Culture apart 1 d (3 chambers, own medium each, change every 12 h) | FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons); culture_medium_microglia_in 10 µL/min (culture_medium_microglia); culture_medium_astrocytes_in 10 µL/min (culture_medium_astrocytes) / VENT culture_neurons_vent_out, microglia_vent_out, astrocytes_vent_out / rest capped | 10 | 0.0022 | 0.0032 | OK |
+| 6 | 2 | culture_neurons | Culture sharing medium 1 d (feed culture_neurons, vent the others) | FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons) / VENT microglia_vent_out, astrocytes_vent_out / rest capped | 10 | 0.0022 | 0.0032 | OK |
+| 7 | 3 | culture_neurons | Exchange: dissociation_enzyme | FEED culture_medium_neurons_in 10 µL/min (dissociation_enzyme) / VENT culture_neurons_vent_out / rest capped | 10 | 0.0022 | 0.0032 | OK |
+| 8 | 3 | culture_microglia | Exchange: dissociation_enzyme | FEED culture_medium_microglia_in 10 µL/min (dissociation_enzyme) / VENT microglia_vent_out / rest capped | 10 | 0.0022 | 0.0032 | OK |
+| 9 | 3 | culture_astrocytes | Exchange: dissociation_enzyme | FEED culture_medium_astrocytes_in 10 µL/min (dissociation_enzyme) / VENT astrocytes_vent_out / rest capped | 10 | 0.0022 | 0.0032 | OK |
 | 10 | 3 | culture_astrocytes | Incubate | all capped |  |  |  | no flow: every port capped |
-| 11 | 4 | quench_join | Mix quench_solution into the stream | FEED inlet_1 10 µL/min (carrier_buffer); quench_solution_in 10 µL/min (quench_solution) / VENT cell_wash_waste_out / rest capped | 20 | 0.0631 | 0.0988 | OK |
-| 12 | 5 | cell_wash | Exchange: wash_buffer | FEED wash_buffer_in 10 µL/min (wash_buffer) / VENT cell_wash_waste_out / rest capped | 10 | 0.0359 | 0.0025 | OK |
+| 11 | 4 | quench_join | Mix quench_solution into the stream | FEED inlet_1 10 µL/min (carrier_buffer); quench_solution_in 10 µL/min (quench_solution) / VENT cell_wash_waste_out / rest capped | 20 | 0.0428 | 0.0988 | OK |
+| 12 | 5 | cell_wash | Exchange: wash_buffer | FEED wash_buffer_in 10 µL/min (wash_buffer) / VENT cell_wash_waste_out / rest capped | 10 | 0.0239 | 0.0025 | OK |
 | 13 | 5 | cell_wash | Incubate | all capped |  |  |  | no flow: every port capped |
-| 14 | 6 | cell_wash | Exchange: wash_buffer | FEED wash_buffer_in 10 µL/min (wash_buffer) / VENT cell_wash_waste_out / rest capped | 10 | 0.0359 | 0.0025 | OK |
-| 15 | 7 | cell_filter | Pass through | FEED inlet_1 10 µL/min (carrier_buffer) / VENT outlet_1 / rest capped | 10 | 0.0066 | 0.0444 | OK |
+| 14 | 6 | cell_wash | Exchange: wash_buffer | FEED wash_buffer_in 10 µL/min (wash_buffer) / VENT cell_wash_waste_out / rest capped | 10 | 0.0239 | 0.0025 | OK |
+| 15 | 7 | cell_filter | Pass through | FEED inlet_1 10 µL/min (carrier_buffer) / VENT outlet_1 / rest capped | 10 | 0.0064 | 0.0444 | OK |
 
 - **warning** step 3: module culture_neurons has no inlet named for dissociation_enzyme; it goes in through culture_medium_neurons_in (swap that syringe and prime the line first)
 - **warning** step 3: module culture_microglia has no inlet named for dissociation_enzyme; it goes in through culture_medium_microglia_in (swap that syringe and prime the line first)
@@ -184,12 +184,12 @@ Operator planner: accepted, 15 events in `runs/chip1_triculture_dissociation_que
 
 | # | IR step | Module | What | Port states | Through target (µL/min) | Max kPa | Shear (dyn/cm2) | Result |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 9 | encap_junction | Encapsulate (co-flow) | FEED inlet_1 1 µL/min (cells_suspension); core_solution_in 1 µL/min (core_solution); shell_polymer_in 2 µL/min (shell_polymer); fluorinated_oil_in 10 µL/min (fluorinated_oil) / VENT capsule_trap_waste_out / rest capped | 14 | 0.0133 | 0.0415 | OK |
+| 1 | 9 | encap_junction | Encapsulate (co-flow) | FEED inlet_1 1 µL/min (cells_suspension); core_solution_in 1 µL/min (core_solution); shell_polymer_in 2 µL/min (shell_polymer); fluorinated_oil_in 10 µL/min (fluorinated_oil) / VENT capsule_trap_waste_out / rest capped | 14 | 0.0045 | 0.0415 | OK |
 | 2 | 10 | capsule_trap | Exchange: emulsion_breaker | FEED emulsion_breaker_in 5 µL/min (emulsion_breaker) / VENT capsule_trap_waste_out / rest capped | 5 | 0.0011 | 0.00226 | OK |
-| 3 | 11 | capsule_trap | Exchange: wash_buffer x3 | FEED wash_buffer_in 20 µL/min (wash_buffer) / VENT capsule_trap_waste_out / rest capped | 20 | 0.0043 | 0.00905 | OK |
+| 3 | 11 | capsule_trap | Exchange: wash_buffer x3 | FEED wash_buffer_in 20 µL/min (wash_buffer) / VENT capsule_trap_waste_out / rest capped | 20 | 0.0044 | 0.00905 | OK |
 | 4 | 12 | capsule_trap | Cure (405 nm) | all capped |  |  |  | no flow: every port capped |
-| 5 | 13 | capsule_trap | Exchange: wash_buffer x2 | FEED wash_buffer_in 20 µL/min (wash_buffer) / VENT capsule_trap_waste_out / rest capped | 20 | 0.0043 | 0.00905 | OK |
-| 6 | 13 | capsule_trap | Collect the capsules (outlet_1) | FEED wash_buffer_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0031 | 0.00905 | OK |
+| 5 | 13 | capsule_trap | Exchange: wash_buffer x2 | FEED wash_buffer_in 20 µL/min (wash_buffer) / VENT capsule_trap_waste_out / rest capped | 20 | 0.0044 | 0.00905 | OK |
+| 6 | 13 | capsule_trap | Collect the capsules (outlet_1) | FEED wash_buffer_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0033 | 0.00905 | OK |
 
 Operator planner: accepted, 6 events in `runs/chip2_encapsulation_emulsion_break_capsule_wash_curing.twin_run.json`.
 
@@ -197,23 +197,23 @@ Operator planner: accepted, 6 events in `runs/chip2_encapsulation_emulsion_break
 
 | # | IR step | Module | What | Port states | Through target (µL/min) | Max kPa | Shear (dyn/cm2) | Result |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 14 | reaction_trap | Load capsules from the hand-off from chip2_encapsulation_emulsion_break_capsule_wash_curing | FEED inlet_1 20 µL/min (capsules_sample) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0375 | 0.00905 | OK |
-| 2 | 14 | reaction_trap | Exchange: lysis_buffer | FEED wash_buffer_in 20 µL/min (lysis_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0734 | 0.00905 | OK |
+| 1 | 14 | reaction_trap | Load capsules from the hand-off from chip2_encapsulation_emulsion_break_capsule_wash_curing | FEED inlet_1 20 µL/min (capsules_sample) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0254 | 0.00905 | OK |
+| 2 | 14 | reaction_trap | Exchange: lysis_buffer | FEED wash_buffer_in 20 µL/min (lysis_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0488 | 0.00905 | OK |
 | 3 | 14 | reaction_trap | Incubate | all capped |  |  |  | no flow: every port capped |
-| 4 | 15 | reaction_trap | Exchange: wash_buffer x3 | FEED wash_buffer_in 20 µL/min (wash_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0734 | 0.00905 | OK |
-| 5 | 16 | reaction_trap | Exchange: rt_mix | FEED inlet_1 20 µL/min (rt_mix) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0375 | 0.00905 | OK |
+| 4 | 15 | reaction_trap | Exchange: wash_buffer x3 | FEED wash_buffer_in 20 µL/min (wash_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0488 | 0.00905 | OK |
+| 5 | 16 | reaction_trap | Exchange: rt_mix | FEED inlet_1 20 µL/min (rt_mix) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0254 | 0.00905 | OK |
 | 6 | 16 | reaction_trap | Incubate | all capped |  |  |  | no flow: every port capped |
-| 7 | 17 | reaction_trap | Exchange: wash_buffer x2 | FEED wash_buffer_in 20 µL/min (wash_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0734 | 0.00905 | OK |
-| 8 | 18 | split_2 | Split | FEED inlet_1 20 µL/min (carrier_buffer) / VENT pcr_1_vent_out, pcr_2_vent_out, pcr_3_vent_out, pcr_4_vent_out / rest capped | 20 | 0.0018 | 0.00213 | OK |
-| 9 | 19 | pcr_1 | Exchange: index_mix_1 | FEED index_mix_1_in 20 µL/min (index_mix_1) / VENT pcr_1_vent_out / rest capped | 20 | 0.0042 | 0.0128 | OK |
-| 10 | 19 | pcr_2 | Exchange: index_mix_2 | FEED index_mix_2_in 20 µL/min (index_mix_2) / VENT pcr_2_vent_out / rest capped | 20 | 0.0042 | 0.0128 | OK |
-| 11 | 19 | pcr_3 | Exchange: index_mix_3 | FEED index_mix_3_in 20 µL/min (index_mix_3) / VENT pcr_3_vent_out / rest capped | 20 | 0.0042 | 0.0128 | OK |
-| 12 | 19 | pcr_4 | Exchange: index_mix_4 | FEED index_mix_4_in 20 µL/min (index_mix_4) / VENT pcr_4_vent_out / rest capped | 20 | 0.0042 | 0.0128 | OK |
+| 7 | 17 | reaction_trap | Exchange: wash_buffer x2 | FEED wash_buffer_in 20 µL/min (wash_buffer) / VENT reaction_trap_waste_out / rest capped | 20 | 0.0488 | 0.00905 | OK |
+| 8 | 18 | split_2 | Split | FEED inlet_1 20 µL/min (carrier_buffer) / VENT pcr_1_vent_out, pcr_2_vent_out, pcr_3_vent_out, pcr_4_vent_out / rest capped | 20 | 0.002 | 0.00209 | OK |
+| 9 | 19 | pcr_1 | Exchange: index_mix_1 | FEED index_mix_1_in 20 µL/min (index_mix_1) / VENT pcr_1_vent_out / rest capped | 20 | 0.0043 | 0.0128 | OK |
+| 10 | 19 | pcr_2 | Exchange: index_mix_2 | FEED index_mix_2_in 20 µL/min (index_mix_2) / VENT pcr_2_vent_out / rest capped | 20 | 0.0043 | 0.0128 | OK |
+| 11 | 19 | pcr_3 | Exchange: index_mix_3 | FEED index_mix_3_in 20 µL/min (index_mix_3) / VENT pcr_3_vent_out / rest capped | 20 | 0.0043 | 0.0128 | OK |
+| 12 | 19 | pcr_4 | Exchange: index_mix_4 | FEED index_mix_4_in 20 µL/min (index_mix_4) / VENT pcr_4_vent_out / rest capped | 20 | 0.0043 | 0.0128 | OK |
 | 13 | 19 | pcr_4 | Thermal cycling: N cycles | all capped |  |  |  | no flow: every port capped |
-| 14 | 20 | release_trap | Move capsules: pcr_1 → release_trap | FEED inlet_1 20 µL/min (carrier_buffer) / VENT release_trap_waste_out / rest capped | 20 | 0.0404 | 0.00905 | OK |
-| 15 | 20 | release_trap | Release with release_enzyme | FEED release_enzyme_in 20 µL/min (release_enzyme) / VENT outlet_1 / rest capped | 20 | 0.0418 | 0.00905 | OK |
-| 16 | 24 | pool_2 | Pool | FEED inlet_1 20 µL/min (library_suspension) / VENT outlet_1 / rest capped | 20 | 0.0089 | 0.00213 | OK |
-| 17 | 24 | pool_2 | Collect the library (outlet_1) | FEED inlet_1 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0089 | 0.00213 | OK |
+| 14 | 20 | release_trap | Move capsules: pcr_1 → release_trap | FEED inlet_1 20 µL/min (carrier_buffer) / VENT release_trap_waste_out / rest capped | 20 | 0.0283 | 0.00905 | OK |
+| 15 | 20 | release_trap | Release with release_enzyme | FEED release_enzyme_in 20 µL/min (release_enzyme) / VENT outlet_1 / rest capped | 20 | 0.0283 | 0.00905 | OK |
+| 16 | 24 | pool_2 | Pool | FEED inlet_1 20 µL/min (library_suspension) / VENT outlet_1 / rest capped | 20 | 0.0079 | 0.00209 | OK |
+| 17 | 24 | pool_2 | Collect the library (outlet_1) | FEED inlet_1 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0079 | 0.00209 | OK |
 
 Operator planner: accepted, 17 events in `runs/chip3_lysis_rt_split_index_pcr_pool_release.twin_run.json`.
 
@@ -221,13 +221,13 @@ Operator planner: accepted, 17 events in `runs/chip3_lysis_rt_split_index_pcr_po
 
 | # | IR step | Module | What | Port states | Through target (µL/min) | Max kPa | Shear (dyn/cm2) | Result |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 21 | bead_chamber | Exchange: magnetic_beads | FEED magnetic_beads_in 20 µL/min (magnetic_beads) / VENT bead_waste_out / rest capped | 20 | 0.0044 | 0.00905 | OK |
-| 2 | 21 | bead_chamber | Load nucleic_acid from the hand-off from chip3_lysis_rt_split_index_pcr_pool_release | FEED inlet_1 20 µL/min (nucleic_acid_sample) / VENT bead_waste_out / rest capped | 20 | 0.0062 | 0.00905 | OK |
+| 1 | 21 | bead_chamber | Exchange: magnetic_beads | FEED magnetic_beads_in 20 µL/min (magnetic_beads) / VENT bead_waste_out / rest capped | 20 | 0.0049 | 0.00905 | OK |
+| 2 | 21 | bead_chamber | Load nucleic_acid from the hand-off from chip3_lysis_rt_split_index_pcr_pool_release | FEED inlet_1 20 µL/min (nucleic_acid_sample) / VENT bead_waste_out / rest capped | 20 | 0.0057 | 0.00905 | OK |
 | 3 | 21 | bead_chamber | Incubate | all capped |  |  |  | no flow: every port capped |
-| 4 | 22 | bead_chamber | Exchange: ethanol_wash x2 | FEED ethanol_wash_in 20 µL/min (ethanol_wash) / VENT bead_waste_out / rest capped | 20 | 0.0044 | 0.00905 | OK |
-| 5 | 23 | bead_chamber | Exchange: elution_buffer | FEED elution_buffer_in 20 µL/min (elution_buffer) / VENT bead_waste_out / rest capped | 20 | 0.0044 | 0.00905 | OK |
+| 4 | 22 | bead_chamber | Exchange: ethanol_wash x2 | FEED ethanol_wash_in 20 µL/min (ethanol_wash) / VENT bead_waste_out / rest capped | 20 | 0.0049 | 0.00905 | OK |
+| 5 | 23 | bead_chamber | Exchange: elution_buffer | FEED elution_buffer_in 20 µL/min (elution_buffer) / VENT bead_waste_out / rest capped | 20 | 0.0049 | 0.00905 | OK |
 | 6 | 23 | bead_chamber | Incubate | all capped |  |  |  | no flow: every port capped |
-| 7 | 23 | bead_chamber | Collect the library (outlet_1) | FEED elution_buffer_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0072 | 0.00905 | OK |
+| 7 | 23 | bead_chamber | Collect the library (outlet_1) | FEED elution_buffer_in 20 µL/min (collection_buffer) / VENT outlet_1 / rest capped | 20 | 0.0063 | 0.00905 | OK |
 
 Operator planner: accepted, 7 events in `runs/chip4_bead_binding_wash_elution.twin_run.json`.
 

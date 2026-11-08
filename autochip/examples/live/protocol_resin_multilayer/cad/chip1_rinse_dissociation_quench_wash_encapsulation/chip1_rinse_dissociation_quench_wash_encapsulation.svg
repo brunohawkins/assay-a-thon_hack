@@ -153,22 +153,22 @@
 <rect x="209.56" y="337.56" width="27.59" height="27.59" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
 <rect x="115.77" y="309.98" width="78.16" height="82.76" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
 <rect x="99.22" y="506.76" width="183.91" height="183.91" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
-<polyline points="78.99,149.98 99.22,149.98" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="74.39,149.98 78.99,149.98 99.22,149.98" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
 <polyline points="283.13,149.98 298.76,149.98" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
 <polyline points="326.34,149.98 341.98,149.98" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
 <polyline points="420.14,149.98 427.49,149.98 427.49,351.36 421.98,351.36" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
 <polyline points="252.78,351.36 237.15,351.36" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
 <polyline points="209.56,351.36 193.93,351.36" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
 <polyline points="115.77,351.36 93.70,351.36 93.70,598.71 99.22,598.71" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="283.13,598.71 442.21,598.71" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="191.17,86.99 191.17,104.00" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="191.17,195.95 191.17,212.97" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="312.55,86.99 312.55,136.18" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="337.38,249.75 337.38,266.76" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="337.38,435.95 337.38,452.97" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="223.36,249.75 223.36,337.56" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="191.17,489.75 191.17,506.76" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="191.17,707.68 191.17,690.67" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="283.13,598.71 442.21,598.71 446.80,598.71" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="191.17,82.39 191.17,86.99 191.17,104.00" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="191.17,195.95 191.17,212.97 191.17,217.56" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="312.55,82.39 312.55,86.99 312.55,136.18" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="337.38,245.15 337.38,249.75 337.38,266.76" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="337.38,435.95 337.38,452.97 337.38,457.56" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="223.36,245.15 223.36,249.75 223.36,337.56" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="191.17,485.15 191.17,489.75 191.17,506.76" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="191.17,712.28 191.17,707.68 191.17,690.67" fill="none" stroke="#2f6fb0" stroke-width="4.60" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
 <text x="191.17" y="147.33" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">culture_1</text>
 <text x="191.17" y="159.33" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">20 x 10 x 0.5 mm</text>
 <text x="312.55" y="178.77" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">quench_join</text>

@@ -558,14 +558,16 @@ def build_md(spec: dict, violations: list, extra: dict, files: list[str]) -> str
             L.append(f"   - Floor: a {c['mesh_pore_um']:g} um mesh (bought sheet, inserted at assembly).")
     L += ["", "## 3. Channels", "",
           "Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and "
-          "cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.", ""]
+          "cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs "
+          "through the port centre on to the far edge of the hole.", ""]
     for i, ch in enumerate(spec["channels"], 1):
         pts = " -> ".join(f"({x:g}, {y:g})" for x, y in ch.get("path", []))
         L.append(f"{i}. **{ch['id']}**: {ch['from']} -> {ch['to']}, {ch['width_mm']:g} mm wide, {ch['depth_mm']:g} mm deep, "
                  f"carries {ch.get('carries', 'liquid')}, {path_length(ch.get('path', [[0, 0], [0, 0]])):.2f} mm long"
                  + (f", on layer `{_layer(ch)}`" if _layer(ch) != "fluidic" else "") + f". Path: {pts}.")
     L += ["", "## 4. Ports", "",
-          "Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.", ""]
+          "Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs "
+          "across the whole hole.", ""]
     for p in spec["ports"]:
         x, y, z = p["position"]
         L.append(f"- **{p['id']}** ({p['type']}, {p.get('role', '-')}): {p.get('width_um', 1000) / 1000:g} mm hole at ({x:g}, {y:g}), "

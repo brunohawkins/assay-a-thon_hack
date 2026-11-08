@@ -1,12 +1,12 @@
 {
   "chip1_encapsulation": {
     "spec_id": "chip1_encapsulation",
-    "spec_sha1": "4119ca13827c86fa32970c66f5d442badd5f0600",
+    "spec_sha1": "b6a53a6bef8ff2c0bf39e4b424c477908474e258",
     "violations": []
   },
   "chip2_emulsion_break_curing_wash_filter": {
     "spec_id": "chip2_emulsion_break_curing_wash_filter",
-    "spec_sha1": "67ee2fa1f1b53cc343eef3bf8486d9308e1ba936",
+    "spec_sha1": "a1c29bbb2507a9d829667817ff9a8e592f1af9d4",
     "violations": [
       {
         "severity": "warning",
@@ -22,7 +22,7 @@
   },
   "chip3_lysis_wash_rt": {
     "spec_id": "chip3_lysis_wash_rt",
-    "spec_sha1": "1e97ef5e36f3cf5f28929f755e01bf1cfb613f2b",
+    "spec_sha1": "298f0ad91cfc0966b05334923e9566f4d1a3e2eb",
     "violations": [
       {
         "severity": "error",

@@ -4,7 +4,7 @@
   "chip_name": "Bead binding, ethanol wash and elution chip",
   "purpose": "Binds cDNA to magnetic beads, washes on the magnet and elutes the library.",
   "placeholder": true,
-  "created_at": "2026-11-08T09:35:58Z",
+  "created_at": "2026-11-08T10:13:38Z",
   "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
   "limits": {
     "pump_channels": null,
@@ -114,7 +114,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0044,
+        "max_pressure_kpa": 0.0049,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "magnetic_beads_in": 20.0,
@@ -181,7 +181,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0062,
+        "max_pressure_kpa": 0.0057,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
@@ -300,7 +300,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0044,
+        "max_pressure_kpa": 0.0049,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "ethanol_wash_in": 20.0,
@@ -368,7 +368,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0044,
+        "max_pressure_kpa": 0.0049,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "bead_waste_out": -20.0,
@@ -483,7 +483,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0072,
+        "max_pressure_kpa": 0.0063,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "outlet_1": -20.0,

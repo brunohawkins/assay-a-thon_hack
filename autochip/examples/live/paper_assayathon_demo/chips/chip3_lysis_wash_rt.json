@@ -101,6 +101,10 @@
       "carries": "capsules",
       "path": [
         [
+          1.0,
+          7.75
+        ],
+        [
           1.5,
           7.75
         ],
@@ -126,6 +130,10 @@
         [
           25.0,
           7.75
+        ],
+        [
+          25.5,
+          7.75
         ]
       ],
       "note": "layer fluidic; main path"
@@ -134,10 +142,14 @@
       "id": "ch_reagent_line_in_lysis_rt_trap",
       "from": "reagent_line_in",
       "to": "lysis_rt_trap",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
+        [
+          13.13,
+          14.5
+        ],
         [
           13.13,
           14.0
@@ -153,7 +165,7 @@
       "id": "ch_lysis_rt_trap_trap_waste_out",
       "from": "lysis_rt_trap",
       "to": "trap_waste_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
@@ -164,6 +176,10 @@
         [
           13.13,
           1.5
+        ],
+        [
+          13.13,
+          1.0
         ]
       ],
       "note": "layer fluidic"

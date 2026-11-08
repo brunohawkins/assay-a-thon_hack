@@ -24,17 +24,17 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 3. Channels
 
-Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.
+Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs through the port centre on to the far edge of the hole.
 
-1. **ch_inlet_1_aggregate_filter**: inlet_1 -> aggregate_filter, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.20 mm long. Path: (2.5, 9.5) -> (4.7, 9.5).
+1. **ch_inlet_1_aggregate_filter**: inlet_1 -> aggregate_filter, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.70 mm long. Path: (2, 9.5) -> (2.5, 9.5) -> (4.7, 9.5).
 2. **ch_aggregate_filter_reaction_trap**: aggregate_filter -> reaction_trap, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.20 mm long. Path: (9.7, 9.5) -> (10.9, 9.5).
-3. **ch_reaction_trap_outlet_1**: reaction_trap -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.46 mm long. Path: (25.0421, 9.5) -> (27.5, 9.5).
-4. **ch_reagent_line_in_reaction_trap**: reagent_line_in -> reaction_trap, 0.5 mm wide, 0.3 mm deep, carries liquid, 3.46 mm long. Path: (17.97, 16.5) -> (17.97, 13.0355).
-5. **ch_reaction_trap_reaction_trap_waste_out**: reaction_trap -> reaction_trap_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 3.46 mm long. Path: (17.97, 5.9645) -> (17.97, 2.5).
+3. **ch_reaction_trap_outlet_1**: reaction_trap -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.96 mm long. Path: (25.0421, 9.5) -> (27.5, 9.5) -> (28, 9.5).
+4. **ch_reagent_line_in_reaction_trap**: reagent_line_in -> reaction_trap, 0.5 mm wide, 0.3 mm deep, carries liquid, 3.96 mm long. Path: (17.97, 17) -> (17.97, 16.5) -> (17.97, 13.0355).
+5. **ch_reaction_trap_reaction_trap_waste_out**: reaction_trap -> reaction_trap_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 3.96 mm long. Path: (17.97, 5.9645) -> (17.97, 2.5) -> (17.97, 2).
 
 ## 4. Ports
 
-Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.
+Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs across the whole hole.
 
 - **inlet_1** (inlet, load): 1 mm hole at (2.5, 9.5), from z = 2.5 down to z = 1. main inlet: inlet_1 from chip2_gelation_emulsion_break_cure_wash.outlet_1.
 - **outlet_1** (outlet, harvest): 1 mm hole at (27.5, 9.5), from z = 2.5 down to z = 1. main outlet -> external.

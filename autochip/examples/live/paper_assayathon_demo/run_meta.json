@@ -1,6 +1,6 @@
 {
-  "backend": "claude-cli",
+  "backend": "replay",
   "model": null,
-  "replay": null,
+  "replay": "autochip/examples/live/paper_assayathon_demo/agent",
   "constraints": "assayathon_demo"
 }

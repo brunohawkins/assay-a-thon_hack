@@ -216,7 +216,7 @@
   },
   "footprint": {
     "x": 55.5,
-    "y": 44.0,
+    "y": 45.0,
     "note": "1 row(s); no size limit"
   },
   "layers": [
@@ -245,7 +245,7 @@
       "type": "cell_wash",
       "center": [
         11.5711,
-        22.0,
+        22.5,
         1.25
       ],
       "size": [
@@ -268,12 +268,12 @@
       "type": "split",
       "center": [
         20.64,
-        22.0,
+        22.5,
         1.25
       ],
       "size": [
         2.0,
-        30.1,
+        30.7,
         0.5
       ],
       "volume_ul": 16.5,
@@ -286,7 +286,7 @@
       "type": "exchange",
       "center": [
         27.64,
-        36.7,
+        37.5,
         1.25
       ],
       "size": [
@@ -304,7 +304,7 @@
       "type": "exchange",
       "center": [
         27.64,
-        26.9,
+        27.5,
         1.25
       ],
       "size": [
@@ -322,7 +322,7 @@
       "type": "exchange",
       "center": [
         27.64,
-        17.1,
+        17.5,
         1.25
       ],
       "size": [
@@ -340,7 +340,7 @@
       "type": "exchange",
       "center": [
         27.64,
-        7.3,
+        7.5,
         1.25
       ],
       "size": [
@@ -358,12 +358,12 @@
       "type": "pool",
       "center": [
         34.64,
-        22.0,
+        22.5,
         1.25
       ],
       "size": [
         2.0,
-        30.1,
+        30.7,
         0.5
       ],
       "volume_ul": 16.5,
@@ -376,7 +376,7 @@
       "type": "cell_wash",
       "center": [
         43.7111,
-        22.0,
+        22.5,
         1.25
       ],
       "size": [
@@ -405,12 +405,16 @@
       "carries": "capsules",
       "path": [
         [
+          2.0,
+          22.5
+        ],
+        [
           2.5,
-          22.0
+          22.5
         ],
         [
           4.5,
-          22.0
+          22.5
         ]
       ],
       "note": "layer fluidic; main path"
@@ -425,11 +429,11 @@
       "path": [
         [
           18.6421,
-          22.0
+          22.5
         ],
         [
           19.64,
-          22.0
+          22.5
         ]
       ],
       "note": "layer fluidic; main path"
@@ -444,11 +448,11 @@
       "path": [
         [
           35.64,
-          22.0
+          22.5
         ],
         [
           36.64,
-          22.0
+          22.5
         ]
       ],
       "note": "layer fluidic; main path"
@@ -457,17 +461,21 @@
       "id": "ch_release_trap_outlet_1",
       "from": "release_trap",
       "to": "outlet_1",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           50.7821,
-          22.0
+          22.5
         ],
         [
           53.0,
-          22.0
+          22.5
+        ],
+        [
+          53.5,
+          22.5
         ]
       ],
       "note": "layer fluidic; main path"
@@ -482,11 +490,11 @@
       "path": [
         [
           21.64,
-          36.7
+          37.5
         ],
         [
           22.64,
-          36.7
+          37.5
         ]
       ],
       "note": "layer fluidic; fan-out to lane 1 of 4"
@@ -501,11 +509,11 @@
       "path": [
         [
           21.64,
-          26.9
+          27.5
         ],
         [
           22.64,
-          26.9
+          27.5
         ]
       ],
       "note": "layer fluidic; fan-out to lane 2 of 4"
@@ -520,11 +528,11 @@
       "path": [
         [
           21.64,
-          17.1
+          17.5
         ],
         [
           22.64,
-          17.1
+          17.5
         ]
       ],
       "note": "layer fluidic; fan-out to lane 3 of 4"
@@ -539,11 +547,11 @@
       "path": [
         [
           21.64,
-          7.3
+          7.5
         ],
         [
           22.64,
-          7.3
+          7.5
         ]
       ],
       "note": "layer fluidic; fan-out to lane 4 of 4"
@@ -558,11 +566,11 @@
       "path": [
         [
           32.64,
-          36.7
+          37.5
         ],
         [
           33.64,
-          36.7
+          37.5
         ]
       ],
       "note": "layer fluidic; fan-in from lane 1 of 4"
@@ -577,11 +585,11 @@
       "path": [
         [
           32.64,
-          26.9
+          27.5
         ],
         [
           33.64,
-          26.9
+          27.5
         ]
       ],
       "note": "layer fluidic; fan-in from lane 2 of 4"
@@ -596,11 +604,11 @@
       "path": [
         [
           32.64,
-          17.1
+          17.5
         ],
         [
           33.64,
-          17.1
+          17.5
         ]
       ],
       "note": "layer fluidic; fan-in from lane 3 of 4"
@@ -615,11 +623,11 @@
       "path": [
         [
           32.64,
-          7.3
+          7.5
         ],
         [
           33.64,
-          7.3
+          7.5
         ]
       ],
       "note": "layer fluidic; fan-in from lane 4 of 4"
@@ -628,17 +636,21 @@
       "id": "ch_reagent_line_in_reaction_trap",
       "from": "reagent_line_in",
       "to": "reaction_trap",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           10.07,
-          41.5
+          43.0
         ],
         [
           10.07,
-          25.5355
+          42.5
+        ],
+        [
+          10.07,
+          26.0355
         ]
       ],
       "note": "layer fluidic"
@@ -647,17 +659,21 @@
       "id": "ch_wash_buffer_in_reaction_trap",
       "from": "wash_buffer_in",
       "to": "reaction_trap",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           13.07,
-          41.5
+          43.0
         ],
         [
           13.07,
-          25.5355
+          42.5
+        ],
+        [
+          13.07,
+          26.0355
         ]
       ],
       "note": "layer fluidic"
@@ -666,17 +682,21 @@
       "id": "ch_reaction_trap_reaction_trap_waste_out",
       "from": "reaction_trap",
       "to": "reaction_trap_waste_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           11.57,
-          18.4645
+          18.9645
         ],
         [
           11.57,
           2.5
+        ],
+        [
+          11.57,
+          2.0
         ]
       ],
       "note": "layer fluidic"
@@ -685,17 +705,21 @@
       "id": "ch_index_mix_1_in_pcr_1",
       "from": "index_mix_1_in",
       "to": "pcr_1",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           27.64,
-          40.1
+          41.5
         ],
         [
           27.64,
-          39.2
+          41.0
+        ],
+        [
+          27.64,
+          40.0
         ]
       ],
       "note": "layer fluidic"
@@ -704,17 +728,21 @@
       "id": "ch_pcr_1_pcr_1_vent_out",
       "from": "pcr_1",
       "to": "pcr_1_vent_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           27.64,
-          34.2
+          35.0
         ],
         [
           27.64,
-          33.3
+          34.0
+        ],
+        [
+          27.64,
+          33.5
         ]
       ],
       "note": "layer fluidic"
@@ -723,17 +751,21 @@
       "id": "ch_index_mix_2_in_pcr_2",
       "from": "index_mix_2_in",
       "to": "pcr_2",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           27.64,
-          30.3
+          31.5
         ],
         [
           27.64,
-          29.4
+          31.0
+        ],
+        [
+          27.64,
+          30.0
         ]
       ],
       "note": "layer fluidic"
@@ -742,13 +774,17 @@
       "id": "ch_pcr_2_pcr_2_vent_out",
       "from": "pcr_2",
       "to": "pcr_2_vent_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           27.64,
-          24.4
+          25.0
+        ],
+        [
+          27.64,
+          24.0
         ],
         [
           27.64,
@@ -761,17 +797,21 @@
       "id": "ch_index_mix_3_in_pcr_3",
       "from": "index_mix_3_in",
       "to": "pcr_3",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           27.64,
-          20.5
+          21.5
         ],
         [
           27.64,
-          19.6
+          21.0
+        ],
+        [
+          27.64,
+          20.0
         ]
       ],
       "note": "layer fluidic"
@@ -780,17 +820,21 @@
       "id": "ch_pcr_3_pcr_3_vent_out",
       "from": "pcr_3",
       "to": "pcr_3_vent_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           27.64,
-          14.6
+          15.0
         ],
         [
           27.64,
-          13.7
+          14.0
+        ],
+        [
+          27.64,
+          13.5
         ]
       ],
       "note": "layer fluidic"
@@ -799,17 +843,21 @@
       "id": "ch_index_mix_4_in_pcr_4",
       "from": "index_mix_4_in",
       "to": "pcr_4",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           27.64,
-          10.7
+          11.5
         ],
         [
           27.64,
-          9.8
+          11.0
+        ],
+        [
+          27.64,
+          10.0
         ]
       ],
       "note": "layer fluidic"
@@ -818,17 +866,21 @@
       "id": "ch_pcr_4_pcr_4_vent_out",
       "from": "pcr_4",
       "to": "pcr_4_vent_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           27.64,
-          4.8
+          5.0
         ],
         [
           27.64,
-          3.9
+          4.0
+        ],
+        [
+          27.64,
+          3.5
         ]
       ],
       "note": "layer fluidic"
@@ -837,17 +889,21 @@
       "id": "ch_release_enzyme_in_release_trap",
       "from": "release_enzyme_in",
       "to": "release_trap",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           43.71,
-          41.5
+          43.0
         ],
         [
           43.71,
-          25.5355
+          42.5
+        ],
+        [
+          43.71,
+          26.0355
         ]
       ],
       "note": "layer fluidic"
@@ -856,17 +912,21 @@
       "id": "ch_release_trap_release_trap_waste_out",
       "from": "release_trap",
       "to": "release_trap_waste_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           43.71,
-          18.4645
+          18.9645
         ],
         [
           43.71,
           2.5
+        ],
+        [
+          43.71,
+          2.0
         ]
       ],
       "note": "layer fluidic"
@@ -878,7 +938,7 @@
       "type": "inlet",
       "position": [
         2.5,
-        22.0,
+        22.5,
         2.5
       ],
       "role": "load",
@@ -890,7 +950,7 @@
       "type": "outlet",
       "position": [
         53.0,
-        22.0,
+        22.5,
         2.5
       ],
       "role": "transfer",
@@ -902,7 +962,7 @@
       "type": "inlet",
       "position": [
         10.07,
-        41.5,
+        42.5,
         2.5
       ],
       "role": "reagent",
@@ -914,7 +974,7 @@
       "type": "inlet",
       "position": [
         13.07,
-        41.5,
+        42.5,
         2.5
       ],
       "role": "reagent",
@@ -938,7 +998,7 @@
       "type": "inlet",
       "position": [
         27.64,
-        40.1,
+        41.0,
         2.5
       ],
       "role": "reagent",
@@ -950,7 +1010,7 @@
       "type": "outlet",
       "position": [
         27.64,
-        33.3,
+        34.0,
         2.5
       ],
       "role": "waste",
@@ -962,7 +1022,7 @@
       "type": "inlet",
       "position": [
         27.64,
-        30.3,
+        31.0,
         2.5
       ],
       "role": "reagent",
@@ -974,7 +1034,7 @@
       "type": "outlet",
       "position": [
         27.64,
-        23.5,
+        24.0,
         2.5
       ],
       "role": "waste",
@@ -986,7 +1046,7 @@
       "type": "inlet",
       "position": [
         27.64,
-        20.5,
+        21.0,
         2.5
       ],
       "role": "reagent",
@@ -998,7 +1058,7 @@
       "type": "outlet",
       "position": [
         27.64,
-        13.7,
+        14.0,
         2.5
       ],
       "role": "waste",
@@ -1010,7 +1070,7 @@
       "type": "inlet",
       "position": [
         27.64,
-        10.7,
+        11.0,
         2.5
       ],
       "role": "reagent",
@@ -1022,7 +1082,7 @@
       "type": "outlet",
       "position": [
         27.64,
-        3.9,
+        4.0,
         2.5
       ],
       "role": "waste",
@@ -1034,7 +1094,7 @@
       "type": "inlet",
       "position": [
         43.71,
-        41.5,
+        42.5,
         2.5
       ],
       "role": "reagent",
@@ -1060,12 +1120,12 @@
       "type": "heat_zone",
       "center": [
         27.64,
-        22.0,
+        22.5,
         1.25
       ],
       "size": [
         11.0,
-        35.4,
+        36.0,
         2.5
       ],
       "temp_c": 95.0,

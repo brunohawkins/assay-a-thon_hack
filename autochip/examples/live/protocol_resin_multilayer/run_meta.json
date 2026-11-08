@@ -1,6 +1,6 @@
 {
-  "backend": "claude-cli",
+  "backend": "replay",
   "model": null,
-  "replay": null,
+  "replay": "autochip/examples/live/protocol_resin_multilayer/agent",
   "constraints": "resin_print_multilayer"
 }

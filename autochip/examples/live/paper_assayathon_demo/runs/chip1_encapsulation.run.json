@@ -4,7 +4,7 @@
   "chip_name": "Encapsulation chip",
   "purpose": "Cells in core solution are pinched into shell-polymer droplets by fluorinated oil at a flow-focusing junction.",
   "placeholder": true,
-  "created_at": "2026-11-08T09:36:00Z",
+  "created_at": "2026-11-08T10:13:07Z",
   "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
   "limits": {
     "pump_channels": 4,
@@ -110,9 +110,9 @@
         "total_feed_ul_min": 14.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.003,
+        "max_pressure_kpa": 0.0029,
         "target_shear_dyn_cm2": 0.04148,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "inlet_1": 2.0,
           "outlet_1": -14.0,

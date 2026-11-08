@@ -4,7 +4,7 @@
   "chip_id": "chip3_filter_lysis_rt_wash",
   "chip_spec": "autochip/examples/live/protocol_resin_multilayer/chips/chip3_filter_lysis_rt_wash.json",
   "operator": "planner",
-  "created_at": "2026-11-08T09:36:02Z",
+  "created_at": "2026-11-08T10:13:06Z",
   "placeholder": true,
   "total_duration_s": 7545.0,
   "events": [

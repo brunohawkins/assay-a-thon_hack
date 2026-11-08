@@ -6,7 +6,7 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 1. Board
 
-1. Draw a 23 x 14 mm rectangle with its bottom-left corner at (0, 0).
+1. Draw a 23 x 14.5 mm rectangle with its bottom-left corner at (0, 0).
 2. Layer stack, bottom to top (total 2.5 mm):
    - `base`: unspecified, 1 mm (z 0 to 1) - other
    - `fluidic`: unspecified, 0.5 mm (z 1 to 1.5) - fluidic layer
@@ -15,28 +15,28 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 2. Modules (chambers), in flow order
 
-1. **bead_chamber** - 14.1 x 7.07 mm, 0.5 mm deep, bottom-left corner at (4.200, 3.464), centre (11.2711, 7); 50 uL; type exchange. Draw it as a exchange (magnetic_chamber, parametric).
+1. **bead_chamber** - 14.1 x 7.07 mm, 0.5 mm deep, bottom-left corner at (4.200, 3.714), centre (11.2711, 7.25); 50 uL; type exchange. Draw it as a exchange (magnetic_chamber, parametric).
    - Does (steps 21, 22, 23): Beads bind the cDNA, are held by the magnet during two ethanol washes, then release the library into elution buffer.
 
 ## 3. Channels
 
-Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.
+Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs through the port centre on to the far edge of the hole.
 
-1. **ch_inlet_1_bead_chamber**: inlet_1 -> bead_chamber, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.70 mm long. Path: (2.5, 7) -> (4.2, 7).
-2. **ch_bead_chamber_outlet_1**: bead_chamber -> outlet_1, 0.2 mm wide, 0.3 mm deep, carries liquid, 2.16 mm long. Path: (18.3421, 7) -> (20.5, 7).
-3. **ch_magnetic_beads_in_bead_chamber**: magnetic_beads_in -> bead_chamber, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.96 mm long. Path: (9.77, 11.5) -> (9.77, 10.5355).
-4. **ch_ethanol_wash_in_bead_chamber**: ethanol_wash_in -> bead_chamber, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.96 mm long. Path: (12.77, 11.5) -> (12.77, 10.5355).
-5. **ch_bead_chamber_bead_waste_out**: bead_chamber -> bead_waste_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.96 mm long. Path: (9.77, 3.4645) -> (9.77, 2.5).
-6. **ch_elution_buffer_in_bead_chamber**: elution_buffer_in -> bead_chamber, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.96 mm long. Path: (12.77, 2.5) -> (12.77, 3.4645).
+1. **ch_inlet_1_bead_chamber**: inlet_1 -> bead_chamber, 0.25 mm wide, 0.3 mm deep, carries liquid, 2.20 mm long. Path: (2, 7.25) -> (2.5, 7.25) -> (4.2, 7.25).
+2. **ch_bead_chamber_outlet_1**: bead_chamber -> outlet_1, 0.25 mm wide, 0.3 mm deep, carries liquid, 2.66 mm long. Path: (18.3421, 7.25) -> (20.5, 7.25) -> (21, 7.25).
+3. **ch_magnetic_beads_in_bead_chamber**: magnetic_beads_in -> bead_chamber, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.71 mm long. Path: (9.77, 12.5) -> (9.77, 12) -> (9.77, 10.7855).
+4. **ch_ethanol_wash_in_bead_chamber**: ethanol_wash_in -> bead_chamber, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.71 mm long. Path: (12.77, 12.5) -> (12.77, 12) -> (12.77, 10.7855).
+5. **ch_bead_chamber_bead_waste_out**: bead_chamber -> bead_waste_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.71 mm long. Path: (9.77, 3.7145) -> (9.77, 2.5) -> (9.77, 2).
+6. **ch_elution_buffer_in_bead_chamber**: elution_buffer_in -> bead_chamber, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.71 mm long. Path: (12.77, 2) -> (12.77, 2.5) -> (12.77, 3.7145).
 
 ## 4. Ports
 
-Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.
+Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs across the whole hole.
 
-- **inlet_1** (inlet, load): 1 mm hole at (2.5, 7), from z = 2.5 down to z = 1. main inlet: inlet_1 from chip3_lysis_rt_split_index_pcr_pool_release.outlet_1.
-- **outlet_1** (outlet, harvest): 1 mm hole at (20.5, 7), from z = 2.5 down to z = 1. main outlet -> external.
-- **magnetic_beads_in** (inlet, reagent): 1 mm hole at (9.77, 11.5), from z = 2.5 down to z = 1. reagent 'magnetic_beads' into bead_chamber.
-- **ethanol_wash_in** (inlet, reagent): 1 mm hole at (12.77, 11.5), from z = 2.5 down to z = 1. reagent 'ethanol_wash' into bead_chamber.
+- **inlet_1** (inlet, load): 1 mm hole at (2.5, 7.25), from z = 2.5 down to z = 1. main inlet: inlet_1 from chip3_lysis_rt_split_index_pcr_pool_release.outlet_1.
+- **outlet_1** (outlet, harvest): 1 mm hole at (20.5, 7.25), from z = 2.5 down to z = 1. main outlet -> external.
+- **magnetic_beads_in** (inlet, reagent): 1 mm hole at (9.77, 12), from z = 2.5 down to z = 1. reagent 'magnetic_beads' into bead_chamber.
+- **ethanol_wash_in** (inlet, reagent): 1 mm hole at (12.77, 12), from z = 2.5 down to z = 1. reagent 'ethanol_wash' into bead_chamber.
 - **bead_waste_out** (outlet, waste): 1 mm hole at (9.77, 2.5), from z = 2.5 down to z = 1. 'bead_waste' out of bead_chamber.
 - **elution_buffer_in** (inlet, reagent): 1 mm hole at (12.77, 2.5), from z = 2.5 down to z = 1. reagent 'elution_buffer' into bead_chamber.
 

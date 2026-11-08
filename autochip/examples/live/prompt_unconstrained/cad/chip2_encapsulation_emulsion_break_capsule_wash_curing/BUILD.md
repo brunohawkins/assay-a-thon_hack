@@ -6,7 +6,7 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 1. Board
 
-1. Draw a 23.5 x 32 mm rectangle with its bottom-left corner at (0, 0).
+1. Draw a 27.5 x 20.5 mm rectangle with its bottom-left corner at (0, 0).
 2. Layer stack, bottom to top (total 2.5 mm):
    - `base`: unspecified, 1 mm (z 0 to 1) - other
    - `fluidic`: unspecified, 0.5 mm (z 1 to 1.5) - fluidic layer
@@ -15,45 +15,45 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 2. Modules (chambers), in flow order
 
-1. **core_join** - 3 x 3 mm, 0.3 mm deep, bottom-left corner at (4.500, 25.170), centre (6, 26.67); 2.7 uL; type junction. Draw it as a junction (merge, parametric).
+1. **core_join** - 3 x 3 mm, 0.3 mm deep, bottom-left corner at (4.500, 13.470), centre (6, 14.97); 2.7 uL; type junction. Draw it as a junction (merge, parametric).
    - Does (steps 9): Core solution joins the cell stream just before the junction.
-2. **core_mix** - 2.6 x 2.5 mm, 0.3 mm deep, bottom-left corner at (16.400, 21.610), centre (17.7, 22.86); 0.9 uL; type mixer. Draw it as a mixer (mixer, parametric).
+2. **core_mix** - 2.6 x 2.5 mm, 0.3 mm deep, bottom-left corner at (8.500, 13.720), centre (9.8, 14.97); 0.9 uL; type mixer. Draw it as a mixer (mixer, parametric).
    - Does (steps 9): Mixes cells into the core solution so the centre stream is uniform.
    - Inside: a serpentine of 30 mm of 0.1 mm channel, 12 lanes filling the box.
-3. **encap_junction** - 3 x 3 mm, 0.3 mm deep, bottom-left corner at (4.500, 15.760), centre (6, 17.26); 2.7 uL; type junction. Draw it as a junction (droplet_junction, parametric).
+3. **encap_junction** - 3 x 3 mm, 0.3 mm deep, bottom-left corner at (4.500, 5.570), centre (6, 7.07); 2.7 uL; type junction. Draw it as a junction (droplet_junction, parametric).
    - Does (steps 9): Flow-focusing junction: cell/core stream in the centre, shell polymer and fluorinated oil on the sides, forming ~70 um single-cell droplets.
-4. **capsule_trap** - 14.1 x 7.07 mm, 0.5 mm deep, bottom-left corner at (4.500, 3.424), centre (11.5711, 6.96); 50 uL; type cell_wash. Draw it as a cell_wash (trap_chamber, parametric).
+4. **capsule_trap** - 14.1 x 7.07 mm, 0.5 mm deep, bottom-left corner at (8.500, 3.534), centre (15.5711, 7.07); 50 uL; type cell_wash. Draw it as a cell_wash (trap_chamber, parametric).
    - Does (steps 10, 11, 12, 13): Holds the droplets on a 10 um mesh (below 0.4 x capsule diameter) while the emulsion breaker removes the oil, then washes, 405 nm curing and washes again. The emulsion breaker keeps its own line. The wash buffer line is reused for both washes.
    - Floor: a 10 um mesh (bought sheet, inserted at assembly).
 
 ## 3. Channels
 
-Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.
+Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs through the port centre on to the far edge of the hole.
 
-1. **ch_inlet_1_core_join**: inlet_1 -> core_join, 0.3 mm wide, 0.3 mm deep, carries cells, 2.00 mm long. Path: (2.5, 26.67) -> (4.5, 26.67).
-2. **ch_core_join_core_mix**: core_join -> core_mix, 0.5 mm wide, 0.3 mm deep, carries droplets, 16.31 mm long. Path: (7.5, 26.67) -> (19.5, 26.67) -> (19.5, 22.86) -> (19, 22.86).
-3. **ch_core_mix_encap_junction**: core_mix -> encap_junction, 0.5 mm wide, 0.3 mm deep, carries droplets, 18.50 mm long. Path: (16.4, 22.86) -> (4, 22.86) -> (4, 17.26) -> (4.5, 17.26).
-4. **ch_encap_junction_capsule_trap**: encap_junction -> capsule_trap, 0.5 mm wide, 0.3 mm deep, carries droplets, 38.30 mm long. Path: (7.5, 17.26) -> (19.5, 17.26) -> (19.5, 12.93) -> (4, 12.93) -> (4, 6.96) -> (4.5, 6.96).
-5. **ch_capsule_trap_outlet_1**: capsule_trap -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.36 mm long. Path: (18.6421, 6.96) -> (21, 6.96).
-6. **ch_core_solution_in_core_join**: core_solution_in -> core_join, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.33 mm long. Path: (6, 29.5) -> (6, 28.17).
-7. **ch_shell_polymer_in_encap_junction**: shell_polymer_in -> encap_junction, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.33 mm long. Path: (6, 20.09) -> (6, 18.76).
-8. **ch_fluorinated_oil_in_encap_junction**: fluorinated_oil_in -> encap_junction, 0.2 mm wide, 0.3 mm deep, carries oil, 1.33 mm long. Path: (6, 14.43) -> (6, 15.76).
-9. **ch_emulsion_breaker_in_capsule_trap**: emulsion_breaker_in -> capsule_trap, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.93 mm long. Path: (10.07, 11.43) -> (10.07, 10.4955).
-10. **ch_wash_buffer_in_capsule_trap**: wash_buffer_in -> capsule_trap, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.93 mm long. Path: (13.07, 11.43) -> (13.07, 10.4955).
-11. **ch_capsule_trap_capsule_trap_waste_out**: capsule_trap -> capsule_trap_waste_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.92 mm long. Path: (11.57, 3.4245) -> (11.57, 2.5).
+1. **ch_inlet_1_core_join**: inlet_1 -> core_join, 0.3 mm wide, 0.3 mm deep, carries cells, 2.50 mm long. Path: (2, 14.97) -> (2.5, 14.97) -> (4.5, 14.97).
+2. **ch_core_join_core_mix**: core_join -> core_mix, 0.5 mm wide, 0.3 mm deep, carries droplets, 1.00 mm long. Path: (7.5, 14.97) -> (8.5, 14.97).
+3. **ch_core_mix_encap_junction**: core_mix -> encap_junction, 0.5 mm wide, 0.3 mm deep, carries droplets, 40.30 mm long. Path: (11.1, 14.97) -> (23.5, 14.97) -> (23.5, 12.79) -> (4, 12.79) -> (4, 7.07) -> (4.5, 7.07).
+4. **ch_encap_junction_capsule_trap**: encap_junction -> capsule_trap, 0.5 mm wide, 0.3 mm deep, carries droplets, 1.00 mm long. Path: (7.5, 7.07) -> (8.5, 7.07).
+5. **ch_capsule_trap_outlet_1**: capsule_trap -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.86 mm long. Path: (22.6421, 7.07) -> (25, 7.07) -> (25.5, 7.07).
+6. **ch_core_solution_in_core_join**: core_solution_in -> core_join, 0.25 mm wide, 0.3 mm deep, carries liquid, 2.03 mm long. Path: (6, 18.5) -> (6, 18) -> (6, 16.47).
+7. **ch_shell_polymer_in_encap_junction**: shell_polymer_in -> encap_junction, 0.25 mm wide, 0.3 mm deep, carries liquid, 3.57 mm long. Path: (6, 12.14) -> (6, 11.64) -> (6, 8.57).
+8. **ch_fluorinated_oil_in_encap_junction**: fluorinated_oil_in -> encap_junction, 0.25 mm wide, 0.3 mm deep, carries oil, 3.57 mm long. Path: (6, 2) -> (6, 2.5) -> (6, 5.57).
+9. **ch_emulsion_breaker_in_capsule_trap**: emulsion_breaker_in -> capsule_trap, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.53 mm long. Path: (14.07, 12.14) -> (14.07, 11.64) -> (14.07, 10.6055).
+10. **ch_wash_buffer_in_capsule_trap**: wash_buffer_in -> capsule_trap, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.53 mm long. Path: (17.07, 12.14) -> (17.07, 11.64) -> (17.07, 10.6055).
+11. **ch_capsule_trap_capsule_trap_waste_out**: capsule_trap -> capsule_trap_waste_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.53 mm long. Path: (15.57, 3.5345) -> (15.57, 2.5) -> (15.57, 2).
 
 ## 4. Ports
 
-Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.
+Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs across the whole hole.
 
-- **inlet_1** (inlet, load): 1 mm hole at (2.5, 26.67), from z = 2.5 down to z = 1. main inlet: inlet_1 from chip1_triculture_dissociation_quench_cell_wash_filter.outlet_1.
-- **outlet_1** (outlet, transfer): 1 mm hole at (21, 6.96), from z = 2.5 down to z = 1. main outlet -> chip3_lysis_rt_split_index_pcr_pool_release.inlet_1.
-- **core_solution_in** (inlet, reagent): 1 mm hole at (6, 29.5), from z = 2.5 down to z = 1. reagent 'core_solution' into core_join.
-- **shell_polymer_in** (inlet, reagent): 1 mm hole at (6, 20.09), from z = 2.5 down to z = 1. reagent 'shell_polymer' into encap_junction.
-- **fluorinated_oil_in** (inlet, oil): 1 mm hole at (6, 14.43), from z = 2.5 down to z = 1. reagent 'fluorinated_oil' into encap_junction.
-- **emulsion_breaker_in** (inlet, reagent): 1 mm hole at (10.07, 11.43), from z = 2.5 down to z = 1. reagent 'emulsion_breaker' into capsule_trap.
-- **wash_buffer_in** (inlet, reagent): 1 mm hole at (13.07, 11.43), from z = 2.5 down to z = 1. reagent 'wash_buffer' into capsule_trap.
-- **capsule_trap_waste_out** (outlet, waste): 1 mm hole at (11.57, 2.5), from z = 2.5 down to z = 1. 'capsule_trap_waste' out of capsule_trap.
+- **inlet_1** (inlet, load): 1 mm hole at (2.5, 14.97), from z = 2.5 down to z = 1. main inlet: inlet_1 from chip1_triculture_dissociation_quench_cell_wash_filter.outlet_1.
+- **outlet_1** (outlet, transfer): 1 mm hole at (25, 7.07), from z = 2.5 down to z = 1. main outlet -> chip3_lysis_rt_split_index_pcr_pool_release.inlet_1.
+- **core_solution_in** (inlet, reagent): 1 mm hole at (6, 18), from z = 2.5 down to z = 1. reagent 'core_solution' into core_join.
+- **shell_polymer_in** (inlet, reagent): 1 mm hole at (6, 11.64), from z = 2.5 down to z = 1. reagent 'shell_polymer' into encap_junction.
+- **fluorinated_oil_in** (inlet, oil): 1 mm hole at (6, 2.5), from z = 2.5 down to z = 1. reagent 'fluorinated_oil' into encap_junction.
+- **emulsion_breaker_in** (inlet, reagent): 1 mm hole at (14.07, 11.64), from z = 2.5 down to z = 1. reagent 'emulsion_breaker' into capsule_trap.
+- **wash_buffer_in** (inlet, reagent): 1 mm hole at (17.07, 11.64), from z = 2.5 down to z = 1. reagent 'wash_buffer' into capsule_trap.
+- **capsule_trap_waste_out** (outlet, waste): 1 mm hole at (15.57, 2.5), from z = 2.5 down to z = 1. 'capsule_trap_waste' out of capsule_trap.
 
 ## 5. Make and seal
 

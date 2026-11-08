@@ -39,7 +39,7 @@
   },
   "footprint": {
     "x": 13.0,
-    "y": 9.5,
+    "y": 10.0,
     "note": "1 row(s); fits the 30 x 20 mm limit"
   },
   "layers": [
@@ -68,7 +68,7 @@
       "type": "junction",
       "center": [
         6.5,
-        4.75,
+        5.0,
         1.65
       ],
       "size": [
@@ -92,12 +92,16 @@
       "carries": "cells",
       "path": [
         [
+          1.0,
+          5.0
+        ],
+        [
           1.5,
-          4.75
+          5.0
         ],
         [
           5.0,
-          4.75
+          5.0
         ]
       ],
       "note": "layer fluidic; main path"
@@ -112,11 +116,15 @@
       "path": [
         [
           8.0,
-          4.75
+          5.0
         ],
         [
           11.5,
-          4.75
+          5.0
+        ],
+        [
+          12.0,
+          5.0
         ]
       ],
       "note": "layer fluidic; main path"
@@ -125,17 +133,21 @@
       "id": "ch_shell_polymer_in_droplets_1",
       "from": "shell_polymer_in",
       "to": "droplets_1",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           6.5,
-          8.0
+          9.0
         ],
         [
           6.5,
-          6.25
+          8.5
+        ],
+        [
+          6.5,
+          6.5
         ]
       ],
       "note": "layer fluidic"
@@ -144,17 +156,21 @@
       "id": "ch_fluorinated_oil_in_droplets_1",
       "from": "fluorinated_oil_in",
       "to": "droplets_1",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "oil",
       "path": [
+        [
+          6.5,
+          1.0
+        ],
         [
           6.5,
           1.5
         ],
         [
           6.5,
-          3.25
+          3.5
         ]
       ],
       "note": "layer fluidic"
@@ -166,7 +182,7 @@
       "type": "inlet",
       "position": [
         1.5,
-        4.75,
+        5.0,
         1.9
       ],
       "role": "load",
@@ -178,7 +194,7 @@
       "type": "outlet",
       "position": [
         11.5,
-        4.75,
+        5.0,
         1.9
       ],
       "role": "transfer",
@@ -190,7 +206,7 @@
       "type": "inlet",
       "position": [
         6.5,
-        8.0,
+        8.5,
         1.9
       ],
       "role": "reagent",

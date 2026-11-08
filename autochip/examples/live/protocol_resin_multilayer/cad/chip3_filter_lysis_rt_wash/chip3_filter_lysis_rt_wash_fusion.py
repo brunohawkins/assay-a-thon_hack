@@ -16,8 +16,8 @@ except NameError:
     PARTS_DIR = globals()["PARTS_DIR"]
 BOARD = [30.0, 19.0]
 PARTS = [["aggregate_filter", "pillar_filter"], ["reaction_trap", "trap_chamber"]]
-CHANNELS = [["ch_inlet_1_aggregate_filter", 0.5, [[2.5, 9.5], [4.7, 9.5]]], ["ch_aggregate_filter_reaction_trap", 0.5, [[9.7, 9.5], [10.9, 9.5]]], ["ch_reaction_trap_outlet_1", 0.5, [[25.0421, 9.5], [27.5, 9.5]]], ["ch_reagent_line_in_reaction_trap", 0.5, [[17.97, 16.5], [17.97, 13.0355]]], ["ch_reaction_trap_reaction_trap_waste_out", 0.5, [[17.97, 5.9645], [17.97, 2.5]]]]
-OUTLINES = [["ch_inlet_1_aggregate_filter", [[2.5, 9.75], [4.7, 9.75], [4.7, 9.25], [2.5, 9.25]]], ["ch_aggregate_filter_reaction_trap", [[9.7, 9.75], [10.9, 9.75], [10.9, 9.25], [9.7, 9.25]]], ["ch_reaction_trap_outlet_1", [[25.0421, 9.75], [27.5, 9.75], [27.5, 9.25], [25.0421, 9.25]]], ["ch_reagent_line_in_reaction_trap", [[18.22, 16.5], [18.22, 13.0355], [17.72, 13.0355], [17.72, 16.5]]], ["ch_reaction_trap_reaction_trap_waste_out", [[18.22, 5.9645], [18.22, 2.5], [17.72, 2.5], [17.72, 5.9645]]]]
+CHANNELS = [["ch_inlet_1_aggregate_filter", 0.5, [[2.0, 9.5], [2.5, 9.5], [4.7, 9.5]]], ["ch_aggregate_filter_reaction_trap", 0.5, [[9.7, 9.5], [10.9, 9.5]]], ["ch_reaction_trap_outlet_1", 0.5, [[25.0421, 9.5], [27.5, 9.5], [28.0, 9.5]]], ["ch_reagent_line_in_reaction_trap", 0.5, [[17.97, 17.0], [17.97, 16.5], [17.97, 13.0355]]], ["ch_reaction_trap_reaction_trap_waste_out", 0.5, [[17.97, 5.9645], [17.97, 2.5], [17.97, 2.0]]]]
+OUTLINES = [["ch_inlet_1_aggregate_filter", [[2.0, 9.75], [4.7, 9.75], [4.7, 9.25], [2.0, 9.25]]], ["ch_aggregate_filter_reaction_trap", [[9.7, 9.75], [10.9, 9.75], [10.9, 9.25], [9.7, 9.25]]], ["ch_reaction_trap_outlet_1", [[25.0421, 9.75], [28.0, 9.75], [28.0, 9.25], [25.0421, 9.25]]], ["ch_reagent_line_in_reaction_trap", [[18.22, 17.0], [18.22, 13.0355], [17.72, 13.0355], [17.72, 17.0]]], ["ch_reaction_trap_reaction_trap_waste_out", [[18.22, 5.9645], [18.22, 2.0], [17.72, 2.0], [17.72, 5.9645]]]]
 PORTS = [["inlet_1", 2.5, 9.5, 1.0], ["outlet_1", 27.5, 9.5, 1.0], ["reagent_line_in", 17.97, 16.5, 1.0], ["reaction_trap_waste_out", 17.97, 2.5, 1.0]]
 
 

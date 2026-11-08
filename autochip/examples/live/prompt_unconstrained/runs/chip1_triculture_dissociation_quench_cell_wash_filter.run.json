@@ -4,7 +4,7 @@
   "chip_name": "Tri-culture, dissociation, quench, cell wash and filter chip",
   "purpose": "Grows three iPSC-derived populations in separate chambers (apart, then sharing medium through the central junction), detaches them, quenches the enzyme, moves the cells into clean buffer and filters out clumps.",
   "placeholder": true,
-  "created_at": "2026-11-08T09:35:58Z",
+  "created_at": "2026-11-08T10:13:38Z",
   "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
   "limits": {
     "pump_channels": null,
@@ -181,9 +181,9 @@
         "sibling_flow_ul_min": 0.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0021,
+        "max_pressure_kpa": 0.0022,
         "target_shear_dyn_cm2": 0.0032,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "culture_medium_neurons_in": 10.0,
           "culture_neurons_vent_out": -10.0
@@ -279,9 +279,9 @@
         "sibling_flow_ul_min": 0.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0021,
+        "max_pressure_kpa": 0.0022,
         "target_shear_dyn_cm2": 0.0032,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "culture_medium_microglia_in": 10.0,
           "microglia_vent_out": -10.0
@@ -377,9 +377,9 @@
         "sibling_flow_ul_min": 0.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0021,
+        "max_pressure_kpa": 0.0022,
         "target_shear_dyn_cm2": 0.0032,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "culture_medium_astrocytes_in": 10.0,
           "astrocytes_vent_out": -10.0
@@ -516,9 +516,9 @@
         },
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0021,
+        "max_pressure_kpa": 0.0022,
         "target_shear_dyn_cm2": 0.0032,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "culture_medium_neurons_in": 10.0,
           "culture_neurons_vent_out": -10.0,
@@ -655,9 +655,9 @@
         },
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0021,
+        "max_pressure_kpa": 0.0022,
         "target_shear_dyn_cm2": 0.0032,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "culture_medium_neurons_in": 10.0,
           "culture_neurons_vent_out": -10.0,
@@ -771,7 +771,7 @@
         "total_feed_ul_min": 10.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0021,
+        "max_pressure_kpa": 0.0022,
         "target_shear_dyn_cm2": 0.0032,
         "max_channel_shear_dyn_cm2": 0.0,
         "port_flow_ul_min": {
@@ -875,9 +875,9 @@
         "sibling_flow_ul_min": 0.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0021,
+        "max_pressure_kpa": 0.0022,
         "target_shear_dyn_cm2": 0.0032,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "culture_medium_neurons_in": 10.0,
           "culture_neurons_vent_out": -10.0
@@ -978,9 +978,9 @@
         "sibling_flow_ul_min": 0.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0021,
+        "max_pressure_kpa": 0.0022,
         "target_shear_dyn_cm2": 0.0032,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "culture_medium_microglia_in": 10.0,
           "microglia_vent_out": -10.0
@@ -1081,9 +1081,9 @@
         "sibling_flow_ul_min": 0.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0021,
+        "max_pressure_kpa": 0.0022,
         "target_shear_dyn_cm2": 0.0032,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "culture_medium_astrocytes_in": 10.0,
           "astrocytes_vent_out": -10.0
@@ -1263,9 +1263,9 @@
           "cell_wash"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0631,
+        "max_pressure_kpa": 0.0428,
         "target_shear_dyn_cm2": 0.09877,
-        "max_channel_shear_dyn_cm2": 0.8889,
+        "max_channel_shear_dyn_cm2": 0.7111,
         "port_flow_ul_min": {
           "inlet_1": 10.0,
           "quench_solution_in": 10.0,
@@ -1359,9 +1359,9 @@
         "total_feed_ul_min": 10.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0359,
+        "max_pressure_kpa": 0.0239,
         "target_shear_dyn_cm2": 0.0025,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "wash_buffer_in": 10.0,
           "cell_wash_waste_out": -10.0
@@ -1517,9 +1517,9 @@
         "total_feed_ul_min": 10.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0359,
+        "max_pressure_kpa": 0.0239,
         "target_shear_dyn_cm2": 0.0025,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "wash_buffer_in": 10.0,
           "cell_wash_waste_out": -10.0
@@ -1616,9 +1616,9 @@
           "cell_wash"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0066,
+        "max_pressure_kpa": 0.0064,
         "target_shear_dyn_cm2": 0.04444,
-        "max_channel_shear_dyn_cm2": 0.4444,
+        "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
           "inlet_1": 10.0,
           "outlet_1": -10.0

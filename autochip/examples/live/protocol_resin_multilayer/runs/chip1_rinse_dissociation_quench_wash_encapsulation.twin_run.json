@@ -4,7 +4,7 @@
   "chip_id": "chip1_rinse_dissociation_quench_wash_encapsulation",
   "chip_spec": "autochip/examples/live/protocol_resin_multilayer/chips/chip1_rinse_dissociation_quench_wash_encapsulation.json",
   "operator": "planner",
-  "created_at": "2026-11-08T09:36:02Z",
+  "created_at": "2026-11-08T10:13:06Z",
   "placeholder": true,
   "total_duration_s": 15207.6,
   "events": [

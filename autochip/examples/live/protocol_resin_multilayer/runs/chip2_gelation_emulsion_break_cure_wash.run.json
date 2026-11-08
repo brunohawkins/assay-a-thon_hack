@@ -4,7 +4,7 @@
   "chip_name": "Gelation, emulsion breaking, curing and capsule wash chip",
   "purpose": "Gels the shells in a cold delay line, then breaks the emulsion, photocures and washes the capsules in a trap.",
   "placeholder": true,
-  "created_at": "2026-11-08T09:36:02Z",
+  "created_at": "2026-11-08T10:13:06Z",
   "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
   "limits": {
     "pump_channels": 6,
@@ -121,7 +121,7 @@
           "capsule_trap"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0019,
+        "max_pressure_kpa": 0.002,
         "target_shear_dyn_cm2": 0.00129,
         "port_flow_ul_min": {
           "inlet_1": 5.0,
@@ -246,7 +246,7 @@
           "gelation_delay"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0019,
+        "max_pressure_kpa": 0.002,
         "target_shear_dyn_cm2": 0.00226,
         "port_flow_ul_min": {
           "inlet_1": 5.0,
@@ -314,7 +314,7 @@
         "total_feed_ul_min": 5.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.003,
+        "max_pressure_kpa": 0.0031,
         "target_shear_dyn_cm2": 0.00226,
         "port_flow_ul_min": {
           "emulsion_breaking_agent_in": 5.0,
@@ -382,7 +382,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.012,
+        "max_pressure_kpa": 0.0124,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "photoinitiator_in": 20.0,
@@ -500,7 +500,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.012,
+        "max_pressure_kpa": 0.0124,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "capsule_trap_waste_out": -20.0,
@@ -568,7 +568,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.007,
+        "max_pressure_kpa": 0.0074,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "outlet_1": -20.0,

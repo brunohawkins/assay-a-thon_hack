@@ -4,7 +4,7 @@
   "chip_name": "Encapsulation, emulsion break, capsule wash and curing chip",
   "purpose": "Merges cells into core solution, makes single-cell shell/core droplets in fluorinated oil, then breaks the emulsion, washes, cures and washes the capsules in a trap.",
   "placeholder": true,
-  "created_at": "2026-11-08T09:35:58Z",
+  "created_at": "2026-11-08T10:13:38Z",
   "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
   "limits": {
     "pump_channels": null,
@@ -156,9 +156,9 @@
           "capsule_trap"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0133,
+        "max_pressure_kpa": 0.0045,
         "target_shear_dyn_cm2": 0.04148,
-        "max_channel_shear_dyn_cm2": 0.6222,
+        "max_channel_shear_dyn_cm2": 0.4978,
         "port_flow_ul_min": {
           "inlet_1": 1.0,
           "core_solution_in": 1.0,
@@ -313,7 +313,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0043,
+        "max_pressure_kpa": 0.0044,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "wash_buffer_in": 20.0,
@@ -443,7 +443,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0043,
+        "max_pressure_kpa": 0.0044,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "wash_buffer_in": 20.0,
@@ -517,7 +517,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0031,
+        "max_pressure_kpa": 0.0033,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "outlet_1": -20.0,

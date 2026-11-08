@@ -6,7 +6,7 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 1. Board
 
-1. Draw a 55.5 x 44 mm rectangle with its bottom-left corner at (0, 0).
+1. Draw a 55.5 x 45 mm rectangle with its bottom-left corner at (0, 0).
 2. Layer stack, bottom to top (total 2.5 mm):
    - `base`: unspecified, 1 mm (z 0 to 1) - other
    - `fluidic`: unspecified, 0.5 mm (z 1 to 1.5) - fluidic layer
@@ -15,73 +15,73 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 2. Modules (chambers), in flow order
 
-1. **reaction_trap** - 14.1 x 7.07 mm, 0.5 mm deep, bottom-left corner at (4.500, 18.464), centre (11.5711, 22); 50 uL; type cell_wash. Draw it as a cell_wash (trap_chamber, parametric).
+1. **reaction_trap** - 14.1 x 7.07 mm, 0.5 mm deep, bottom-left corner at (4.500, 18.964), centre (11.5711, 22.5); 50 uL; type cell_wash. Draw it as a cell_wash (trap_chamber, parametric).
    - Does (steps 14, 15, 16, 17): Holds capsules on a 10 um mesh while lysis buffer and RT mix come in one after another on the shared reagent_line (swap the syringe between steps), with wash buffer flushes after lysis and after RT.
    - Floor: a 10 um mesh (bought sheet, inserted at assembly).
-2. **split_2** - 2 x 30.1 mm, 0.5 mm deep, bottom-left corner at (19.640, 6.950), centre (20.64, 22); 16.5 uL; type split. Draw it as a split (splitter, parametric).
+2. **split_2** - 2 x 30.7 mm, 0.5 mm deep, bottom-left corner at (19.640, 7.150), centre (20.64, 22.5); 16.5 uL; type split. Draw it as a split (splitter, parametric).
    - Does (steps 18): Splits the capsules into four sublibrary portions.
-3. **pcr_1** - 10 x 5 mm, 0.5 mm deep, bottom-left corner at (22.640, 34.200), centre (27.64, 36.7); 25 uL; type exchange. Draw it as a exchange (thermal_chamber, parametric).
+3. **pcr_1** - 10 x 5 mm, 0.5 mm deep, bottom-left corner at (22.640, 35.000), centre (27.64, 37.5); 25 uL; type exchange. Draw it as a exchange (thermal_chamber, parametric).
    - Does (steps 19): Portion 1: index PCR with its own index mix (PCR mix plus this lane's index primers).
-4. **pcr_2** - 10 x 5 mm, 0.5 mm deep, bottom-left corner at (22.640, 24.400), centre (27.64, 26.9); 25 uL; type exchange. Draw it as a exchange (thermal_chamber, parametric).
+4. **pcr_2** - 10 x 5 mm, 0.5 mm deep, bottom-left corner at (22.640, 25.000), centre (27.64, 27.5); 25 uL; type exchange. Draw it as a exchange (thermal_chamber, parametric).
    - Does (steps 19): Portion 2: index PCR with its own index mix.
-5. **pcr_3** - 10 x 5 mm, 0.5 mm deep, bottom-left corner at (22.640, 14.600), centre (27.64, 17.1); 25 uL; type exchange. Draw it as a exchange (thermal_chamber, parametric).
+5. **pcr_3** - 10 x 5 mm, 0.5 mm deep, bottom-left corner at (22.640, 15.000), centre (27.64, 17.5); 25 uL; type exchange. Draw it as a exchange (thermal_chamber, parametric).
    - Does (steps 19): Portion 3: index PCR with its own index mix.
-6. **pcr_4** - 10 x 5 mm, 0.5 mm deep, bottom-left corner at (22.640, 4.800), centre (27.64, 7.3); 25 uL; type exchange. Draw it as a exchange (thermal_chamber, parametric).
+6. **pcr_4** - 10 x 5 mm, 0.5 mm deep, bottom-left corner at (22.640, 5.000), centre (27.64, 7.5); 25 uL; type exchange. Draw it as a exchange (thermal_chamber, parametric).
    - Does (steps 19): Portion 4: index PCR with its own index mix.
-7. **pool_2** - 2 x 30.1 mm, 0.5 mm deep, bottom-left corner at (33.640, 6.950), centre (34.64, 22); 16.5 uL; type pool. Draw it as a pool (pool, parametric).
+7. **pool_2** - 2 x 30.7 mm, 0.5 mm deep, bottom-left corner at (33.640, 7.150), centre (34.64, 22.5); 16.5 uL; type pool. Draw it as a pool (pool, parametric).
    - Does (steps 24): Gathers the four differently indexed portions into one stream. The indexes allow pooling before clean-up, so the pooling step is done here.
-8. **release_trap** - 14.1 x 7.07 mm, 0.5 mm deep, bottom-left corner at (36.640, 18.464), centre (43.7111, 22); 50 uL; type cell_wash. Draw it as a cell_wash (trap_chamber, parametric).
+8. **release_trap** - 14.1 x 7.07 mm, 0.5 mm deep, bottom-left corner at (36.640, 18.964), centre (43.7111, 22.5); 50 uL; type cell_wash. Draw it as a cell_wash (trap_chamber, parametric).
    - Does (steps 20): Holds the capsules on a 10 um mesh while the shell-digesting enzyme releases the cDNA, which leaves through the main outlet. Capsule debris stays behind.
    - Floor: a 10 um mesh (bought sheet, inserted at assembly).
 
 ## 3. Channels
 
-Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.
+Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs through the port centre on to the far edge of the hole.
 
-1. **ch_inlet_1_reaction_trap**: inlet_1 -> reaction_trap, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.00 mm long. Path: (2.5, 22) -> (4.5, 22).
-2. **ch_reaction_trap_split_2**: reaction_trap -> split_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (18.6421, 22) -> (19.64, 22).
-3. **ch_pool_2_release_trap**: pool_2 -> release_trap, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.00 mm long. Path: (35.64, 22) -> (36.64, 22).
-4. **ch_release_trap_outlet_1**: release_trap -> outlet_1, 0.2 mm wide, 0.3 mm deep, carries liquid, 2.22 mm long. Path: (50.7821, 22) -> (53, 22).
-5. **ch_split_2_pcr_1**: split_2 -> pcr_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (21.64, 36.7) -> (22.64, 36.7).
-6. **ch_split_2_pcr_2**: split_2 -> pcr_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (21.64, 26.9) -> (22.64, 26.9).
-7. **ch_split_2_pcr_3**: split_2 -> pcr_3, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (21.64, 17.1) -> (22.64, 17.1).
-8. **ch_split_2_pcr_4**: split_2 -> pcr_4, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (21.64, 7.3) -> (22.64, 7.3).
-9. **ch_pcr_1_pool_2**: pcr_1 -> pool_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (32.64, 36.7) -> (33.64, 36.7).
-10. **ch_pcr_2_pool_2**: pcr_2 -> pool_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (32.64, 26.9) -> (33.64, 26.9).
-11. **ch_pcr_3_pool_2**: pcr_3 -> pool_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (32.64, 17.1) -> (33.64, 17.1).
-12. **ch_pcr_4_pool_2**: pcr_4 -> pool_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (32.64, 7.3) -> (33.64, 7.3).
-13. **ch_reagent_line_in_reaction_trap**: reagent_line_in -> reaction_trap, 0.2 mm wide, 0.3 mm deep, carries liquid, 15.96 mm long. Path: (10.07, 41.5) -> (10.07, 25.5355).
-14. **ch_wash_buffer_in_reaction_trap**: wash_buffer_in -> reaction_trap, 0.2 mm wide, 0.3 mm deep, carries liquid, 15.96 mm long. Path: (13.07, 41.5) -> (13.07, 25.5355).
-15. **ch_reaction_trap_reaction_trap_waste_out**: reaction_trap -> reaction_trap_waste_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 15.96 mm long. Path: (11.57, 18.4645) -> (11.57, 2.5).
-16. **ch_index_mix_1_in_pcr_1**: index_mix_1_in -> pcr_1, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (27.64, 40.1) -> (27.64, 39.2).
-17. **ch_pcr_1_pcr_1_vent_out**: pcr_1 -> pcr_1_vent_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (27.64, 34.2) -> (27.64, 33.3).
-18. **ch_index_mix_2_in_pcr_2**: index_mix_2_in -> pcr_2, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (27.64, 30.3) -> (27.64, 29.4).
-19. **ch_pcr_2_pcr_2_vent_out**: pcr_2 -> pcr_2_vent_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (27.64, 24.4) -> (27.64, 23.5).
-20. **ch_index_mix_3_in_pcr_3**: index_mix_3_in -> pcr_3, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (27.64, 20.5) -> (27.64, 19.6).
-21. **ch_pcr_3_pcr_3_vent_out**: pcr_3 -> pcr_3_vent_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (27.64, 14.6) -> (27.64, 13.7).
-22. **ch_index_mix_4_in_pcr_4**: index_mix_4_in -> pcr_4, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (27.64, 10.7) -> (27.64, 9.8).
-23. **ch_pcr_4_pcr_4_vent_out**: pcr_4 -> pcr_4_vent_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 0.90 mm long. Path: (27.64, 4.8) -> (27.64, 3.9).
-24. **ch_release_enzyme_in_release_trap**: release_enzyme_in -> release_trap, 0.2 mm wide, 0.3 mm deep, carries liquid, 15.96 mm long. Path: (43.71, 41.5) -> (43.71, 25.5355).
-25. **ch_release_trap_release_trap_waste_out**: release_trap -> release_trap_waste_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 15.96 mm long. Path: (43.71, 18.4645) -> (43.71, 2.5).
+1. **ch_inlet_1_reaction_trap**: inlet_1 -> reaction_trap, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.50 mm long. Path: (2, 22.5) -> (2.5, 22.5) -> (4.5, 22.5).
+2. **ch_reaction_trap_split_2**: reaction_trap -> split_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (18.6421, 22.5) -> (19.64, 22.5).
+3. **ch_pool_2_release_trap**: pool_2 -> release_trap, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.00 mm long. Path: (35.64, 22.5) -> (36.64, 22.5).
+4. **ch_release_trap_outlet_1**: release_trap -> outlet_1, 0.25 mm wide, 0.3 mm deep, carries liquid, 2.72 mm long. Path: (50.7821, 22.5) -> (53, 22.5) -> (53.5, 22.5).
+5. **ch_split_2_pcr_1**: split_2 -> pcr_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (21.64, 37.5) -> (22.64, 37.5).
+6. **ch_split_2_pcr_2**: split_2 -> pcr_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (21.64, 27.5) -> (22.64, 27.5).
+7. **ch_split_2_pcr_3**: split_2 -> pcr_3, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (21.64, 17.5) -> (22.64, 17.5).
+8. **ch_split_2_pcr_4**: split_2 -> pcr_4, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (21.64, 7.5) -> (22.64, 7.5).
+9. **ch_pcr_1_pool_2**: pcr_1 -> pool_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (32.64, 37.5) -> (33.64, 37.5).
+10. **ch_pcr_2_pool_2**: pcr_2 -> pool_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (32.64, 27.5) -> (33.64, 27.5).
+11. **ch_pcr_3_pool_2**: pcr_3 -> pool_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (32.64, 17.5) -> (33.64, 17.5).
+12. **ch_pcr_4_pool_2**: pcr_4 -> pool_2, 0.5 mm wide, 0.3 mm deep, carries capsules, 1.00 mm long. Path: (32.64, 7.5) -> (33.64, 7.5).
+13. **ch_reagent_line_in_reaction_trap**: reagent_line_in -> reaction_trap, 0.25 mm wide, 0.3 mm deep, carries liquid, 16.96 mm long. Path: (10.07, 43) -> (10.07, 42.5) -> (10.07, 26.0355).
+14. **ch_wash_buffer_in_reaction_trap**: wash_buffer_in -> reaction_trap, 0.25 mm wide, 0.3 mm deep, carries liquid, 16.96 mm long. Path: (13.07, 43) -> (13.07, 42.5) -> (13.07, 26.0355).
+15. **ch_reaction_trap_reaction_trap_waste_out**: reaction_trap -> reaction_trap_waste_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 16.96 mm long. Path: (11.57, 18.9645) -> (11.57, 2.5) -> (11.57, 2).
+16. **ch_index_mix_1_in_pcr_1**: index_mix_1_in -> pcr_1, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (27.64, 41.5) -> (27.64, 41) -> (27.64, 40).
+17. **ch_pcr_1_pcr_1_vent_out**: pcr_1 -> pcr_1_vent_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (27.64, 35) -> (27.64, 34) -> (27.64, 33.5).
+18. **ch_index_mix_2_in_pcr_2**: index_mix_2_in -> pcr_2, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (27.64, 31.5) -> (27.64, 31) -> (27.64, 30).
+19. **ch_pcr_2_pcr_2_vent_out**: pcr_2 -> pcr_2_vent_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (27.64, 25) -> (27.64, 24) -> (27.64, 23.5).
+20. **ch_index_mix_3_in_pcr_3**: index_mix_3_in -> pcr_3, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (27.64, 21.5) -> (27.64, 21) -> (27.64, 20).
+21. **ch_pcr_3_pcr_3_vent_out**: pcr_3 -> pcr_3_vent_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (27.64, 15) -> (27.64, 14) -> (27.64, 13.5).
+22. **ch_index_mix_4_in_pcr_4**: index_mix_4_in -> pcr_4, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (27.64, 11.5) -> (27.64, 11) -> (27.64, 10).
+23. **ch_pcr_4_pcr_4_vent_out**: pcr_4 -> pcr_4_vent_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 1.50 mm long. Path: (27.64, 5) -> (27.64, 4) -> (27.64, 3.5).
+24. **ch_release_enzyme_in_release_trap**: release_enzyme_in -> release_trap, 0.25 mm wide, 0.3 mm deep, carries liquid, 16.96 mm long. Path: (43.71, 43) -> (43.71, 42.5) -> (43.71, 26.0355).
+25. **ch_release_trap_release_trap_waste_out**: release_trap -> release_trap_waste_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 16.96 mm long. Path: (43.71, 18.9645) -> (43.71, 2.5) -> (43.71, 2).
 
 ## 4. Ports
 
-Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.
+Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs across the whole hole.
 
-- **inlet_1** (inlet, load): 1 mm hole at (2.5, 22), from z = 2.5 down to z = 1. main inlet: inlet_1 from chip2_encapsulation_emulsion_break_capsule_wash_curing.outlet_1.
-- **outlet_1** (outlet, transfer): 1 mm hole at (53, 22), from z = 2.5 down to z = 1. main outlet -> chip4_bead_binding_wash_elution.inlet_1.
-- **reagent_line_in** (inlet, reagent): 1 mm hole at (10.07, 41.5), from z = 2.5 down to z = 1. reagent 'reagent_line' into reaction_trap.
-- **wash_buffer_in** (inlet, reagent): 1 mm hole at (13.07, 41.5), from z = 2.5 down to z = 1. reagent 'wash_buffer' into reaction_trap.
+- **inlet_1** (inlet, load): 1 mm hole at (2.5, 22.5), from z = 2.5 down to z = 1. main inlet: inlet_1 from chip2_encapsulation_emulsion_break_capsule_wash_curing.outlet_1.
+- **outlet_1** (outlet, transfer): 1 mm hole at (53, 22.5), from z = 2.5 down to z = 1. main outlet -> chip4_bead_binding_wash_elution.inlet_1.
+- **reagent_line_in** (inlet, reagent): 1 mm hole at (10.07, 42.5), from z = 2.5 down to z = 1. reagent 'reagent_line' into reaction_trap.
+- **wash_buffer_in** (inlet, reagent): 1 mm hole at (13.07, 42.5), from z = 2.5 down to z = 1. reagent 'wash_buffer' into reaction_trap.
 - **reaction_trap_waste_out** (outlet, waste): 1 mm hole at (11.57, 2.5), from z = 2.5 down to z = 1. 'reaction_trap_waste' out of reaction_trap.
-- **index_mix_1_in** (inlet, reagent): 1 mm hole at (27.64, 40.1), from z = 2.5 down to z = 1. reagent 'index_mix_1' into pcr_1.
-- **pcr_1_vent_out** (outlet, waste): 1 mm hole at (27.64, 33.3), from z = 2.5 down to z = 1. vent of lane 1: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
-- **index_mix_2_in** (inlet, reagent): 1 mm hole at (27.64, 30.3), from z = 2.5 down to z = 1. reagent 'index_mix_2' into pcr_2.
-- **pcr_2_vent_out** (outlet, waste): 1 mm hole at (27.64, 23.5), from z = 2.5 down to z = 1. vent of lane 2: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
-- **index_mix_3_in** (inlet, reagent): 1 mm hole at (27.64, 20.5), from z = 2.5 down to z = 1. reagent 'index_mix_3' into pcr_3.
-- **pcr_3_vent_out** (outlet, waste): 1 mm hole at (27.64, 13.7), from z = 2.5 down to z = 1. vent of lane 3: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
-- **index_mix_4_in** (inlet, reagent): 1 mm hole at (27.64, 10.7), from z = 2.5 down to z = 1. reagent 'index_mix_4' into pcr_4.
-- **pcr_4_vent_out** (outlet, waste): 1 mm hole at (27.64, 3.9), from z = 2.5 down to z = 1. vent of lane 4: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
-- **release_enzyme_in** (inlet, reagent): 1 mm hole at (43.71, 41.5), from z = 2.5 down to z = 1. reagent 'release_enzyme' into release_trap.
+- **index_mix_1_in** (inlet, reagent): 1 mm hole at (27.64, 41), from z = 2.5 down to z = 1. reagent 'index_mix_1' into pcr_1.
+- **pcr_1_vent_out** (outlet, waste): 1 mm hole at (27.64, 34), from z = 2.5 down to z = 1. vent of lane 1: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
+- **index_mix_2_in** (inlet, reagent): 1 mm hole at (27.64, 31), from z = 2.5 down to z = 1. reagent 'index_mix_2' into pcr_2.
+- **pcr_2_vent_out** (outlet, waste): 1 mm hole at (27.64, 24), from z = 2.5 down to z = 1. vent of lane 2: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
+- **index_mix_3_in** (inlet, reagent): 1 mm hole at (27.64, 21), from z = 2.5 down to z = 1. reagent 'index_mix_3' into pcr_3.
+- **pcr_3_vent_out** (outlet, waste): 1 mm hole at (27.64, 14), from z = 2.5 down to z = 1. vent of lane 3: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
+- **index_mix_4_in** (inlet, reagent): 1 mm hole at (27.64, 11), from z = 2.5 down to z = 1. reagent 'index_mix_4' into pcr_4.
+- **pcr_4_vent_out** (outlet, waste): 1 mm hole at (27.64, 4), from z = 2.5 down to z = 1. vent of lane 4: feed that lane's inlet and vent here (outlet_1 capped) to fill the lane without flow through the other lanes.
+- **release_enzyme_in** (inlet, reagent): 1 mm hole at (43.71, 42.5), from z = 2.5 down to z = 1. reagent 'release_enzyme' into release_trap.
 - **release_trap_waste_out** (outlet, waste): 1 mm hole at (43.71, 2.5), from z = 2.5 down to z = 1. 'release_trap_waste' out of release_trap.
 
 ## 5. Make and seal

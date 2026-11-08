@@ -40,6 +40,14 @@ def crossings(spec: dict) -> list[tuple[str, str, tuple[float, float]]]:
     return _ccs.crossings(spec)
 
 
+def port_line_min_width_mm(port_d: float) -> float:
+    """Narrowest channel that, run across a port_d (mm) hole, opens as much of the hole as the port-overlap rule
+    in tools/check_chip_spec.py asks for: 1 mm2, or a quarter of the hole when it is under 2 x 2 mm."""
+    area = port_d * port_d
+    need = _ccs.PORT_OVERLAP_MM2 if area >= 4.0 else _ccs.PORT_OVERLAP_SMALL_FRACTION * area
+    return math.ceil(round(need / port_d * 1e4, 6)) / 1e4      # up to 0.1 um, never below the rule
+
+
 def min_channel_mm(c: dict) -> float:
     """Narrowest channel the process makes. Printed-closed processes are limited by the enclosed-channel
     figure; print-open-and-seal (film, lid, bond) by the open-channel figure."""

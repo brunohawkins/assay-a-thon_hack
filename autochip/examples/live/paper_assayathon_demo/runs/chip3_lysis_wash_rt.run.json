@@ -4,7 +4,7 @@
   "chip_name": "Lysis, wash and reverse transcription chip",
   "purpose": "Lyses the cells, washes, and runs reverse transcription inside the capsules held in one trap.",
   "placeholder": true,
-  "created_at": "2026-11-08T09:36:00Z",
+  "created_at": "2026-11-08T10:13:07Z",
   "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
   "limits": {
     "pump_channels": 4,
@@ -98,7 +98,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.005,
+        "max_pressure_kpa": 0.0044,
         "target_shear_dyn_cm2": 0.01947,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
@@ -170,7 +170,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.005,
+        "max_pressure_kpa": 0.0044,
         "target_shear_dyn_cm2": 0.01947,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
@@ -279,7 +279,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.005,
+        "max_pressure_kpa": 0.0044,
         "target_shear_dyn_cm2": 0.01947,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
@@ -347,7 +347,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.005,
+        "max_pressure_kpa": 0.0044,
         "target_shear_dyn_cm2": 0.01947,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
@@ -456,7 +456,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.005,
+        "max_pressure_kpa": 0.0044,
         "target_shear_dyn_cm2": 0.01947,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
@@ -518,7 +518,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0051,
+        "max_pressure_kpa": 0.0045,
         "target_shear_dyn_cm2": 0.01947,
         "port_flow_ul_min": {
           "outlet_1": -20.0,

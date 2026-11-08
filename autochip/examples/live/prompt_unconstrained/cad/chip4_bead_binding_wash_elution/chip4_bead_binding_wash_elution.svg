@@ -1,87 +1,87 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1004" height="668" viewBox="0 0 1004 668" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1004" height="688" viewBox="0 0 1004 688" font-family="Helvetica, Arial, sans-serif">
 <rect width="100%" height="100%" fill="white"/>
 <text x="56" y="22" font-size="15" font-weight="bold">chip4_bead_binding_wash_elution: Bead binding, ethanol wash and elution chip</text>
-<text x="56" y="40" font-size="11" fill="#444">23 x 14 mm, top view, to scale (40 px/mm). Origin bottom-left. Constraints: unconstrained (other). Depth 0.3 mm.</text>
-<line x1="56.00" y1="624.00" x2="56.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
-<text x="56.00" y="638.00" font-size="10" text-anchor="middle" fill="#555">0</text>
-<line x1="96.00" y1="624.00" x2="96.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="136.00" y1="624.00" x2="136.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="176.00" y1="624.00" x2="176.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="216.00" y1="624.00" x2="216.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="256.00" y1="624.00" x2="256.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
-<text x="256.00" y="638.00" font-size="10" text-anchor="middle" fill="#555">5</text>
-<line x1="296.00" y1="624.00" x2="296.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="336.00" y1="624.00" x2="336.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="376.00" y1="624.00" x2="376.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="416.00" y1="624.00" x2="416.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="456.00" y1="624.00" x2="456.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
-<text x="456.00" y="638.00" font-size="10" text-anchor="middle" fill="#555">10</text>
-<line x1="496.00" y1="624.00" x2="496.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="536.00" y1="624.00" x2="536.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="576.00" y1="624.00" x2="576.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="616.00" y1="624.00" x2="616.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="656.00" y1="624.00" x2="656.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
-<text x="656.00" y="638.00" font-size="10" text-anchor="middle" fill="#555">15</text>
-<line x1="696.00" y1="624.00" x2="696.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="736.00" y1="624.00" x2="736.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="776.00" y1="624.00" x2="776.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="816.00" y1="624.00" x2="816.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="856.00" y1="624.00" x2="856.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
-<text x="856.00" y="638.00" font-size="10" text-anchor="middle" fill="#555">20</text>
-<line x1="896.00" y1="624.00" x2="896.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="936.00" y1="624.00" x2="936.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="976.00" y1="624.00" x2="976.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="624.00" x2="976.00" y2="624.00" stroke="#c4c4c4" stroke-width="1"/>
-<text x="50.00" y="627.50" font-size="10" text-anchor="end" fill="#555">0</text>
-<line x1="56.00" y1="584.00" x2="976.00" y2="584.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="544.00" x2="976.00" y2="544.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="504.00" x2="976.00" y2="504.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="464.00" x2="976.00" y2="464.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="424.00" x2="976.00" y2="424.00" stroke="#c4c4c4" stroke-width="1"/>
-<text x="50.00" y="427.50" font-size="10" text-anchor="end" fill="#555">5</text>
-<line x1="56.00" y1="384.00" x2="976.00" y2="384.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="344.00" x2="976.00" y2="344.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="304.00" x2="976.00" y2="304.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="264.00" x2="976.00" y2="264.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="224.00" x2="976.00" y2="224.00" stroke="#c4c4c4" stroke-width="1"/>
-<text x="50.00" y="227.50" font-size="10" text-anchor="end" fill="#555">10</text>
-<line x1="56.00" y1="184.00" x2="976.00" y2="184.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="144.00" x2="976.00" y2="144.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="104.00" x2="976.00" y2="104.00" stroke="#ececec" stroke-width="0.5"/>
-<line x1="56.00" y1="64.00" x2="976.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
-<text x="516.00" y="654.00" font-size="10" text-anchor="middle" fill="#555">x (mm)</text>
-<rect x="56.00" y="64.00" width="920.00" height="560.00" fill="none" stroke="#111" stroke-width="2"/>
-<rect x="224.00" y="202.58" width="565.68" height="282.84" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
-<polyline points="156.00,344.00 224.00,344.00" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="789.68,344.00 876.00,344.00" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="446.80,164.00 446.80,202.58" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="566.80,164.00 566.80,202.58" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="446.80,485.42 446.80,524.00" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<polyline points="566.80,524.00 566.80,485.42" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
-<text x="506.84" y="341.35" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">bead_chamber</text>
-<text x="506.84" y="353.35" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">14.1 x 7.07 x 0.5 mm</text>
-<text x="86.80" y="341.50" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">inlet_1</text>
-<text x="86.80" y="352.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(2.5, 7)</text>
-<text x="902.00" y="341.50" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">outlet_1</text>
-<text x="902.00" y="352.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(20.5, 7)</text>
+<text x="56" y="40" font-size="11" fill="#444">23 x 14.5 mm, top view, to scale (40 px/mm). Origin bottom-left. Constraints: unconstrained (other). Depth 0.3 mm.</text>
+<line x1="56.00" y1="644.00" x2="56.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="56.00" y="658.00" font-size="10" text-anchor="middle" fill="#555">0</text>
+<line x1="96.00" y1="644.00" x2="96.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="136.00" y1="644.00" x2="136.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="176.00" y1="644.00" x2="176.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="216.00" y1="644.00" x2="216.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="256.00" y1="644.00" x2="256.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="256.00" y="658.00" font-size="10" text-anchor="middle" fill="#555">5</text>
+<line x1="296.00" y1="644.00" x2="296.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="336.00" y1="644.00" x2="336.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="376.00" y1="644.00" x2="376.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="416.00" y1="644.00" x2="416.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="456.00" y1="644.00" x2="456.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="456.00" y="658.00" font-size="10" text-anchor="middle" fill="#555">10</text>
+<line x1="496.00" y1="644.00" x2="496.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="536.00" y1="644.00" x2="536.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="576.00" y1="644.00" x2="576.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="616.00" y1="644.00" x2="616.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="656.00" y1="644.00" x2="656.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="656.00" y="658.00" font-size="10" text-anchor="middle" fill="#555">15</text>
+<line x1="696.00" y1="644.00" x2="696.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="736.00" y1="644.00" x2="736.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="776.00" y1="644.00" x2="776.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="816.00" y1="644.00" x2="816.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="856.00" y1="644.00" x2="856.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="856.00" y="658.00" font-size="10" text-anchor="middle" fill="#555">20</text>
+<line x1="896.00" y1="644.00" x2="896.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="936.00" y1="644.00" x2="936.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="976.00" y1="644.00" x2="976.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="644.00" x2="976.00" y2="644.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="647.50" font-size="10" text-anchor="end" fill="#555">0</text>
+<line x1="56.00" y1="604.00" x2="976.00" y2="604.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="564.00" x2="976.00" y2="564.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="524.00" x2="976.00" y2="524.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="484.00" x2="976.00" y2="484.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="444.00" x2="976.00" y2="444.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="447.50" font-size="10" text-anchor="end" fill="#555">5</text>
+<line x1="56.00" y1="404.00" x2="976.00" y2="404.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="364.00" x2="976.00" y2="364.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="324.00" x2="976.00" y2="324.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="284.00" x2="976.00" y2="284.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="244.00" x2="976.00" y2="244.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="247.50" font-size="10" text-anchor="end" fill="#555">10</text>
+<line x1="56.00" y1="204.00" x2="976.00" y2="204.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="164.00" x2="976.00" y2="164.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="124.00" x2="976.00" y2="124.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="84.00" x2="976.00" y2="84.00" stroke="#ececec" stroke-width="0.5"/>
+<text x="516.00" y="674.00" font-size="10" text-anchor="middle" fill="#555">x (mm)</text>
+<rect x="56.00" y="64.00" width="920.00" height="580.00" fill="none" stroke="#111" stroke-width="2"/>
+<rect x="224.00" y="212.58" width="565.68" height="282.84" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<polyline points="136.00,354.00 156.00,354.00 224.00,354.00" fill="none" stroke="#2f6fb0" stroke-width="10.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="789.68,354.00 876.00,354.00 896.00,354.00" fill="none" stroke="#2f6fb0" stroke-width="10.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="446.80,144.00 446.80,164.00 446.80,212.58" fill="none" stroke="#2f6fb0" stroke-width="10.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="566.80,144.00 566.80,164.00 566.80,212.58" fill="none" stroke="#2f6fb0" stroke-width="10.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="446.80,495.42 446.80,544.00 446.80,564.00" fill="none" stroke="#2f6fb0" stroke-width="10.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="566.80,564.00 566.80,544.00 566.80,495.42" fill="none" stroke="#2f6fb0" stroke-width="10.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<text x="506.84" y="351.35" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">bead_chamber</text>
+<text x="506.84" y="363.35" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">14.1 x 7.07 x 0.5 mm</text>
+<text x="70.60" y="351.50" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">inlet_1</text>
+<text x="70.60" y="362.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(2.5, 7.25)</text>
+<text x="902.00" y="351.50" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">outlet_1</text>
+<text x="902.00" y="362.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(20.5, 7.25)</text>
 <text x="318.80" y="161.50" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">magnetic_beads_in</text>
-<text x="318.80" y="172.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(9.77, 11.5)</text>
+<text x="318.80" y="172.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(9.77, 12)</text>
 <text x="592.80" y="161.50" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">ethanol_wash_in</text>
-<text x="592.80" y="172.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(12.77, 11.5)</text>
-<text x="336.80" y="521.50" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">bead_waste_out</text>
-<text x="336.80" y="532.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(9.77, 2.5)</text>
-<text x="592.80" y="521.50" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">elution_buffer_in</text>
-<text x="592.80" y="532.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(12.77, 2.5)</text>
-<circle cx="156.00" cy="344.00" r="20.00" fill="#2e9e44" stroke="#111" stroke-width="1"/>
-<circle cx="876.00" cy="344.00" r="20.00" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<text x="592.80" y="172.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(12.77, 12)</text>
+<text x="336.80" y="541.50" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">bead_waste_out</text>
+<text x="336.80" y="552.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(9.77, 2.5)</text>
+<text x="592.80" y="541.50" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">elution_buffer_in</text>
+<text x="592.80" y="552.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(12.77, 2.5)</text>
+<circle cx="156.00" cy="354.00" r="20.00" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="876.00" cy="354.00" r="20.00" fill="#d23c3c" stroke="#111" stroke-width="1"/>
 <circle cx="446.80" cy="164.00" r="20.00" fill="#2e9e44" stroke="#111" stroke-width="1"/>
 <circle cx="566.80" cy="164.00" r="20.00" fill="#2e9e44" stroke="#111" stroke-width="1"/>
-<circle cx="446.80" cy="524.00" r="20.00" fill="#d23c3c" stroke="#111" stroke-width="1"/>
-<circle cx="566.80" cy="524.00" r="20.00" fill="#2e9e44" stroke="#111" stroke-width="1"/>
-<rect x="56" y="649.0" width="12" height="10" fill="#2e9e44"/>
-<text x="72" y="658.0" font-size="10" fill="#333">inlet</text>
-<rect x="109.0" y="649.0" width="12" height="10" fill="#d23c3c"/>
-<text x="125.0" y="658.0" font-size="10" fill="#333">outlet</text>
-<rect x="168.2" y="649.0" width="12" height="10" fill="#2f6fb0"/>
-<text x="184.2" y="658.0" font-size="10" fill="#333">channel (true width)</text>
+<circle cx="446.80" cy="544.00" r="20.00" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="566.80" cy="544.00" r="20.00" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<rect x="56" y="669.0" width="12" height="10" fill="#2e9e44"/>
+<text x="72" y="678.0" font-size="10" fill="#333">inlet</text>
+<rect x="109.0" y="669.0" width="12" height="10" fill="#d23c3c"/>
+<text x="125.0" y="678.0" font-size="10" fill="#333">outlet</text>
+<rect x="168.2" y="669.0" width="12" height="10" fill="#2f6fb0"/>
+<text x="184.2" y="678.0" font-size="10" fill="#333">channel (true width)</text>
 </svg>

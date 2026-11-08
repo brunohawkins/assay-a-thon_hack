@@ -4,6 +4,14 @@ Three full runs made with a real agent (`--backend claude-cli`, Claude Code's `c
 Each folder is a complete output: open `report.html` first. `agent/` holds every exchange with the agent
 (what it was asked, what it answered, what the checks sent back) and the accepted answers.
 
+Regenerated on 8 Nov after merging main, which added the port-overlap rule to `tools/check_chip_spec.py`: port lines
+now run across their whole hole and are at least 0.25 mm wide, so every chip here passes it. The `agent/` answers are
+the live run's, unchanged; everything else was rebuilt from them offline (`run_meta.json` says replay).
+`prompt_unconstrained/` and `protocol_resin_multilayer/` with the full replay below (same chips, same re-splits).
+`paper_assayathon_demo/` with `--resume <folder> --from-stage layout` on its saved final plan, because the new widths
+change one round-1 error message (a chip size) and so miss the saved re-split answer. It ends on the same 3 chips
+and the same two open retention errors as the live run.
+
 | Folder | Input | Constraints | What happened |
 |---|---|---|---|
 | `prompt_unconstrained/` | plain-English goal (`../capsule_scrnaseq_prompt.txt`) | `unconstrained` | The agent wrote a 25-step protocol (assumptions flagged; cycle numbers and lysis/RT/enzyme conditions left as placeholders for the lab), fixed one problem the checks sent back, then split it into 4 chips: tri-culture (neurons, microglia, astrocytes in separate chambers around a junction) + dissociation → encapsulation → lysis, RT, split into 4 index-PCR lanes (own index mix each), release → bead clean-up. One chip broke a rule, the agent re-split it; no open problems. |

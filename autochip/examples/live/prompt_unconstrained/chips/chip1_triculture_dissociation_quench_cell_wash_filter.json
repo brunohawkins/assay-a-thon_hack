@@ -218,7 +218,7 @@
   },
   "footprint": {
     "x": 59.0,
-    "y": 49.0,
+    "y": 50.0,
     "note": "1 row(s); no size limit"
   },
   "layers": [
@@ -247,12 +247,12 @@
       "type": "split",
       "center": [
         5.3,
-        24.5,
+        25.0,
         1.25
       ],
       "size": [
         2.0,
-        30.1,
+        30.5,
         0.5
       ],
       "volume_ul": 13.5,
@@ -265,7 +265,7 @@
       "type": "culture",
       "center": [
         17.3,
-        39.3,
+        40.0,
         1.25
       ],
       "size": [
@@ -283,7 +283,7 @@
       "type": "culture",
       "center": [
         17.3,
-        24.5,
+        25.0,
         1.25
       ],
       "size": [
@@ -301,7 +301,7 @@
       "type": "culture",
       "center": [
         17.3,
-        9.7,
+        10.0,
         1.25
       ],
       "size": [
@@ -319,12 +319,12 @@
       "type": "pool",
       "center": [
         29.3,
-        24.5,
+        25.0,
         1.25
       ],
       "size": [
         2.0,
-        30.1,
+        30.5,
         0.5
       ],
       "volume_ul": 13.5,
@@ -337,7 +337,7 @@
       "type": "junction",
       "center": [
         32.8,
-        24.5,
+        25.0,
         1.15
       ],
       "size": [
@@ -355,7 +355,7 @@
       "type": "mixer",
       "center": [
         36.6,
-        24.5,
+        25.0,
         1.15
       ],
       "size": [
@@ -379,7 +379,7 @@
       "type": "cell_wash",
       "center": [
         45.3,
-        24.5,
+        25.0,
         1.25
       ],
       "size": [
@@ -397,7 +397,7 @@
       "type": "filter",
       "center": [
         53.7,
-        24.5,
+        25.0,
         1.15
       ],
       "size": [
@@ -421,17 +421,21 @@
       "id": "ch_inlet_1_split_1",
       "from": "inlet_1",
       "to": "split_1",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
+          2.0,
+          25.0
+        ],
+        [
           2.5,
-          24.5
+          25.0
         ],
         [
           4.3,
-          24.5
+          25.0
         ]
       ],
       "note": "layer fluidic; main path"
@@ -446,11 +450,11 @@
       "path": [
         [
           30.3,
-          24.5
+          25.0
         ],
         [
           31.9,
-          24.5
+          25.0
         ]
       ],
       "note": "layer fluidic; main path"
@@ -465,11 +469,11 @@
       "path": [
         [
           33.7,
-          24.5
+          25.0
         ],
         [
           35.3,
-          24.5
+          25.0
         ]
       ],
       "note": "layer fluidic; main path"
@@ -484,11 +488,11 @@
       "path": [
         [
           37.9,
-          24.5
+          25.0
         ],
         [
           38.9,
-          24.5
+          25.0
         ]
       ],
       "note": "layer fluidic; main path"
@@ -503,11 +507,11 @@
       "path": [
         [
           51.7,
-          24.5
+          25.0
         ],
         [
           52.7,
-          24.5
+          25.0
         ]
       ],
       "note": "layer fluidic; main path"
@@ -522,11 +526,15 @@
       "path": [
         [
           54.7,
-          24.5
+          25.0
         ],
         [
           56.5,
-          24.5
+          25.0
+        ],
+        [
+          57.0,
+          25.0
         ]
       ],
       "note": "layer fluidic; main path"
@@ -541,11 +549,11 @@
       "path": [
         [
           6.3,
-          39.3
+          40.0
         ],
         [
           7.3,
-          39.3
+          40.0
         ]
       ],
       "note": "layer fluidic; fan-out to lane 1 of 3"
@@ -560,11 +568,11 @@
       "path": [
         [
           6.3,
-          24.5
+          25.0
         ],
         [
           7.3,
-          24.5
+          25.0
         ]
       ],
       "note": "layer fluidic; fan-out to lane 2 of 3"
@@ -579,11 +587,11 @@
       "path": [
         [
           6.3,
-          9.7
+          10.0
         ],
         [
           7.3,
-          9.7
+          10.0
         ]
       ],
       "note": "layer fluidic; fan-out to lane 3 of 3"
@@ -598,11 +606,11 @@
       "path": [
         [
           27.3,
-          39.3
+          40.0
         ],
         [
           28.3,
-          39.3
+          40.0
         ]
       ],
       "note": "layer fluidic; fan-in from lane 1 of 3"
@@ -617,11 +625,11 @@
       "path": [
         [
           27.3,
-          24.5
+          25.0
         ],
         [
           28.3,
-          24.5
+          25.0
         ]
       ],
       "note": "layer fluidic; fan-in from lane 2 of 3"
@@ -636,11 +644,11 @@
       "path": [
         [
           27.3,
-          9.7
+          10.0
         ],
         [
           28.3,
-          9.7
+          10.0
         ]
       ],
       "note": "layer fluidic; fan-in from lane 3 of 3"
@@ -649,17 +657,21 @@
       "id": "ch_culture_medium_neurons_in_culture_neurons",
       "from": "culture_medium_neurons_in",
       "to": "culture_neurons",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           17.3,
-          45.2
+          46.5
         ],
         [
           17.3,
-          44.3
+          46.0
+        ],
+        [
+          17.3,
+          45.0
         ]
       ],
       "note": "layer fluidic"
@@ -668,17 +680,21 @@
       "id": "ch_culture_neurons_culture_neurons_vent_out",
       "from": "culture_neurons",
       "to": "culture_neurons_vent_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           17.3,
-          34.3
+          35.0
         ],
         [
           17.3,
-          33.4
+          34.0
+        ],
+        [
+          17.3,
+          33.5
         ]
       ],
       "note": "layer fluidic"
@@ -687,17 +703,21 @@
       "id": "ch_culture_medium_microglia_in_culture_microglia",
       "from": "culture_medium_microglia_in",
       "to": "culture_microglia",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           17.3,
-          30.4
+          31.5
         ],
         [
           17.3,
-          29.5
+          31.0
+        ],
+        [
+          17.3,
+          30.0
         ]
       ],
       "note": "layer fluidic"
@@ -706,17 +726,21 @@
       "id": "ch_culture_microglia_microglia_vent_out",
       "from": "culture_microglia",
       "to": "microglia_vent_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           15.8,
-          19.5
+          20.0
         ],
         [
           15.8,
-          18.6
+          19.0
+        ],
+        [
+          15.8,
+          18.5
         ]
       ],
       "note": "layer fluidic"
@@ -725,17 +749,21 @@
       "id": "ch_culture_microglia_culture_microglia_vent_out",
       "from": "culture_microglia",
       "to": "culture_microglia_vent_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           18.8,
-          19.5
+          20.0
         ],
         [
           18.8,
-          18.6
+          19.0
+        ],
+        [
+          18.8,
+          18.5
         ]
       ],
       "note": "layer fluidic"
@@ -744,17 +772,21 @@
       "id": "ch_culture_medium_astrocytes_in_culture_astrocytes",
       "from": "culture_medium_astrocytes_in",
       "to": "culture_astrocytes",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           17.3,
-          15.6
+          16.5
         ],
         [
           17.3,
-          14.7
+          16.0
+        ],
+        [
+          17.3,
+          15.0
         ]
       ],
       "note": "layer fluidic"
@@ -763,17 +795,21 @@
       "id": "ch_culture_astrocytes_astrocytes_vent_out",
       "from": "culture_astrocytes",
       "to": "astrocytes_vent_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           15.8,
-          4.7
+          5.0
         ],
         [
           15.8,
-          3.8
+          4.0
+        ],
+        [
+          15.8,
+          3.5
         ]
       ],
       "note": "layer fluidic"
@@ -782,17 +818,21 @@
       "id": "ch_culture_astrocytes_culture_astrocytes_vent_out",
       "from": "culture_astrocytes",
       "to": "culture_astrocytes_vent_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           18.8,
-          4.7
+          5.0
         ],
         [
           18.8,
-          3.8
+          4.0
+        ],
+        [
+          18.8,
+          3.5
         ]
       ],
       "note": "layer fluidic"
@@ -801,17 +841,21 @@
       "id": "ch_quench_solution_in_quench_join",
       "from": "quench_solution_in",
       "to": "quench_join",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           32.8,
-          46.5
+          48.0
         ],
         [
           32.8,
-          25.4
+          47.5
+        ],
+        [
+          32.8,
+          25.9
         ]
       ],
       "note": "layer fluidic"
@@ -820,17 +864,21 @@
       "id": "ch_wash_buffer_in_cell_wash",
       "from": "wash_buffer_in",
       "to": "cell_wash",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           45.3,
-          46.5
+          48.0
         ],
         [
           45.3,
-          30.9
+          47.5
+        ],
+        [
+          45.3,
+          31.4
         ]
       ],
       "note": "layer fluidic"
@@ -839,17 +887,21 @@
       "id": "ch_cell_wash_cell_wash_waste_out",
       "from": "cell_wash",
       "to": "cell_wash_waste_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           45.3,
-          18.1
+          18.6
         ],
         [
           45.3,
           2.5
+        ],
+        [
+          45.3,
+          2.0
         ]
       ],
       "note": "layer fluidic"
@@ -861,7 +913,7 @@
       "type": "inlet",
       "position": [
         2.5,
-        24.5,
+        25.0,
         2.5
       ],
       "role": "load",
@@ -873,7 +925,7 @@
       "type": "outlet",
       "position": [
         56.5,
-        24.5,
+        25.0,
         2.5
       ],
       "role": "transfer",
@@ -885,7 +937,7 @@
       "type": "inlet",
       "position": [
         17.3,
-        45.2,
+        46.0,
         2.5
       ],
       "role": "medium",
@@ -897,7 +949,7 @@
       "type": "outlet",
       "position": [
         17.3,
-        33.4,
+        34.0,
         2.5
       ],
       "role": "waste",
@@ -909,7 +961,7 @@
       "type": "inlet",
       "position": [
         17.3,
-        30.4,
+        31.0,
         2.5
       ],
       "role": "medium",
@@ -921,7 +973,7 @@
       "type": "outlet",
       "position": [
         15.8,
-        18.6,
+        19.0,
         2.5
       ],
       "role": "waste",
@@ -933,7 +985,7 @@
       "type": "outlet",
       "position": [
         18.8,
-        18.6,
+        19.0,
         2.5
       ],
       "role": "waste",
@@ -945,7 +997,7 @@
       "type": "inlet",
       "position": [
         17.3,
-        15.6,
+        16.0,
         2.5
       ],
       "role": "medium",
@@ -957,7 +1009,7 @@
       "type": "outlet",
       "position": [
         15.8,
-        3.8,
+        4.0,
         2.5
       ],
       "role": "waste",
@@ -969,7 +1021,7 @@
       "type": "outlet",
       "position": [
         18.8,
-        3.8,
+        4.0,
         2.5
       ],
       "role": "waste",
@@ -981,7 +1033,7 @@
       "type": "inlet",
       "position": [
         32.8,
-        46.5,
+        47.5,
         2.5
       ],
       "role": "reagent",
@@ -993,7 +1045,7 @@
       "type": "inlet",
       "position": [
         45.3,
-        46.5,
+        47.5,
         2.5
       ],
       "role": "reagent",
@@ -1019,12 +1071,12 @@
       "type": "heat_zone",
       "center": [
         29.5,
-        24.5,
+        25.0,
         1.25
       ],
       "size": [
         51.4,
-        40.6,
+        41.0,
         2.5
       ],
       "temp_c": 37.0,

@@ -1,7 +1,7 @@
 {
   "chip1_triculture_dissociation_quench_cell_wash_filter": {
     "spec_id": "chip1_triculture_dissociation_quench_cell_wash_filter",
-    "spec_sha1": "4634bb6aea723c9a434f37b2f6fdbed3602f3d83",
+    "spec_sha1": "a0223ddfad66c821c1cf61ef723dbb179600f296",
     "violations": [
       {
         "severity": "warning",
@@ -12,12 +12,12 @@
   },
   "chip2_encapsulation_emulsion_break_capsule_wash_curing": {
     "spec_id": "chip2_encapsulation_emulsion_break_capsule_wash_curing",
-    "spec_sha1": "57a51778d5740823f7b6793fa294704af7a0c736",
+    "spec_sha1": "db8675f5cf75815687b1a3b1115543b36e119d01",
     "violations": []
   },
   "chip3_lysis_rt_split_index_pcr_pool_release": {
     "spec_id": "chip3_lysis_rt_split_index_pcr_pool_release",
-    "spec_sha1": "00201a19c4d61a3245d87ce482b457db917a35b9",
+    "spec_sha1": "f9453d9a5e4e04a79d1d11a57d0340d537db2d96",
     "violations": [
       {
         "severity": "warning",
@@ -28,7 +28,7 @@
   },
   "chip4_bead_binding_wash_elution": {
     "spec_id": "chip4_bead_binding_wash_elution",
-    "spec_sha1": "3fbd425bd5ae9b953e5eca3c5b00e46566998b40",
+    "spec_sha1": "9ec3941f734475ea42224673e7cb34bbd4f905c6",
     "violations": []
   }
 }

@@ -21,16 +21,16 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 3. Channels
 
-Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.
+Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs through the port centre on to the far edge of the hole.
 
-1. **ch_inlet_1_lysis_rt_trap**: inlet_1 -> lysis_rt_trap, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.50 mm long. Path: (1.5, 7.75) -> (4, 7.75).
-2. **ch_lysis_rt_trap_outlet_1**: lysis_rt_trap -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.74 mm long. Path: (22.2574, 7.75) -> (25, 7.75).
-3. **ch_reagent_line_in_lysis_rt_trap**: reagent_line_in -> lysis_rt_trap, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.69 mm long. Path: (13.13, 14) -> (13.13, 12.3144).
-4. **ch_lysis_rt_trap_trap_waste_out**: lysis_rt_trap -> trap_waste_out, 0.2 mm wide, 0.3 mm deep, carries liquid, 1.69 mm long. Path: (13.13, 3.1856) -> (13.13, 1.5).
+1. **ch_inlet_1_lysis_rt_trap**: inlet_1 -> lysis_rt_trap, 0.5 mm wide, 0.3 mm deep, carries capsules, 3.00 mm long. Path: (1, 7.75) -> (1.5, 7.75) -> (4, 7.75).
+2. **ch_lysis_rt_trap_outlet_1**: lysis_rt_trap -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 3.24 mm long. Path: (22.2574, 7.75) -> (25, 7.75) -> (25.5, 7.75).
+3. **ch_reagent_line_in_lysis_rt_trap**: reagent_line_in -> lysis_rt_trap, 0.25 mm wide, 0.3 mm deep, carries liquid, 2.19 mm long. Path: (13.13, 14.5) -> (13.13, 14) -> (13.13, 12.3144).
+4. **ch_lysis_rt_trap_trap_waste_out**: lysis_rt_trap -> trap_waste_out, 0.25 mm wide, 0.3 mm deep, carries liquid, 2.19 mm long. Path: (13.13, 3.1856) -> (13.13, 1.5) -> (13.13, 1).
 
 ## 4. Ports
 
-Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.
+Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs across the whole hole.
 
 - **inlet_1** (inlet, load): 1 mm hole at (1.5, 7.75), from z = 1.9 down to z = 1.5. main inlet: inlet_1 from chip2_emulsion_break_curing_wash_filter.outlet_1.
 - **outlet_1** (outlet, harvest): 1 mm hole at (25, 7.75), from z = 1.9 down to z = 1.5. main outlet -> external.

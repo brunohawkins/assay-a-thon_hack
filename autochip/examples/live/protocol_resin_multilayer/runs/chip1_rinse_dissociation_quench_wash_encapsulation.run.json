@@ -4,7 +4,7 @@
   "chip_name": "Cell rinse, dissociation, quench, wash and encapsulation chip",
   "purpose": "Rinses and detaches the cells, quenches the enzyme, washes the cells in a spiral, mixes in core solution and forms ~70 um droplets at the flow-focusing junction.",
   "placeholder": true,
-  "created_at": "2026-11-08T09:36:02Z",
+  "created_at": "2026-11-08T10:13:06Z",
   "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
   "limits": {
     "pump_channels": 6,
@@ -149,7 +149,7 @@
         "total_feed_ul_min": 10.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0008,
+        "max_pressure_kpa": 0.001,
         "target_shear_dyn_cm2": 0.0032,
         "max_channel_shear_dyn_cm2": 0.1778,
         "port_flow_ul_min": {
@@ -240,7 +240,7 @@
         "total_feed_ul_min": 10.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0008,
+        "max_pressure_kpa": 0.001,
         "target_shear_dyn_cm2": 0.0032,
         "max_channel_shear_dyn_cm2": 0.1778,
         "port_flow_ul_min": {
@@ -327,7 +327,7 @@
         "total_feed_ul_min": 10.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0008,
+        "max_pressure_kpa": 0.001,
         "target_shear_dyn_cm2": 0.0032,
         "max_channel_shear_dyn_cm2": 0.1778,
         "port_flow_ul_min": {
@@ -481,7 +481,7 @@
           "cell_wash"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0115,
+        "max_pressure_kpa": 0.0118,
         "target_shear_dyn_cm2": 0.05926,
         "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
@@ -568,7 +568,7 @@
         "total_feed_ul_min": 10.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0007,
+        "max_pressure_kpa": 0.0009,
         "target_shear_dyn_cm2": 0.00174,
         "max_channel_shear_dyn_cm2": 0.1778,
         "port_flow_ul_min": {
@@ -708,7 +708,7 @@
         "total_feed_ul_min": 10.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0007,
+        "max_pressure_kpa": 0.0009,
         "target_shear_dyn_cm2": 0.00174,
         "max_channel_shear_dyn_cm2": 0.1778,
         "port_flow_ul_min": {
@@ -806,7 +806,7 @@
           "droplets_1"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0248,
+        "max_pressure_kpa": 0.0251,
         "target_shear_dyn_cm2": 0.05926,
         "max_channel_shear_dyn_cm2": 0.3556,
         "port_flow_ul_min": {
@@ -911,7 +911,7 @@
           "core_mix"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.007,
+        "max_pressure_kpa": 0.0072,
         "target_shear_dyn_cm2": 0.00056,
         "max_channel_shear_dyn_cm2": 0.2489,
         "port_flow_ul_min": {

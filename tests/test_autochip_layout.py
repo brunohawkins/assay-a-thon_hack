@@ -9,6 +9,7 @@ carry flow through every main-path module when inlet_1 is fed and outlet_1 vente
 LIB_ONLY = str(__import__("pathlib").Path(__file__).parent / "fixtures" / "autochip" / "assayathon_library_only.json")
 import copy
 import json
+import math
 import sys
 import tempfile
 import unittest
@@ -108,17 +109,19 @@ class Contract(unittest.TestCase):
                     self.assertGreater(ports["outlet_1"][0], ports["inlet_1"][0])
                     self.assertNotIn("layout.outlet_side", {v["rule"] for v in r["violations"]})
 
-    def test_channels_end_at_port_centres_and_chamber_edges(self):
+    def test_channels_cross_their_ports_and_end_at_chamber_edges(self):
         for name in ALL:
             for r in run(name).values():
                 spec = r["spec"]
                 ports = {p["id"]: p["position"][:2] for p in spec["ports"]}
+                holes = {p["id"]: p["width_um"] / 1000 for p in spec["ports"]}
                 rooms = {c["id"]: c for c in spec["chambers"]}
                 for ch in spec["channels"]:
-                    for end, pt in ((ch["from"], ch["path"][0]), (ch["to"], ch["path"][-1])):
-                        if end in ports:
-                            self.assertAlmostEqual(pt[0], ports[end][0], 3)
-                            self.assertAlmostEqual(pt[1], ports[end][1], 3)
+                    for end, pt, centre in ((ch["from"], ch["path"][0], ch["path"][1]), (ch["to"], ch["path"][-1], ch["path"][-2])):
+                        if end in ports:          # through the port centre, on to the far edge of the hole
+                            self.assertAlmostEqual(centre[0], ports[end][0], 3)
+                            self.assertAlmostEqual(centre[1], ports[end][1], 3)
+                            self.assertAlmostEqual(math.hypot(pt[0] - centre[0], pt[1] - centre[1]), holes[end] / 2, 3, ch["id"])
                         else:
                             (cx, cy, _), (sx, sy, _) = rooms[end]["center"], rooms[end]["size"]
                             on_x = abs(abs(pt[0] - cx) - sx / 2) < 1e-3 and abs(pt[1] - cy) <= sy / 2 + 1e-3
@@ -126,6 +129,25 @@ class Contract(unittest.TestCase):
                             self.assertTrue(on_x or on_y, f"{ch['id']} does not end on the edge of {end}")
                     for a, b in zip(ch["path"][:-1], ch["path"][1:]):       # orthogonal
                         self.assertTrue(abs(a[0] - b[0]) < 1e-6 or abs(a[1] - b[1]) < 1e-6, ch["id"])
+
+    def test_every_fluid_port_hole_opens_onto_enough_channel(self):
+        # tools/check_chip_spec.py's port-overlap rule: >= 1 mm2, or a quarter of a hole under 2 x 2 mm
+        for name in ALL:
+            for cid, r in run(name).items():
+                spec = r["spec"]
+                fx, fy = spec["footprint"]["x"], spec["footprint"]["y"]
+                for o in ccs.port_overlaps(spec):
+                    with self.subTest(plan=name, chip=cid, port=o["port"]):
+                        self.assertGreaterEqual(o["overlap_mm2"] + o["tolerance_mm2"], o["need_mm2"])
+                for ch in spec["channels"]:
+                    if {ch["from"], ch["to"]} & {p["id"] for p in spec["ports"]}:
+                        self.assertGreaterEqual(ch["width_mm"], checks.port_line_min_width_mm(spec["ports"][0]["width_um"] / 1000))
+                    self.assertTrue(all(0 <= x <= fx and 0 <= y <= fy for x, y in ch["path"]), ch["id"])
+
+    def test_port_line_min_width_follows_the_rule(self):
+        self.assertAlmostEqual(checks.port_line_min_width_mm(1.0), 0.25)     # a quarter of a 1 mm2 hole, over 1 mm
+        self.assertAlmostEqual(checks.port_line_min_width_mm(0.8), 0.2)
+        self.assertAlmostEqual(checks.port_line_min_width_mm(2.0), 0.5)      # the full 1 mm2 over a 2 mm hole
 
 
 class Layout(unittest.TestCase):

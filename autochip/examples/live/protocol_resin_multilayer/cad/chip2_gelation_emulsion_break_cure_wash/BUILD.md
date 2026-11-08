@@ -24,19 +24,19 @@ Units are mm. Origin at the bottom-left corner of the chip, x to the right, y up
 
 ## 3. Channels
 
-Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part, or at a port centre.
+Each channel is a path of straight segments through the listed points (its centreline), drawn at its width and cut to its depth. It starts at the edge of the `from` part and ends at the edge of the `to` part; at a port it runs through the port centre on to the far edge of the hole.
 
-1. **ch_inlet_1_gelation_delay**: inlet_1 -> gelation_delay, 0.5 mm wide, 0.3 mm deep, carries droplets, 2.20 mm long. Path: (2.5, 21.75) -> (4.7, 21.75).
+1. **ch_inlet_1_gelation_delay**: inlet_1 -> gelation_delay, 0.5 mm wide, 0.3 mm deep, carries droplets, 2.70 mm long. Path: (2, 21.75) -> (2.5, 21.75) -> (4.7, 21.75).
 2. **ch_gelation_delay_capsule_trap**: gelation_delay -> capsule_trap, 0.5 mm wide, 0.3 mm deep, carries droplets, 1.20 mm long. Path: (36.503, 21.75) -> (37.7, 21.75).
-3. **ch_capsule_trap_outlet_1**: capsule_trap -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 2.66 mm long. Path: (51.8421, 21.75) -> (54.5, 21.75).
-4. **ch_emulsion_breaking_agent_in_capsule_trap**: emulsion_breaking_agent_in -> capsule_trap, 0.5 mm wide, 0.3 mm deep, carries liquid, 15.71 mm long. Path: (42.77, 41) -> (42.77, 25.2855).
-5. **ch_photoinitiator_in_capsule_trap**: photoinitiator_in -> capsule_trap, 0.5 mm wide, 0.3 mm deep, carries liquid, 15.71 mm long. Path: (46.77, 41) -> (46.77, 25.2855).
-6. **ch_capsule_trap_capsule_trap_waste_out**: capsule_trap -> capsule_trap_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 15.71 mm long. Path: (42.77, 18.2145) -> (42.77, 2.5).
-7. **ch_wash_buffer_in_capsule_trap**: wash_buffer_in -> capsule_trap, 0.5 mm wide, 0.3 mm deep, carries liquid, 15.71 mm long. Path: (46.77, 2.5) -> (46.77, 18.2145).
+3. **ch_capsule_trap_outlet_1**: capsule_trap -> outlet_1, 0.5 mm wide, 0.3 mm deep, carries capsules, 3.16 mm long. Path: (51.8421, 21.75) -> (54.5, 21.75) -> (55, 21.75).
+4. **ch_emulsion_breaking_agent_in_capsule_trap**: emulsion_breaking_agent_in -> capsule_trap, 0.5 mm wide, 0.3 mm deep, carries liquid, 16.21 mm long. Path: (42.77, 41.5) -> (42.77, 41) -> (42.77, 25.2855).
+5. **ch_photoinitiator_in_capsule_trap**: photoinitiator_in -> capsule_trap, 0.5 mm wide, 0.3 mm deep, carries liquid, 16.21 mm long. Path: (46.77, 41.5) -> (46.77, 41) -> (46.77, 25.2855).
+6. **ch_capsule_trap_capsule_trap_waste_out**: capsule_trap -> capsule_trap_waste_out, 0.5 mm wide, 0.3 mm deep, carries liquid, 16.21 mm long. Path: (42.77, 18.2145) -> (42.77, 2.5) -> (42.77, 2).
+7. **ch_wash_buffer_in_capsule_trap**: wash_buffer_in -> capsule_trap, 0.5 mm wide, 0.3 mm deep, carries liquid, 16.21 mm long. Path: (46.77, 2) -> (46.77, 2.5) -> (46.77, 18.2145).
 
 ## 4. Ports
 
-Each port is a round hole from the top face down into the fluidic layer, centred on the channel end.
+Each port is a round hole from the top face down into the fluidic layer, centred on its channel, which runs across the whole hole.
 
 - **inlet_1** (inlet, load): 1 mm hole at (2.5, 21.75), from z = 2.5 down to z = 1. main inlet: inlet_1 from chip1_rinse_dissociation_quench_wash_encapsulation.outlet_1.
 - **outlet_1** (outlet, transfer): 1 mm hole at (54.5, 21.75), from z = 2.5 down to z = 1. main outlet -> chip3_filter_lysis_rt_wash.inlet_1.

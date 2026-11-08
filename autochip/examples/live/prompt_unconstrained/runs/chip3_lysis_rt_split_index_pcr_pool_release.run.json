@@ -4,7 +4,7 @@
   "chip_name": "Lysis, RT, split, index PCR, pool and release chip",
   "purpose": "Lyses cells in capsules, reverse transcribes, splits into four portions for index PCR, pools them and releases the cDNA.",
   "placeholder": true,
-  "created_at": "2026-11-08T09:35:58Z",
+  "created_at": "2026-11-08T10:13:38Z",
   "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
   "limits": {
     "pump_channels": null,
@@ -194,7 +194,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0375,
+        "max_pressure_kpa": 0.0254,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
@@ -293,7 +293,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0734,
+        "max_pressure_kpa": 0.0488,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "wash_buffer_in": 20.0,
@@ -462,7 +462,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0734,
+        "max_pressure_kpa": 0.0488,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "wash_buffer_in": 20.0,
@@ -563,7 +563,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0375,
+        "max_pressure_kpa": 0.0254,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
@@ -732,7 +732,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0734,
+        "max_pressure_kpa": 0.0488,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "wash_buffer_in": 20.0,
@@ -852,8 +852,8 @@
           "reaction_trap"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0018,
-        "target_shear_dyn_cm2": 0.00213,
+        "max_pressure_kpa": 0.002,
+        "target_shear_dyn_cm2": 0.00209,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
           "pcr_1_vent_out": -5.0,
@@ -958,7 +958,7 @@
         "sibling_flow_ul_min": 0.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0042,
+        "max_pressure_kpa": 0.0043,
         "target_shear_dyn_cm2": 0.0128,
         "port_flow_ul_min": {
           "index_mix_1_in": 20.0,
@@ -1061,7 +1061,7 @@
         "sibling_flow_ul_min": 0.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0042,
+        "max_pressure_kpa": 0.0043,
         "target_shear_dyn_cm2": 0.0128,
         "port_flow_ul_min": {
           "index_mix_2_in": 20.0,
@@ -1164,7 +1164,7 @@
         "sibling_flow_ul_min": 0.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0042,
+        "max_pressure_kpa": 0.0043,
         "target_shear_dyn_cm2": 0.0128,
         "port_flow_ul_min": {
           "index_mix_3_in": 20.0,
@@ -1267,7 +1267,7 @@
         "sibling_flow_ul_min": 0.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0042,
+        "max_pressure_kpa": 0.0043,
         "target_shear_dyn_cm2": 0.0128,
         "port_flow_ul_min": {
           "index_mix_4_in": 20.0,
@@ -1478,7 +1478,7 @@
           "pool_2"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0404,
+        "max_pressure_kpa": 0.0283,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
@@ -1573,7 +1573,7 @@
         "total_feed_ul_min": 20.0,
         "passes": [],
         "stray": [],
-        "max_pressure_kpa": 0.0418,
+        "max_pressure_kpa": 0.0283,
         "target_shear_dyn_cm2": 0.00905,
         "port_flow_ul_min": {
           "outlet_1": -20.0,
@@ -1686,8 +1686,8 @@
           "release_trap"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0089,
-        "target_shear_dyn_cm2": 0.00213,
+        "max_pressure_kpa": 0.0079,
+        "target_shear_dyn_cm2": 0.00209,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
           "outlet_1": -20.0
@@ -1800,8 +1800,8 @@
           "release_trap"
         ],
         "stray": [],
-        "max_pressure_kpa": 0.0089,
-        "target_shear_dyn_cm2": 0.00213,
+        "max_pressure_kpa": 0.0079,
+        "target_shear_dyn_cm2": 0.00209,
         "port_flow_ul_min": {
           "inlet_1": 20.0,
           "outlet_1": -20.0

@@ -82,14 +82,14 @@
       "fluidic_layers": 1,
       "port_diameter_mm": 1.0,
       "port_pitch_mm": 3.0,
-      "rows": 4,
+      "rows": 2,
       "lanes": []
     }
   },
   "footprint": {
-    "x": 23.5,
-    "y": 32.0,
-    "note": "4 row(s); no size limit"
+    "x": 27.5,
+    "y": 20.5,
+    "note": "2 row(s); no size limit"
   },
   "layers": [
     {
@@ -117,7 +117,7 @@
       "type": "junction",
       "center": [
         6.0,
-        26.67,
+        14.97,
         1.15
       ],
       "size": [
@@ -134,8 +134,8 @@
       "id": "core_mix",
       "type": "mixer",
       "center": [
-        17.7,
-        22.86,
+        9.8,
+        14.97,
         1.15
       ],
       "size": [
@@ -159,7 +159,7 @@
       "type": "junction",
       "center": [
         6.0,
-        17.26,
+        7.07,
         1.15
       ],
       "size": [
@@ -176,8 +176,8 @@
       "id": "capsule_trap",
       "type": "cell_wash",
       "center": [
-        11.5711,
-        6.96,
+        15.5711,
+        7.07,
         1.25
       ],
       "size": [
@@ -206,12 +206,16 @@
       "carries": "cells",
       "path": [
         [
+          2.0,
+          14.97
+        ],
+        [
           2.5,
-          26.67
+          14.97
         ],
         [
           4.5,
-          26.67
+          14.97
         ]
       ],
       "note": "layer fluidic; main path"
@@ -226,19 +230,11 @@
       "path": [
         [
           7.5,
-          26.67
+          14.97
         ],
         [
-          19.5,
-          26.67
-        ],
-        [
-          19.5,
-          22.86
-        ],
-        [
-          19.0,
-          22.86
+          8.5,
+          14.97
         ]
       ],
       "note": "layer fluidic; main path"
@@ -252,20 +248,28 @@
       "carries": "droplets",
       "path": [
         [
-          16.4,
-          22.86
+          11.1,
+          14.97
+        ],
+        [
+          23.5,
+          14.97
+        ],
+        [
+          23.5,
+          12.79
         ],
         [
           4.0,
-          22.86
+          12.79
         ],
         [
           4.0,
-          17.26
+          7.07
         ],
         [
           4.5,
-          17.26
+          7.07
         ]
       ],
       "note": "layer fluidic; main path"
@@ -280,27 +284,11 @@
       "path": [
         [
           7.5,
-          17.26
+          7.07
         ],
         [
-          19.5,
-          17.26
-        ],
-        [
-          19.5,
-          12.93
-        ],
-        [
-          4.0,
-          12.93
-        ],
-        [
-          4.0,
-          6.96
-        ],
-        [
-          4.5,
-          6.96
+          8.5,
+          7.07
         ]
       ],
       "note": "layer fluidic; main path"
@@ -314,12 +302,16 @@
       "carries": "capsules",
       "path": [
         [
-          18.6421,
-          6.96
+          22.6421,
+          7.07
         ],
         [
-          21.0,
-          6.96
+          25.0,
+          7.07
+        ],
+        [
+          25.5,
+          7.07
         ]
       ],
       "note": "layer fluidic; main path"
@@ -328,17 +320,21 @@
       "id": "ch_core_solution_in_core_join",
       "from": "core_solution_in",
       "to": "core_join",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           6.0,
-          29.5
+          18.5
         ],
         [
           6.0,
-          28.17
+          18.0
+        ],
+        [
+          6.0,
+          16.47
         ]
       ],
       "note": "layer fluidic"
@@ -347,17 +343,21 @@
       "id": "ch_shell_polymer_in_encap_junction",
       "from": "shell_polymer_in",
       "to": "encap_junction",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
           6.0,
-          20.09
+          12.14
         ],
         [
           6.0,
-          18.76
+          11.64
+        ],
+        [
+          6.0,
+          8.57
         ]
       ],
       "note": "layer fluidic"
@@ -366,17 +366,21 @@
       "id": "ch_fluorinated_oil_in_encap_junction",
       "from": "fluorinated_oil_in",
       "to": "encap_junction",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "oil",
       "path": [
         [
           6.0,
-          14.43
+          2.0
         ],
         [
           6.0,
-          15.76
+          2.5
+        ],
+        [
+          6.0,
+          5.57
         ]
       ],
       "note": "layer fluidic"
@@ -385,17 +389,21 @@
       "id": "ch_emulsion_breaker_in_capsule_trap",
       "from": "emulsion_breaker_in",
       "to": "capsule_trap",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
-          10.07,
-          11.43
+          14.07,
+          12.14
         ],
         [
-          10.07,
-          10.4955
+          14.07,
+          11.64
+        ],
+        [
+          14.07,
+          10.6055
         ]
       ],
       "note": "layer fluidic"
@@ -404,17 +412,21 @@
       "id": "ch_wash_buffer_in_capsule_trap",
       "from": "wash_buffer_in",
       "to": "capsule_trap",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
-          13.07,
-          11.43
+          17.07,
+          12.14
         ],
         [
-          13.07,
-          10.4955
+          17.07,
+          11.64
+        ],
+        [
+          17.07,
+          10.6055
         ]
       ],
       "note": "layer fluidic"
@@ -423,17 +435,21 @@
       "id": "ch_capsule_trap_capsule_trap_waste_out",
       "from": "capsule_trap",
       "to": "capsule_trap_waste_out",
-      "width_mm": 0.2,
+      "width_mm": 0.25,
       "depth_mm": 0.3,
       "carries": "liquid",
       "path": [
         [
-          11.57,
-          3.4245
+          15.57,
+          3.5345
         ],
         [
-          11.57,
+          15.57,
           2.5
+        ],
+        [
+          15.57,
+          2.0
         ]
       ],
       "note": "layer fluidic"
@@ -445,7 +461,7 @@
       "type": "inlet",
       "position": [
         2.5,
-        26.67,
+        14.97,
         2.5
       ],
       "role": "load",
@@ -456,8 +472,8 @@
       "id": "outlet_1",
       "type": "outlet",
       "position": [
-        21.0,
-        6.96,
+        25.0,
+        7.07,
         2.5
       ],
       "role": "transfer",
@@ -469,7 +485,7 @@
       "type": "inlet",
       "position": [
         6.0,
-        29.5,
+        18.0,
         2.5
       ],
       "role": "reagent",
@@ -481,7 +497,7 @@
       "type": "inlet",
       "position": [
         6.0,
-        20.09,
+        11.64,
         2.5
       ],
       "role": "reagent",
@@ -493,7 +509,7 @@
       "type": "inlet",
       "position": [
         6.0,
-        14.43,
+        2.5,
         2.5
       ],
       "role": "oil",
@@ -504,8 +520,8 @@
       "id": "emulsion_breaker_in",
       "type": "inlet",
       "position": [
-        10.07,
-        11.43,
+        14.07,
+        11.64,
         2.5
       ],
       "role": "reagent",
@@ -516,8 +532,8 @@
       "id": "wash_buffer_in",
       "type": "inlet",
       "position": [
-        13.07,
-        11.43,
+        17.07,
+        11.64,
         2.5
       ],
       "role": "reagent",
@@ -528,7 +544,7 @@
       "id": "capsule_trap_waste_out",
       "type": "outlet",
       "position": [
-        11.57,
+        15.57,
         2.5,
         2.5
       ],
