@@ -15,6 +15,7 @@ import {
   diffusionMm, shearCeiling, defaultFeed,
 } from './network.js';
 import { contracts } from './contracts.js';
+import { PORT_FLOW } from './chip.js';
 
 export const CHIP_ID = 'module1_v1';
 const PORTS = ['p_in', 'p_g_in', 'p_a_in', 'p_mid', 'p_g_out', 'p_a_out'];
@@ -31,6 +32,9 @@ const D_MM2_S = (8.8 ** 2) / (2 * 12 * 3600); // mm^2/s from the design doc's 8.
 let PROTOCOL_FEED = 2.4;
 const SPEEDS = [1, 10, 100, 1000, 10000];
 const CHAMBER_INFO = { n_cx: 'neuron chamber', g_cx: 'glia (microglia) chamber', a_cx: 'astrocyte chamber', j_mid: 'junction (not a culture chamber)' };
+// The cells each culture chamber grows, as labelled on the chip (chip/module1_v1.json: n_cx
+// neurons, g_cx glia, a_cx astrocytes; j_mid is a junction, not a culture chamber).
+const CHAMBER_CELLS = { n_cx: 'Neurons', g_cx: 'Microglia', a_cx: 'Astrocytes' };
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -140,14 +144,20 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
   function attach(c) {
     chip = c;
     chip.flowOwned = true;
-    // The port icons carry the port names; drop the chip's own port labels so they don't double up.
+    // The port icons carry the port names, and the culture chambers get a label saying what grows
+    // in them: drop the chip's own id labels for those so they don't double up.
     const portIds = new Set(c.spec.ports.map((p) => p.id));
     c.labels = c.labels.filter((l) => {
-      if (!portIds.has(l.element.textContent)) return true;
+      const id = l.element.textContent;
+      if (!portIds.has(id) && !CHAMBER_CELLS[id]) return true;
       l.removeFromParent();
       l.element.remove();
       return false;
     });
+    // The junction keeps its id, moved under it: beside it, it sat under p_mid's pill.
+    const j = c.parts.get('j_mid');
+    const jl = c.labels.find((l) => l.element.textContent === 'j_mid');
+    if (j && jl) { jl.center.set(0.5, 0); jl.position.set(j.center.x, j.center.y - j.size.y / 2 - 0.35 * c.u, c.top + 0.3 * c.u); }
     // STLs are loaded by main.js, from the folder this chip OWNS (it awaits loadChipCad before
     // attaching, so they are already in place here). The chamber STLs are drawn over the
     // liquid, so keep them nearly clear and unlit: that is what makes the dye colours read true.
@@ -248,6 +258,21 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       obj.position.set(p.position[0], p.position[1], top + 1.2 * k);
       group.add(obj);
       objs.portIcons[p.id] = obj;
+    }
+
+    // What grows in each culture chamber, on the side away from the junction so it never sits
+    // on the dye in the channels (the junction is not a culture chamber: it keeps just its id).
+    const jc = net.chip.chambers.find((c) => c.id === 'j_mid')?.center;
+    for (const c of net.chip.chambers) {
+      if (!CHAMBER_CELLS[c.id]) continue;
+      const below = jc && c.center[1] < jc[1] - 0.5;
+      const el = document.createElement('div');
+      el.className = 'part-label cell-label';
+      el.innerHTML = `${esc(CHAMBER_CELLS[c.id])}<span class="id">${esc(c.id)}</span>`;
+      const obj = new CSS2DObject(el);
+      obj.center.set(0.5, below ? 0 : 1);
+      obj.position.set(c.center[0], c.center[1] + (below ? -1 : 1) * (c.size[1] / 2 + 0.35 * chip.u), top + 0.3 * k);
+      group.add(obj);
     }
 
     // Next-module box: where harvest flow from p_mid goes (protocols/pipeline_mvp.json: cell prep).
@@ -553,19 +578,20 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       part.fluidMaterial.envMapIntensity = 0;
       part.fluidMaterial.opacity = 0.35 + 0.6 * a;
     }
-    // port icons, and each port coloured by what is on it: its dye when fed, grey when open, dark when plugged
+    // port icons, and each port coloured by what it is doing: blue where liquid goes in, red where it
+    // comes out, grey when plugged (as on every chip, chip.js PORT_FLOW). A fed port's pill shows its dye.
     for (const pid of PORTS) {
       const el = objs.portIcons[pid].element;
       const st = state.states[pid];
-      const html = `${ICONS[st]}<span>${pid} · ${st}${st === 'FEED' ? ` ${state.flows[pid]} µL/min` : ''}</span>`;
+      const k = DYE_OF_PORT[pid];
+      const dye = st === 'FEED' && k !== undefined
+        ? `<i class="dye" title="${DYE_NAMES[k]} dye" style="background:rgb(${DYE_RGB[k].map((v) => Math.round(v * 255)).join(', ')})"></i>` : '';
+      const html = `${ICONS[st]}<span>${pid} · ${STATE_WORD[st]}${st === 'FEED' ? ` at ${state.flows[pid]} µL/min` : ''}</span>${dye}`;
       if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; el.className = `port-icon ${st.toLowerCase()}`; }
       const part = chip.parts.get(pid);
-      const key = st === 'FEED' ? `F${DYE_OF_PORT[pid]}` : st;
-      if (part?.ringMaterial && part.portState !== key) {
-        part.portState = key;
-        const k = DYE_OF_PORT[pid];
-        if (st === 'FEED' && k !== undefined) col.setRGB(...DYE_RGB[k], THREE.SRGBColorSpace);
-        else col.setHex(st === 'VENT' ? 0x8c959f : 0x424a53);
+      if (part?.ringMaterial && part.portState !== st) {
+        part.portState = st;
+        col.setHex(st === 'FEED' ? PORT_FLOW.in : st === 'VENT' ? PORT_FLOW.out : PORT_FLOW.plugged);
         for (const m of [part.ringMaterial, part.box.material, part.stl?.material]) if (m) { m.color.copy(col); m.emissive?.copy(col); }
         part.stl?.children[0]?.material.color.copy(col);   // its outline (chip.js outlineOf)
       }
@@ -590,6 +616,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     }
   }
 
+  const STATE_WORD = { FEED: 'in', VENT: 'out', CAP: 'plugged' };
   const ICONS = {
     FEED: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21l4-4M6 14l4 4M8 12l8-8 4 4-8 8zM15 3l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
     VENT: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v5" stroke="currentColor" stroke-width="2"/></svg>',

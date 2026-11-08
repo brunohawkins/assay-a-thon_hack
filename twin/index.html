@@ -278,6 +278,18 @@
 
   <div id="scalebar" class="scalebar" aria-label="Scale bar"><div class="bar"></div><div class="text"></div></div>
 
+  <div id="view-tools" class="view-tools">
+    <div class="segmented" role="group" aria-label="Camera">
+      <button data-camera="3d" aria-pressed="true" title="3D view: drag to turn it">3D</button>
+      <button data-camera="plan" aria-pressed="false" title="Plan from above: drag to move it">2D</button>
+    </div>
+    <p class="port-legend" aria-label="Port colours">
+      <span class="in"><i aria-hidden="true"></i>In</span>
+      <span class="out"><i aria-hidden="true"></i>Out</span>
+      <span class="plugged"><i aria-hidden="true"></i>Plugged</span>
+    </p>
+  </div>
+
   <footer class="controls">
     <div class="buttons">
       <button id="play" class="primary" aria-pressed="false" title="Play / pause (Space)">

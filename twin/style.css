@@ -483,8 +483,9 @@ body[data-module="home"] .scalebar { left: calc(min(640px, 50vw) + 20px); bottom
 .ports code { font: 12px var(--mono); }
 .port-state { display: inline-flex; align-items: center; gap: 6px; }
 .port-state i { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 1px rgba(31, 35, 40, 0.2); }
-.port-state.open i { background: #fff; box-shadow: inset 0 0 0 1.5px var(--text-2); }
-.port-state.plug i { background: var(--text-2); border-radius: 2px; box-shadow: none; }
+.port-state.feed i { background: var(--port-in); box-shadow: none; }
+.port-state.open i { background: var(--surface); box-shadow: inset 0 0 0 2px var(--port-out); }
+.port-state.plug i { background: var(--port-plugged); border-radius: 2px; box-shadow: none; }
 .port-state.plug { color: var(--text-2); }
 
 .timer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -702,9 +703,11 @@ body[data-module="bench"] .scalebar { bottom: 16px; }
   white-space: nowrap;
 }
 .port-icon svg { width: 14px; height: 14px; }
-.port-icon.feed { color: var(--accent-text); border-color: #80ccff; }
-.port-icon.vent { color: var(--text); }
+/* Blue in, red out, grey plugged (--port-* below, PORT_FLOW in twin/chip.js); a fed port shows its dye. */
+.port-icon.feed { color: var(--port-in-text); border-color: #80ccff; }
+.port-icon.vent { color: var(--port-out-text); border-color: #ff9492; }
 .port-icon.cap { color: var(--text-3); }
+.port-icon .dye { width: 8px; height: 8px; border-radius: 50%; margin-left: 1px; box-shadow: inset 0 0 0 1px rgba(31, 35, 40, 0.25); }
 
 .m1-tooltip {
   position: fixed;
@@ -983,6 +986,52 @@ body.presenter .p3-label .p3-id, body.presenter .p3-label .p3-extra, body.presen
 body.presenter .p3-label.p3-tube { font-size: 14px; }
 
 /* ---- Module 1 view: chamber labels, port colours, plan (2D) view ---- */
+
+/* Ports: blue in, red out, grey plugged. The same colours as PORT_FLOW in twin/chip.js. */
+:root { --port-in: #218bff; --port-out: #cf222e; --port-plugged: #8c959f; --port-in-text: #0550ae; --port-out-text: #a40e26; }
+
+/* What grows in each of Module 1's culture chambers. */
+.part-label.cell-label { font: 600 12px var(--font); color: var(--text); padding: 2px 8px; }
+.cell-label .id { margin-left: 6px; font: 400 10.5px var(--mono); color: var(--text-2); }
+body.presenter .part-label.cell-label { font-size: 16px; }
+body.presenter .cell-label .id { font-size: 13px; }
+
+/* 2D / 3D and the port legend, top left of the view. */
+.view-tools {
+  position: fixed;
+  left: 16px;
+  top: var(--panels-top);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.view-tools .segmented { box-shadow: var(--shadow); }
+.view-tools .segmented button { min-width: 36px; font-weight: 600; font-size: 12.5px; }
+.port-legend {
+  margin: 0;
+  display: flex;
+  gap: 12px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text-2);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+}
+.port-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.port-legend i { width: 9px; height: 9px; border-radius: 50%; }
+.port-legend .in i { background: var(--port-in); }
+.port-legend .out i { background: var(--port-out); }
+.port-legend .plugged { display: none; }
+.port-legend .plugged i { background: var(--port-plugged); border-radius: 2px; }
+body[data-module="m1v1"] .port-legend .plugged, body[data-module="bench"] .port-legend .plugged { display: inline-flex; }
+body[data-module="home"] .view-tools, body.presenter .view-tools { display: none !important; }
+.eng.has-control .view-tools, .eng.has-m1 .view-tools { left: 400px; }
+@media (max-width: 900px) {
+  .view-tools { left: auto !important; right: 12px; }
+  .port-legend, .cell-label .id { display: none; }
+}
 
 
 /* ---- Pipeline: time periods and off-chip hand-offs ---- */
