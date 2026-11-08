@@ -29,6 +29,7 @@ export const SOURCES = {
   envelopeY: 'contracts/blocks.json envelope.max_y_mm',
   weirCrestUm: 'contracts/blocks.json retention.weir_geometry.crest_thickness_um',
   benchFlowUlMin: 'contracts/parameters.json dye_demo.bench_flow_ul_min',
+  lanes: 'contracts/parameters.json barcoding.lanes',
 };
 
 // No contract parameter exists for these yet: the value is the Python operator's, and the
@@ -46,6 +47,12 @@ function number(obj, path, where) {
   const v = Number(at);
   if (!Number.isFinite(v)) throw new Error(`${where} ${path.join('.')} is not a number (${at})`);
   return v;
+}
+
+// A positive number, or null when the entry is missing or empty (for values that are not physics).
+function optional(params, name) {
+  const v = params[name]?.value;
+  return v != null && Number(v) > 0 ? Number(v) : null;
 }
 
 async function json(url) {
@@ -74,6 +81,10 @@ export async function loadContracts(root) {
     // A weir's in-plane crest thickness when a chip does not give its own (operator/network.py
     // _weir_crest_default_um reads the same entry).
     weirCrestUm: number(blocks, ['retention', 'weir_geometry', 'crest_thickness_um'], 'contracts/blocks.json'),
+    // How many separately labelled cultures one Module 1 run carries (one lane label per lineage).
+    // Not physics: only the presenter's scale step reads it, so a missing entry leaves it null
+    // (and that step leaves its "today" row out) instead of stopping the twin.
+    lanes: optional(p, 'barcoding.lanes'),
   };
   const missing = [];
   for (const [name, { value, from }] of Object.entries(UNCONTRACTED)) {

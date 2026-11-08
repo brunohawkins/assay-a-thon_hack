@@ -12,8 +12,20 @@
 // #step=N in the URL opens step N; tools/record_presenter.py reads `seconds` to pace the video.
 import { modeStates } from './network.js';
 import { notPrintable, shortStage } from './status.js';
+import { contracts } from './contracts.js';
 
 let FLOW = 2.4; // µL/min: Module 1's feed, derived from the chip by the twin (operator/network.py DEFAULT_FEED_UL_MIN)
+
+// The closing step's scale figures: a mentor's estimate, the same targets as the home page. They
+// are pitch targets, not design values, and nothing has been run. One single-cell run reads about
+// 20,000 cells (one well of a 10x Genomics chip, the usual benchmark, eight wells to a chip) and a
+// condition needs about 2,000 of them. Our pipeline makes its own library (stage 4b gives every
+// capsule its own barcode in its own droplet); the 10x well is only the yardstick for a run's size.
+// "Today" is not here: it is one Module 1's lane labels, read from contracts (barcoding.lanes).
+const SCALE = { cellsPerRun: 20000, cellsPerCondition: 2000, runs: 8 };
+const WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+const word = (n) => WORDS[n] ?? String(n);
+const fmt = (n) => Math.round(n).toLocaleString('en-GB');
 const NAMES = { n_cx: 'neuron', g_cx: 'glia', a_cx: 'astrocyte' };
 const CHIP_OF = { m1v1: 'module1_v1', m4: 'module4_v1', m5: 'module5_v1', prompt: 'capsule_prep_v1' };
 const PROMPT = 'Turn steps 1–15 of the cell prep and encapsulation table into a chip, built from Flowmatter library parts.';
@@ -41,6 +53,34 @@ export function refusalSentence(request, verdict) {
   return `No: ${verdict.reasons?.[0] ?? 'the safety check blocks it'}.`;
 }
 
+// The opening card: the idea in three beats. The swatches are Module 1's own dye colours, so the
+// card matches the chambers behind it (red neurons, yellow glia, blue astrocytes).
+export function ideaCard(dyeCss = () => 'currentColor') {
+  const sw = (k) => `<i class="pr-swatch" style="background:${dyeCss(k)}"></i>`;
+  return `<ol class="pr-beats">
+    <li><b>Grow</b><span>${sw(0)}Neurons, ${sw(1)}microglia and ${sw(2)}astrocytes side by side, each in its own chamber with its own medium.</span></li>
+    <li><b>Perturb</b><span>Change a cell’s neighbours, not its genes: the flow decides which cultures share medium, and when.</span></li>
+    <li><b>Read</b><span>Every cell, by single-cell sequencing. One capsule holds one cell and gets its own barcode.</span></li>
+  </ol>`;
+}
+
+// The closing card: conditions per run, today and at the target. `lanes` is one Module 1's lane
+// labels (contracts barcoding.lanes); without it the "today" row is left out.
+export function scaleCard(lanes) {
+  const perRun = Math.floor(SCALE.cellsPerRun / SCALE.cellsPerCondition);
+  const row = (name, note, a, cls = '') => `<tr class="${cls}"><th scope="row">${name}<small>${note}</small></th><td>${a}</td><td>${a * SCALE.runs}</td></tr>`;
+  return `<p class="pr-lead">A condition needs a few thousand cells, not a million.</p>
+    <p class="pr-note">One single-cell run reads about ${fmt(SCALE.cellsPerRun)} cells: one well of a 10x Genomics chip, the usual benchmark.</p>
+    <table class="pr-scale">
+      <thead><tr><th></th><th scope="col">per run</th><th scope="col">in ${word(SCALE.runs)} runs</th></tr></thead>
+      <tbody>
+        ${lanes ? row('Today', `one Module 1, ${word(lanes)} chambers`, lanes) : ''}
+        ${row('Target', `about ${fmt(SCALE.cellsPerCondition)} cells each`, perRun, 'target')}
+      </tbody>
+    </table>
+    <p class="pr-note"><b>Next:</b> ten or more chambers per chip, more chips in parallel, and membrane valves to connect cultures on demand.</p>`;
+}
+
 function makeSteps(api) {
   const { pipeline, player, m1 } = api;
 
@@ -64,6 +104,17 @@ function makeSteps(api) {
   const chipsIn = () => (pipeline.data?.entries ?? []).filter((e) => e.spec).length;
 
   return [
+    {
+      // The framing first: behind the card, Module 1 goes from separate growth (three cultures side
+      // by side) to interaction (the neuron chamber's medium reaching its neighbours).
+      id: 'idea', seconds: 12,
+      title: 'Cellular Perturb-seq on a chip',
+      caption: 'Perturb-seq perturbs genes; this perturbs a cell’s neighbours. Neurons, microglia and astrocytes are the first use case, not the limit.',
+      async enter(s) {
+        s.card(ideaCard(m1.dyeCss));
+        await module1(s, 'int_n', { from: 'grow', speed: 30 });
+      },
+    },
     {
       id: 'prompt', seconds: 13,
       title: 'From a prompt to a chip',
@@ -95,7 +146,8 @@ function makeSteps(api) {
         const entries = pipeline.data?.entries ?? [];
         const ghosts = entries.some((e) => !e.spec);
         const bought = entries.filter(notPrintable).map((e) => shortStage(pipeline.data?.status?.byChip.get(e.spec?.id)?.stage ?? e.name));
-        s.caption(`${chipsIn()} stages at real scale, 30 × 20 mm each: cells go in, capsules in the middle, a library out.`
+        const { envelopeX, envelopeY } = contracts();
+        s.caption(`${chipsIn()} stages at real scale, ${envelopeX} × ${envelopeY} mm each: cells go in, capsules in the middle, a library out.`
           + `${bought.length ? ` ${bought.join(', ')} runs our chemistry on bought hardware.` : ''}${ghosts ? ' Dashed: not designed yet.' : ''}`);
         pipeline.setSpeed(1.6);
         pipeline.seek(0);
@@ -136,7 +188,7 @@ function makeSteps(api) {
     {
       id: 'harvest', seconds: 14,
       title: 'Harvest, and on down the line',
-      caption: 'All three chambers flush out through p_mid, on to cell prep.',
+      caption: 'Before harvest, the cells of each chamber pick up that chamber’s own label. Then all three flush out through p_mid, on to cell prep.',
       async enter(s) {
         await module1(s, 'collect', { from: 'grow', speed: 20 });
         await s.wait(5500);
@@ -177,6 +229,20 @@ function makeSteps(api) {
         player.stopAt = next > 0 ? tl[next].start : null;
       },
     },
+    {
+      // The close: what the multiplexing buys, over the whole line playing.
+      id: 'scale', seconds: 14,
+      title: 'Scale: many conditions, few cells',
+      caption: 'Each chamber’s own label lets its cells share one run with the others and be told apart afterwards. These are targets; nothing has been run yet.',
+      async enter(s) {
+        s.card(scaleCard(contracts().lanes));
+        await s.show('pipeline');
+        pipeline.frame();
+        pipeline.setSpeed(1.6);
+        pipeline.seek(0);
+        pipeline.setPlaying(true);
+      },
+    },
   ];
 }
 
@@ -190,7 +256,10 @@ export function createPresenter(api, { extraSteps = [] } = {}) {
   // ---------------------------------------------------------------- DOM
   const root = document.createElement('div');
   root.className = 'pr-root';
+  // .pr-card: the opening and closing steps' card on the left. The scene (scene.js freeRect) fits
+  // the chip or the pipeline into the space beside it; every other step hides it.
   root.innerHTML = `
+    <aside class="pr-card panel" hidden></aside>
     <section class="pr-caption panel" aria-live="polite">
       <div class="pr-main">
         <p class="pr-head"><span class="pr-count"></span><span class="pr-sim">Simulation: the digital twin, not live hardware</span></p>
@@ -210,7 +279,16 @@ export function createPresenter(api, { extraSteps = [] } = {}) {
     title: root.querySelector('.pr-title'), text: root.querySelector('.pr-text'),
     back: root.querySelector('.pr-back'), next: root.querySelector('.pr-next'), dots: [...root.querySelectorAll('.pr-dots li')],
     loading: root.querySelector('.pr-loading'),
+    card: root.querySelector('.pr-card'),
   };
+  // Re-fit whatever is on screen to the space the card leaves (or gives back).
+  const reframe = () => { if (api.pipeline.visible) api.pipeline.frame(); else api.frame(); };
+  function setCard(html) {
+    const was = !el.card.hidden;
+    el.card.innerHTML = html ?? '';
+    el.card.hidden = !html;
+    if (was !== !el.card.hidden) reframe();
+  }
   new ResizeObserver(() => {
     document.documentElement.style.setProperty('--pr-caption-h', `${Math.ceil(el.caption.getBoundingClientRect().height)}px`);
     api.frame();
@@ -297,6 +375,7 @@ export function createPresenter(api, { extraSteps = [] } = {}) {
         check();
       },
       caption(text, tone = '') { el.text.textContent = text; el.text.className = `pr-text ${tone}`; },
+      card: setCard,
     };
   }
 
@@ -315,6 +394,7 @@ export function createPresenter(api, { extraSteps = [] } = {}) {
       render(k);
       try {
         api.m1.flag?.(null);
+        setCard(null);
         await steps[k].enter(context());
         history.replaceState(null, '', `${location.pathname}${location.search}#step=${k + 1}`);
       } catch (e) {
