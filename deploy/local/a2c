@@ -1,0 +1,18 @@
+#!/bin/sh
+# assay2chip, local: one command for everything on 127.0.0.1.
+#
+#   deploy/local/a2c start            # foreground; Ctrl-C stops it cleanly
+#   deploy/local/a2c start --detach   # background
+#   deploy/local/a2c status | stop | logs [-f] [RUN_ID] | submit FILE [--wait]
+#
+# Uses the repo's own .venv. See docs/hosting.md.
+set -e
+HERE="$(cd "$(dirname "$0")" && pwd)"
+ROOT="$(cd "$HERE/../.." && pwd)"
+PY="$ROOT/.venv/bin/python"
+if [ ! -x "$PY" ]; then
+    echo "a2c: $PY not found - create the repo's virtualenv first (see README.md)" >&2
+    exit 2
+fi
+cd "$ROOT"
+exec "$PY" -m assay2chip.hosting.local "$@"

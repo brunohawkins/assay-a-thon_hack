@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/assay.schema.json",
+  "title": "Assay (assay2chip stage S1)",
+  "description": "What the source document says, still in lab language: the wet-lab steps in order, each quoted from the paper with the page it came from and how sure the extraction is. Written by assay2chip/stages/s1_*.py to assay2chip/work/<id>/assay.json. Every number here must be traceable to the source: anything the source did not state goes in `unresolved` instead of being filled in. Shape defined in assay2chip/README.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "source", "steps", "unresolved"],
+  "properties": {
+    "id": { "$ref": "#/$defs/snake_id", "description": "The run id, same as the work directory name (assay2chip/work/<id>/)." },
+    "source": { "$ref": "#/$defs/source" },
+    "title": { "type": "string", "description": "Title of the paper or protocol, as the source gives it." },
+    "placeholder": { "type": "boolean", "description": "true while this file holds made-up steps rather than a real extraction." },
+    "llm": { "$ref": "#/$defs/llm" },
+    "extraction": { "$ref": "#/$defs/audit", "description": "S1's own provenance: which extractor ran (model or deterministic), why it fell back if it did, its confidence ceiling, counts and repairs. Open on purpose - S1 owns the shape - but it MUST say which mode produced the file, the same promise the `llm` block makes." },
+    "audit": { "$ref": "#/$defs/audit" },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The wet-lab steps in the order the source gives them, numbered from 1.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step", "text", "action", "confidence", "quote_page"],
+        "properties": {
+          "step": { "type": "integer", "minimum": 1, "description": "1, 2, 3 ... in order." },
+          "text": { "type": "string", "minLength": 1, "description": "The sentence from the source, verbatim. Not a paraphrase: the rest of the pipeline cites it." },
+          "action": {
+            "enum": ["add", "incubate", "wash", "centrifuge", "mix", "transfer", "image", "lyse", "amplify", "separate", "seed", "harvest"],
+            "description": "What the step does, in lab terms. S2 maps these onto canonical unit operations."
+          },
+          "reagents": {
+            "type": "array",
+            "description": "What goes in. Generic names only (wash_buffer, lysis_buffer): see CONFIDENTIALITY.md.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name"],
+              "properties": {
+                "name": { "type": "string", "minLength": 1, "description": "Generic reagent name, snake_case where possible. No vendors, catalogue numbers or prices." },
+                "volume_ul": { "type": ["number", "null"], "minimum": 0, "description": "Microlitres as stated by the source. null when the source gives no volume - and then say so in `unresolved`." },
+                "role": { "enum": ["medium", "buffer", "enzyme", "solvent", "oil", "label"], "description": "What the reagent is for; S2 uses it to pick a viscosity class." },
+                "note": { "type": "string" }
+              }
+            }
+          },
+          "target": { "type": ["string", "null"], "description": "What the step is done to, in the source's own words (the cells, the capsules, the supernatant)." },
+          "duration_s": { "type": ["number", "null"], "minimum": 0, "description": "Seconds, as stated. null when the source gives no time." },
+          "temp_c": { "type": ["number", "null"], "description": "Degrees Celsius, as stated. null when the source gives no temperature (not 'room temperature' guessed as 22)." },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "REQUIRED. How sure this step's fields are. 1.0 only when the source states every field outright; lower it for anything read between the lines. A guessed number presented as fact is the failure mode this whole repo fights, so any step below 1.0 should have a matching entry in `unresolved`."
+          },
+          "quote_page": {
+            "oneOf": [
+              { "type": "integer", "minimum": 0 },
+              { "type": "string", "minLength": 1 }
+            ],
+            "description": "REQUIRED. Where in the source `text` came from: a page number, or a locator string for sources with no pages ('methods, para 3', 'line 412'). Never null - if it cannot be located, the step is not extracted."
+          },
+          "notes": { "type": "string", "description": "The ambiguity in this step, if any: what the source left open and how it was read." },
+          "note": { "type": "string", "description": "Free comment on this entry (housekeeping; `notes` is the one about the source)." },
+          "audit": { "$ref": "#/$defs/audit", "description": "How this step was read: why the confidence is what it is, the verbatim text behind each parsed number, a range the source gave instead of a value, whether the sentence was split or a repeat expanded. Open on purpose, and the right place for anything that would otherwise be a silent judgement call." }
+        }
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "description": "REQUIRED, may be empty: every gap in the source. One entry per thing a later stage would otherwise have to invent (a volume, a time, a temperature, a particle size). Downstream stages carry these forward and the S10 report lists them.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question"],
+        "properties": {
+          "step": { "type": ["integer", "null"], "minimum": 1, "description": "The step the gap belongs to, or null when it is about the assay as a whole." },
+          "field": { "type": "string", "description": "Which field is missing, e.g. volume_ul." },
+          "question": { "type": "string", "minLength": 1, "description": "What is not known, in one sentence: 'volume not stated'." },
+          "assumed": { "description": "The value a later stage used instead, if one was used. Always paired with `assumed_from`." },
+          "assumed_from": { "type": "string", "description": "The contract key the assumed value came from, e.g. capsule.diameter_um. Never a bare literal." },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "note": { "type": "string" }
+  },
+  "$defs": {
+    "snake_id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" },
+    "audit": {
+      "type": "object",
+      "description": "A deliberately OPEN object: the stage that wrote this file may show its working here in whatever shape suits it. Every other field in this contract is closed (additionalProperties: false), because a typo in a contract field is a bug; provenance is the one thing that must never be blocked by a schema, since a stage that cannot record how it reached a number tends to stop recording it at all. Nothing downstream may depend on the shape of this object."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ref"],
+      "description": "Where the assay was read from, carried unchanged from S0 raw.json so every later file can be traced back to a document.",
+      "properties": {
+        "kind": { "enum": ["pdf", "md", "txt", "doi", "url"] },
+        "ref": { "type": "string", "minLength": 1, "description": "Path, DOI or URL." },
+        "sha256": { "type": ["string", "null"], "pattern": "^([0-9a-f]{64})?$", "description": "Hash of the bytes that were read, when the source is a local file." },
+        "retrieved_at": { "type": "string", "description": "ISO 8601 timestamp, for a DOI or URL." },
+        "note": { "type": "string" }
+      }
+    },
+    "llm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "description": "Which language-model mode produced this file. assay2chip/lib/llm.py fills it in; a stubbed result must never be mistakable for a real extraction.",
+      "properties": {
+        "mode": { "enum": ["real", "stub", "none"], "description": "real: a model was called. stub: the deterministic offline fallback ran (tests, no network) - treat every number as made up. none: no model was involved." },
+        "model": { "type": ["string", "null"], "description": "Model id when mode is real." },
+        "calls": { "type": "integer", "minimum": 0 },
+        "tasks": { "type": "array", "items": { "type": "string" }, "description": "The prompt task names that ran." },
+        "prompt_sha256": { "type": ["string", "null"], "pattern": "^([0-9a-f]{64})?$" },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

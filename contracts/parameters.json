@@ -493,6 +493,16 @@
       "assumption": true,
       "note": "Demo target on the sheet"
     },
+    "fluid.viscosity_37c_pa_s": {
+      "value": 0.0008,
+      "units": "Pa s",
+      "source": [
+        "Textbook",
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "USE THIS FOR EVERY CULTURE AND PROTOCOL FLOW OR SHEAR CALCULATION. The chips run at 37 C carrying culture medium, not water at room temperature. Water at 37 C is 0.69 mPa s (textbook); dissolved protein raises it roughly 15%, giving about 0.8 mPa s. Marked an assumption because the exact medium is not characterised. Every generator originally hard-coded 0.8e-3, which was the right physics with the wrong provenance; pointing them at fluid.viscosity_pa_s (water at 20 C) instead made every derived flow 20% too conservative. Keep the two values separate."
+    },
     "fluid.viscosity_pa_s": {
       "value": 0.001,
       "units": "Pa s",
@@ -500,7 +510,96 @@
         "Textbook"
       ],
       "assumption": false,
-      "note": "Water at ~20 C"
+      "note": "Water at ~20 C. This is the DYE DEMO value: room-temperature water in a bench test. Do NOT use it for a 37 C culture or protocol calculation - use fluid.viscosity_37c_pa_s, which is 20% lower, or every flow you derive will be needlessly conservative. Note also encapsulation.core_buffer_viscous: the core stream is markedly more viscous than either value."
+    },
+    "fluid.density_37c_kg_m3": {
+      "value": 1000,
+      "min": 993,
+      "max": 1010,
+      "units": "kg/m3",
+      "source": [
+        "Textbook",
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Culture medium at 37 C. Water at 37 C is 993 kg/m3; salts and protein raise medium to roughly 1005-1010. Feeds Reynolds numbers and the medium side of every settling calculation. It is within 1% either way, so it never decides a verdict on its own. ONE value for every module: five modules previously carried their own copies (993 and 1000)."
+    },
+    "culture.surface_density_per_mm2": {
+      "value": 500,
+      "min": 100,
+      "max": 1000,
+      "units": "cells/mm2",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "DEFAULT ONLY, for when a paper never states its seeding or in-place density: adherent cells per mm2 of floor. 500/mm2 is 5e4 per cm2, a typical in-place neural density (the target-scale Module 1 plates at about this); 1000/mm2 is a dense monolayer (Module 6's stated assumption); 100/mm2 is sparse. The repo previously used 83/mm2 in contracts/blocks.json's scale argument and 1000/mm2 in Module 6 - a 12x disagreement - so use THIS key. A paper's own number always wins over it. Area = cells / density, so a LOWER density gives a BIGGER chamber: use min when the chamber must hold every cell, value otherwise, and record which you used."
+    },
+    "cell.excess_density_kg_m3": {
+      "value": 60,
+      "min": 40,
+      "max": 75,
+      "units": "kg/m3",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "A single mammalian cell minus the medium it sits in (cells run roughly 1.05-1.08 g/mL against medium near 1.007). 60 reproduces the repo's long-standing figure of ~51 s for a 12 um cell to settle 0.3 mm at 37 C. Stokes settling is LINEAR in this value, so TAKE THE CONSERVATIVE END FOR YOUR QUESTION: use max when predicting cells LOST by settling in a line or mixer, min when RELYING on settling to retain cells in a chamber, and report which end you used."
+    },
+    "capsule.excess_density_kg_m3": {
+      "value": 30,
+      "min": 12,
+      "max": 50,
+      "units": "kg/m3",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "A hydrogel capsule is mostly water; its shell polymer and the cell inside make it only slightly denser than medium. The band spans about 4x in settling time. Same rule as cell.excess_density_kg_m3: max when checking for capsules LOST by settling in tubing or feed lines, min when relying on settling for RETENTION in a trap, and say which end you used. One value per particle kind - a single shared 'particle' density previously made cells, capsules and beads settle identically."
+    },
+    "bead.excess_density_kg_m3": {
+      "value": 700,
+      "min": 500,
+      "max": 1000,
+      "units": "kg/m3",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Magnetic clean-up beads are far denser than medium and settle in seconds, which is why the bead chamber relies on a magnet rather than on flow."
+    },
+    "tubing.inner_diameter_mm": {
+      "value": 0.5,
+      "min": 0.25,
+      "max": 0.8,
+      "units": "mm",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Bore of the off-chip line between two chips. No tubing is specified anywhere in the repo; 0.5 mm follows repo precedent (the encapsulation delay tubing and Module 6's 0.5 mm feed line). Dead volume scales with the square of this and the settling distance across the bore linearly, so it decides whether capsules survive a handoff."
+    },
+    "tubing.length_mm": {
+      "value": 100,
+      "min": 30,
+      "max": 300,
+      "units": "mm",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Chip-to-chip line length. A placeholder until a rig layout exists; dead volume and transit time both scale linearly with it."
+    },
+    "selector_valve.internal_volume_ul": {
+      "value": 0.5,
+      "min": 0.1,
+      "max": 2,
+      "units": "uL",
+      "source": [
+        "Assumption"
+      ],
+      "assumption": true,
+      "note": "Swept internal volume of one off-chip selector valve in a handoff line. A placeholder until a valve is chosen."
     },
     "mesh.open_fraction": {
       "value": 0.35,
@@ -695,7 +794,25 @@
         "CapSeq"
       ],
       "assumption": false,
-      "note": "Split-and-pool barcoding is DROPPED. Cells carry a per-lane lipid-anchored oligo barcode applied in module 1, so reverse transcription uses a plain poly(dT) primer and adds no barcode. Module 4's index PCR still adds the sublibrary index. NOTE the surviving barcodes are per-LANE, not per-cell: three lanes x four sublibrary indices is about twelve distinguishable groups, so the data is lane-level, not single-cell."
+      "note": "Only PLATE-BASED split-and-pool is dropped; per-CELL barcoding is not. Module 3's reverse transcription uses a plain poly(dT) primer and adds no barcode itself. The per-cell barcode comes from stage 4b (protocols/sctip_spc_v1.json): each capsule is re-injected into its own oil droplet, where one barcode from a pool of 16 random bases (4.3e9) is clonally amplified IN THAT DROPLET and overlap-extended onto that capsule's cDNA - AmpliDrop (doi:10.1101/2024.08.13.607508) on semipermeable capsules. The emulsion is the containment: no anchor, no cleavage. One capsule = one cell, so the data IS single-cell. Barcoding must follow RT, because overlap extension needs a template already inside the capsule. The per-lane label plus module 4's four sublibrary indices (~twelve groups) are DEMULTIPLEXING, not resolution, and must never be counted as the barcode space - doing so is what made this repo wrongly conclude the data was lane-level. Loading is Poisson at mean 3: ~5% of droplets get no barcode and those cells are lost; most get several and are merged computationally. Droplet hardware is bought (below the 200 um in-plane floor); the chemistry is ours."
+    },
+    "barcoding.random_bases": {
+      "value": 16,
+      "units": "bases",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "Length of the random cell barcode, so the pool is 4^16 = about 4.3e9 sequences. This, not lanes x sublibraries, is the barcode space that sets the collision rate."
+    },
+    "barcoding.loading_mean": {
+      "value": 3,
+      "units": "barcodes per droplet",
+      "source": [
+        "SPC-NAR"
+      ],
+      "assumption": false,
+      "note": "Barcode loading is Poisson because a free molecule cannot be ordered the way a close-packed bead can. Aiming for exactly one would discard 37% of cells, so the published method runs at a mean of 3: about 5% of droplets get none and are lost, and about 80% get several and are resolved afterwards by merging barcodes that share fragments."
     },
     "barcoding.lanes": {
       "value": 3,

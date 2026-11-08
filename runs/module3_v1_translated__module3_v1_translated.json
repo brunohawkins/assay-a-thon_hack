@@ -1,0 +1,160 @@
+{
+  "protocol_id": "module3_v1_translated",
+  "protocol_name": "load, lyse, wash, incubate, collect on module3_v1_translated",
+  "chip_id": "module3_v1_translated",
+  "chip_spec": "chip/module3_v1_translated.json",
+  "operator": "planner",
+  "created_at": "2026-11-08T09:31:43Z",
+  "placeholder": true,
+  "sizing": {
+    "capsule_count": 650000,
+    "capsule_count_note": "from chip spec",
+    "capsule_diameter_um": 70,
+    "cells_expected": 50029.9,
+    "trap_chambers": [
+      "main_trap"
+    ],
+    "monolayer_area_mm2_needed": 3185.0,
+    "trap_area_mm2": 128.142,
+    "packed_volume_ul_needed": 182.401,
+    "trap_volume_ul": 38.443,
+    "channel_width_um": [
+      200.0,
+      200.0
+    ],
+    "channel_width_um_recommended": [
+      105.0,
+      140.0
+    ],
+    "trap_gap_um_recommended": [
+      21.0,
+      28.0
+    ],
+    "swollen_diameter_um": 140.0
+  },
+  "total_duration_s": 8516.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 180.0,
+      "command": "load",
+      "args": {
+        "target": "main_trap",
+        "volume_ul": 38.443
+      },
+      "narration": "Load capsule_suspension into 'main_trap' through 'capsule_in'. What is carried stays on the weir (25 um) and the carrier leaves through 'waste'. one chamber volume, 38.443 uL: a fill cannot put in more than the chamber holds, and the source's own volume is a tube volume that does not transfer. 67.7 uL/min keeps the predicted drop over the whole route at or below 3.5 kPa across the route (capsule.escape_pressure_kpa x control.pressure_margin) (3.50 kPa at this flow, resistance 0.052 kPa per uL/min), using the chamber's y side (11.32 mm), across a flow that crosses it along x; capsule handling has no wall-shear ceiling - the capsules are not attached to anything, so pressure is the limit. Duration is volume x washes / flow plus 25% for pump ramp, line dead volume and settling. The pump would finish in 43 s, but a reagent has to diffuse INSIDE the retained particles: one exposure needs 180 s to reach 95% of the interior target (exchange.interior_target_fraction over capsule.diffusion_time_s), so 1 of them set the floor at 180 s and a faster pump does not help",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 180.0,
+      "duration_s": 899.0,
+      "command": "exchange",
+      "args": {
+        "target": "main_trap",
+        "reagent": "lysis_buffer",
+        "volume_ul": 38.443,
+        "washes": 5,
+        "flow_ul_min": 66.9,
+        "waste": "lysis_waste"
+      },
+      "narration": "Sweep 'main_trap' with lysis_buffer through 'reagent_in'. It drains to 'lysis_waste', which keeps this effluent off the other waste line. 5 fills of one 38.443 uL chamber volume each, 5 chamber volumes in total: reaching 99% needs 4.61, since a well-mixed chamber keeps exp(-V) of the old liquid after V chamber volumes. 66.9 uL/min keeps the predicted drop over the whole route at or below 3.5 kPa across the route (capsule.escape_pressure_kpa x control.pressure_margin) (3.50 kPa at this flow, resistance 0.052 kPa per uL/min), using the chamber's y side (11.32 mm), across a flow that crosses it along x; capsule handling has no wall-shear ceiling - the capsules are not attached to anything, so pressure is the limit. Duration is volume x washes / flow plus 25% for pump ramp, line dead volume and settling. The pump would finish in 216 s, but a reagent has to diffuse INSIDE the retained particles: one exposure needs 180 s to reach 95% of the interior target (exchange.interior_target_fraction over capsule.diffusion_time_s), so 5 of them set the floor at 899 s and a faster pump does not help OPEN QUESTION: the source never gives a reagent-to-sample ratio for this 'lyse', and its tube volume cannot supply one - it describes a tube, not this 38.443 uL chamber. The step is therefore sized as a full sweep of the chamber, which is the strict reading; if the paper's intent was a fractional addition, the ratio has to be read off the source and recorded in unitops.json as ratio.reagent_to_sample",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 1079.0,
+      "duration_s": 600.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "main_trap",
+        "temp_c": 22,
+        "duration_s": 600
+      },
+      "narration": "Dwell so the reagent reaches what is held in the chamber for 10 min at 22 C with every port capped, in thermal zone 'main_trap_zone', which holds 4-50 C. No flow during the hold.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 1679.0,
+      "duration_s": 899.0,
+      "command": "exchange",
+      "args": {
+        "target": "main_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 38.443,
+        "washes": 5,
+        "flow_ul_min": 67.5,
+        "waste": "waste"
+      },
+      "narration": "Sweep 'main_trap' with wash_buffer through 'reagent_in'. 5 fills of one 38.443 uL chamber volume each, 5 chamber volumes in total: reaching 99% needs 4.61, since a well-mixed chamber keeps exp(-V) of the old liquid after V chamber volumes. 67.5 uL/min keeps the predicted drop over the whole route at or below 3.5 kPa across the route (capsule.escape_pressure_kpa x control.pressure_margin) (3.50 kPa at this flow, resistance 0.052 kPa per uL/min), using the chamber's y side (11.32 mm), across a flow that crosses it along x; capsule handling has no wall-shear ceiling - the capsules are not attached to anything, so pressure is the limit. Duration is volume x washes / flow plus 25% for pump ramp, line dead volume and settling. The pump would finish in 214 s, but a reagent has to diffuse INSIDE the retained particles: one exposure needs 180 s to reach 95% of the interior target (exchange.interior_target_fraction over capsule.diffusion_time_s), so 5 of them set the floor at 899 s and a faster pump does not help",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 2578.0,
+      "duration_s": 899.0,
+      "command": "exchange",
+      "args": {
+        "target": "main_trap",
+        "reagent": "reaction_mix",
+        "volume_ul": 38.443,
+        "washes": 5,
+        "flow_ul_min": 67.5,
+        "waste": "waste"
+      },
+      "narration": "Sweep 'main_trap' with reaction_mix through 'reagent_in'. The source's 1:1 reagent-to-sample ratio does not set this volume: what is being treated is held on the weir and the liquid around it is carrier, not sample, so the reagent has to displace the carrier rather than be mixed into it. 5 fills of one 38.443 uL chamber volume each, 5 chamber volumes in total: reaching 99% needs 4.61, since a well-mixed chamber keeps exp(-V) of the old liquid after V chamber volumes. 67.5 uL/min keeps the predicted drop over the whole route at or below 3.5 kPa across the route (capsule.escape_pressure_kpa x control.pressure_margin) (3.50 kPa at this flow, resistance 0.052 kPa per uL/min), using the chamber's y side (11.32 mm), across a flow that crosses it along x; capsule handling has no wall-shear ceiling - the capsules are not attached to anything, so pressure is the limit. Duration is volume x washes / flow plus 25% for pump ramp, line dead volume and settling. The pump would finish in 214 s, but a reagent has to diffuse INSIDE the retained particles: one exposure needs 180 s to reach 95% of the interior target (exchange.interior_target_fraction over capsule.diffusion_time_s), so 5 of them set the floor at 899 s and a faster pump does not help",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 3477.0,
+      "duration_s": 3600.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "main_trap",
+        "temp_c": 42,
+        "duration_s": 3600
+      },
+      "narration": "Hold 'main_trap' at 42 C for 1 h at 42 C with every port capped, in thermal zone 'main_trap_zone', which holds 4-50 C. No flow during the hold.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 7077.0,
+      "duration_s": 899.0,
+      "command": "exchange",
+      "args": {
+        "target": "main_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 38.443,
+        "washes": 5,
+        "flow_ul_min": 67.5,
+        "waste": "waste"
+      },
+      "narration": "Sweep 'main_trap' with wash_buffer through 'reagent_in'. 5 fills of one 38.443 uL chamber volume each, 5 chamber volumes in total: reaching 99% needs 4.61, since a well-mixed chamber keeps exp(-V) of the old liquid after V chamber volumes. 67.5 uL/min keeps the predicted drop over the whole route at or below 3.5 kPa across the route (capsule.escape_pressure_kpa x control.pressure_margin) (3.50 kPa at this flow, resistance 0.052 kPa per uL/min), using the chamber's y side (11.32 mm), across a flow that crosses it along x; capsule handling has no wall-shear ceiling - the capsules are not attached to anything, so pressure is the limit. Duration is volume x washes / flow plus 25% for pump ramp, line dead volume and settling. The pump would finish in 214 s, but a reagent has to diffuse INSIDE the retained particles: one exposure needs 180 s to reach 95% of the interior target (exchange.interior_target_fraction over capsule.diffusion_time_s), so 5 of them set the floor at 899 s and a faster pump does not help",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 7976.0,
+      "duration_s": 180.0,
+      "command": "exchange",
+      "args": {
+        "target": "main_trap",
+        "reagent": "resuspension_buffer",
+        "volume_ul": 38.443,
+        "washes": 1,
+        "flow_ul_min": 30.0,
+        "direction": "backflush",
+        "waste": "to_split_tree"
+      },
+      "narration": "Back-flush 'main_trap' with resuspension_buffer through 'backflush_in'. Liquid is pushed back up through the retention feature, which lifts the bed off it and sweeps it towards the outlet. 38.443 uL is 1.00 chamber volumes and leaves the chamber about 63% reagent, which is the 1.71828:1 reagent-to-sample ratio the source states; a deliberate fractional change, not an attempt to clear the chamber. The source's absolute volume is a tube volume and does not transfer. 30 uL/min is the lift flow for a retained bed (backflush.lift_flow_ul_min); below it the bed does not come off the retention feature. It stays under the 3.5 kPa pressure limit (1.54 kPa predicted); capsule handling has no wall-shear ceiling - the capsules are not attached to anything, so pressure is the limit. Duration is volume x washes / flow plus 25% for pump ramp, line dead volume and settling. The pump would finish in 97 s, but a reagent has to diffuse INSIDE the retained particles: one exposure needs 180 s to reach 95% of the interior target (exchange.interior_target_fraction over capsule.diffusion_time_s), so 1 of them set the floor at 180 s and a faster pump does not help",
+      "protocol_step": 8
+    },
+    {
+      "t_s": 8156.0,
+      "duration_s": 360.0,
+      "command": "release",
+      "args": {
+        "target": "main_trap",
+        "reagent": "resuspension_buffer"
+      },
+      "narration": "Send what 'main_trap' holds out through 'to_split_tree' as one suspension in resuspension_buffer, driven from 'backflush_in'. 2 chamber volumes (76.886 uL) carry it out. 30 uL/min is the lift flow for a retained bed (backflush.lift_flow_ul_min); below it the bed does not come off the retention feature. It stays under the 3.5 kPa pressure limit (1.54 kPa predicted); capsule handling has no wall-shear ceiling - the capsules are not attached to anything, so pressure is the limit. Duration is volume x washes / flow plus 25% for pump ramp, line dead volume and settling.",
+      "protocol_step": 9
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+# assay2chip/foam: the 3D CFD + rendering extra. NOT part of requirements.txt.
+#
+# The core repo (requirements.txt) must keep running without any of this: every test that
+# does not need OpenFOAM or VTK is skipped or passes without it. Install only when you
+# want the OpenFOAM pipeline and its renders:
+#
+#     ./.venv/bin/python -m pip install -r requirements-foam.txt
+#
+# OpenFOAM itself is NOT a Python package. On Apple Silicon it comes from the
+# gerlero/openfoam Homebrew tap (ESI OpenCFD build, native, no Docker):
+#
+#     brew install gerlero/openfoam/openfoam
+#
+# `assay2chip/foam/runner.py` is the only code that knows how to launch it; run
+# `python -m assay2chip.foam.runner` to print what it found.
+#
+# ffmpeg (brew install ffmpeg) is used for MP4 output by render.py / scene.py.
+
+# PyVista drives VTK's off-screen OSMesa-free Cocoa path, which works on a headless Mac:
+# set pyvista.OFF_SCREEN = True (render.py does) and no window is ever mapped.
+pyvista>=0.44,<1
+# Pulled in by pyvista, pinned here too because the render code imports vtk directly for
+# the OpenFOAM reader (vtkOpenFOAMReader) that pyvista does not expose every option of.
+vtk>=9.3,<10

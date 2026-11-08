@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/partition.schema.json",
+  "title": "Partition (assay2chip stage S4)",
+  "description": "The multi-chip plan: which unit ops go on which chip, what carries between the chips, and where the assay was cut. One assay does not fit on one chip - port count, area, incompatible temperatures and cross-contamination force a split - so this file is the heart of the pipeline. Written to assay2chip/work/<id>/partition.json. Every hand-off says whether a machine can do it (`automated`); the count of false ones is the headline number in the S10 report, because 'no human intervention' is the stated goal. Shape defined in assay2chip/README.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "chips", "handoffs", "cuts", "unresolved"],
+  "properties": {
+    "id": { "$ref": "#/$defs/snake_id", "description": "The run id, same as the work directory name and as unitops.json." },
+    "placeholder": { "type": "boolean", "description": "true while this plan is made up rather than derived from real ops." },
+    "llm": { "$ref": "#/$defs/llm" },
+    "extraction": { "$ref": "#/$defs/audit", "description": "Carried forward from assay.json, so the plan still says which extractor produced the steps underneath it." },
+    "audit": { "$ref": "#/$defs/audit", "description": "S4's own working: what was tried, which constraint bound first, how the cuts were chosen." },
+    "chips": {
+      "type": "array",
+      "minItems": 1,
+      "description": "One entry per chip, in process order. Every op in unitops.json whose placement is on_chip must appear on exactly one chip.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["chip_id", "ops", "scale", "reason"],
+        "properties": {
+          "chip_id": { "$ref": "#/$defs/snake_id", "description": "Becomes chip/designs/<chip_id>.json and then chip/<chip_id>.json, so it must be a legal id: lowercase, digits, underscores." },
+          "ops": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1 }, "description": "The unitops.json `op` numbers this chip performs, in process order." },
+          "scale": {
+            "enum": ["demo", "target"],
+            "description": "Which envelope the chip is built to: demo is 30 x 20 mm (what can be printed today), target is the ANSI/SLAS microplate footprint 127.76 x 85.48 mm. Both from contracts/blocks.json through assay2chip/lib/contracts.envelope(); 290 x 190 mm is the ceiling, not a design scale."
+          },
+          "reason": { "type": "string", "minLength": 1, "description": "Why these ops are together on one chip, in one sentence." },
+          "area_mm2": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "Estimated area the ops need, when known, for comparison against the envelope." },
+          "ports": { "type": ["integer", "null"], "minimum": 0, "description": "Ports this chip needs. The demo limit is fabrication_floors.max_ports_per_chip (6) and it is the usual reason a split is forced; read it from contracts, never as a literal." },
+          "temp_range_c": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": { "type": "number" },
+            "description": "[min, max] temperature on this chip, when known. Two ops that cannot share a thermal zone cannot share a chip."
+          },
+          "note": { "type": "string" },
+          "audit": { "$ref": "#/$defs/audit", "description": "Why this chip ended up with these ops: the area, port and temperature sums behind the decision." }
+        }
+      }
+    },
+    "handoffs": {
+      "type": "array",
+      "description": "What moves between two chips, and how. Every boundary between consecutive chips needs one.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "from_port", "to", "to_port", "carries", "automated", "how"],
+        "properties": {
+          "from": { "$ref": "#/$defs/snake_id", "description": "chip_id the material leaves." },
+          "from_port": { "$ref": "#/$defs/snake_id", "description": "Outlet port id on that chip, e.g. outlet_1." },
+          "to": { "$ref": "#/$defs/snake_id", "description": "chip_id the material arrives on." },
+          "to_port": { "$ref": "#/$defs/snake_id", "description": "Inlet port id on that chip, e.g. inlet_1." },
+          "carries": { "enum": ["cells", "capsules", "library", "supernatant"], "description": "What travels. It sets the line diameter, the settling risk and whether dead volume loses the sample." },
+          "volume_ul": { "type": ["number", "null"], "minimum": 0, "description": "Microlitres transferred. null when not yet known - and then it belongs in `unresolved`." },
+          "particle_um": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "Diameter of the largest thing in the line (swollen capsules, not unswollen), so the tubing and both ports can be checked against it." },
+          "automated": {
+            "type": "boolean",
+            "description": "REQUIRED. true only if a machine can do this hand-off unattended (tubing, a selector valve, a syringe pump). Manual pipetting, a centrifuge spin or carrying a plate across the bench is false. The S10 report counts the false ones, and that count is the honest answer to 'does this run without a human?' - so never set it true to make the number look better."
+          },
+          "how": { "type": "string", "minLength": 1, "description": "The mechanism, in a few words: 'tubing + selector valve', 'manual pipette, 40 uL'. Required so `automated` can be checked by a reader." },
+          "risks": { "type": "array", "items": { "type": "string" }, "description": "What can go wrong in the line: dead volume, sedimentation, shear at the connector, bubbles." },
+          "dead_volume_ul": { "type": ["number", "null"], "minimum": 0, "description": "Volume left in the line, when known; S9 checks it against volume_ul." },
+          "note": { "type": "string" },
+          "audit": { "$ref": "#/$defs/audit", "description": "The grounds for `automated`: what machine does it, or what a human has to do." }
+        }
+      }
+    },
+    "cuts": {
+      "type": "array",
+      "description": "REQUIRED, may be empty: where the op sequence was cut and why. One entry per boundary, so the reasoning behind the split is reviewable rather than implicit in the chip list.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["between", "why"],
+        "properties": {
+          "between": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": { "type": "integer", "minimum": 1 },
+            "description": "The two consecutive op numbers the cut falls between, e.g. [3, 4]."
+          },
+          "why": { "type": "string", "minLength": 1, "description": "The constraint that forced the cut, in one sentence: port count, area, temperature, cross-contamination." },
+          "forced_by": {
+            "enum": ["ports", "area", "temperature", "contamination", "missing_part", "shear", "other"],
+            "description": "Which of the hard constraints did it, for the report's tally."
+          },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "description": "REQUIRED, may be empty. Carried forward from unitops.json and added to: anything this plan needed and nobody has stated, especially hand-off volumes and whether a hand-off can really be automated.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question"],
+        "properties": {
+          "step": { "type": ["integer", "null"], "minimum": 1 },
+          "op": { "type": ["integer", "null"], "minimum": 1 },
+          "chip_id": { "$ref": "#/$defs/snake_id" },
+          "field": { "type": "string" },
+          "question": { "type": "string", "minLength": 1 },
+          "assumed": { "description": "The value used instead, if any." },
+          "assumed_from": { "type": "string", "description": "The contract key it came from. Never a bare literal." },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "note": { "type": "string" }
+  },
+  "$defs": {
+    "snake_id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" },
+    "audit": {
+      "type": "object",
+      "description": "A deliberately OPEN object for the writing stage's working: every other field here is closed, but provenance must never be blocked by a schema. Nothing downstream may depend on its shape."
+    },
+    "llm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "description": "Which language-model mode produced this file (assay2chip/lib/llm.py fills it in).",
+      "properties": {
+        "mode": { "enum": ["real", "stub", "none"], "description": "stub means the deterministic offline fallback ran: treat every number as made up." },
+        "model": { "type": ["string", "null"] },
+        "calls": { "type": "integer", "minimum": 0 },
+        "tasks": { "type": "array", "items": { "type": "string" } },
+        "prompt_sha256": { "type": ["string", "null"], "pattern": "^([0-9a-f]{64})?$" },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

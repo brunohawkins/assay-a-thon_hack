@@ -17,6 +17,11 @@
       "type": "boolean",
       "description": "true while this file holds fake values."
     },
+    "scale": {
+      "enum": ["demo", "target"],
+      "default": "demo",
+      "description": "Which build envelope in contracts/blocks.json this chip is drawn to. demo (the default, so every existing chip is unchanged): envelope, 30 x 20 mm, and fabrication_floors.max_ports_per_chip (6 ports), which blocks.json states plainly is a DEMO ENVELOPE limit and not a process floor. target: target_envelope, the ANSI/SLAS 127.76 x 85.48 mm microplate footprint, where the port limit lifts and becomes how many ports fit the area at fabrication_floors.min_port_pitch_mm. EVERYTHING ELSE IS IDENTICAL at both scales: one fluidic layer, one etch depth, max_depth_mm 0.3, the in-plane floors (min_open_channel_mm, min_wall_mm, min_port_mm) and the CAD block library. tools/check_chip_spec.py reads this field to pick the envelope and the port rule; a demo chip is checked exactly as strictly as before."
+    },
     "translated_from": {
       "type": "string",
       "description": "Optional. Set when this spec was translated by a script from another team member's file in a different format (e.g. chip/modules/module3_step1_3.json). Edit the source, not this file, and re-run the converter. Values the source does not give are marked \"placeholder\": true where they appear."
@@ -189,12 +194,22 @@
     "barcoding": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Optional. Barcoding scheme. Split-and-pool is no longer used: cells carry a per-lane barcode from module 1 and reverse transcription adds none. See contracts/parameters.json barcoding.scheme.",
+      "description": "Optional. Barcoding scheme. Only PLATE-BASED split-and-pool is dropped; per-CELL barcoding is not. The cell's identity is a RANDOM barcode (random_bases long, so a pool of 4^random_bases) amplified clonally inside that capsule's own oil droplet and overlap-extended onto its cDNA; one capsule holds one cell, so the data IS single-cell. lanes and sublibraries are DEMULTIPLEXING METADATA ONLY (which lineage, which sublibrary) and must NEVER be counted as the barcode space: lanes x sublibraries is about twelve groups, and treating that as the resolution is the arithmetic that made this repo wrongly conclude the assay was lane-level. tools/check_chip_spec.py computes the collision rate over the random pool (4^random_bases) via operator/sizing.py; see contracts/parameters.json barcoding.scheme, barcoding.random_bases and barcoding.loading_mean.",
       "properties": {
         "rounds": { "type": "integer", "minimum": 1 },
         "chambers_per_round": { "type": "integer", "minimum": 1 },
-        "lanes": { "type": "integer", "minimum": 1, "description": "Per-lane barcodes the cells already carry." },
-        "sublibraries": { "type": "integer", "minimum": 1 }
+        "lanes": { "type": "integer", "minimum": 1, "description": "Per-lane barcodes the cells already carry. DEMULTIPLEXING ONLY: not part of the barcode space." },
+        "sublibraries": { "type": "integer", "minimum": 1, "description": "Sublibrary indices added by module 4's index PCR. DEMULTIPLEXING ONLY: not part of the barcode space." },
+        "random_bases": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Optional. Length in bases of the RANDOM per-cell barcode, so the barcode space is 4^random_bases (16 bases = about 4.3e9). THIS is what sets the collision rate, and declaring it is what lets the collision rule in tools/check_chip_spec.py fire on this chip. Omit to fall back to contracts/parameters.json barcoding.random_bases."
+        },
+        "loading_mean": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Optional. Mean number of free barcodes loaded per droplet (Poisson). A droplet with none is a lost cell; droplets with several are merged computationally afterwards. Omit to fall back to contracts/parameters.json barcoding.loading_mean."
+        }
       }
     }
   },
@@ -295,11 +310,26 @@
           "type": "object",
           "additionalProperties": false,
           "required": ["type", "opening_um", "source"],
-          "description": "Optional. What holds capsules in the chamber.",
+          "description": "Optional. What holds capsules (or clumps) in the chamber. A WEIR is a standing ridge across the chamber at its outlet that stops short of the lid, so opening_um is the gap left in Z between the crest and the lid. THAT GAP IS A Z DIMENSION AND IS NOT SUBJECT TO THE IN-PLANE FABRICATION FLOOR (contracts/blocks.json fabrication_floors.min_open_channel_mm, 200 um), which limits width only: that is the whole reason a 25 um weir gap is buildable when no printed in-plane gap can retain a 70 um capsule. The crest is relief in the same mould or print, so the chamber is still one fluidic layer at one etch depth. The three optional fields below describe the feature we actually machine (crest_height_um, crest_thickness_um, retains_um), so a weir is fully specified by data instead of by prose in a note.",
           "properties": {
             "type": { "enum": ["mesh", "pillars", "weir"] },
             "opening_um": { "type": "number", "exclusiveMinimum": 0, "description": "Mesh pore, pillar gap or weir gap, in micrometres." },
-            "source": { "enum": ["bought", "fabricated"], "description": "bought (e.g. a mesh sheet) or fabricated by us (checked against cad/fabrication.json)." }
+            "source": { "enum": ["bought", "fabricated"], "description": "bought (e.g. a mesh sheet) or fabricated by us (checked against cad/fabrication.json)." },
+            "crest_height_um": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Optional, weirs. Height of the standing ridge above the chamber floor in micrometres: the feature a mould or printer actually makes, and the number you would machine from. It is NOT a fixed figure and none is recorded in contracts/blocks.json: DERIVE IT PER CHIP as that chip's etch depth minus opening_um (blocks.json retention.weir_geometry.crest_height_rule), because chips have different depths and a crest taller than its layer cannot exist. So crest_height_um + opening_um is the chamber's depth. This is a Z height, not an in-plane width, so the 200 um in-plane floor does not apply to it."
+            },
+            "crest_thickness_um": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Optional, weirs. Thickness of the ridge along the flow direction, in micrometres. Unlike crest_height_um and opening_um this one IS in plane, so it must be at or above the in-plane fabrication floor (contracts/blocks.json fabrication_floors.min_open_channel_mm, 200 um); blocks.json retention.weir_geometry.crest_thickness_um is exactly that floor."
+            },
+            "retains_um": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Optional. Diameter in micrometres of the SMALLEST particle this retention is meant to hold back, so the opening can be read against what it is for: 70 um for a capsule weir (blocks.json retention.weir_geometry.retains_um), the smallest clump for a cell-clump filter (single cells of 10-20 um pass under the crest on purpose). Larger than opening_um: anything smaller than the opening leaves with the liquid."
+            }
           }
         }
       }
