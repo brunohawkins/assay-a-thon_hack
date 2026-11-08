@@ -72,3 +72,34 @@ export async function loadStatus(root) {
     return null;
   }
 }
+
+// How a status reads on screen: a coloured dot and a plain word (twin/style.css .status).
+// The keys are the words pipeline_status.md and the pipeline files use. BUILT there means a spec
+// and a protocol exist, not that anything was printed or run, so it reads "Designed".
+const SHOWN = {
+  BUILT: ['st-final', 'Designed', 'pipeline_status.md: BUILT. A chip spec and a protocol exist; that does not mean printed or run.'],
+  FINAL: ['st-final', 'Designed', 'Pipeline file: final design (a chip spec and a protocol exist).'],
+  TRANSLATED: ['st-translated', 'Translated', 'Pipeline file: translated from another team member\'s design.'],
+  'RT ONLY': ['st-translated', 'RT only', 'pipeline_status.md: RT ONLY.'],
+  DRAFT: ['st-draft', 'Draft', 'A draft design.'],
+  MISSING: ['st-missing', 'Not designed yet', 'No chip for this stage yet.'],
+  NEXT: ['st-missing', 'Not designed yet', 'No chip for this stage yet.'],
+  BENCH: ['st-bench', 'Bench step', 'Done at the bench, in tubes: no chip.'],
+  'OFF-CHIP': ['st-bench', 'Off-chip', 'pipeline_status.md: OFF-CHIP, done by hand in tubes.'],
+  'DUPLICATE-RETIRE': ['superseded', 'Retired', 'pipeline_status.md: DUPLICATE-RETIRE.'],
+  RETIRED: ['superseded', 'Retired', 'Retired: replaced by a current chip.'],
+  SUPERSEDED: ['superseded', 'Superseded', 'Replaced by a newer design; kept for reference.'],
+};
+
+export function statusView(badge, detail = '') {
+  const key = String(badge ?? '').trim().toUpperCase();
+  const [cls, word, title] = SHOWN[key] ?? ['st-draft', key ? key[0] + key.slice(1).toLowerCase() : 'Unknown', ''];
+  const d = String(detail ?? '').trim().replace(/^\((.*)\)$/, '$1');
+  return { cls, word, text: d ? `${word} · ${d}` : word, title };
+}
+
+const escHtml = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+export function statusHtml(badge, detail = '') {
+  const v = statusView(badge, detail);
+  return `<span class="status ${v.cls}" title="${escHtml(v.title)}">${escHtml(v.text)}</span>`;
+}

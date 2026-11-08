@@ -5,6 +5,7 @@
     python tools/demo.py --port 8080     # another port (if it is taken, the next free one is used)
     python tools/demo.py --no-browser    # only serve; open the printed URL yourself
     python tools/demo.py --twin          # the normal twin instead of the presenter
+    python tools/demo.py --bench         # the twin's bench demo, beside the food-dye run on Module 1
 
 Needs no network: three.js is vendored in twin/vendor/ and the presenter's AI operator is the
 scripted one. In the presenter: Next / Back, or the arrow keys, PageDown / PageUp (what a
@@ -51,8 +52,10 @@ def make_server(port: int, tries: int = 20) -> tuple[http.server.ThreadingHTTPSe
     raise SystemExit(f"No free port between {port} and {port + tries - 1}: try --port.")
 
 
-def presenter_url(port: int, step: int | None = None, twin: bool = False) -> str:
+def presenter_url(port: int, step: int | None = None, twin: bool = False, bench: bool = False) -> str:
     url = f"http://localhost:{port}/twin/"
+    if bench:
+        return url + "#view=bench"
     if twin:
         return url
     return url + "?present" + (f"#step={step}" if step else "")
@@ -64,14 +67,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--step", type=int, help="start at this step (1 = the first)")
     ap.add_argument("--no-browser", action="store_true", help="don't open a browser")
     ap.add_argument("--twin", action="store_true", help="open the normal twin, not the presenter")
+    ap.add_argument("--bench", action="store_true", help="open the twin's bench demo (Module 1 in real time, for the food-dye run)")
     args = ap.parse_args(argv)
     if not (ROOT / "twin" / "vendor" / "three" / "build" / "three.module.js").is_file():
         print("twin/vendor/three/ is missing: the twin can't load three.js offline.", file=sys.stderr)
         return 1
     httpd, port = make_server(args.port)
-    url = presenter_url(port, args.step, args.twin)
+    url = presenter_url(port, args.step, args.twin, args.bench)
     print(f"Serving {ROOT} at http://localhost:{port}/")
-    print(f"Presenter: {url}" if not args.twin else f"Twin: {url}")
+    print(f"Bench demo: {url}" if args.bench else f"Twin: {url}" if args.twin else f"Presenter: {url}")
     print("Ctrl+C to stop.")
     if not args.no_browser:
         threading.Timer(0.6, webbrowser.open, (url,)).start()

@@ -403,7 +403,10 @@ export function safetyCheck(net, mode, states, flows, { cells = true } = {}) {
 }
 
 // Seconds for each fed port's dye to reach j_mid and each vented port (plug flow; first tint ~2/3).
-export function dyeTimes(net, sol, states, flows) {
+// chambers: also each culture chamber it fills, from the dye entering (first_s) to the chamber
+// swept once at plug flow (mean_s). Used by the bench demo (twin/bench.js); the default output is
+// the same as operator/network.py's.
+export function dyeTimes(net, sol, states, flows, { chambers = false } = {}) {
   const edges = [];
   for (const e of net.edges) {
     const c = sol.channels[e.id];
@@ -411,10 +414,11 @@ export function dyeTimes(net, sol, states, flows) {
     edges.push([c.from, c.to, (c.volume_ul / Math.abs(c.flow_ul_min)) * 60]);
   }
   const out = {};
-  const targets = ['j_mid', ...Object.entries(states).filter(([, s]) => s === 'VENT').map(([p]) => p)];
+  const targets = ['j_mid', ...(chambers ? net.culture : []), ...Object.entries(states).filter(([, s]) => s === 'VENT').map(([p]) => p)];
   for (const [src, s] of Object.entries(states)) {
     if (s !== 'FEED' || !(flows[src] > 0)) continue;
     const best = { [src]: (net.portHoleUl / flows[src]) * 60 };
+    const enter = {};
     const queue = [src];
     while (queue.length) {
       queue.sort((a, b) => best[a] - best[b]);
@@ -424,10 +428,12 @@ export function dyeTimes(net, sol, states, flows) {
         const ch = net.chambers[b];
         const extra = ch && b !== 'j_mid' && sol.chambers[b].throughput_ul_min > 0 ? (ch.volume_ul / sol.chambers[b].throughput_ul_min) * 60 : 0;
         const tb = best[n] + dt + extra;
-        if (tb < (best[b] ?? Infinity)) { best[b] = tb; queue.push(b); }
+        if (tb < (best[b] ?? Infinity)) { best[b] = tb; enter[b] = best[n] + dt; queue.push(b); }
       }
     }
-    out[src] = Object.fromEntries(targets.filter((tg) => tg in best).map((tg) => [tg, { mean_s: best[tg], first_s: best[tg] * FIRST_TINT }]));
+    out[src] = Object.fromEntries(targets.filter((tg) => tg in best && tg !== src).map((tg) => [tg, net.culture.includes(tg)
+      ? { mean_s: best[tg], first_s: enter[tg], chamber: true }
+      : { mean_s: best[tg], first_s: best[tg] * FIRST_TINT }]));
   }
   return out;
 }

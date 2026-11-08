@@ -7,29 +7,35 @@ import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { contracts } from './contracts.js';
 
+// Mid-tone colours that read on the light bench (twin/style.css).
 const TYPE_COLORS = {
-  inlet: 0x7dd3fc,
-  exchange: 0x5eead4,
-  split: 0xa78bfa,
-  pool: 0x60a5fa,
-  outlet: 0xf9a8d4,
-  well: 0xfcd34d,
-  culture: 0xc4b5fd,
-  junction: 0x93c5fd,
-  bubble_trap: 0x67e8f9,
-  filter: 0xfde68a,
-  mixer: 0x86efac,
-  cell_wash: 0x7dd3fc,
-  qc_window: 0xf0abfc,
+  inlet: 0x218bff,
+  exchange: 0x1b9e8f,
+  split: 0x8250df,
+  pool: 0x0969da,
+  outlet: 0xbf3989,
+  well: 0xbf8700,
+  culture: 0x8250df,
+  junction: 0x0969da,
+  bubble_trap: 0x1b7c83,
+  filter: 0xbf8700,
+  mixer: 0x2da44e,
+  cell_wash: 0x218bff,
+  qc_window: 0xbf3989,
 };
-const PORT_COLORS = { inlet: 0x7dd3fc, outlet: 0xff5fd2, control: 0x94a3b8 };
+const PORT_COLORS = { inlet: 0x218bff, outlet: 0xbf3989, control: 0x6e7781 };
 const ROLE_COLORS = {
-  waste: 0xfb923c, backflush: 0x34d399, release: 0xff5fd2, load: 0x7dd3fc, reagent: 0x7dd3fc,
-  cells: 0xfda4af, medium: 0x67e8f9, factor: 0xfde047, harvest: 0xff5fd2, control: 0x94a3b8, oil: 0xfbbf24, transfer: 0xff5fd2,
+  waste: 0xe16f24, backflush: 0x2da44e, release: 0xbf3989, load: 0x218bff, reagent: 0x218bff,
+  cells: 0xe5534b, medium: 0x1b9e8f, factor: 0xbf8700, harvest: 0xbf3989, control: 0x6e7781, oil: 0xbf8700, transfer: 0xbf3989,
 };
-const FEATURE_COLORS = { gas_window: 0x7dd3fc, heat_zone: 0xfb923c, cold_zone: 0x60a5fa, curing_window: 0xa78bfa, optical_window: 0xf0abfc };
+const FEATURE_COLORS = { gas_window: 0x218bff, heat_zone: 0xe16f24, cold_zone: 0x0969da, curing_window: 0x8250df, optical_window: 0xbf3989 };
+// No VALVE_COLORS: on-chip valves were removed from the design (they need a second layer, and
+// tools/check_chip_spec.py now errors on one), so nothing draws a valve. A spec that still
+// declares valves is listed in this.undrawn and said out loud rather than drawn.
 
 // Draw order for see-through parts (lower draws first).
+// A channel at rest (twin/player.js puts it back to this after a pulse).
+export const CHANNEL = { color: 0x6fa8dc, emissive: 0x0969da, emissiveIntensity: 0.12, opacity: 0.6 };
 export const ORDER = { capsule: 2, fluid: 3, channel: 4, chamber: 5, glow: 6, layer: 10, edges: 11 };
 
 export class Chip {
@@ -90,9 +96,9 @@ export class Chip {
       const { x, y } = this.footprint;
       const geom = new THREE.BoxGeometry(x, y, layer.thickness_mm);
       const mat = new THREE.MeshPhysicalMaterial({
-        color: 0xdbeafe,
+        color: 0xdfe6ee,
         transparent: true,
-        opacity: 0.07 + 0.03 * (i % 2),
+        opacity: 0.05 + 0.02 * (i % 2),
         roughness: 0.06,
         metalness: 0,
         clearcoat: 1,
@@ -104,15 +110,17 @@ export class Chip {
       mesh.renderOrder = ORDER.layer;
       mesh.name = `layer:${layer.id}`;
       this.group.add(mesh);
-      const edges = new THREE.LineSegments(
-        new THREE.EdgesGeometry(geom),
-        new THREE.LineBasicMaterial({ color: 0xbcd7ff, transparent: true, opacity: 0.28, depthWrite: false }),
-      );
-      edges.position.copy(mesh.position);
-      edges.renderOrder = ORDER.edges;
-      this.group.add(edges);
       z += layer.thickness_mm;
     });
+    // One outline for the whole chip (per-layer outlines stack up into a blur of lines).
+    const { x, y } = this.footprint;
+    const outline = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(x, y, z)),
+      new THREE.LineBasicMaterial({ color: 0x57606a, transparent: true, opacity: 0.5, depthWrite: false }),
+    );
+    outline.position.set(x / 2, y / 2, z / 2);
+    outline.renderOrder = ORDER.edges;
+    this.group.add(outline);
   }
 
   #buildChamber(c) {
@@ -233,7 +241,7 @@ export class Chip {
       color: 0xffffff,
       transparent: true,
       opacity: 0,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
       depthWrite: false,
     });
     const glow = new THREE.Mesh(round
@@ -318,7 +326,7 @@ export class Chip {
       color: 0xff5fd2,
       transparent: true,
       opacity: 0,
-      blending: THREE.AdditiveBlending,
+      blending: THREE.NormalBlending,
       depthWrite: false,
     });
     const glow = new THREE.Mesh(new THREE.SphereGeometry(r * 2.4, 24, 16), glowMaterial);
@@ -361,11 +369,11 @@ export class Chip {
     if (!from || !to) return;
     const points = ch.path ? this.#pathPoints(ch, from, to) : routeChannel(from, to, ch, this);
     const material = new THREE.MeshStandardMaterial({
-      color: 0x93c5fd,
-      emissive: 0x3b82f6,
-      emissiveIntensity: 0.35,
+      color: CHANNEL.color,
+      emissive: CHANNEL.emissive,
+      emissiveIntensity: CHANNEL.emissiveIntensity,
       transparent: true,
-      opacity: 0.5,
+      opacity: CHANNEL.opacity,
       roughness: 0.3,
       depthWrite: false,
     });
@@ -440,11 +448,11 @@ export class Chip {
     }
     pts.push(pb.clone().setZ(this.top + lift * 0.6), pb.clone());
     const curve = new THREE.CatmullRomCurve3(pts);
-    const material = new THREE.MeshStandardMaterial({ color: 0x93c5fd, emissive: 0x3b82f6, emissiveIntensity: 0.3, transparent: true, opacity: 0.55, depthWrite: false });
+    const material = new THREE.MeshStandardMaterial({ color: 0x6fa8dc, emissive: 0x0969da, emissiveIntensity: 0.12, transparent: true, opacity: 0.6, depthWrite: false });
     const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 400, 0.18 * this.u, 10, false), material);
     tube.renderOrder = ORDER.channel;
     this.group.add(tube);
-    const blockMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, emissive: 0x60a5fa, emissiveIntensity: 0.15, transparent: true, opacity: 0.55 });
+    const blockMat = new THREE.MeshStandardMaterial({ color: 0x9ab8d6, emissive: 0x0969da, emissiveIntensity: 0.08, transparent: true, opacity: 0.7 });
     const block = new THREE.Mesh(new THREE.BoxGeometry(12 * this.u, 5 * this.u, 0.6 * this.u), blockMat);
     block.position.set(mid.x, mid.y + 4.5 * this.u, this.top + lift - 1.1 * this.u);
     this.group.add(block);
@@ -628,6 +636,7 @@ export class Chip {
       const mesh = new THREE.Mesh(geom, mat);
       mesh.renderOrder = ORDER.chamber;
       mesh.name = `stl:${id}`;
+      mesh.add(outlineOf(geom, part.color)); // crease lines, so the shape reads on the light bench
       this.group.add(mesh); // STL is already in chip coordinates
       part.box.visible = false;
       if (part.edges) part.edges.visible = false;
@@ -647,6 +656,14 @@ export class Chip {
 }
 
 // ------------------------------------------------------------------ helpers
+
+// The crease lines of a shape (an STL or a Flowmatter block), so it reads on a light background.
+export function outlineOf(geom, color) {
+  const lines = new THREE.LineSegments(new THREE.EdgesGeometry(geom, 30),
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.75, depthWrite: false }));
+  lines.renderOrder = ORDER.edges;
+  return lines;
+}
 
 function bfs(channels, fromId, toId, directed) {
   if (fromId === toId) return [];
