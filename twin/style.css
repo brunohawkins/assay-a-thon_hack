@@ -986,6 +986,27 @@ body.presenter .p3-label.p3-tube { font-size: 14px; }
 
 
 /* ---- Pipeline: time periods and off-chip hand-offs ---- */
+/* Off-chip steps share one amber, in the list, the home strip and on the scene's tubes. */
+.stages .dur { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
+.stages li.handoff { grid-template-columns: 22px 1fr; padding-top: 3px; padding-bottom: 3px; }
+.stages li.handoff .n { font-weight: 400; color: var(--text-3); }
+.stages li.handoff .name { font-weight: 400; font-size: 12px; color: var(--text-2); }
+.stages li.handoff .sub { grid-column: 2; font-size: 11.5px; line-height: 1.45; color: var(--text-3); }
+.stages li.handoff.offchip .name { font-weight: 500; color: #7d5e00; }
+.stages li.handoff .hole { font-weight: 400; color: var(--text-2); }
+.stages li.handoff.now { background: #fff8c5; border-color: #eac54f; }
+.stages li.handoff.now .sub { color: var(--text-2); }
+.line-time { margin: 10px 0 0; font-size: 12px; line-height: 1.5; color: var(--text-2); }
+.line-time b { color: var(--text); font-weight: 600; }
+.line-time + .meta { margin-top: 10px; }
+.home-stages .dur { color: var(--text-2); font-variant-numeric: tabular-nums; }
+.home-stages .dur::before { content: '·'; margin-right: 6px; color: var(--text-3); }
+.home-stages li.offchip { padding: 3px 9px; border-radius: 999px; border: 1px dashed #d4a72c; background: #fff8c5; color: #6e5600; gap: 4px; }
+.home-stages li.offchip .k { font-weight: 600; }
+.home-stages li.line-time { margin: 0 0 0 8px; font-size: 12.5px; color: var(--text-2); }
+.p3-label .p3-time { color: var(--text); font-weight: 500; font-variant-numeric: tabular-nums; }
+.p3-label.p3-tube { max-width: 190px; }
+.p3-label.p3-tube .p3-hole { display: block; font-size: 0.92em; color: #7d5e00; }
 
 
 /* ---- Presenter: opening and closing steps ---- */
