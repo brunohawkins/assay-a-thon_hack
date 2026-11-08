@@ -94,8 +94,8 @@
       <p>Going from genotype to phenotype is the familiar direction: change a gene, see what the cell does. We want the
         other kind of experiment as well: change what a cell lives with (its neighbours, the medium they share, when they
         meet) and measure what that does to every cell.</p>
-      <p>Today that means co-cultures in wells: a million cells and millilitres of reagent per condition, mixed populations
-        that are hard to take apart afterwards, and only a few conditions at a time.</p>
+      <p>Today that means co-cultures in plates: hundreds of thousands of cells and millilitres of medium per condition,
+        mixed populations that are hard to take apart afterwards, and only a few conditions at a time.</p>
     </section>
 
     <section>
@@ -107,8 +107,8 @@
           side by side on one chip.</li>
         <li><b>Reads out every cell.</b> On chip: harvest, encapsulate, lyse and reverse-transcribe, then give each capsule
           its own barcode. One capsule holds one cell.</li>
-        <li><b>Knows where each cell came from.</b> The cells of each chamber carry a lane label from Module 1, and the
-          three cell types also separate by their transcriptomes.</li>
+        <li><b>Knows where each cell came from.</b> Before harvest, the cells of each chamber pick up that chamber's own
+          label in Module 1, and the three cell types also separate by their transcriptomes.</li>
         <li><b>Runs many conditions at once.</b> The labels let conditions share one library and be told apart afterwards.</li>
       </ul>
     </section>
@@ -118,13 +118,14 @@
       <p>A condition does not need a million cells. A few thousand cells talking to a few thousand cells is enough, in
         microlitre volumes where their signals stay concentrated, and with a fraction of the reagent.</p>
       <dl class="home-figures">
-        <div><dt>~20,000</dt><dd>cells read in one 10x Genomics well</dd></div>
-        <div><dt>~2,000</dt><dd>cells per condition is enough</dd></div>
-        <div><dt>10</dt><dd>conditions per well</dd></div>
-        <div><dt>80</dt><dd>conditions per eight-well run</dd></div>
+        <div><dt>~20,000</dt><dd>cells in a standard single-cell run</dd></div>
+        <div><dt>~2,000</dt><dd>cells are enough for one condition</dd></div>
+        <div><dt>10</dt><dd>conditions in one run of that size</dd></div>
+        <div><dt>80</dt><dd>conditions across eight such runs</dd></div>
       </dl>
-      <p class="meta">Today one Module 1 holds three conditions, so 24 per eight-well run. The aim is ten or more chambers
-        per chip and many chips in parallel. Mentor figures, used as targets; nothing here has been run yet.</p>
+      <p class="meta">The yardstick is one well of a 10x Genomics chip; our pipeline barcodes the cells and builds the library
+        itself. Today one Module 1 has three chambers, so three conditions per run and 24 across eight; the aim is ten or
+        more chambers per chip and many chips in parallel. Targets from a mentor's estimate, not results.</p>
     </section>
 
     <section>
@@ -156,7 +157,7 @@
     <section>
       <h2>What is new</h2>
       <ul class="home-list">
-        <li><b>Routing by flow, not valves.</b> Module 1 grows neurons, glia and astrocytes in three chambers that meet at one
+        <li><b>Routing by flow, not valves.</b> Module 1 grows neurons, microglia and astrocytes in three chambers that meet at one
           junction. Which ports are fed, open or plugged decides whether the cultures stay apart or share medium.</li>
         <li><b>Single-cell barcodes made in droplets.</b> After reverse transcription each capsule goes into its own oil
           droplet, where one random barcode is amplified and joined onto that capsule's cDNA. One capsule holds one cell, so
