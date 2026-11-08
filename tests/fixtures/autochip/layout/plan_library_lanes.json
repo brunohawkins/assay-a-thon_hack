@@ -1,0 +1,157 @@
+{
+  "kind": "chip_plan",
+  "id": "library_lanes",
+  "name": "Library distributor feeding two-module lanes",
+  "protocol_id": "fixture_ir",
+  "constraints_id": "unconstrained",
+  "chips": [
+    {
+      "id": "lane_chip",
+      "name": "Four lanes of chamber + mixer",
+      "purpose": "A library distributor (not stretched) feeding four lanes of two modules each, pooled in a ring junction.",
+      "steps": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "modules": [
+        {
+          "id": "dist",
+          "part": "flow_distributor",
+          "part_source": "library",
+          "steps": [
+            1
+          ],
+          "does": "Splits into four lanes."
+        },
+        {
+          "id": "a_1",
+          "part": "chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 4
+          },
+          "steps": [
+            2
+          ],
+          "inlets": [
+            "dye_a"
+          ],
+          "does": "Stain, lane 1."
+        },
+        {
+          "id": "m_1",
+          "part": "mixer",
+          "part_source": "parametric",
+          "params": {
+            "length_mm": 10
+          },
+          "steps": [
+            3
+          ],
+          "does": "Mix, lane 1."
+        },
+        {
+          "id": "a_2",
+          "part": "chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 4
+          },
+          "steps": [
+            2
+          ],
+          "inlets": [
+            "dye_b"
+          ],
+          "does": "Stain, lane 2."
+        },
+        {
+          "id": "m_2",
+          "part": "mixer",
+          "part_source": "parametric",
+          "params": {
+            "length_mm": 10
+          },
+          "steps": [
+            3
+          ],
+          "does": "Mix, lane 2."
+        },
+        {
+          "id": "a_3",
+          "part": "chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 4
+          },
+          "steps": [
+            2
+          ],
+          "inlets": [
+            "dye_c"
+          ],
+          "does": "Stain, lane 3."
+        },
+        {
+          "id": "m_3",
+          "part": "mixer",
+          "part_source": "parametric",
+          "params": {
+            "length_mm": 10
+          },
+          "steps": [
+            3
+          ],
+          "does": "Mix, lane 3."
+        },
+        {
+          "id": "a_4",
+          "part": "chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 4
+          },
+          "steps": [
+            2
+          ],
+          "inlets": [
+            "dye_d"
+          ],
+          "does": "Stain, lane 4."
+        },
+        {
+          "id": "m_4",
+          "part": "mixer",
+          "part_source": "parametric",
+          "params": {
+            "length_mm": 10
+          },
+          "steps": [
+            3
+          ],
+          "does": "Mix, lane 4."
+        },
+        {
+          "id": "ring",
+          "part": "ring_junction",
+          "part_source": "library",
+          "steps": [
+            4
+          ],
+          "does": "Pools the lanes."
+        }
+      ]
+    }
+  ],
+  "handoffs": [],
+  "off_chip": [],
+  "missing_parts": [],
+  "coverage": {
+    "1": "lane_chip.dist",
+    "2": "lane_chip.a_1",
+    "3": "lane_chip.m_1",
+    "4": "lane_chip.ring"
+  }
+}

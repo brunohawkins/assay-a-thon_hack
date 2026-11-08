@@ -1,0 +1,240 @@
+{
+  "protocol_id": "ipsc_triculture_single_cell_capsule_rnaseq_chip1_triculture_dissociation_quench_cell_wash_filter",
+  "protocol_name": "iPSC tri-culture to capsule-based single-cell RNA library: Tri-culture, dissociation, quench, cell wash and filter chip",
+  "chip_id": "chip1_triculture_dissociation_quench_cell_wash_filter",
+  "chip_spec": "autochip/examples/live/prompt_unconstrained/chips/chip1_triculture_dissociation_quench_cell_wash_filter.json",
+  "operator": "planner",
+  "created_at": "2026-11-08T09:35:58Z",
+  "placeholder": true,
+  "total_duration_s": 787207.8,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 900.0,
+      "command": "load",
+      "args": {
+        "target": "culture_neurons",
+        "volume_ul": 150.0
+      },
+      "narration": "IR step 1 (culture_neurons): load the cells from the bench: syringe on culture_medium_neurons_in at 10 uL/min, VENT culture_neurons_vent_out. Every other port capped.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 900.0,
+      "duration_s": 900.0,
+      "command": "load",
+      "args": {
+        "target": "culture_microglia",
+        "volume_ul": 150.0
+      },
+      "narration": "IR step 1 (culture_microglia): load the cells from the bench: syringe on culture_medium_microglia_in at 10 uL/min, VENT microglia_vent_out. Every other port capped.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 1800.0,
+      "duration_s": 900.0,
+      "command": "load",
+      "args": {
+        "target": "culture_astrocytes",
+        "volume_ul": 150.0
+      },
+      "narration": "IR step 1 (culture_astrocytes): load the cells from the bench: syringe on culture_medium_astrocytes_in at 10 uL/min, VENT astrocytes_vent_out. Every other port capped.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 2700.0,
+      "duration_s": 604800.0,
+      "command": "culture",
+      "args": {
+        "targets": [
+          "culture_neurons",
+          "culture_microglia",
+          "culture_astrocytes"
+        ],
+        "reagents": [
+          "culture_medium_neurons",
+          "culture_medium_microglia",
+          "culture_medium_astrocytes"
+        ],
+        "duration_s": 604800.0,
+        "exchange_interval_s": 86400.0,
+        "volume_ul": 150.0,
+        "flow_ul_min": 10.0,
+        "temp_c": 37.0
+      },
+      "narration": "IR step 1 (culture_neurons): culture the 3 chambers apart at 37 C for 7 d: every 1 d each gets its own medium (FEED culture_medium_neurons_in, culture_medium_microglia_in, culture_medium_astrocytes_in; VENT culture_neurons_vent_out, microglia_vent_out, astrocytes_vent_out), all ports capped in between. Culture neurons, microglia and astrocytes in separate vessels, side by side, each in its own medium.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 607500.0,
+      "duration_s": 86400.0,
+      "command": "culture",
+      "args": {
+        "targets": [
+          "culture_neurons",
+          "culture_microglia",
+          "culture_astrocytes"
+        ],
+        "reagents": [
+          "culture_medium_neurons",
+          "culture_medium_microglia",
+          "culture_medium_astrocytes"
+        ],
+        "duration_s": 86400.0,
+        "exchange_interval_s": 43200.0,
+        "volume_ul": 150.0,
+        "flow_ul_min": 10.0,
+        "temp_c": 37.0
+      },
+      "narration": "IR step 2 (culture_neurons): culture the 3 chambers apart at 37 C for 1 d: every 12 h each gets its own medium (FEED culture_medium_neurons_in, culture_medium_microglia_in, culture_medium_astrocytes_in; VENT culture_neurons_vent_out, microglia_vent_out, astrocytes_vent_out), all ports capped in between. Continue culture of the three cell types sharing medium (co-culture or shared medium flow).",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 693900.0,
+      "duration_s": 86400.0,
+      "command": "culture",
+      "args": {
+        "targets": [
+          "culture_neurons",
+          "culture_microglia",
+          "culture_astrocytes"
+        ],
+        "reagents": [
+          "culture_medium_neurons",
+          "culture_medium_neurons",
+          "culture_medium_neurons"
+        ],
+        "duration_s": 86400.0,
+        "exchange_interval_s": 43200.0,
+        "volume_ul": 150.0,
+        "flow_ul_min": 10.0,
+        "temp_c": 37.0
+      },
+      "narration": "IR step 2 (culture_neurons): culture sharing medium for 1 d: every 12 h FEED culture_medium_neurons_in only and VENT microglia_vent_out, astrocytes_vent_out, so culture_neurons's conditioned medium reaches the other chambers through the junction (rotate which chamber is fed to let every type condition the others). Continue culture of the three cell types sharing medium (co-culture or shared medium flow).",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 780300.0,
+      "duration_s": 900.0,
+      "command": "exchange",
+      "args": {
+        "target": "culture_neurons",
+        "reagent": "dissociation_enzyme",
+        "volume_ul": 150.0,
+        "washes": 1,
+        "flow_ul_min": 10.0,
+        "waste": "culture_neurons_vent_out"
+      },
+      "narration": "IR step 3 (culture_neurons): exchange to dissociation_enzyme: FEED culture_medium_neurons_in (dissociation_enzyme) at 10 uL/min, VENT culture_neurons_vent_out, all else capped; 1.5 chamber volumes (150 uL) per wash (default flow). Detach the cells with a dissociation enzyme.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 781200.0,
+      "duration_s": 900.0,
+      "command": "exchange",
+      "args": {
+        "target": "culture_microglia",
+        "reagent": "dissociation_enzyme",
+        "volume_ul": 150.0,
+        "washes": 1,
+        "flow_ul_min": 10.0,
+        "waste": "microglia_vent_out"
+      },
+      "narration": "IR step 3 (culture_microglia): exchange to dissociation_enzyme: FEED culture_medium_microglia_in (dissociation_enzyme) at 10 uL/min, VENT microglia_vent_out, all else capped; 1.5 chamber volumes (150 uL) per wash (default flow). Detach the cells with a dissociation enzyme.",
+      "protocol_step": 8
+    },
+    {
+      "t_s": 782100.0,
+      "duration_s": 900.0,
+      "command": "exchange",
+      "args": {
+        "target": "culture_astrocytes",
+        "reagent": "dissociation_enzyme",
+        "volume_ul": 150.0,
+        "washes": 1,
+        "flow_ul_min": 10.0,
+        "waste": "astrocytes_vent_out"
+      },
+      "narration": "IR step 3 (culture_astrocytes): exchange to dissociation_enzyme: FEED culture_medium_astrocytes_in (dissociation_enzyme) at 10 uL/min, VENT astrocytes_vent_out, all else capped; 1.5 chamber volumes (150 uL) per wash (default flow). Detach the cells with a dissociation enzyme.",
+      "protocol_step": 9
+    },
+    {
+      "t_s": 783000.0,
+      "duration_s": 600.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "culture_astrocytes",
+        "temp_c": 37.0,
+        "duration_s": 600.0
+      },
+      "narration": "IR step 3 (culture_astrocytes): incubate in place: all ports capped, hold 37 C for 10 min. Detach the cells with a dissociation enzyme.",
+      "protocol_step": 10
+    },
+    {
+      "t_s": 783600.0,
+      "duration_s": 1703.4,
+      "command": "mix",
+      "args": {
+        "target": "quench_join",
+        "reagent": "quench_solution",
+        "volume_ul": 567.8,
+        "flow_ul_min": 10.0
+      },
+      "narration": "IR step 4 (quench_join): mix: FEED inlet_1 (carrier_buffer) at 10 uL/min, quench_solution_in (quench_solution) at 10 uL/min, VENT cell_wash_waste_out, all else capped. Quench the dissociation enzyme.",
+      "protocol_step": 11
+    },
+    {
+      "t_s": 785303.4,
+      "duration_s": 368.4,
+      "command": "exchange",
+      "args": {
+        "target": "cell_wash",
+        "reagent": "wash_buffer",
+        "volume_ul": 61.4,
+        "washes": 1,
+        "flow_ul_min": 10.0,
+        "waste": "cell_wash_waste_out"
+      },
+      "narration": "IR step 5 (cell_wash): exchange to wash_buffer: FEED wash_buffer_in (wash_buffer) at 10 uL/min, VENT cell_wash_waste_out, all else capped; 1.5 chamber volumes (61.4 uL) per wash (default flow). Centrifuge the cell suspension to pellet the cells.",
+      "protocol_step": 12
+    },
+    {
+      "t_s": 785671.8,
+      "duration_s": 300.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "cell_wash",
+        "temp_c": 22.0,
+        "duration_s": 300.0
+      },
+      "narration": "IR step 5 (cell_wash): incubate in place: all ports capped, hold 22 C for 5 min. Centrifuge the cell suspension to pellet the cells.",
+      "protocol_step": 13
+    },
+    {
+      "t_s": 785971.8,
+      "duration_s": 737.4,
+      "command": "exchange",
+      "args": {
+        "target": "cell_wash",
+        "reagent": "wash_buffer",
+        "volume_ul": 122.9,
+        "washes": 1,
+        "flow_ul_min": 10.0,
+        "waste": "cell_wash_waste_out"
+      },
+      "narration": "IR step 6 (cell_wash): exchange to wash_buffer: FEED wash_buffer_in (wash_buffer) at 10 uL/min, VENT cell_wash_waste_out, all else capped; 3 chamber volumes (122.9 uL) per wash (default flow). Resuspend the cells in wash buffer.",
+      "protocol_step": 14
+    },
+    {
+      "t_s": 786709.2,
+      "duration_s": 498.6,
+      "command": "transfer",
+      "args": {
+        "source": "cell_wash",
+        "target": "cell_filter"
+      },
+      "narration": "IR step 7 (cell_filter): transfer: FEED inlet_1 (carrier_buffer) at 10 uL/min, VENT outlet_1, all else capped. Filter the suspension through a cell strainer to remove clumps.",
+      "protocol_step": 15
+    }
+  ]
+}

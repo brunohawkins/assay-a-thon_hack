@@ -1,0 +1,163 @@
+{
+  "id": "chip3_lysis_rt_split_index_pcr_pool_release",
+  "name": "Lysis, RT, split, index PCR, pool and release chip",
+  "description": "Lyses cells in capsules, reverse transcribes, splits into four portions for index PCR, pools them and releases the cDNA. Parametric parts: modules reaction_trap, split_2, pcr_1, pcr_2, pcr_3, pcr_4, pool_2, release_trap use the nearest library block as a stand-in (real part and sizing in autochip_part / params). build_chip.py builds the stand-ins at library size; the exact chip needs the autochip layout stage.",
+  "source": "autochip chip plan ipsc_triculture_single_cell_capsule_rnaseq_unconstrained (protocol ipsc_triculture_single_cell_capsule_rnaseq, constraints unconstrained)",
+  "placeholder": true,
+  "needs_autochip_layout": true,
+  "temp_c": null,
+  "equipment": [
+    "thermocycler",
+    "syringe_pump"
+  ],
+  "modules": [
+    {
+      "id": "reaction_trap",
+      "part": "culture_chamber",
+      "steps": [
+        14,
+        15,
+        16,
+        17
+      ],
+      "does": "Holds capsules on a 10 um mesh while lysis buffer and RT mix come in one after another on the shared reagent_line (swap the syringe between steps), with wash buffer flushes after lysis and after RT.",
+      "inlets": [
+        "reagent_line",
+        "wash_buffer"
+      ],
+      "outlets": [
+        "reaction_trap_waste"
+      ],
+      "mesh_pore_um": 10,
+      "autochip_part": "trap_chamber",
+      "params": {
+        "volume_ul": 50,
+        "depth_mm": 0.5,
+        "retention": "mesh",
+        "gap_um": 10
+      }
+    },
+    {
+      "id": "split_2",
+      "part": "flow_manifold",
+      "steps": [
+        18
+      ],
+      "does": "Splits the capsules into four sublibrary portions.",
+      "autochip_part": "splitter",
+      "params": {
+        "n_out": 4
+      }
+    },
+    {
+      "id": "pcr_1",
+      "part": "culture_chamber",
+      "steps": [
+        19
+      ],
+      "does": "Portion 1: index PCR with its own index mix (PCR mix plus this lane's index primers).",
+      "inlets": [
+        "index_mix_1"
+      ],
+      "autochip_part": "thermal_chamber",
+      "params": {
+        "volume_ul": 25,
+        "depth_mm": 0.5
+      }
+    },
+    {
+      "id": "pcr_2",
+      "part": "culture_chamber",
+      "steps": [
+        19
+      ],
+      "does": "Portion 2: index PCR with its own index mix.",
+      "inlets": [
+        "index_mix_2"
+      ],
+      "autochip_part": "thermal_chamber",
+      "params": {
+        "volume_ul": 25,
+        "depth_mm": 0.5
+      }
+    },
+    {
+      "id": "pcr_3",
+      "part": "culture_chamber",
+      "steps": [
+        19
+      ],
+      "does": "Portion 3: index PCR with its own index mix.",
+      "inlets": [
+        "index_mix_3"
+      ],
+      "autochip_part": "thermal_chamber",
+      "params": {
+        "volume_ul": 25,
+        "depth_mm": 0.5
+      }
+    },
+    {
+      "id": "pcr_4",
+      "part": "culture_chamber",
+      "steps": [
+        19
+      ],
+      "does": "Portion 4: index PCR with its own index mix.",
+      "inlets": [
+        "index_mix_4"
+      ],
+      "autochip_part": "thermal_chamber",
+      "params": {
+        "volume_ul": 25,
+        "depth_mm": 0.5
+      }
+    },
+    {
+      "id": "pool_2",
+      "part": "ring_junction",
+      "steps": [
+        24
+      ],
+      "does": "Gathers the four differently indexed portions into one stream. The indexes allow pooling before clean-up, so the pooling step is done here.",
+      "autochip_part": "pool",
+      "params": {
+        "n_in": 4
+      }
+    },
+    {
+      "id": "release_trap",
+      "part": "culture_chamber",
+      "steps": [
+        20
+      ],
+      "does": "Holds the capsules on a 10 um mesh while the shell-digesting enzyme releases the cDNA, which leaves through the main outlet. Capsule debris stays behind.",
+      "inlets": [
+        "release_enzyme"
+      ],
+      "outlets": [
+        "release_trap_waste"
+      ],
+      "mesh_pore_um": 10,
+      "autochip_part": "trap_chamber",
+      "params": {
+        "volume_ul": 50,
+        "depth_mm": 0.5,
+        "retention": "mesh",
+        "gap_um": 10
+      }
+    }
+  ],
+  "off_chip": [],
+  "missing_parts": [],
+  "steps_text": {
+    "14": "Lyse the cells inside the capsules (placeholder time and temperature).",
+    "15": "Wash the capsules after lysis.",
+    "16": "Reverse transcribe the RNA inside the capsules (placeholder time and temperature).",
+    "17": "Wash the capsules after reverse transcription.",
+    "18": "Split the capsules into four sublibrary portions.",
+    "19": "Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+    "20": "Release the cDNA from the capsules by digesting the shell with a shell-digesting enzyme (placeholder time and temperature).",
+    "24": "Pool the four cleaned-up sublibraries for sequencing."
+  }
+}

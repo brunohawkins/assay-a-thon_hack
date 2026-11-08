@@ -1,0 +1,64 @@
+{
+  "id": "chip2_gelation_emulsion_break_cure_wash",
+  "name": "Gelation, emulsion breaking, curing and capsule wash chip",
+  "description": "Gels the shells in a cold delay line, then breaks the emulsion, photocures and washes the capsules in a trap. Parametric parts: modules gelation_delay, capsule_trap use the nearest library block as a stand-in (real part and sizing in autochip_part / params). build_chip.py builds the stand-ins at library size; the exact chip needs the autochip layout stage.",
+  "source": "autochip chip plan spc_capsule_workflow_resin_print_multilayer (protocol spc_capsule_workflow, constraints resin_print_multilayer)",
+  "placeholder": true,
+  "needs_autochip_layout": true,
+  "temp_c": 4,
+  "equipment": [
+    "cold_plate",
+    "led_405nm",
+    "syringe_pump"
+  ],
+  "modules": [
+    {
+      "id": "gelation_delay",
+      "part": "serpentine_channel",
+      "steps": [
+        11
+      ],
+      "does": "Gives the emulsion a 30 min cold residence on the cold plate so the shells gel. A low flow keeps the line small enough for the chip.",
+      "autochip_part": "delay_line",
+      "params": {
+        "residence_s": 1800,
+        "flow_ul_min": 5,
+        "width_mm": 1.5
+      }
+    },
+    {
+      "id": "capsule_trap",
+      "part": "culture_chamber",
+      "steps": [
+        12,
+        13,
+        14
+      ],
+      "does": "A 25 um mesh holds the capsules while the breaking agent removes the oil, the photoinitiator is flushed in and 405 nm light cures the shells, and buffer washes them.",
+      "inlets": [
+        "emulsion_breaking_agent",
+        "photoinitiator",
+        "wash_buffer"
+      ],
+      "outlets": [
+        "capsule_trap_waste"
+      ],
+      "mesh_pore_um": 25,
+      "autochip_part": "trap_chamber",
+      "params": {
+        "volume_ul": 50,
+        "depth_mm": 0.5,
+        "retention": "mesh",
+        "gap_um": 25
+      }
+    }
+  ],
+  "off_chip": [],
+  "missing_parts": [],
+  "steps_text": {
+    "11": "Collect the emulsion and keep it on ice so the shell gels.",
+    "12": "Break the emulsion with an emulsion-breaking agent and remove the oil phase.",
+    "13": "Photocure the capsule shells with 405 nm light in the presence of photoinitiator.",
+    "14": "Wash the capsules in buffer to remove oil and free reagents."
+  }
+}

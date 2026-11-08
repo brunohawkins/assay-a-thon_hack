@@ -1,0 +1,125 @@
+{
+  "protocol_id": "spc_capsule_workflow_chip4_shell_release_bead_capture_wash_elution",
+  "protocol_name": "Semi-permeable capsule (SPC) workflow: Shell release, bead capture, ethanol wash and elution chip",
+  "chip_id": "chip4_shell_release_bead_capture_wash_elution",
+  "chip_spec": "autochip/examples/live/protocol_resin_multilayer/chips/chip4_shell_release_bead_capture_wash_elution.json",
+  "operator": "planner",
+  "created_at": "2026-11-08T09:36:02Z",
+  "placeholder": true,
+  "total_duration_s": 2820.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 225.0,
+      "command": "load",
+      "args": {
+        "target": "release_trap",
+        "volume_ul": 75.0
+      },
+      "narration": "IR step 22 (release_trap): load the capsules from the hand-off from chip3_filter_lysis_rt_wash: syringe on inlet_1 at 20 uL/min, VENT release_trap_waste_out. Every other port capped.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 225.0,
+      "duration_s": 300.0,
+      "command": "release",
+      "args": {
+        "target": "release_trap",
+        "reagent": "shell_digesting_enzyme"
+      },
+      "narration": "IR step 22 (release_trap): release: FEED shell_digesting_enzyme_in (shell_digesting_enzyme) at 20 uL/min, VENT release_trap_waste_out, all else capped. Release the cDNA by digesting the capsule shells with a shell-digesting enzyme.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 525.0,
+      "duration_s": 225.0,
+      "command": "exchange",
+      "args": {
+        "target": "beads_1",
+        "reagent": "magnetic_beads",
+        "volume_ul": 75.0,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "beads_1_waste_out"
+      },
+      "narration": "IR step 23 (beads_1): exchange to magnetic_beads: FEED magnetic_beads_in (magnetic_beads) at 20 uL/min, VENT beads_1_waste_out, all else capped; 1.5 chamber volumes (75 uL) per wash (default flow). Bind the library to magnetic beads.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 750.0,
+      "duration_s": 225.0,
+      "command": "load",
+      "args": {
+        "target": "beads_1",
+        "volume_ul": 75.0
+      },
+      "narration": "IR step 23 (beads_1): load the nucleic_acid from the hand-off from chip3_filter_lysis_rt_wash: syringe on inlet_1 at 20 uL/min, VENT beads_1_waste_out. Every other port capped.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 975.0,
+      "duration_s": 300.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "beads_1",
+        "temp_c": 22.0,
+        "duration_s": 300.0
+      },
+      "narration": "IR step 23 (beads_1): incubate in place: all ports capped, hold 22 C for 5 min (placeholder time). Bind the library to magnetic beads.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 1275.0,
+      "duration_s": 900.0,
+      "command": "exchange",
+      "args": {
+        "target": "beads_1",
+        "reagent": "ethanol_wash",
+        "volume_ul": 150.0,
+        "washes": 2,
+        "flow_ul_min": 20.0,
+        "waste": "beads_1_waste_out"
+      },
+      "narration": "IR step 24 (beads_1): exchange to ethanol_wash: FEED ethanol_wash_in (ethanol_wash) at 20 uL/min, VENT beads_1_waste_out, all else capped; 3 chamber volumes (150 uL) per wash x 2 washes (default flow). Wash the beads with ethanol wash solution on a magnet.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 2175.0,
+      "duration_s": 225.0,
+      "command": "exchange",
+      "args": {
+        "target": "beads_1",
+        "reagent": "elution_buffer",
+        "volume_ul": 75.0,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "beads_1_waste_out"
+      },
+      "narration": "IR step 25 (beads_1): exchange to elution_buffer: FEED elution_buffer_in (elution_buffer) at 20 uL/min, VENT beads_1_waste_out, all else capped; 1.5 chamber volumes (75 uL) per wash (default flow). Elute the library from the beads in water.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 2400.0,
+      "duration_s": 120.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "beads_1",
+        "temp_c": 22.0,
+        "duration_s": 120.0
+      },
+      "narration": "IR step 25 (beads_1): incubate in place: all ports capped, hold 22 C for 2 min (placeholder time). Elute the library from the beads in water.",
+      "protocol_step": 8
+    },
+    {
+      "t_s": 2520.0,
+      "duration_s": 300.0,
+      "command": "transfer",
+      "args": {
+        "source": "beads_1",
+        "target": "outlet_1"
+      },
+      "narration": "IR step 25 (beads_1): collect the library: FEED elution_buffer_in (buffer push), VENT outlet_1 into a tube labelled 'chip4_shell_release_bead_capture_wash_elution: library after step 25'. Every other port capped.",
+      "protocol_step": 9
+    }
+  ]
+}

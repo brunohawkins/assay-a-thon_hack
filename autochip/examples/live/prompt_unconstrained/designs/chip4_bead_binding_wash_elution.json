@@ -1,0 +1,52 @@
+{
+  "id": "chip4_bead_binding_wash_elution",
+  "name": "Bead binding, ethanol wash and elution chip",
+  "description": "Binds cDNA to magnetic beads, washes on the magnet and elutes the library. Parametric parts: modules bead_chamber use the nearest library block as a stand-in (real part and sizing in autochip_part / params). build_chip.py builds the stand-ins at library size; the exact chip needs the autochip layout stage.",
+  "source": "autochip chip plan ipsc_triculture_single_cell_capsule_rnaseq_unconstrained (protocol ipsc_triculture_single_cell_capsule_rnaseq, constraints unconstrained)",
+  "placeholder": true,
+  "needs_autochip_layout": true,
+  "temp_c": 22,
+  "equipment": [
+    "magnet",
+    "syringe_pump"
+  ],
+  "modules": [
+    {
+      "id": "bead_chamber",
+      "part": "culture_chamber",
+      "steps": [
+        21,
+        22,
+        23
+      ],
+      "does": "Beads bind the cDNA, are held by the magnet during two ethanol washes, then release the library into elution buffer.",
+      "inlets": [
+        "magnetic_beads",
+        "ethanol_wash",
+        "elution_buffer"
+      ],
+      "outlets": [
+        "bead_waste"
+      ],
+      "autochip_part": "magnetic_chamber",
+      "params": {
+        "volume_ul": 50,
+        "depth_mm": 0.5
+      }
+    }
+  ],
+  "off_chip": [
+    {
+      "steps": [
+        25
+      ],
+      "why": "Library concentration and size measurement are done on the bench (fluorometer is not on the lab list)."
+    }
+  ],
+  "missing_parts": [],
+  "steps_text": {
+    "21": "Bind the released cDNA to magnetic beads.",
+    "22": "Wash the beads on a magnet.",
+    "23": "Elute the library from the beads."
+  }
+}

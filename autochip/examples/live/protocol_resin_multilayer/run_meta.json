@@ -1,0 +1,6 @@
+{
+  "backend": "claude-cli",
+  "model": null,
+  "replay": null,
+  "constraints": "resin_print_multilayer"
+}

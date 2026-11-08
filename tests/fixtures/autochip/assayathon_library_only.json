@@ -1,0 +1,9 @@
+{
+  "id": "assayathon_demo",
+  "extends": "assayathon_demo",
+  "name": "Assay-a-thon demo, Flowmatter library parts only (test fixture)",
+  "parts": {
+    "source": "library_only",
+    "allow_scaling": true
+  }
+}

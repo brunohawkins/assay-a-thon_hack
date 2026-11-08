@@ -1,0 +1,161 @@
+{
+  "id": "chip1_rinse_dissociation_quench_wash_encapsulation",
+  "name": "Cell rinse, dissociation, quench, wash and encapsulation chip",
+  "description": "Rinses and detaches the cells, quenches the enzyme, washes the cells in a spiral, mixes in core solution and forms ~70 um droplets at the flow-focusing junction. Parametric parts: modules culture_1, quench_join, quench_mix, cell_wash, core_join, core_mix use the nearest library block as a stand-in (real part and sizing in autochip_part / params). build_chip.py builds the stand-ins at library size; the exact chip needs the autochip layout stage.",
+  "source": "autochip chip plan spc_capsule_workflow_resin_print_multilayer (protocol spc_capsule_workflow, constraints resin_print_multilayer)",
+  "placeholder": true,
+  "needs_autochip_layout": true,
+  "temp_c": 37,
+  "equipment": [
+    "heater",
+    "syringe_pump"
+  ],
+  "modules": [
+    {
+      "id": "culture_1",
+      "part": "culture_chamber",
+      "steps": [
+        2,
+        3
+      ],
+      "does": "Holds the cells while buffer rinses them and then the dissociation enzyme detaches them. Both are water-based, so one shared reagent_line is used and the syringe is swapped between steps.",
+      "inlets": [
+        "reagent_line"
+      ],
+      "outlets": [
+        "culture_1_waste"
+      ],
+      "autochip_part": "culture_chamber_param",
+      "params": {
+        "volume_ul": 100,
+        "depth_mm": 0.5
+      }
+    },
+    {
+      "id": "quench_join",
+      "part": "t_junction",
+      "steps": [
+        4
+      ],
+      "does": "Quench medium joins the cell stream to stop the enzyme.",
+      "inlets": [
+        "quench_medium"
+      ],
+      "autochip_part": "merge",
+      "params": {
+        "shape": "t"
+      }
+    },
+    {
+      "id": "quench_mix",
+      "part": "serpentine_channel",
+      "steps": [
+        4
+      ],
+      "does": "Mixes the quench medium into the cell stream gently.",
+      "autochip_part": "mixer",
+      "params": {
+        "length_mm": 30,
+        "residence_s": null,
+        "flow_ul_min": 10,
+        "width_mm": 1.0,
+        "viscous": false
+      }
+    },
+    {
+      "id": "cell_wash",
+      "part": "spiral_channel",
+      "steps": [
+        5,
+        6
+      ],
+      "does": "Moves the cells into clean wash buffer, replacing the centrifuge pellet and the two resuspension washes (run twice).",
+      "inlets": [
+        "wash_buffer"
+      ],
+      "outlets": [
+        "cell_wash_waste"
+      ],
+      "autochip_part": "spiral_separator",
+      "params": {
+        "turns": 4,
+        "width_mm": 0.5
+      }
+    },
+    {
+      "id": "core_join",
+      "part": "t_junction",
+      "steps": [
+        9
+      ],
+      "does": "Core solution joins the washed cell stream so the cells are suspended for encapsulation.",
+      "inlets": [
+        "core_solution"
+      ],
+      "autochip_part": "merge",
+      "params": {
+        "shape": "t"
+      }
+    },
+    {
+      "id": "core_mix",
+      "part": "serpentine_channel",
+      "steps": [
+        9
+      ],
+      "does": "Mixes the cells into the core solution just before the junction.",
+      "autochip_part": "mixer",
+      "params": {
+        "length_mm": 30,
+        "residence_s": null,
+        "flow_ul_min": 10,
+        "width_mm": 1.0,
+        "viscous": false
+      }
+    },
+    {
+      "id": "droplets_1",
+      "part": "cross_junction",
+      "steps": [
+        10
+      ],
+      "does": "The cell/core stream arrives on the main line, warm shell polymer and fluorinated oil enter through their own inlets, and ~70 um droplets pinch off.",
+      "inlets": [
+        "shell_polymer",
+        "fluorinated_oil"
+      ]
+    }
+  ],
+  "off_chip": [
+    {
+      "steps": [
+        1
+      ],
+      "why": "Three-day culture of adherent cells in a CO2 incubator is done in a vessel at the bench."
+    },
+    {
+      "steps": [
+        8
+      ],
+      "why": "Cell counting and viability check are done on the bench."
+    }
+  ],
+  "missing_parts": [
+    {
+      "steps": [
+        7
+      ],
+      "need": "Pillar filter with ~30 um gap for cells (0.75 x the 40 um nozzle)",
+      "why": "The pillar filter cannot go below 100 um gap, and a 100 um gap would not protect the 40 um nozzle from clumps."
+    }
+  ],
+  "steps_text": {
+    "2": "Remove the medium and rinse the cells once with buffer.",
+    "3": "Add dissociation enzyme and incubate to detach the cells.",
+    "4": "Add quench medium and mix gently to stop the enzyme.",
+    "5": "Centrifuge the cells and remove the supernatant.",
+    "6": "Resuspend the pellet in wash buffer to wash the cells; repeat the wash once.",
+    "9": "Resuspend the cells in core solution at the loading density.",
+    "10": "Co-flow the cell/core solution with warm shell polymer solution and focus with fluorinated oil with surfactant at a flow-focusing junction to form droplets of about 70 um."
+  }
+}

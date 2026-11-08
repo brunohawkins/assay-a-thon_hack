@@ -1,0 +1,79 @@
+{
+  "id": "assayathon_demo",
+  "name": "Assay-a-thon demo (resin print + hot embossing, 30 x 20 mm)",
+  "description": "The hackathon build: Form 3B resin print plus hot embossing, one fluidic layer, syringe pumps, no valves. Flowmatter blocks where they fit; otherwise generic parts drawn at the 0.2 mm process floor (as the team's 30 x 20 mm chips are).",
+  "fabrication": {
+    "method": "resin_print_hot_emboss",
+    "machine": "Formlabs Form 3B",
+    "material": "clear resin",
+    "sealing": "film",
+    "multilayer": {
+      "allowed": false,
+      "max_fluidic_layers": 1,
+      "vias_allowed": false
+    },
+    "channel_crossings_allowed": false,
+    "on_chip_valves": {
+      "allowed": false,
+      "type": null
+    },
+    "depth": {
+      "max_mm": 0.3,
+      "single_depth": true
+    },
+    "min_feature": {
+      "open_channel_width_mm": 0.2,
+      "enclosed_channel_width_mm": 0.5,
+      "wall_mm": 0.4,
+      "gap_mm": 0.06
+    }
+  },
+  "envelope": {
+    "printable_area_mm": {
+      "x": 145,
+      "y": 145,
+      "z": 185
+    },
+    "max_chip_mm": {
+      "x": 30,
+      "y": 20
+    },
+    "max_chips": null,
+    "edge_margin_mm": 1
+  },
+  "ports": {
+    "max_per_chip": 6,
+    "min_diameter_mm": 0.8,
+    "min_pitch_mm": 5,
+    "connector": "press_fit_tubing",
+    "placement": "top"
+  },
+  "parts": {
+    "source": "library_and_parametric",
+    "allow_scaling": true
+  },
+  "off_chip": {
+    "equipment": [
+      "syringe_pump",
+      "heater",
+      "cold_plate",
+      "led_405nm",
+      "microscope",
+      "centrifuge",
+      "thermocycler",
+      "pipette"
+    ],
+    "pump_channels": 4,
+    "flow_range_ul_min": [
+      0.1,
+      500
+    ],
+    "manual_steps_allowed": true
+  },
+  "objectives": {
+    "prefer": "simplest_to_make"
+  },
+  "notes": [
+    "Flow is switched off-chip by which syringe pushes and which port is capped; no on-chip valves."
+  ]
+}

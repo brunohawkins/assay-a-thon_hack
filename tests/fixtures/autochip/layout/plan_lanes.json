@@ -1,0 +1,120 @@
+{
+  "kind": "chip_plan",
+  "id": "lanes",
+  "name": "Split into parallel PCR lanes and pool again",
+  "protocol_id": "fixture_ir",
+  "constraints_id": "resin_print_multilayer",
+  "chips": [
+    {
+      "id": "pcr_chip",
+      "name": "Parallel index PCR",
+      "purpose": "Split the capsules into three lanes, each with its own index PCR mix, then pool them.",
+      "steps": [
+        5,
+        6,
+        7
+      ],
+      "modules": [
+        {
+          "id": "wash",
+          "part": "trap_chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 20
+          },
+          "steps": [
+            5
+          ],
+          "inlets": [
+            "wash_buffer"
+          ],
+          "outlets": [
+            "wash_waste"
+          ],
+          "does": "Washes the capsules.",
+          "holds": "cells"
+        },
+        {
+          "id": "split_1",
+          "part": "splitter",
+          "part_source": "parametric",
+          "params": {
+            "n_out": 3
+          },
+          "steps": [
+            6
+          ],
+          "does": "Splits the stream into three lanes."
+        },
+        {
+          "id": "pcr_1",
+          "part": "thermal_chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 10
+          },
+          "steps": [
+            6
+          ],
+          "inlets": [
+            "pcr_mix"
+          ],
+          "does": "Index PCR, lane 1.",
+          "holds": "cells"
+        },
+        {
+          "id": "pcr_2",
+          "part": "thermal_chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 10
+          },
+          "steps": [
+            6
+          ],
+          "inlets": [
+            "pcr_mix_2"
+          ],
+          "does": "Index PCR, lane 2.",
+          "holds": "cells"
+        },
+        {
+          "id": "pcr_3",
+          "part": "thermal_chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 10
+          },
+          "steps": [
+            6
+          ],
+          "inlets": [
+            "pcr_mix_3"
+          ],
+          "does": "Index PCR, lane 3.",
+          "holds": "cells"
+        },
+        {
+          "id": "pool_1",
+          "part": "pool",
+          "part_source": "parametric",
+          "params": {
+            "n_in": 3
+          },
+          "steps": [
+            7
+          ],
+          "does": "Pools the three lanes."
+        }
+      ]
+    }
+  ],
+  "handoffs": [],
+  "off_chip": [],
+  "missing_parts": [],
+  "coverage": {
+    "5": "pcr_chip.wash",
+    "6": "pcr_chip.pcr_1",
+    "7": "pcr_chip.pool_1"
+  }
+}

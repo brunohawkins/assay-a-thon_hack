@@ -1,0 +1,257 @@
+{
+  "kind": "protocol_ir",
+  "id": "capsule_scrnaseq_prompt",
+  "name": "Co-culture to capsule single-cell library",
+  "goal": "Grow three iPSC-derived cell types, encapsulate single cells and make an indexed library inside the capsules.",
+  "source": {
+    "kind": "prompt",
+    "file": "autochip/examples/capsule_scrnaseq_prompt.txt",
+    "title": null
+  },
+  "placeholder": true,
+  "assumptions": [
+    "Hand-written test fixture; every value is assumed."
+  ],
+  "materials": [
+    {
+      "id": "cells",
+      "kind": "cells"
+    },
+    {
+      "id": "capsules",
+      "kind": "capsules",
+      "size_um": 70
+    },
+    {
+      "id": "library",
+      "kind": "library"
+    }
+  ],
+  "reagents": [
+    {
+      "id": "medium"
+    },
+    {
+      "id": "dissociation_enzyme"
+    },
+    {
+      "id": "quench_medium"
+    },
+    {
+      "id": "shell_polymer",
+      "viscous": true
+    },
+    {
+      "id": "oil",
+      "immiscible": true
+    },
+    {
+      "id": "emulsion_breaker",
+      "immiscible": true
+    },
+    {
+      "id": "photoinitiator"
+    },
+    {
+      "id": "lysis_buffer"
+    },
+    {
+      "id": "wash_buffer"
+    },
+    {
+      "id": "rt_mix"
+    },
+    {
+      "id": "index_pcr_mix"
+    },
+    {
+      "id": "shell_digest_enzyme"
+    },
+    {
+      "id": "magnetic_beads"
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "text": "Grow neurons, microglia and astrocytes in separate chambers at 37 C.",
+      "action": "culture",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "medium"
+      ],
+      "temp_c": 37,
+      "conditions": {
+        "co2": true
+      },
+      "assumed": false
+    },
+    {
+      "n": 2,
+      "text": "Connect the chambers so the three cell types share medium.",
+      "action": "feed",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "medium"
+      ],
+      "temp_c": 37
+    },
+    {
+      "n": 3,
+      "text": "Detach the cells.",
+      "action": "dissociate",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "dissociation_enzyme"
+      ],
+      "temp_c": 37,
+      "duration_s": 300,
+      "assumed": true
+    },
+    {
+      "n": 4,
+      "text": "Stop the enzyme with quench medium.",
+      "action": "quench",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "quench_medium"
+      ],
+      "assumed": true
+    },
+    {
+      "n": 5,
+      "text": "Wrap single cells in semi-permeable hydrogel capsules in a flow-focusing junction.",
+      "action": "encapsulate",
+      "input_material": "cells",
+      "output_material": "droplets",
+      "reagents": [
+        "shell_polymer",
+        "oil"
+      ],
+      "flow_ul_min": 14
+    },
+    {
+      "n": 6,
+      "text": "Let the shell gel in the cold.",
+      "action": "incubate",
+      "input_material": "droplets",
+      "output_material": "droplets",
+      "duration_s": 1200,
+      "temp_c": 4,
+      "conditions": {
+        "cold": true
+      },
+      "assumed": true
+    },
+    {
+      "n": 7,
+      "text": "Break the emulsion.",
+      "action": "break_emulsion",
+      "input_material": "droplets",
+      "output_material": "capsules",
+      "reagents": [
+        "emulsion_breaker"
+      ]
+    },
+    {
+      "n": 8,
+      "text": "Cure the capsule shells with light.",
+      "action": "cure",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "photoinitiator"
+      ],
+      "conditions": {
+        "light_nm": 405
+      }
+    },
+    {
+      "n": 9,
+      "text": "Lyse the cells inside the capsules.",
+      "action": "lyse",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "lysis_buffer"
+      ]
+    },
+    {
+      "n": 10,
+      "text": "Wash the capsules.",
+      "action": "wash_particles",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "wash_buffer"
+      ],
+      "repeats": 3
+    },
+    {
+      "n": 11,
+      "text": "Reverse transcribe the RNA inside the capsules.",
+      "action": "reverse_transcribe",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "rt_mix"
+      ],
+      "temp_c": null,
+      "duration_s": null,
+      "assumed": true
+    },
+    {
+      "n": 12,
+      "text": "Split the capsules into four sublibraries.",
+      "action": "split",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "note": "4 sublibraries"
+    },
+    {
+      "n": 13,
+      "text": "Index PCR on each sublibrary.",
+      "action": "amplify",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "index_pcr_mix"
+      ],
+      "conditions": {
+        "thermal_cycles": null
+      },
+      "assumed": true
+    },
+    {
+      "n": 14,
+      "text": "Release the cDNA from the capsules.",
+      "action": "release",
+      "input_material": "capsules",
+      "output_material": "library",
+      "reagents": [
+        "shell_digest_enzyme"
+      ],
+      "temp_c": 37
+    },
+    {
+      "n": 15,
+      "text": "Clean the library up with magnetic beads.",
+      "action": "purify",
+      "input_material": "library",
+      "output_material": "library",
+      "reagents": [
+        "magnetic_beads"
+      ],
+      "conditions": {
+        "magnet": true
+      },
+      "equipment": [
+        "magnet"
+      ]
+    }
+  ]
+}

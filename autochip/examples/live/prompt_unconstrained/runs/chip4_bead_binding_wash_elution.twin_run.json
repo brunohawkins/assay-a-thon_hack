@@ -1,0 +1,103 @@
+{
+  "protocol_id": "ipsc_triculture_single_cell_capsule_rnaseq_chip4_bead_binding_wash_elution",
+  "protocol_name": "iPSC tri-culture to capsule-based single-cell RNA library: Bead binding, ethanol wash and elution chip",
+  "chip_id": "chip4_bead_binding_wash_elution",
+  "chip_spec": "autochip/examples/live/prompt_unconstrained/chips/chip4_bead_binding_wash_elution.json",
+  "operator": "planner",
+  "created_at": "2026-11-08T09:35:58Z",
+  "placeholder": true,
+  "total_duration_s": 2295.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 225.0,
+      "command": "exchange",
+      "args": {
+        "target": "bead_chamber",
+        "reagent": "magnetic_beads",
+        "volume_ul": 75.0,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "bead_waste_out"
+      },
+      "narration": "IR step 21 (bead_chamber): exchange to magnetic_beads: FEED magnetic_beads_in (magnetic_beads) at 20 uL/min, VENT bead_waste_out, all else capped; 1.5 chamber volumes (75 uL) per wash (default flow). Bind the released cDNA to magnetic beads.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 225.0,
+      "duration_s": 225.0,
+      "command": "load",
+      "args": {
+        "target": "bead_chamber",
+        "volume_ul": 75.0
+      },
+      "narration": "IR step 21 (bead_chamber): load the nucleic_acid from the hand-off from chip3_lysis_rt_split_index_pcr_pool_release: syringe on inlet_1 at 20 uL/min, VENT bead_waste_out. Every other port capped.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 450.0,
+      "duration_s": 300.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "bead_chamber",
+        "temp_c": 22.0,
+        "duration_s": 300.0
+      },
+      "narration": "IR step 21 (bead_chamber): incubate in place: all ports capped, hold 22 C for 5 min. Bind the released cDNA to magnetic beads.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 750.0,
+      "duration_s": 900.0,
+      "command": "exchange",
+      "args": {
+        "target": "bead_chamber",
+        "reagent": "ethanol_wash",
+        "volume_ul": 150.0,
+        "washes": 2,
+        "flow_ul_min": 20.0,
+        "waste": "bead_waste_out"
+      },
+      "narration": "IR step 22 (bead_chamber): exchange to ethanol_wash: FEED ethanol_wash_in (ethanol_wash) at 20 uL/min, VENT bead_waste_out, all else capped; 3 chamber volumes (150 uL) per wash x 2 washes (default flow). Wash the beads on a magnet.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 1650.0,
+      "duration_s": 225.0,
+      "command": "exchange",
+      "args": {
+        "target": "bead_chamber",
+        "reagent": "elution_buffer",
+        "volume_ul": 75.0,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "bead_waste_out"
+      },
+      "narration": "IR step 23 (bead_chamber): exchange to elution_buffer: FEED elution_buffer_in (elution_buffer) at 20 uL/min, VENT bead_waste_out, all else capped; 1.5 chamber volumes (75 uL) per wash (default flow). Elute the library from the beads.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 1875.0,
+      "duration_s": 120.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "bead_chamber",
+        "temp_c": 22.0,
+        "duration_s": 120.0
+      },
+      "narration": "IR step 23 (bead_chamber): incubate in place: all ports capped, hold 22 C for 2 min. Elute the library from the beads.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 1995.0,
+      "duration_s": 300.0,
+      "command": "transfer",
+      "args": {
+        "source": "bead_chamber",
+        "target": "outlet_1"
+      },
+      "narration": "IR step 23 (bead_chamber): collect the library: FEED elution_buffer_in (buffer push), VENT outlet_1 into a tube labelled 'chip4_bead_binding_wash_elution: library after step 23'. Every other port capped.",
+      "protocol_step": 7
+    }
+  ]
+}

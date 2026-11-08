@@ -1,0 +1,67 @@
+{
+  "id": "chip3_filter_lysis_rt_wash",
+  "name": "Capsule filter, lysis, reverse transcription and wash chip",
+  "description": "Removes aggregates from the capsules, then lyses the cells, washes, reverse transcribes and washes again in a trap. Parametric parts: modules reaction_trap use the nearest library block as a stand-in (real part and sizing in autochip_part / params). Modules listed in missing_parts with a 'module' field are parametric with no library block. build_chip.py builds the stand-ins at library size; the exact chip needs the autochip layout stage.",
+  "source": "autochip chip plan spc_capsule_workflow_resin_print_multilayer (protocol spc_capsule_workflow, constraints resin_print_multilayer)",
+  "placeholder": true,
+  "needs_autochip_layout": true,
+  "temp_c": null,
+  "equipment": [
+    "heater",
+    "syringe_pump"
+  ],
+  "modules": [
+    {
+      "id": "reaction_trap",
+      "part": "culture_chamber",
+      "steps": [
+        16,
+        17,
+        18,
+        19
+      ],
+      "does": "Holds the capsules on a 25 um mesh while lysis buffer, wash buffer, RT mix and wash buffer are flushed in turn. All are water-based, so one shared reagent_line is used and the syringe is swapped between steps.",
+      "inlets": [
+        "reagent_line"
+      ],
+      "outlets": [
+        "reaction_trap_waste"
+      ],
+      "mesh_pore_um": 25,
+      "autochip_part": "trap_chamber",
+      "params": {
+        "volume_ul": 50,
+        "depth_mm": 0.5,
+        "retention": "mesh",
+        "gap_um": 25
+      }
+    }
+  ],
+  "off_chip": [
+    {
+      "steps": [
+        20,
+        21
+      ],
+      "why": "Index PCR reaches 95 C, above the 50 C limit of the printed resin. The capsules are split by pipette into four tubes, each gets its own index primer mix, and they cycle on the thermocycler. They are then pooled and loaded onto chip 4."
+    }
+  ],
+  "missing_parts": [
+    {
+      "steps": [
+        15
+      ],
+      "need": "pillar_filter (gap_um=100, purpose=capsule_aggregates)",
+      "why": "parametric part with no library block; the autochip layout stage draws it",
+      "module": "aggregate_filter",
+      "inlets": []
+    }
+  ],
+  "steps_text": {
+    "15": "Filter the capsules through a 100 um strainer to remove aggregates.",
+    "16": "Exchange the buffer for lysis buffer and incubate.",
+    "17": "Wash the capsules in wash buffer.",
+    "18": "Exchange into reverse transcription mix and incubate.",
+    "19": "Wash the capsules."
+  }
+}

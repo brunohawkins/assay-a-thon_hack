@@ -1,0 +1,504 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "constraints.schema.json",
+  "title": "Fabrication and run constraints",
+  "description": "What the person building the chips can make and run. The protocol compiler (autochip/) reads one of these and every stage respects it: the partition agent decides how many chips and what goes on each, the layout stage places parts inside the envelope, and the checks report anything that breaks a rule. Every field is optional except id and fabrication.method; a missing field or null means 'no limit'. All lengths in millimetres. Presets live in autochip/constraints/.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "fabrication"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "extends": {
+      "type": "string",
+      "description": "Optional preset id (or path to another constraints file, relative to this one) this file starts from. Objects merge key by key; any other value here (list, number, string, null) replaces the preset's, so a list is replaced, not appended to, and null removes a preset's limit."
+    },
+    "fabrication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "resin_print_hot_emboss",
+            "resin_print",
+            "hot_embossing",
+            "fdm_print",
+            "two_photon_print",
+            "laser_cut_laminate",
+            "cnc_milling",
+            "soft_lithography_pdms",
+            "glass_wet_etch",
+            "glass_laser_3d_etch",
+            "injection_molding",
+            "other"
+          ],
+          "description": "How the fluidic layer is made. resin_print_hot_emboss: SLA/DLP print (or printed master) plus hot embossing. glass_laser_3d_etch: selective laser-induced etching (true 3D channels in glass). soft_lithography_pdms: cast PDMS on a master, bonded to glass."
+        },
+        "method_note": {
+          "type": "string"
+        },
+        "machine": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "e.g. Formlabs Form 3B."
+        },
+        "material": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Chip body material, e.g. clear resin, PMMA, PDMS, borosilicate glass."
+        },
+        "sealing": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "film",
+            "bonded_lid",
+            "embossed_lid",
+            "plasma_bond",
+            "thermal_bond",
+            "solvent_bond",
+            "printed_closed",
+            "none",
+            null
+          ]
+        },
+        "multilayer": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "allowed": {
+              "type": "boolean",
+              "description": "More than one fluidic layer (channels can pass over each other through vias)."
+            },
+            "max_fluidic_layers": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "vias_allowed": {
+              "type": "boolean"
+            }
+          }
+        },
+        "channel_crossings_allowed": {
+          "type": "boolean",
+          "description": "Two channels may cross. Needs multilayer (or a true-3D process); false forces a planar layout."
+        },
+        "on_chip_valves": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "allowed": {
+              "type": "boolean"
+            },
+            "type": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "pneumatic_membrane",
+                "pinch",
+                "rotary",
+                "check",
+                "phase_change",
+                null
+              ]
+            }
+          }
+        },
+        "depth": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "max_mm": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0
+            },
+            "min_mm": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0
+            },
+            "single_depth": {
+              "type": "boolean",
+              "description": "Every feature on a layer has the same depth."
+            },
+            "allowed_mm": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            }
+          }
+        },
+        "min_feature": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Smallest features the process can make reliably.",
+          "properties": {
+            "open_channel_width_mm": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0
+            },
+            "enclosed_channel_width_mm": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0,
+              "description": "A channel printed already closed. If larger than open_channel_width_mm, print open and seal."
+            },
+            "wall_mm": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0
+            },
+            "gap_mm": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0,
+              "description": "Smallest gap between pillars or a weir and the lid (sets the smallest filter/retention size)."
+            },
+            "max_aspect_ratio": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0,
+              "description": "depth / width."
+            }
+          }
+        },
+        "thermal_zoning_allowed": {
+          "type": "boolean",
+          "description": "Separate temperature zones on one chip (e.g. a heated culture area next to a cooled gelation line or a thermocycled region). false: steps at clashing temperatures go on different chips."
+        }
+      }
+    },
+    "envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "printable_area_mm": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "y": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "z": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "exclusiveMinimum": 0
+            }
+          },
+          "description": "Build plate of the machine. Several chips can share it.",
+          "required": [
+            "x",
+            "y"
+          ]
+        },
+        "max_chip_mm": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "y": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "description": "Largest single chip footprint. Defaults to the printable area.",
+          "required": [
+            "x",
+            "y"
+          ]
+        },
+        "max_chips": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+        "edge_margin_mm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "ports": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_per_chip": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 2
+        },
+        "min_diameter_mm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0
+        },
+        "min_pitch_mm": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "connector": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "press_fit_tubing",
+            "luer",
+            "nanoport",
+            "pipette_well",
+            "manifold_clamp",
+            "none",
+            null
+          ]
+        },
+        "placement": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "top",
+            "edge",
+            "any",
+            null
+          ]
+        }
+      }
+    },
+    "parts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "library_only",
+            "library_and_parametric",
+            "parametric_only"
+          ],
+          "description": "library_only: only blocks from the parts library (Flowmatter). parametric: the compiler may size generic chambers, mixers, filters and delay lines itself."
+        },
+        "library": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Path to the parts catalogue (default chip/components/catalogue.json)."
+        },
+        "allow_scaling": {
+          "type": "boolean",
+          "description": "Library parts may be scaled down/up to fit (features must still meet min_feature)."
+        },
+        "allowed": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "description": "If set, only these part names."
+        },
+        "forbidden": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "off_chip": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "equipment": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "syringe_pump",
+              "pressure_controller",
+              "peristaltic_pump",
+              "heater",
+              "incubator_37c",
+              "cold_plate",
+              "thermocycler",
+              "peltier_stage",
+              "led_405nm",
+              "uv_lamp",
+              "magnet",
+              "microscope",
+              "centrifuge",
+              "plate_reader",
+              "shaker",
+              "co2_supply",
+              "pipette"
+            ]
+          },
+          "description": "What the lab has next to the chips. A step that needs something not listed must go off-chip or be flagged."
+        },
+        "pump_channels": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "description": "How many independent liquid lines can be driven at once."
+        },
+        "flow_range_ul_min": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "manual_steps_allowed": {
+          "type": "boolean",
+          "description": "Steps may stay at the bench (pipette, centrifuge, kit). false asks for everything on chip and flags what can't be."
+        }
+      }
+    },
+    "operating": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "temp_range_c": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "max_pressure_kpa": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "biocompatible_required": {
+          "type": "boolean"
+        },
+        "optical_window_required": {
+          "type": "boolean"
+        },
+        "sterilisable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "objectives": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "prefer": {
+          "type": "string",
+          "enum": [
+            "fewest_chips",
+            "most_on_chip",
+            "simplest_to_make",
+            "one_chip_per_module"
+          ]
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Anything else, in plain English. Passed word for word to the agents (e.g. 'no oil on the culture chip', 'keep the thermocycling chip separate')."
+    }
+  }
+}

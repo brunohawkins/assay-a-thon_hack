@@ -1,0 +1,114 @@
+{
+  "protocol_id": "spc_capsule_workflow_chip2_gelation_emulsion_break_cure_wash",
+  "protocol_name": "Semi-permeable capsule (SPC) workflow: Gelation, emulsion breaking, curing and capsule wash chip",
+  "chip_id": "chip2_gelation_emulsion_break_cure_wash",
+  "chip_spec": "autochip/examples/live/protocol_resin_multilayer/chips/chip2_gelation_emulsion_break_cure_wash.json",
+  "operator": "planner",
+  "created_at": "2026-11-08T09:36:02Z",
+  "placeholder": true,
+  "total_duration_s": 13005.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 2700.0,
+      "command": "load",
+      "args": {
+        "target": "gelation_delay",
+        "volume_ul": 225.0
+      },
+      "narration": "IR step 11 (gelation_delay): load the droplets from the hand-off from chip1_rinse_dissociation_quench_wash_encapsulation: syringe on inlet_1 at 5 uL/min, VENT capsule_trap_waste_out. Every other port capped.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 2700.0,
+      "duration_s": 1800.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "gelation_delay",
+        "temp_c": 4.0,
+        "duration_s": 1800.0
+      },
+      "narration": "IR step 11 (gelation_delay): all ports capped, hold 4 C for 30 min. Collect the emulsion and keep it on ice so the shell gels.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 4500.0,
+      "duration_s": 4800.0,
+      "command": "transfer",
+      "args": {
+        "source": "gelation_delay",
+        "target": "capsule_trap"
+      },
+      "narration": "IR step 12 (capsule_trap): move the droplets from gelation_delay to capsule_trap: FEED inlet_1 (carrier buffer), VENT capsule_trap_waste_out. Every other port capped.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 9300.0,
+      "duration_s": 1800.0,
+      "command": "exchange",
+      "args": {
+        "target": "capsule_trap",
+        "reagent": "emulsion_breaking_agent",
+        "volume_ul": 150.0,
+        "washes": 1,
+        "flow_ul_min": 5.0,
+        "waste": "capsule_trap_waste_out"
+      },
+      "narration": "IR step 12 (capsule_trap): exchange to emulsion_breaking_agent: FEED emulsion_breaking_agent_in (emulsion_breaking_agent) at 5 uL/min, VENT capsule_trap_waste_out, all else capped; 3 chamber volumes (150 uL) per wash (default flow). Break the emulsion with an emulsion-breaking agent and remove the oil phase.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 11100.0,
+      "duration_s": 225.0,
+      "command": "exchange",
+      "args": {
+        "target": "capsule_trap",
+        "reagent": "photoinitiator",
+        "volume_ul": 75.0,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "capsule_trap_waste_out"
+      },
+      "narration": "IR step 13 (capsule_trap): exchange to photoinitiator: FEED photoinitiator_in (photoinitiator) at 20 uL/min, VENT capsule_trap_waste_out, all else capped; 1.5 chamber volumes (75 uL) per wash (default flow). Photocure the capsule shells with 405 nm light in the presence of photoinitiator.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 11325.0,
+      "duration_s": 30.0,
+      "command": "cure",
+      "args": {
+        "target": "capsule_trap",
+        "wavelength_nm": 405.0,
+        "duration_s": 30.0
+      },
+      "narration": "IR step 13 (capsule_trap): cure under 405 nm light for 30 s, all ports capped. Photocure the capsule shells with 405 nm light in the presence of photoinitiator.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 11355.0,
+      "duration_s": 1350.0,
+      "command": "exchange",
+      "args": {
+        "target": "capsule_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 150.0,
+        "washes": 3,
+        "flow_ul_min": 20.0,
+        "waste": "capsule_trap_waste_out"
+      },
+      "narration": "IR step 14 (capsule_trap): exchange to wash_buffer: FEED wash_buffer_in (wash_buffer) at 20 uL/min, VENT capsule_trap_waste_out, all else capped; 3 chamber volumes (150 uL) per wash x 3 washes (default flow). Wash the capsules in buffer to remove oil and free reagents.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 12705.0,
+      "duration_s": 300.0,
+      "command": "transfer",
+      "args": {
+        "source": "capsule_trap",
+        "target": "outlet_1"
+      },
+      "narration": "IR step 14 (capsule_trap): collect the capsules: FEED wash_buffer_in (buffer push), VENT outlet_1 into a tube labelled 'chip2_gelation_emulsion_break_cure_wash: capsules after step 14, for chip3_filter_lysis_rt_wash inlet_1'. Every other port capped.",
+      "protocol_step": 8
+    }
+  ]
+}

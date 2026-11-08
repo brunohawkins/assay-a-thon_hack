@@ -1,0 +1,682 @@
+{
+  "kind": "chip_run_program",
+  "chip": "chip2_gelation_emulsion_break_cure_wash",
+  "chip_name": "Gelation, emulsion breaking, curing and capsule wash chip",
+  "purpose": "Gels the shells in a cold delay line, then breaks the emulsion, photocures and washes the capsules in a trap.",
+  "placeholder": true,
+  "created_at": "2026-11-08T09:36:02Z",
+  "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
+  "limits": {
+    "pump_channels": 6,
+    "flow_range_ul_min": null,
+    "max_pressure_kpa": null,
+    "chamber_shear_limit_dyn_cm2": {
+      "cells": 1.0,
+      "capsules": 5.0,
+      "droplets": 5.0
+    },
+    "channel_shear_limit_cells_dyn_cm2": 10.0
+  },
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "role": "load",
+      "module": "gelation_delay"
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "role": "transfer",
+      "module": "capsule_trap"
+    },
+    {
+      "id": "emulsion_breaking_agent_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "capsule_trap"
+    },
+    {
+      "id": "photoinitiator_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "capsule_trap"
+    },
+    {
+      "id": "capsule_trap_waste_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "capsule_trap"
+    },
+    {
+      "id": "wash_buffer_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "capsule_trap"
+    }
+  ],
+  "total_duration_s": 13005.0,
+  "steps": [
+    {
+      "ir_step": 11,
+      "ir_action": "load",
+      "ir_text": "Collect the emulsion and keep it on ice so the shell gels.",
+      "module": "gelation_delay",
+      "target": "gelation_delay",
+      "holds": "droplets",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 11 (Load droplets from the hand-off from chip1_rinse_dissociation_quench_wash_encapsulation): the outflow passes capsule_trap on its way to capsule_trap_waste_out",
+          "step": 11
+        }
+      ],
+      "phase": "move",
+      "title": "Load droplets from the hand-off from chip1_rinse_dissociation_quench_wash_encapsulation",
+      "operation": "load",
+      "duration_s": 2700.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the droplets arrives in gelation_delay; stop the pump as soon as it is there, before it runs on towards capsule_trap_waste_out",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "droplets_sample",
+          "ul_min": 5.0,
+          "volume_ul": 225.0,
+          "time_s": 2700.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "emulsion_breaking_agent_in": {
+          "state": "CAP"
+        },
+        "photoinitiator_in": {
+          "state": "CAP"
+        },
+        "capsule_trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "capsule_trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 5.0,
+        "total_feed_ul_min": 5.0,
+        "passes": [
+          "capsule_trap"
+        ],
+        "stray": [],
+        "max_pressure_kpa": 0.0019,
+        "target_shear_dyn_cm2": 0.00129,
+        "port_flow_ul_min": {
+          "inlet_1": 5.0,
+          "capsule_trap_waste_out": -5.0
+        },
+        "issues": [
+          {
+            "severity": "info",
+            "message": "the outflow passes capsule_trap on its way to capsule_trap_waste_out"
+          }
+        ]
+      },
+      "loads_from": {
+        "port": "inlet_1",
+        "chip": "chip1_rinse_dissociation_quench_wash_encapsulation"
+      },
+      "t_start_s": 0.0,
+      "n": 1
+    },
+    {
+      "ir_step": 11,
+      "ir_action": "incubate",
+      "ir_text": "Collect the emulsion and keep it on ice so the shell gels.",
+      "module": "gelation_delay",
+      "target": "gelation_delay",
+      "holds": "droplets",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "hold",
+      "title": "Hold",
+      "operation": "hold_temp",
+      "duration_s": 1800.0,
+      "temp_c": 4,
+      "wait_s": 1800.0,
+      "watch": "temperature steady at 4 C; nothing moving; capped ports not leaking",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "emulsion_breaking_agent_in": {
+          "state": "CAP"
+        },
+        "photoinitiator_in": {
+          "state": "CAP"
+        },
+        "capsule_trap_waste_out": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 2700.0,
+      "n": 2
+    },
+    {
+      "ir_step": 12,
+      "ir_action": "transfer",
+      "ir_text": "Break the emulsion with an emulsion-breaking agent and remove the oil phase.",
+      "module": "capsule_trap",
+      "target": "capsule_trap",
+      "holds": "droplets",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "move",
+      "title": "Move droplets: gelation_delay \u2192 capsule_trap",
+      "operation": "transfer",
+      "duration_s": 4800.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the droplets arrives in capsule_trap and stays there; liquid leaves at capsule_trap_waste_out",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "carrier_buffer",
+          "ul_min": 5.0,
+          "volume_ul": 400.0,
+          "time_s": 4800.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "emulsion_breaking_agent_in": {
+          "state": "CAP"
+        },
+        "photoinitiator_in": {
+          "state": "CAP"
+        },
+        "capsule_trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "capsule_trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 5.0,
+        "total_feed_ul_min": 5.0,
+        "passes": [
+          "gelation_delay"
+        ],
+        "stray": [],
+        "max_pressure_kpa": 0.0019,
+        "target_shear_dyn_cm2": 0.00226,
+        "port_flow_ul_min": {
+          "inlet_1": 5.0,
+          "capsule_trap_waste_out": -5.0
+        },
+        "issues": []
+      },
+      "t_start_s": 4500.0,
+      "n": 3
+    },
+    {
+      "ir_step": 12,
+      "ir_action": "break_emulsion",
+      "ir_text": "Break the emulsion with an emulsion-breaking agent and remove the oil phase.",
+      "module": "capsule_trap",
+      "target": "capsule_trap",
+      "holds": "droplets",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: emulsion_breaking_agent",
+      "operation": "exchange",
+      "duration_s": 1800.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "emulsion_breaking_agent reaches capsule_trap and leaves at capsule_trap_waste_out; no bubbles in the chamber",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "emulsion_breaking_agent_in": {
+          "state": "FEED",
+          "reagent": "emulsion_breaking_agent",
+          "ul_min": 5.0,
+          "volume_ul": 150.0,
+          "time_s": 1800.0
+        },
+        "photoinitiator_in": {
+          "state": "CAP"
+        },
+        "capsule_trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "emulsion_breaking_agent_in"
+      ],
+      "vents": [
+        "capsule_trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 5.0,
+        "total_feed_ul_min": 5.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.003,
+        "target_shear_dyn_cm2": 0.00226,
+        "port_flow_ul_min": {
+          "emulsion_breaking_agent_in": 5.0,
+          "capsule_trap_waste_out": -5.0
+        },
+        "issues": []
+      },
+      "t_start_s": 9300.0,
+      "n": 4
+    },
+    {
+      "ir_step": 13,
+      "ir_action": "cure",
+      "ir_text": "Photocure the capsule shells with 405 nm light in the presence of photoinitiator.",
+      "module": "capsule_trap",
+      "target": "capsule_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: photoinitiator",
+      "operation": "exchange",
+      "duration_s": 225.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "photoinitiator reaches capsule_trap and leaves at capsule_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "emulsion_breaking_agent_in": {
+          "state": "CAP"
+        },
+        "photoinitiator_in": {
+          "state": "FEED",
+          "reagent": "photoinitiator",
+          "ul_min": 20.0,
+          "volume_ul": 75.0,
+          "time_s": 225.0
+        },
+        "capsule_trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "photoinitiator_in"
+      ],
+      "vents": [
+        "capsule_trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.012,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "photoinitiator_in": 20.0,
+          "capsule_trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 11100.0,
+      "n": 5
+    },
+    {
+      "ir_step": 13,
+      "ir_action": "cure",
+      "ir_text": "Photocure the capsule shells with 405 nm light in the presence of photoinitiator.",
+      "module": "capsule_trap",
+      "target": "capsule_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": {
+        "wavelength_nm": 405.0,
+        "duration_s": 30.0
+      },
+      "issues": [],
+      "phase": "hold",
+      "title": "Cure (405 nm)",
+      "operation": "cure",
+      "duration_s": 30.0,
+      "temp_c": 4,
+      "wait_s": 30.0,
+      "watch": "405 nm light over capsule_trap for 30 s; nothing flows",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "emulsion_breaking_agent_in": {
+          "state": "CAP"
+        },
+        "photoinitiator_in": {
+          "state": "CAP"
+        },
+        "capsule_trap_waste_out": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 11325.0,
+      "n": 6
+    },
+    {
+      "ir_step": 14,
+      "ir_action": "wash_particles",
+      "ir_text": "Wash the capsules in buffer to remove oil and free reagents.",
+      "module": "capsule_trap",
+      "target": "capsule_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: wash_buffer x3",
+      "operation": "exchange",
+      "duration_s": 1350.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "wash_buffer reaches capsule_trap and leaves at capsule_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "emulsion_breaking_agent_in": {
+          "state": "CAP"
+        },
+        "photoinitiator_in": {
+          "state": "CAP"
+        },
+        "capsule_trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "wash_buffer_in": {
+          "state": "FEED",
+          "reagent": "wash_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 450.0,
+          "time_s": 1350.0
+        }
+      },
+      "feeds": [
+        "wash_buffer_in"
+      ],
+      "vents": [
+        "capsule_trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 3,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.012,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "capsule_trap_waste_out": -20.0,
+          "wash_buffer_in": 20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 11355.0,
+      "n": 7
+    },
+    {
+      "ir_step": 14,
+      "ir_action": "collect",
+      "ir_text": "Wash the capsules in buffer to remove oil and free reagents.",
+      "module": "capsule_trap",
+      "target": "capsule_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "collect_label": "chip2_gelation_emulsion_break_cure_wash: capsules after step 14, for chip3_filter_lysis_rt_wash inlet_1",
+      "phase": "collect",
+      "title": "Collect the capsules (outlet_1)",
+      "operation": "transfer",
+      "duration_s": 300.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the capsules leaves capsule_trap through outlet_1 into the tube labelled 'chip2_gelation_emulsion_break_cure_wash: capsules after step 14, for chip3_filter_lysis_rt_wash inlet_1'; never to waste",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "VENT",
+          "to": "tube labelled 'chip2_gelation_emulsion_break_cure_wash: capsules after step 14, for chip3_filter_lysis_rt_wash inlet_1'"
+        },
+        "emulsion_breaking_agent_in": {
+          "state": "CAP"
+        },
+        "photoinitiator_in": {
+          "state": "CAP"
+        },
+        "capsule_trap_waste_out": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "FEED",
+          "reagent": "collection_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 100.0,
+          "time_s": 300.0
+        }
+      },
+      "feeds": [
+        "wash_buffer_in"
+      ],
+      "vents": [
+        "outlet_1"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.007,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "outlet_1": -20.0,
+          "wash_buffer_in": 20.0
+        },
+        "issues": []
+      },
+      "collects": {
+        "port": "outlet_1",
+        "label": "chip2_gelation_emulsion_break_cure_wash: capsules after step 14, for chip3_filter_lysis_rt_wash inlet_1",
+        "material": "capsules"
+      },
+      "t_start_s": 12705.0,
+      "n": 8
+    }
+  ],
+  "syringes": [
+    {
+      "port": "inlet_1",
+      "reagent": "droplets_sample",
+      "volume_ul": 225.0,
+      "steps": [
+        1
+      ],
+      "first_step": 1,
+      "load_ul": 270.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "carrier_buffer",
+      "volume_ul": 400.0,
+      "steps": [
+        3
+      ],
+      "first_step": 3,
+      "load_ul": 480.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "emulsion_breaking_agent_in",
+      "reagent": "emulsion_breaking_agent",
+      "volume_ul": 150.0,
+      "steps": [
+        4
+      ],
+      "first_step": 4,
+      "load_ul": 180.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "photoinitiator_in",
+      "reagent": "photoinitiator",
+      "volume_ul": 75.0,
+      "steps": [
+        5
+      ],
+      "first_step": 5,
+      "load_ul": 90.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "wash_buffer_in",
+      "reagent": "wash_buffer",
+      "volume_ul": 450.0,
+      "steps": [
+        7
+      ],
+      "first_step": 7,
+      "load_ul": 540.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "wash_buffer_in",
+      "reagent": "collection_buffer",
+      "volume_ul": 100.0,
+      "steps": [
+        8
+      ],
+      "first_step": 8,
+      "load_ul": 120.0,
+      "syringe_ml": 1
+    }
+  ],
+  "equipment": [
+    "syringe pump with 1 independent line",
+    "cold plate (4 C)",
+    "LED / lamp at 405 nm",
+    "tubing for every used port, plugs for capped ports, waste and collection tubes"
+  ],
+  "twin_run": {
+    "ok": true,
+    "path": "autochip/examples/live/protocol_resin_multilayer/runs/chip2_gelation_emulsion_break_cure_wash.twin_run.json",
+    "events": 8,
+    "in_repo": true,
+    "chip_spec": "autochip/examples/live/protocol_resin_multilayer/chips/chip2_gelation_emulsion_break_cure_wash.json"
+  },
+  "protocol": "runs/chip2_gelation_emulsion_break_cure_wash.protocol.json",
+  "chip_spec": "chips/chip2_gelation_emulsion_break_cure_wash.json",
+  "checks": [
+    {
+      "severity": "info",
+      "message": "step 11 (Load droplets from the hand-off from chip1_rinse_dissociation_quench_wash_encapsulation): the outflow passes capsule_trap on its way to capsule_trap_waste_out",
+      "step": 11
+    },
+    {
+      "severity": "info",
+      "message": "the operator's planner (operator/planner.py) accepts this protocol: 8 events in runs/chip2_gelation_emulsion_break_cure_wash.twin_run.json, chip stored as autochip/examples/live/protocol_resin_multilayer/chips/chip2_gelation_emulsion_break_cure_wash.json"
+    }
+  ]
+}

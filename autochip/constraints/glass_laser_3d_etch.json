@@ -1,0 +1,77 @@
+{
+  "id": "glass_laser_3d_etch",
+  "name": "Glass, selective laser-induced 3D etching",
+  "description": "Femtosecond laser writes the channel paths in fused silica, then an etch removes them: true 3D channels, very small features, no layers to bond.",
+  "fabrication": {
+    "method": "glass_laser_3d_etch",
+    "material": "fused silica",
+    "sealing": "printed_closed",
+    "multilayer": {
+      "allowed": true,
+      "max_fluidic_layers": null,
+      "vias_allowed": true
+    },
+    "channel_crossings_allowed": true,
+    "on_chip_valves": {
+      "allowed": false
+    },
+    "depth": {
+      "max_mm": 5,
+      "single_depth": false
+    },
+    "min_feature": {
+      "open_channel_width_mm": 0.01,
+      "enclosed_channel_width_mm": 0.02,
+      "wall_mm": 0.02,
+      "gap_mm": 0.005
+    },
+    "thermal_zoning_allowed": true
+  },
+  "envelope": {
+    "printable_area_mm": {
+      "x": 100,
+      "y": 100,
+      "z": 10
+    },
+    "max_chip_mm": {
+      "x": 50,
+      "y": 25
+    },
+    "edge_margin_mm": 1
+  },
+  "ports": {
+    "max_per_chip": 10,
+    "min_diameter_mm": 0.3,
+    "min_pitch_mm": 2.5,
+    "connector": "manifold_clamp",
+    "placement": "any"
+  },
+  "parts": {
+    "source": "parametric_only"
+  },
+  "off_chip": {
+    "equipment": [
+      "syringe_pump",
+      "pressure_controller",
+      "heater",
+      "thermocycler",
+      "led_405nm",
+      "microscope",
+      "magnet",
+      "pipette",
+      "cold_plate"
+    ],
+    "manual_steps_allowed": true
+  },
+  "operating": {
+    "temp_range_c": [
+      4,
+      98
+    ],
+    "optical_window_required": true
+  },
+  "objectives": {
+    "prefer": "fewest_chips"
+  },
+  "notes": []
+}

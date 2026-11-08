@@ -1,0 +1,371 @@
+{
+  "id": "chip_b",
+  "name": "Capsules",
+  "placeholder": true,
+  "units": "mm",
+  "footprint": {
+    "x": 60,
+    "y": 26
+  },
+  "layers": [
+    {
+      "id": "base",
+      "material": "acrylic",
+      "thickness_mm": 1.0
+    },
+    {
+      "id": "fluidic",
+      "material": "acrylic",
+      "thickness_mm": 0.2
+    },
+    {
+      "id": "lid",
+      "material": "acrylic",
+      "thickness_mm": 0.3
+    }
+  ],
+  "chambers": [
+    {
+      "id": "encapsulate",
+      "type": "junction",
+      "center": [
+        12,
+        13,
+        1.1
+      ],
+      "size": [
+        2,
+        2,
+        0.1
+      ],
+      "volume_ul": 0.4
+    },
+    {
+      "id": "gelation",
+      "type": "mixer",
+      "center": [
+        26,
+        13,
+        1.1
+      ],
+      "size": [
+        10,
+        6,
+        0.1
+      ],
+      "volume_ul": 6.0,
+      "mixer": {
+        "kind": "serpentine",
+        "channel_width_mm": 0.4,
+        "turns": 10
+      }
+    },
+    {
+      "id": "capsule_trap",
+      "type": "exchange",
+      "center": [
+        45,
+        13,
+        1.1
+      ],
+      "size": [
+        10,
+        10,
+        0.2
+      ],
+      "volume_ul": 20.0,
+      "mesh_pore_um": 25,
+      "retention": {
+        "type": "mesh",
+        "opening_um": 25,
+        "source": "bought"
+      }
+    }
+  ],
+  "channels": [
+    {
+      "id": "ch_core",
+      "from": "inlet_1",
+      "to": "encapsulate",
+      "width_mm": 0.2,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          3,
+          13
+        ],
+        [
+          11,
+          13
+        ]
+      ],
+      "carries": "cells"
+    },
+    {
+      "id": "ch_shell",
+      "from": "shell_polymer_in",
+      "to": "encapsulate",
+      "width_mm": 0.2,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          12,
+          23
+        ],
+        [
+          12,
+          14
+        ]
+      ],
+      "carries": "liquid"
+    },
+    {
+      "id": "ch_oil",
+      "from": "oil_in",
+      "to": "encapsulate",
+      "width_mm": 0.2,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          12,
+          3
+        ],
+        [
+          12,
+          12
+        ]
+      ],
+      "carries": "oil"
+    },
+    {
+      "id": "ch_enc_gel",
+      "from": "encapsulate",
+      "to": "gelation",
+      "width_mm": 0.2,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          13,
+          13
+        ],
+        [
+          21,
+          13
+        ]
+      ],
+      "carries": "droplets"
+    },
+    {
+      "id": "ch_gel_trap",
+      "from": "gelation",
+      "to": "capsule_trap",
+      "width_mm": 0.2,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          31,
+          13
+        ],
+        [
+          40,
+          13
+        ]
+      ],
+      "carries": "droplets"
+    },
+    {
+      "id": "ch_trap_out",
+      "from": "capsule_trap",
+      "to": "outlet_1",
+      "width_mm": 0.3,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          50,
+          13
+        ],
+        [
+          57,
+          13
+        ]
+      ],
+      "carries": "capsules"
+    },
+    {
+      "id": "ch_trap_waste",
+      "from": "capsule_trap",
+      "to": "waste_out",
+      "width_mm": 0.3,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          47,
+          8
+        ],
+        [
+          47,
+          3
+        ]
+      ],
+      "carries": "liquid"
+    },
+    {
+      "id": "ch_breaker",
+      "from": "emulsion_breaker_in",
+      "to": "capsule_trap",
+      "width_mm": 0.3,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          41,
+          23
+        ],
+        [
+          41,
+          18
+        ]
+      ],
+      "carries": "liquid"
+    },
+    {
+      "id": "ch_trap_wash",
+      "from": "wash_buffer_in",
+      "to": "capsule_trap",
+      "width_mm": 0.3,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          45,
+          23
+        ],
+        [
+          45,
+          18
+        ]
+      ],
+      "carries": "liquid"
+    },
+    {
+      "id": "ch_lysis",
+      "from": "lysis_buffer_in",
+      "to": "capsule_trap",
+      "width_mm": 0.3,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          49,
+          23
+        ],
+        [
+          49,
+          18
+        ]
+      ],
+      "carries": "liquid"
+    }
+  ],
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "position": [
+        3,
+        13,
+        1.5
+      ],
+      "role": "cells"
+    },
+    {
+      "id": "shell_polymer_in",
+      "type": "inlet",
+      "position": [
+        12,
+        23,
+        1.5
+      ],
+      "role": "reagent"
+    },
+    {
+      "id": "oil_in",
+      "type": "inlet",
+      "position": [
+        12,
+        3,
+        1.5
+      ],
+      "role": "oil"
+    },
+    {
+      "id": "emulsion_breaker_in",
+      "type": "inlet",
+      "position": [
+        41,
+        23,
+        1.5
+      ],
+      "role": "reagent"
+    },
+    {
+      "id": "wash_buffer_in",
+      "type": "inlet",
+      "position": [
+        45,
+        23,
+        1.5
+      ],
+      "role": "reagent"
+    },
+    {
+      "id": "lysis_buffer_in",
+      "type": "inlet",
+      "position": [
+        49,
+        23,
+        1.5
+      ],
+      "role": "reagent"
+    },
+    {
+      "id": "waste_out",
+      "type": "outlet",
+      "position": [
+        47,
+        3,
+        1.5
+      ],
+      "role": "waste",
+      "capsule_passable": false
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "position": [
+        57,
+        13,
+        1.5
+      ],
+      "role": "harvest",
+      "capsule_passable": true
+    }
+  ],
+  "features": [
+    {
+      "id": "led_window",
+      "type": "curing_window",
+      "center": [
+        45,
+        13,
+        1.5
+      ],
+      "size": [
+        10,
+        10,
+        0.3
+      ],
+      "wavelength_nm": 405,
+      "covers": [
+        "capsule_trap"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chip_plan.schema.json",
+  "title": "Chip plan",
+  "description": "Stage 2 output of the protocol compiler (autochip/): the protocol broken down chip by chip. Each chip lists its modules in flow order; each module is one part (library block or parametric part) doing one or more protocol steps. A chip's modules are written in the same format as Yuvraj's design files (chip/designs/README.md), so any chip can also be built by hand with chip/components/build_chip.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "kind",
+    "id",
+    "protocol_id",
+    "constraints_id",
+    "chips",
+    "handoffs",
+    "off_chip",
+    "missing_parts",
+    "coverage"
+  ],
+  "properties": {
+    "kind": {
+      "const": "chip_plan"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "protocol_id": {
+      "type": "string"
+    },
+    "constraints_id": {
+      "type": "string"
+    },
+    "rationale": {
+      "type": "string",
+      "description": "Why the chips are split where they are."
+    },
+    "chips": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "purpose",
+          "steps",
+          "modules"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "why_separate": {
+            "type": "string",
+            "description": "Why this is its own chip (temperature, oil, size, ports, a hand-off the lab wants...)."
+          },
+          "temp_c": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "equipment": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "modules": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "part",
+                "steps",
+                "does"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9_]+$"
+                },
+                "part": {
+                  "type": "string",
+                  "description": "Part name: a library part from the catalogue, or a parametric part (autochip/parts.py)."
+                },
+                "part_source": {
+                  "enum": [
+                    "library",
+                    "parametric"
+                  ]
+                },
+                "params": {
+                  "type": "object",
+                  "description": "Sizing for parametric parts (e.g. volume_ul, residence_s, gap_um, length_mm)."
+                },
+                "steps": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                "inlets": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_]+$"
+                  },
+                  "description": "Reagent lines feeding this module; each becomes a port <name>_in."
+                },
+                "outlets": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9_]+$"
+                  },
+                  "description": "Extra outlets (waste lines) leaving this module; each becomes a port <name>_out."
+                },
+                "does": {
+                  "type": "string"
+                },
+                "mesh_pore_um": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "holds": {
+                  "enum": [
+                    "cells",
+                    "capsules",
+                    "droplets",
+                    "beads",
+                    "nucleic_acid",
+                    "library",
+                    "lysate",
+                    "liquid",
+                    "oil",
+                    "gel",
+                    "none",
+                    null
+                  ],
+                  "description": "What sits in this module while its steps run."
+                }
+              }
+            }
+          },
+          "inputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "from"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "from": {
+                  "type": "string",
+                  "description": "'external' or '<chip_id>.<output name>'"
+                },
+                "carries": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "outputs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "to"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string",
+                  "description": "'external', 'waste' or '<chip_id>.<input name>'"
+                },
+                "carries": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "handoffs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "from_chip",
+          "to_chip",
+          "carries",
+          "method"
+        ],
+        "properties": {
+          "from_chip": {
+            "type": "string"
+          },
+          "from_output": {
+            "type": "string"
+          },
+          "to_chip": {
+            "type": "string"
+          },
+          "to_input": {
+            "type": "string"
+          },
+          "carries": {
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "tubing",
+              "manual_pipette",
+              "chip_to_chip_connector",
+              "off_chip_step"
+            ]
+          },
+          "via_steps": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "description": "Off-chip steps done between the two chips."
+          }
+        }
+      }
+    },
+    "off_chip": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "steps",
+          "why"
+        ],
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "why": {
+            "type": "string"
+          },
+          "equipment": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "missing_parts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "steps",
+          "need",
+          "why"
+        ],
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "need": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          },
+          "workaround": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "description": "Every protocol step number (as a string key) -> '<chip_id>.<module_id>', 'off_chip' or 'missing'.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  }
+}

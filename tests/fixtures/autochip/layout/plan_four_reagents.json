@@ -1,0 +1,70 @@
+{
+  "kind": "chip_plan",
+  "id": "four_reagents",
+  "name": "One chamber fed by four reagents",
+  "protocol_id": "fixture_ir",
+  "constraints_id": "resin_print_multilayer",
+  "chips": [
+    {
+      "id": "stain_chip",
+      "name": "Stain and wash chip",
+      "purpose": "Fix, permeabilise, stain and wash cells held on a mesh.",
+      "steps": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "modules": [
+        {
+          "id": "stain_trap",
+          "part": "chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 15
+          },
+          "steps": [
+            5,
+            6,
+            7,
+            8
+          ],
+          "inlets": [
+            "fixative",
+            "perm_buffer",
+            "dye",
+            "wash_buffer"
+          ],
+          "outlets": [
+            "waste"
+          ],
+          "mesh_pore_um": 10,
+          "does": "Cells sit on a 10 um mesh while four reagents flow through in turn.",
+          "holds": "cells"
+        },
+        {
+          "id": "image_window",
+          "part": "chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 5
+          },
+          "steps": [
+            8
+          ],
+          "does": "Shallow imaging window for the stained cells.",
+          "holds": "cells"
+        }
+      ]
+    }
+  ],
+  "handoffs": [],
+  "off_chip": [],
+  "missing_parts": [],
+  "coverage": {
+    "5": "stain_chip.stain_trap",
+    "6": "stain_chip.stain_trap",
+    "7": "stain_chip.stain_trap",
+    "8": "stain_chip.stain_trap"
+  }
+}

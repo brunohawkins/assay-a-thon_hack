@@ -1,0 +1,91 @@
+{
+  "protocol_id": "spc_single_cell_workflow_chip2_emulsion_break_curing_wash_filter",
+  "protocol_name": "Single-cell processing inside semi-permeable capsules: Emulsion break, curing, wash and capsule filter chip",
+  "chip_id": "chip2_emulsion_break_curing_wash_filter",
+  "chip_spec": "autochip/examples/live/paper_assayathon_demo/chips/chip2_emulsion_break_curing_wash_filter.json",
+  "operator": "planner",
+  "created_at": "2026-11-08T09:36:00Z",
+  "placeholder": true,
+  "total_duration_s": 4650.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 900.0,
+      "command": "load",
+      "args": {
+        "target": "capsule_trap",
+        "volume_ul": 75.0
+      },
+      "narration": "IR step 12 (capsule_trap): load the droplets from the hand-off from chip1_encapsulation: syringe on inlet_1 at 5 uL/min, VENT trap_waste_out. Every other port capped.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 900.0,
+      "duration_s": 1800.0,
+      "command": "exchange",
+      "args": {
+        "target": "capsule_trap",
+        "reagent": "emulsion_breaking_agent",
+        "volume_ul": 150.0,
+        "washes": 1,
+        "flow_ul_min": 5.0,
+        "waste": "trap_waste_out"
+      },
+      "narration": "IR step 12 (capsule_trap): exchange to emulsion_breaking_agent: FEED emulsion_breaking_agent_in (emulsion_breaking_agent) at 5 uL/min, VENT trap_waste_out, all else capped; 3 chamber volumes (150 uL) per wash (default flow). Add emulsion-breaking agent and remove the oil phase.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 2700.0,
+      "duration_s": 225.0,
+      "command": "exchange",
+      "args": {
+        "target": "capsule_trap",
+        "reagent": "photoinitiator",
+        "volume_ul": 75.0,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "trap_waste_out"
+      },
+      "narration": "IR step 13 (capsule_trap): exchange to photoinitiator: FEED inlet_1 (photoinitiator) at 20 uL/min, VENT trap_waste_out, all else capped; 1.5 chamber volumes (75 uL) per wash (default flow). Photocure the capsule shells with 405 nm light in the presence of photoinitiator.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 2925.0,
+      "duration_s": 30.0,
+      "command": "cure",
+      "args": {
+        "target": "capsule_trap",
+        "wavelength_nm": 405.0,
+        "duration_s": 30.0
+      },
+      "narration": "IR step 13 (capsule_trap): cure under 405 nm light for 30 s, all ports capped. Photocure the capsule shells with 405 nm light in the presence of photoinitiator.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 2955.0,
+      "duration_s": 1350.0,
+      "command": "exchange",
+      "args": {
+        "target": "capsule_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 150.0,
+        "washes": 3,
+        "flow_ul_min": 20.0,
+        "waste": "trap_waste_out"
+      },
+      "narration": "IR step 14 (capsule_trap): exchange to wash_buffer: FEED inlet_1 (wash_buffer) at 20 uL/min, VENT trap_waste_out, all else capped; 3 chamber volumes (150 uL) per wash x 3 washes (default flow). Wash the capsules in buffer to remove oil and free reagents.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 4305.0,
+      "duration_s": 345.0,
+      "command": "transfer",
+      "args": {
+        "source": "capsule_trap",
+        "target": "aggregate_filter"
+      },
+      "narration": "IR step 15 (aggregate_filter): transfer: FEED inlet_1 (carrier_buffer) at 20 uL/min, VENT outlet_1, all else capped. Filter the capsules through a strainer to remove aggregates.",
+      "protocol_step": 6
+    }
+  ]
+}

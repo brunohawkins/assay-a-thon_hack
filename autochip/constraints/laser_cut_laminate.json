@@ -1,0 +1,73 @@
+{
+  "id": "laser_cut_laminate",
+  "name": "Laser-cut laminate (PMMA / adhesive film stack)",
+  "description": "Channels cut through spacer sheets, stacked and bonded. Multilayer by stacking; features limited by the kerf.",
+  "fabrication": {
+    "method": "laser_cut_laminate",
+    "material": "PMMA + pressure-sensitive adhesive",
+    "sealing": "bonded_lid",
+    "multilayer": {
+      "allowed": true,
+      "max_fluidic_layers": 4,
+      "vias_allowed": true
+    },
+    "channel_crossings_allowed": true,
+    "on_chip_valves": {
+      "allowed": false
+    },
+    "depth": {
+      "max_mm": 1.0,
+      "single_depth": true,
+      "allowed_mm": [
+        0.1,
+        0.2,
+        0.5,
+        1.0
+      ]
+    },
+    "min_feature": {
+      "open_channel_width_mm": 0.25,
+      "enclosed_channel_width_mm": 0.25,
+      "wall_mm": 0.5,
+      "gap_mm": 0.25
+    }
+  },
+  "envelope": {
+    "printable_area_mm": {
+      "x": 600,
+      "y": 400
+    },
+    "max_chip_mm": {
+      "x": 75,
+      "y": 50
+    },
+    "edge_margin_mm": 3
+  },
+  "ports": {
+    "max_per_chip": 10,
+    "min_diameter_mm": 1.0,
+    "min_pitch_mm": 10,
+    "connector": "luer",
+    "placement": "top"
+  },
+  "parts": {
+    "source": "library_and_parametric",
+    "allow_scaling": true
+  },
+  "off_chip": {
+    "equipment": [
+      "syringe_pump",
+      "heater",
+      "thermocycler",
+      "microscope",
+      "magnet",
+      "pipette",
+      "cold_plate"
+    ],
+    "manual_steps_allowed": true
+  },
+  "objectives": {
+    "prefer": "simplest_to_make"
+  },
+  "notes": []
+}

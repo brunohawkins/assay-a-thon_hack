@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1084" height="518" viewBox="0 0 1084 518" font-family="Helvetica, Arial, sans-serif">
+<rect width="100%" height="100%" fill="white"/>
+<text x="56" y="22" font-size="15" font-weight="bold">chip4_shell_release_bead_capture_wash_elution: Shell release, bead capture, ethanol wash and elution chip</text>
+<text x="56" y="40" font-size="11" fill="#444">39 x 16 mm, top view, to scale (25.6 px/mm). Origin bottom-left. Constraints: resin_print_multilayer (resin_print). Depth 0.3 mm.</text>
+<line x1="56.00" y1="474.26" x2="56.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="56.00" y="488.26" font-size="10" text-anchor="middle" fill="#555">0</text>
+<line x1="81.64" y1="474.26" x2="81.64" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="107.28" y1="474.26" x2="107.28" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="132.92" y1="474.26" x2="132.92" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="158.56" y1="474.26" x2="158.56" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="184.21" y1="474.26" x2="184.21" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="184.21" y="488.26" font-size="10" text-anchor="middle" fill="#555">5</text>
+<line x1="209.85" y1="474.26" x2="209.85" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="235.49" y1="474.26" x2="235.49" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="261.13" y1="474.26" x2="261.13" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="286.77" y1="474.26" x2="286.77" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="312.41" y1="474.26" x2="312.41" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="312.41" y="488.26" font-size="10" text-anchor="middle" fill="#555">10</text>
+<line x1="338.05" y1="474.26" x2="338.05" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="363.69" y1="474.26" x2="363.69" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="389.33" y1="474.26" x2="389.33" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="414.97" y1="474.26" x2="414.97" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="440.62" y1="474.26" x2="440.62" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="440.62" y="488.26" font-size="10" text-anchor="middle" fill="#555">15</text>
+<line x1="466.26" y1="474.26" x2="466.26" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="491.90" y1="474.26" x2="491.90" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="517.54" y1="474.26" x2="517.54" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="543.18" y1="474.26" x2="543.18" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="568.82" y1="474.26" x2="568.82" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="568.82" y="488.26" font-size="10" text-anchor="middle" fill="#555">20</text>
+<line x1="594.46" y1="474.26" x2="594.46" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="620.10" y1="474.26" x2="620.10" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="645.74" y1="474.26" x2="645.74" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="671.38" y1="474.26" x2="671.38" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="697.03" y1="474.26" x2="697.03" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="697.03" y="488.26" font-size="10" text-anchor="middle" fill="#555">25</text>
+<line x1="722.67" y1="474.26" x2="722.67" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="748.31" y1="474.26" x2="748.31" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="773.95" y1="474.26" x2="773.95" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="799.59" y1="474.26" x2="799.59" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="825.23" y1="474.26" x2="825.23" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="825.23" y="488.26" font-size="10" text-anchor="middle" fill="#555">30</text>
+<line x1="850.87" y1="474.26" x2="850.87" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="876.51" y1="474.26" x2="876.51" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="902.15" y1="474.26" x2="902.15" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="927.79" y1="474.26" x2="927.79" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="953.44" y1="474.26" x2="953.44" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="953.44" y="488.26" font-size="10" text-anchor="middle" fill="#555">35</text>
+<line x1="979.08" y1="474.26" x2="979.08" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="1004.72" y1="474.26" x2="1004.72" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="1030.36" y1="474.26" x2="1030.36" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="1056.00" y1="474.26" x2="1056.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="474.26" x2="1056.00" y2="474.26" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="477.76" font-size="10" text-anchor="end" fill="#555">0</text>
+<line x1="56.00" y1="448.62" x2="1056.00" y2="448.62" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="422.97" x2="1056.00" y2="422.97" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="397.33" x2="1056.00" y2="397.33" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="371.69" x2="1056.00" y2="371.69" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="346.05" x2="1056.00" y2="346.05" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="349.55" font-size="10" text-anchor="end" fill="#555">5</text>
+<line x1="56.00" y1="320.41" x2="1056.00" y2="320.41" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="294.77" x2="1056.00" y2="294.77" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="269.13" x2="1056.00" y2="269.13" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="243.49" x2="1056.00" y2="243.49" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="217.85" x2="1056.00" y2="217.85" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="221.35" font-size="10" text-anchor="end" fill="#555">10</text>
+<line x1="56.00" y1="192.21" x2="1056.00" y2="192.21" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="166.56" x2="1056.00" y2="166.56" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="140.92" x2="1056.00" y2="140.92" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="115.28" x2="1056.00" y2="115.28" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="89.64" x2="1056.00" y2="89.64" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="93.14" font-size="10" text-anchor="end" fill="#555">15</text>
+<line x1="56.00" y1="64.00" x2="1056.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<text x="556.00" y="504.26" font-size="10" text-anchor="middle" fill="#555">x (mm)</text>
+<rect x="56.00" y="64.00" width="1000.00" height="410.26" fill="none" stroke="#111" stroke-width="2"/>
+<rect x="176.51" y="178.47" width="362.62" height="181.31" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="569.85" y="178.47" width="362.62" height="181.31" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<polyline points="120.10,269.13 176.51,269.13" fill="none" stroke="#2f6fb0" stroke-width="12.82" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="539.13,269.13 569.85,269.13" fill="none" stroke="#2f6fb0" stroke-width="12.82" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="932.46,269.13 991.90,269.13" fill="none" stroke="#2f6fb0" stroke-width="12.82" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="357.79,128.10 357.79,178.47" fill="none" stroke="#2f6fb0" stroke-width="12.82" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="357.79,359.78 357.79,410.15" fill="none" stroke="#2f6fb0" stroke-width="12.82" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="699.85,128.10 699.85,178.47" fill="none" stroke="#2f6fb0" stroke-width="12.82" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="802.41,128.10 802.41,178.47" fill="none" stroke="#2f6fb0" stroke-width="12.82" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="699.85,359.78 699.85,410.15" fill="none" stroke="#2f6fb0" stroke-width="12.82" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="802.41,410.15 802.41,359.78" fill="none" stroke="#2f6fb0" stroke-width="12.82" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<text x="357.82" y="266.48" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">release_trap</text>
+<text x="357.82" y="278.48" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">14.1 x 7.07 x 0.5 mm</text>
+<text x="751.16" y="266.48" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">beads_1</text>
+<text x="751.16" y="278.48" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">14.1 x 7.07 x 0.5 mm</text>
+<text x="58.08" y="266.63" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">inlet_1</text>
+<text x="58.08" y="277.63" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(2.5, 8)</text>
+<text x="1010.72" y="266.63" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">outlet_1</text>
+<text x="1010.72" y="277.63" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(36.5, 8)</text>
+<text x="376.62" y="125.60" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">shell_digesting_enzyme_in</text>
+<text x="376.62" y="136.60" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(11.77, 13.5)</text>
+<text x="376.62" y="407.65" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">release_trap_waste_out</text>
+<text x="376.62" y="418.65" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(11.77, 2.5)</text>
+<text x="579.03" y="125.60" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">magnetic_beads_in</text>
+<text x="579.03" y="136.60" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(25.11, 13.5)</text>
+<text x="821.23" y="125.60" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">ethanol_wash_in</text>
+<text x="821.23" y="136.60" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(29.11, 13.5)</text>
+<text x="579.03" y="407.65" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">beads_1_waste_out</text>
+<text x="579.03" y="418.65" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(25.11, 2.5)</text>
+<text x="821.23" y="407.65" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">elution_buffer_in</text>
+<text x="821.23" y="418.65" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(29.11, 2.5)</text>
+<circle cx="120.10" cy="269.13" r="12.82" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="991.90" cy="269.13" r="12.82" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="357.79" cy="128.10" r="12.82" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="357.79" cy="410.15" r="12.82" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="699.85" cy="128.10" r="12.82" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="802.41" cy="128.10" r="12.82" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="699.85" cy="410.15" r="12.82" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="802.41" cy="410.15" r="12.82" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<rect x="56" y="499.2564102564103" width="12" height="10" fill="#2e9e44"/>
+<text x="72" y="508.2564102564103" font-size="10" fill="#333">inlet</text>
+<rect x="109.0" y="499.2564102564103" width="12" height="10" fill="#d23c3c"/>
+<text x="125.0" y="508.2564102564103" font-size="10" fill="#333">outlet</text>
+<rect x="168.2" y="499.2564102564103" width="12" height="10" fill="#2f6fb0"/>
+<text x="184.2" y="508.2564102564103" font-size="10" fill="#333">channel (true width)</text>
+</svg>

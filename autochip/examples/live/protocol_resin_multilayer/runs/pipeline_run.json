@@ -1,0 +1,707 @@
+{
+  "kind": "pipeline_run_sequence",
+  "protocol_id": "spc_capsule_workflow",
+  "rows": [
+    {
+      "kind": "off_chip",
+      "n": 1,
+      "text": "Culture adherent cells in a vessel at 37 C with 5% CO2 until confluent, changing the medium daily.",
+      "action": "culture",
+      "why": "Three-day culture of adherent cells in a CO2 incubator is done in a vessel at the bench.",
+      "equipment": [
+        "pipette"
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 2,
+      "text": "Remove the medium and rinse the cells once with buffer.",
+      "action": "wash_cells",
+      "chip": "chip1_rinse_dissociation_quench_wash_encapsulation",
+      "module": "culture_1",
+      "phases": [
+        {
+          "n": 1,
+          "title": "Load cells from the bench",
+          "ports": "FEED inlet_1 10 uL/min (cells_sample) | VENT culture_1_waste_out | rest capped",
+          "duration_s": 900.0,
+          "temp_c": null,
+          "watch": "the cells arrives in culture_1 and stays there; liquid leaves at culture_1_waste_out",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 2,
+          "title": "Exchange: wash_buffer",
+          "ports": "FEED inlet_1 10 uL/min (wash_buffer) | VENT culture_1_waste_out | rest capped",
+          "duration_s": 1800.0,
+          "temp_c": null,
+          "watch": "wash_buffer reaches culture_1 and leaves at culture_1_waste_out; no bubbles in the chamber; cells stay in place",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 3,
+      "text": "Add dissociation enzyme and incubate to detach the cells.",
+      "action": "dissociate",
+      "chip": "chip1_rinse_dissociation_quench_wash_encapsulation",
+      "module": "culture_1",
+      "phases": [
+        {
+          "n": 3,
+          "title": "Exchange: dissociation_enzyme",
+          "ports": "FEED inlet_1 10 uL/min (dissociation_enzyme) | VENT culture_1_waste_out | rest capped",
+          "duration_s": 900.0,
+          "temp_c": 37,
+          "watch": "dissociation_enzyme reaches culture_1 and leaves at culture_1_waste_out; no bubbles in the chamber",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 4,
+          "title": "Incubate",
+          "ports": "all capped",
+          "duration_s": 300.0,
+          "temp_c": 37,
+          "watch": "temperature steady at 37 C; nothing moving; capped ports not leaking",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 4,
+      "text": "Add quench medium and mix gently to stop the enzyme.",
+      "action": "quench",
+      "chip": "chip1_rinse_dissociation_quench_wash_encapsulation",
+      "module": "quench_join",
+      "phases": [
+        {
+          "n": 5,
+          "title": "Mix quench_medium into the stream",
+          "ports": "FEED inlet_1 10 uL/min (carrier_buffer); quench_medium_in 10 uL/min (quench_medium) | VENT cell_wash_waste_out | rest capped",
+          "duration_s": 2248.2,
+          "temp_c": null,
+          "watch": "material moves from culture_1 through quench_join towards cell_wash_waste_out; streams merge evenly; no clogging; stop the pumps once the material has reached cell_wash (its next step)",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 5,
+      "text": "Centrifuge the cells and remove the supernatant.",
+      "action": "centrifuge",
+      "chip": "chip1_rinse_dissociation_quench_wash_encapsulation",
+      "module": "cell_wash",
+      "phases": [
+        {
+          "n": 6,
+          "title": "Exchange: wash_buffer",
+          "ports": "FEED wash_buffer_in 10 uL/min (wash_buffer) | VENT cell_wash_waste_out | rest capped",
+          "duration_s": 762.0,
+          "temp_c": null,
+          "watch": "wash_buffer reaches cell_wash and leaves at cell_wash_waste_out; no bubbles in the chamber; cells stay in place",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 7,
+          "title": "Incubate",
+          "ports": "all capped",
+          "duration_s": 300.0,
+          "temp_c": 22.0,
+          "watch": "temperature steady at 22 C; nothing moving; capped ports not leaking",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 6,
+      "text": "Resuspend the pellet in wash buffer to wash the cells; repeat the wash once.",
+      "action": "resuspend",
+      "chip": "chip1_rinse_dissociation_quench_wash_encapsulation",
+      "module": "cell_wash",
+      "phases": [
+        {
+          "n": 8,
+          "title": "Exchange: wash_buffer x2",
+          "ports": "FEED wash_buffer_in 10 uL/min (wash_buffer) | VENT cell_wash_waste_out | rest capped",
+          "duration_s": 3046.8,
+          "temp_c": null,
+          "watch": "wash_buffer reaches cell_wash and leaves at cell_wash_waste_out; no bubbles in the chamber; cells stay in place",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "missing",
+      "n": 7,
+      "text": "Pass the suspension through a 40 um cell strainer.",
+      "action": "filter",
+      "need": "Pillar filter with ~30 um gap for cells (0.75 x the 40 um nozzle)",
+      "why": "The pillar filter cannot go below 100 um gap, and a 100 um gap would not protect the 40 um nozzle from clumps.",
+      "workaround": "Strain the cells off chip through a 30-40 um strainer before loading, or place a bought mesh in a trap."
+    },
+    {
+      "kind": "off_chip",
+      "n": 8,
+      "text": "Count the cells and check viability.",
+      "action": "count",
+      "why": "Cell counting and viability check are done on the bench.",
+      "equipment": [
+        "microscope"
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 9,
+      "text": "Resuspend the cells in core solution at the loading density.",
+      "action": "resuspend",
+      "chip": "chip1_rinse_dissociation_quench_wash_encapsulation",
+      "module": "core_join",
+      "phases": [
+        {
+          "n": 9,
+          "title": "Mix core_solution into the stream",
+          "ports": "FEED inlet_1 10 uL/min (carrier_buffer); core_solution_in 10 uL/min (core_solution) | VENT outlet_1 | rest capped",
+          "duration_s": 3150.6,
+          "temp_c": null,
+          "watch": "material moves from cell_wash through core_join towards outlet_1; streams merge evenly; no clogging; stop the pumps once the material has reached droplets_1 (its next step)",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 10,
+      "text": "Co-flow the cell/core solution with warm shell polymer solution and focus with fluorinated oil with surfactant at a flow-focusing junction to form droplets of about 70 um.",
+      "action": "encapsulate",
+      "chip": "chip1_rinse_dissociation_quench_wash_encapsulation",
+      "module": "droplets_1",
+      "phases": [
+        {
+          "n": 10,
+          "title": "Encapsulate (co-flow)",
+          "ports": "FEED inlet_1 2 uL/min (core_solution); shell_polymer_in 2 uL/min (shell_polymer); fluorinated_oil_in 10 uL/min (fluorinated_oil) | VENT outlet_1 | rest capped",
+          "duration_s": 1800.0,
+          "temp_c": null,
+          "watch": "steady droplet break-up at droplets_1 (microscope); droplets travel on towards outlet_1; no oil backing up into the core line; keep shell_polymer_in (shell_polymer) warm (37 C syringe heater) up to the chip; the cold zone starts downstream; collect into the tube labelled 'chip1_rinse_dissociation_quench_wash_encapsulation: droplets after step 10, for chip2_gelation_emulsion_break_cure_wash inlet_1'",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "handoff",
+      "from_chip": "chip1_rinse_dissociation_quench_wash_encapsulation",
+      "to_chip": "chip2_gelation_emulsion_break_cure_wash",
+      "from_port": "outlet_1",
+      "to_port": "inlet_1",
+      "carries": "droplets",
+      "method": "tubing",
+      "via_steps": [],
+      "text": "Hand-off chip1_rinse_dissociation_quench_wash_encapsulation \u2192 chip2_gelation_emulsion_break_cure_wash (droplets): move the outlet_1 tubing of chip1_rinse_dissociation_quench_wash_encapsulation to inlet_1 of chip2_gelation_emulsion_break_cure_wash; keep every other port of both chips capped."
+    },
+    {
+      "kind": "on_chip",
+      "n": 11,
+      "text": "Collect the emulsion and keep it on ice so the shell gels.",
+      "action": "incubate",
+      "chip": "chip2_gelation_emulsion_break_cure_wash",
+      "module": "gelation_delay",
+      "phases": [
+        {
+          "n": 1,
+          "title": "Load droplets from the hand-off from chip1_rinse_dissociation_quench_wash_encapsulation",
+          "ports": "FEED inlet_1 5 uL/min (droplets_sample) | VENT capsule_trap_waste_out | rest capped",
+          "duration_s": 2700.0,
+          "temp_c": null,
+          "watch": "the droplets arrives in gelation_delay; stop the pump as soon as it is there, before it runs on towards capsule_trap_waste_out",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 2,
+          "title": "Hold",
+          "ports": "all capped",
+          "duration_s": 1800.0,
+          "temp_c": 4,
+          "watch": "temperature steady at 4 C; nothing moving; capped ports not leaking",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 12,
+      "text": "Break the emulsion with an emulsion-breaking agent and remove the oil phase.",
+      "action": "break_emulsion",
+      "chip": "chip2_gelation_emulsion_break_cure_wash",
+      "module": "capsule_trap",
+      "phases": [
+        {
+          "n": 3,
+          "title": "Move droplets: gelation_delay \u2192 capsule_trap",
+          "ports": "FEED inlet_1 5 uL/min (carrier_buffer) | VENT capsule_trap_waste_out | rest capped",
+          "duration_s": 4800.0,
+          "temp_c": null,
+          "watch": "the droplets arrives in capsule_trap and stays there; liquid leaves at capsule_trap_waste_out",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 4,
+          "title": "Exchange: emulsion_breaking_agent",
+          "ports": "FEED emulsion_breaking_agent_in 5 uL/min (emulsion_breaking_agent) | VENT capsule_trap_waste_out | rest capped",
+          "duration_s": 1800.0,
+          "temp_c": null,
+          "watch": "emulsion_breaking_agent reaches capsule_trap and leaves at capsule_trap_waste_out; no bubbles in the chamber",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 13,
+      "text": "Photocure the capsule shells with 405 nm light in the presence of photoinitiator.",
+      "action": "cure",
+      "chip": "chip2_gelation_emulsion_break_cure_wash",
+      "module": "capsule_trap",
+      "phases": [
+        {
+          "n": 5,
+          "title": "Exchange: photoinitiator",
+          "ports": "FEED photoinitiator_in 20 uL/min (photoinitiator) | VENT capsule_trap_waste_out | rest capped",
+          "duration_s": 225.0,
+          "temp_c": null,
+          "watch": "photoinitiator reaches capsule_trap and leaves at capsule_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 6,
+          "title": "Cure (405 nm)",
+          "ports": "all capped",
+          "duration_s": 30.0,
+          "temp_c": 4,
+          "watch": "405 nm light over capsule_trap for 30 s; nothing flows",
+          "light": {
+            "wavelength_nm": 405.0,
+            "duration_s": 30.0
+          },
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 14,
+      "text": "Wash the capsules in buffer to remove oil and free reagents.",
+      "action": "wash_particles",
+      "chip": "chip2_gelation_emulsion_break_cure_wash",
+      "module": "capsule_trap",
+      "phases": [
+        {
+          "n": 7,
+          "title": "Exchange: wash_buffer x3",
+          "ports": "FEED wash_buffer_in 20 uL/min (wash_buffer) | VENT capsule_trap_waste_out | rest capped",
+          "duration_s": 1350.0,
+          "temp_c": null,
+          "watch": "wash_buffer reaches capsule_trap and leaves at capsule_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 8,
+          "title": "Collect the capsules (outlet_1)",
+          "ports": "FEED wash_buffer_in 20 uL/min (collection_buffer) | VENT outlet_1 | rest capped",
+          "duration_s": 300.0,
+          "temp_c": null,
+          "watch": "the capsules leaves capsule_trap through outlet_1 into the tube labelled 'chip2_gelation_emulsion_break_cure_wash: capsules after step 14, for chip3_filter_lysis_rt_wash inlet_1'; never to waste",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "handoff",
+      "from_chip": "chip2_gelation_emulsion_break_cure_wash",
+      "to_chip": "chip3_filter_lysis_rt_wash",
+      "from_port": "outlet_1",
+      "to_port": "inlet_1",
+      "carries": "capsules",
+      "method": "tubing",
+      "via_steps": [],
+      "text": "Hand-off chip2_gelation_emulsion_break_cure_wash \u2192 chip3_filter_lysis_rt_wash (capsules): move the outlet_1 tubing of chip2_gelation_emulsion_break_cure_wash to inlet_1 of chip3_filter_lysis_rt_wash; keep every other port of both chips capped."
+    },
+    {
+      "kind": "on_chip",
+      "n": 15,
+      "text": "Filter the capsules through a 100 um strainer to remove aggregates.",
+      "action": "filter",
+      "chip": "chip3_filter_lysis_rt_wash",
+      "module": "aggregate_filter",
+      "phases": [
+        {
+          "n": 1,
+          "title": "Pass through",
+          "ports": "FEED inlet_1 20 uL/min (capsules_suspension) | VENT reaction_trap_waste_out | rest capped",
+          "duration_s": 345.0,
+          "temp_c": null,
+          "watch": "material moves from the inlet through aggregate_filter towards reaction_trap_waste_out; streams merge evenly; no clogging; stop the pumps once the material has reached reaction_trap (its next step)",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 16,
+      "text": "Exchange the buffer for lysis buffer and incubate.",
+      "action": "lyse",
+      "chip": "chip3_filter_lysis_rt_wash",
+      "module": "reaction_trap",
+      "phases": [
+        {
+          "n": 2,
+          "title": "Exchange: lysis_buffer",
+          "ports": "FEED reagent_line_in 20 uL/min (lysis_buffer) | VENT reaction_trap_waste_out | rest capped",
+          "duration_s": 225.0,
+          "temp_c": null,
+          "watch": "lysis_buffer reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 3,
+          "title": "Incubate",
+          "ports": "all capped",
+          "duration_s": 600.0,
+          "temp_c": 22.0,
+          "watch": "temperature steady at 22 C; nothing moving; capped ports not leaking",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 17,
+      "text": "Wash the capsules in wash buffer.",
+      "action": "wash_particles",
+      "chip": "chip3_filter_lysis_rt_wash",
+      "module": "reaction_trap",
+      "phases": [
+        {
+          "n": 4,
+          "title": "Exchange: wash_buffer x3",
+          "ports": "FEED reagent_line_in 20 uL/min (wash_buffer) | VENT reaction_trap_waste_out | rest capped",
+          "duration_s": 1350.0,
+          "temp_c": null,
+          "watch": "wash_buffer reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 18,
+      "text": "Exchange into reverse transcription mix and incubate.",
+      "action": "reverse_transcribe",
+      "chip": "chip3_filter_lysis_rt_wash",
+      "module": "reaction_trap",
+      "phases": [
+        {
+          "n": 5,
+          "title": "Exchange: rt_mix",
+          "ports": "FEED reagent_line_in 20 uL/min (rt_mix) | VENT reaction_trap_waste_out | rest capped",
+          "duration_s": 225.0,
+          "temp_c": 42.0,
+          "watch": "rt_mix reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 6,
+          "title": "Incubate",
+          "ports": "all capped",
+          "duration_s": 3600.0,
+          "temp_c": 42.0,
+          "watch": "temperature steady at 42 C; nothing moving; capped ports not leaking",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 19,
+      "text": "Wash the capsules.",
+      "action": "wash_particles",
+      "chip": "chip3_filter_lysis_rt_wash",
+      "module": "reaction_trap",
+      "phases": [
+        {
+          "n": 7,
+          "title": "Exchange: wash_buffer x2",
+          "ports": "FEED reagent_line_in 20 uL/min (wash_buffer) | VENT reaction_trap_waste_out | rest capped",
+          "duration_s": 900.0,
+          "temp_c": null,
+          "watch": "wash_buffer reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 8,
+          "title": "Collect the capsules (outlet_1)",
+          "ports": "FEED reagent_line_in 20 uL/min (collection_buffer) | VENT outlet_1 | rest capped",
+          "duration_s": 300.0,
+          "temp_c": null,
+          "watch": "the capsules leaves reaction_trap through outlet_1 into the tube labelled 'chip3_filter_lysis_rt_wash: capsules after step 19, for chip4_shell_release_bead_capture_wash_elution inlet_1'; never to waste",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "handoff",
+      "from_chip": "chip3_filter_lysis_rt_wash",
+      "to_chip": "chip4_shell_release_bead_capture_wash_elution",
+      "from_port": "outlet_1",
+      "to_port": "inlet_1",
+      "carries": "capsules",
+      "method": "off_chip_step",
+      "via_steps": [
+        20,
+        21
+      ],
+      "phase": "out",
+      "text": "Hand-off out of chip3_filter_lysis_rt_wash (capsules): collect it from outlet_1 of chip3_filter_lysis_rt_wash into a tube, then do bench step(s) 20, 21."
+    },
+    {
+      "kind": "off_chip",
+      "n": 20,
+      "text": "Split the capsules into four equal portions.",
+      "action": "split",
+      "why": "Index PCR reaches 95 C, above the 50 C limit of the printed resin. The capsules are split by pipette into four tubes, each gets its own index primer mix, and they cycle on the thermocycler. They are then pooled and loaded onto chip 4.",
+      "equipment": [
+        "pipette",
+        "thermocycler"
+      ]
+    },
+    {
+      "kind": "off_chip",
+      "n": 21,
+      "text": "Run index PCR on each portion with a different index primer mix.",
+      "action": "amplify",
+      "why": "Index PCR reaches 95 C, above the 50 C limit of the printed resin. The capsules are split by pipette into four tubes, each gets its own index primer mix, and they cycle on the thermocycler. They are then pooled and loaded onto chip 4.",
+      "equipment": [
+        "pipette",
+        "thermocycler"
+      ]
+    },
+    {
+      "kind": "handoff",
+      "from_chip": "chip3_filter_lysis_rt_wash",
+      "to_chip": "chip4_shell_release_bead_capture_wash_elution",
+      "from_port": "outlet_1",
+      "to_port": "inlet_1",
+      "carries": "capsules",
+      "method": "off_chip_step",
+      "via_steps": [
+        20,
+        21
+      ],
+      "phase": "in",
+      "text": "Hand-off into chip4_shell_release_bead_capture_wash_elution (capsules): load the tube into the syringe on inlet_1 of chip4_shell_release_bead_capture_wash_elution (the sample line for chip4_shell_release_bead_capture_wash_elution's first step)."
+    },
+    {
+      "kind": "on_chip",
+      "n": 22,
+      "text": "Release the cDNA by digesting the capsule shells with a shell-digesting enzyme.",
+      "action": "release",
+      "chip": "chip4_shell_release_bead_capture_wash_elution",
+      "module": "release_trap",
+      "phases": [
+        {
+          "n": 1,
+          "title": "Load capsules from the hand-off from chip3_filter_lysis_rt_wash",
+          "ports": "FEED inlet_1 20 uL/min (capsules_sample) | VENT release_trap_waste_out | rest capped",
+          "duration_s": 225.0,
+          "temp_c": null,
+          "watch": "the capsules arrives in release_trap and stays there; liquid leaves at release_trap_waste_out",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 2,
+          "title": "Release with shell_digesting_enzyme",
+          "ports": "FEED shell_digesting_enzyme_in 20 uL/min (shell_digesting_enzyme) | VENT release_trap_waste_out | rest capped",
+          "duration_s": 300.0,
+          "temp_c": null,
+          "watch": "material leaves through release_trap_waste_out into a collection tube; stop when release_trap is clear",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 23,
+      "text": "Bind the library to magnetic beads.",
+      "action": "bind_beads",
+      "chip": "chip4_shell_release_bead_capture_wash_elution",
+      "module": "beads_1",
+      "phases": [
+        {
+          "n": 3,
+          "title": "Exchange: magnetic_beads",
+          "ports": "FEED magnetic_beads_in 20 uL/min (magnetic_beads) | VENT beads_1_waste_out | rest capped",
+          "duration_s": 225.0,
+          "temp_c": null,
+          "watch": "magnetic_beads reaches beads_1 and leaves at beads_1_waste_out; no bubbles in the chamber",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 4,
+          "title": "Load nucleic_acid from the hand-off from chip3_filter_lysis_rt_wash",
+          "ports": "FEED inlet_1 20 uL/min (nucleic_acid_sample) | VENT beads_1_waste_out | rest capped",
+          "duration_s": 225.0,
+          "temp_c": null,
+          "watch": "the nucleic_acid arrives in beads_1; stop the pump as soon as it is there, before it runs on towards beads_1_waste_out",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 5,
+          "title": "Incubate",
+          "ports": "all capped",
+          "duration_s": 300.0,
+          "temp_c": 22.0,
+          "watch": "temperature steady at 22 C; nothing moving; capped ports not leaking",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 24,
+      "text": "Wash the beads with ethanol wash solution on a magnet.",
+      "action": "wash_particles",
+      "chip": "chip4_shell_release_bead_capture_wash_elution",
+      "module": "beads_1",
+      "phases": [
+        {
+          "n": 6,
+          "title": "Exchange: ethanol_wash x2",
+          "ports": "FEED ethanol_wash_in 20 uL/min (ethanol_wash) | VENT beads_1_waste_out | rest capped",
+          "duration_s": 900.0,
+          "temp_c": null,
+          "watch": "ethanol_wash reaches beads_1 and leaves at beads_1_waste_out; no bubbles in the chamber; magnet on, beads stay put",
+          "light": null,
+          "magnet": true,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "on_chip",
+      "n": 25,
+      "text": "Elute the library from the beads in water.",
+      "action": "elute",
+      "chip": "chip4_shell_release_bead_capture_wash_elution",
+      "module": "beads_1",
+      "phases": [
+        {
+          "n": 7,
+          "title": "Exchange: elution_buffer",
+          "ports": "FEED elution_buffer_in 20 uL/min (elution_buffer) | VENT beads_1_waste_out | rest capped",
+          "duration_s": 225.0,
+          "temp_c": null,
+          "watch": "elution_buffer reaches beads_1 and leaves at beads_1_waste_out; no bubbles in the chamber",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 8,
+          "title": "Incubate",
+          "ports": "all capped",
+          "duration_s": 120.0,
+          "temp_c": 22.0,
+          "watch": "temperature steady at 22 C; nothing moving; capped ports not leaking",
+          "light": null,
+          "magnet": false,
+          "errors": []
+        },
+        {
+          "n": 9,
+          "title": "Collect the library (outlet_1)",
+          "ports": "FEED elution_buffer_in 20 uL/min (collection_buffer) | VENT outlet_1 | rest capped",
+          "duration_s": 300.0,
+          "temp_c": null,
+          "watch": "the library leaves beads_1 through outlet_1 into the tube labelled 'chip4_shell_release_bead_capture_wash_elution: library after step 25'; magnet on so the beads stay behind; never to waste",
+          "light": null,
+          "magnet": true,
+          "errors": []
+        }
+      ]
+    },
+    {
+      "kind": "off_chip",
+      "n": 26,
+      "text": "Measure library concentration and fragment size.",
+      "action": "measure",
+      "why": "Library concentration and size measurement is done on the bench; the lab has no fluorometer in its list, so it is a manual step on the eluted sample.",
+      "equipment": [
+        "pipette"
+      ]
+    }
+  ]
+}

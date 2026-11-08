@@ -1,0 +1,912 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>autochip: iPSC tri-culture to capsule-based single-cell RNA library</title><style>
+:root{--fg:#1f2328;--muted:#5f6670;--line:#d9dde3;--soft:#f5f6f8;--accent:#3b5b8c;--err:#b42318;--warn:#9a6700;--ok:#1a7f37}
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:var(--fg);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+main{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+h1{font-size:26px;margin:0 0 14px;line-height:1.25}
+h2{font-size:19px;margin:36px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+h3{font-size:15.5px;margin:22px 0 8px}
+p{margin:8px 0}
+code{font:12.5px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--soft);padding:1px 4px;border-radius:4px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0 18px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--soft)}
+.stat b{display:block;font-size:20px}
+.stat span{color:var(--muted);font-size:12.5px}
+.banner{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:0 0 14px;background:var(--soft)}
+.banner div{margin:2px 0}
+.banner .fallback{color:var(--warn);font-weight:600}
+.scroll{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--soft);font-weight:600}
+table.kv td:first-child{width:220px;font-weight:600;background:var(--soft)}
+ul{margin:8px 0;padding-left:22px}
+li{margin:3px 0}
+.figure{border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;background:#fff}
+.figure svg{max-width:100%;height:auto;display:block}
+img,svg{max-width:100%}
+p,li,td,th,h1,h2,h3,.banner div,.stat span{overflow-wrap:anywhere}
+.scroll table:not(.kv){min-width:640px}
+@media (max-width:600px){
+main{padding:18px 14px 48px}
+h1{font-size:21px}
+h2{font-size:17px}
+table.kv td:first-child{width:auto}
+.stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+details{border:1px solid var(--line);border-radius:8px;margin:10px 0;padding:0 12px;background:#fff}
+details>summary{cursor:pointer;padding:10px 0;font-weight:600}
+.seq{list-style:none;padding:0}
+.seq li{border-left:3px solid var(--line);padding:6px 10px;margin:6px 0;background:#fff}
+.seq li.on_chip{border-color:var(--accent)}
+.seq li.off_chip{border-color:#8c959f;background:var(--soft)}
+.seq li.missing,.seq li.unassigned{border-color:var(--warn);background:#fff8e6}
+.seq li.handoff{border-color:#6e7781;font-style:italic}
+.seq .tag{display:inline-block;font-size:11.5px;font-weight:600;color:var(--muted);margin-right:6px;text-transform:uppercase;letter-spacing:.03em}
+.seq .ph{font-size:13px;color:var(--muted);margin:3px 0 0 0}
+.err{color:var(--err);font-weight:600}
+.sev-error{color:var(--err);font-weight:600}.sev-warning{color:var(--warn);font-weight:600}
+footer{margin-top:40px;color:var(--muted);font-size:12.5px}
+</style></head><body><main>
+<h1>autochip report: iPSC tri-culture to capsule-based single-cell RNA library</h1>
+<div class="banner"><div><strong>Agent:</strong> replay of autochip/out/live_prompt_unconstrained/agent</div></div>
+<div class="stats"><div class="stat"><b>25</b><span>Protocol steps</span></div><div class="stat"><b>4</b><span>Chips</span></div><div class="stat"><b>22</b><span>Modules</span></div><div class="stat"><b>23 / 2 / 0</b><span>On chip / bench / missing</span></div><div class="stat"><b>0</b><span>Layout errors</span></div><div class="stat"><b>0 / 3</b><span>Flow-check errors / warnings</span></div></div>
+<p>4 chip(s) do 23 of the 25 protocol steps; 2 stay at the bench and 0 need a part the library doesn&#x27;t have. Everything here is generated: flows, volumes and times the source did not give are placeholders.</p>
+<h2>Open problems</h2>
+<p>None found: no errors, missing parts or unassigned steps.</p>
+<div class="figure"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 640" width="1240" height="640" font-family="Helvetica, Arial, sans-serif" role="img" aria-label="iPSC tri-culture to capsule-based single-cell RNA library: chip pipeline">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="24" y="30" font-size="15" font-weight="700" fill="#111827">iPSC tri-culture to capsule-based single-cell RNA library: chip pipeline</text>
+<path d="M274,76 L336,76" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<text x="306" y="44" font-size="10" text-anchor="middle" fill="#6b7280">filtered</text>
+<text x="306" y="56" font-size="10" text-anchor="middle" fill="#6b7280">single cells</text>
+<text x="306" y="68" font-size="10" text-anchor="middle" fill="#6b7280">(cell count</text>
+<path d="M588,76 L650,76" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<path d="M902,76 L964,76" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<text x="934" y="44" font-size="10" text-anchor="middle" fill="#6b7280">cured</text>
+<text x="934" y="56" font-size="10" text-anchor="middle" fill="#6b7280">capsules</text>
+<text x="934" y="68" font-size="10" text-anchor="middle" fill="#6b7280">(tubing)</text>
+<path d="M1091.0,396 L1091.0,463.0 L149.0,463.0 L149.0,496" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<text x="620" y="425" font-size="10" text-anchor="middle" fill="#6b7280">released</text>
+<text x="620" y="437" font-size="10" text-anchor="middle" fill="#6b7280">cDNA</text>
+<text x="620" y="449" font-size="10" text-anchor="middle" fill="#6b7280">(tubing)</text>
+<path d="M274,520 L336,520" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<rect x="24" y="54" width="250" height="374" rx="6" fill="#f6f7f9" stroke="#4b5563" stroke-width="1.4"/>
+<path d="M25,84 L273,84" stroke="#4b5563" stroke-width="0.8"/>
+<text x="34" y="74" font-size="13" font-weight="700" fill="#111827">chip1_triculture_dissociation_quen</text>
+<text x="34" y="100" font-size="11" fill="#111827" xml:space="preserve">Tri-culture, dissociation, quench,</text>
+<text x="34" y="116" font-size="11" fill="#111827" xml:space="preserve">cell wash and filter chip</text>
+<text x="34" y="132" font-size="11" fill="#111827" xml:space="preserve">split_1</text>
+<text x="34" y="148" font-size="11" fill="#6b7280" xml:space="preserve">   splitter</text>
+<text x="34" y="164" font-size="11" fill="#111827" xml:space="preserve">culture_neurons: steps 1, 2, 3</text>
+<text x="34" y="180" font-size="11" fill="#6b7280" xml:space="preserve">   culture_chamber_param</text>
+<text x="34" y="196" font-size="11" fill="#111827" xml:space="preserve">culture_microglia: steps 1, 2, 3</text>
+<text x="34" y="212" font-size="11" fill="#6b7280" xml:space="preserve">   culture_chamber_param</text>
+<text x="34" y="228" font-size="11" fill="#111827" xml:space="preserve">culture_astrocytes: steps 1, 2, 3</text>
+<text x="34" y="244" font-size="11" fill="#6b7280" xml:space="preserve">   culture_chamber_param</text>
+<text x="34" y="260" font-size="11" fill="#111827" xml:space="preserve">junction_mid: steps 2, 3</text>
+<text x="34" y="276" font-size="11" fill="#6b7280" xml:space="preserve">   pool</text>
+<text x="34" y="292" font-size="11" fill="#111827" xml:space="preserve">quench_join: steps 4</text>
+<text x="34" y="308" font-size="11" fill="#6b7280" xml:space="preserve">   merge</text>
+<text x="34" y="324" font-size="11" fill="#111827" xml:space="preserve">quench_mix: steps 4</text>
+<text x="34" y="340" font-size="11" fill="#6b7280" xml:space="preserve">   mixer</text>
+<text x="34" y="356" font-size="11" fill="#111827" xml:space="preserve">cell_wash: steps 5, 6</text>
+<text x="34" y="372" font-size="11" fill="#6b7280" xml:space="preserve">   spiral_separator</text>
+<text x="34" y="388" font-size="11" fill="#111827" xml:space="preserve">cell_filter: steps 7</text>
+<text x="34" y="404" font-size="11" fill="#6b7280" xml:space="preserve">   pillar_filter</text>
+<rect x="338" y="54" width="250" height="86" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="348" y="74" font-size="13" font-weight="700" fill="#111827">Bench (off chip)</text>
+<text x="348" y="100" font-size="11" fill="#6b7280" xml:space="preserve">8. Count the cells and check</text>
+<text x="348" y="116" font-size="11" fill="#6b7280" xml:space="preserve">viability.</text>
+<rect x="652" y="54" width="250" height="214" rx="6" fill="#f6f7f9" stroke="#4b5563" stroke-width="1.4"/>
+<path d="M653,84 L901,84" stroke="#4b5563" stroke-width="0.8"/>
+<text x="662" y="74" font-size="13" font-weight="700" fill="#111827">chip2_encapsulation_emulsion_break</text>
+<text x="662" y="100" font-size="11" fill="#111827" xml:space="preserve">Encapsulation, emulsion break, capsule</text>
+<text x="662" y="116" font-size="11" fill="#111827" xml:space="preserve">wash and curing chip</text>
+<text x="662" y="132" font-size="11" fill="#111827" xml:space="preserve">core_join: steps 9</text>
+<text x="662" y="148" font-size="11" fill="#6b7280" xml:space="preserve">   merge</text>
+<text x="662" y="164" font-size="11" fill="#111827" xml:space="preserve">core_mix: steps 9</text>
+<text x="662" y="180" font-size="11" fill="#6b7280" xml:space="preserve">   mixer</text>
+<text x="662" y="196" font-size="11" fill="#111827" xml:space="preserve">encap_junction: steps 9</text>
+<text x="662" y="212" font-size="11" fill="#6b7280" xml:space="preserve">   droplet_junction</text>
+<text x="662" y="228" font-size="11" fill="#111827" xml:space="preserve">capsule_trap: steps 10, 11, 12, 13</text>
+<text x="662" y="244" font-size="11" fill="#6b7280" xml:space="preserve">   trap_chamber</text>
+<rect x="966" y="54" width="250" height="342" rx="6" fill="#f6f7f9" stroke="#4b5563" stroke-width="1.4"/>
+<path d="M967,84 L1215,84" stroke="#4b5563" stroke-width="0.8"/>
+<text x="976" y="74" font-size="13" font-weight="700" fill="#111827">chip3_lysis_rt_split_index_pcr_poo</text>
+<text x="976" y="100" font-size="11" fill="#111827" xml:space="preserve">Lysis, RT, split, index PCR, pool and</text>
+<text x="976" y="116" font-size="11" fill="#111827" xml:space="preserve">release chip</text>
+<text x="976" y="132" font-size="11" fill="#111827" xml:space="preserve">reaction_trap: steps 14, 15, 16, 17</text>
+<text x="976" y="148" font-size="11" fill="#6b7280" xml:space="preserve">   trap_chamber</text>
+<text x="976" y="164" font-size="11" fill="#111827" xml:space="preserve">split_2: steps 18</text>
+<text x="976" y="180" font-size="11" fill="#6b7280" xml:space="preserve">   splitter</text>
+<text x="976" y="196" font-size="11" fill="#111827" xml:space="preserve">pcr_1: steps 19</text>
+<text x="976" y="212" font-size="11" fill="#6b7280" xml:space="preserve">   thermal_chamber</text>
+<text x="976" y="228" font-size="11" fill="#111827" xml:space="preserve">pcr_2: steps 19</text>
+<text x="976" y="244" font-size="11" fill="#6b7280" xml:space="preserve">   thermal_chamber</text>
+<text x="976" y="260" font-size="11" fill="#111827" xml:space="preserve">pcr_3: steps 19</text>
+<text x="976" y="276" font-size="11" fill="#6b7280" xml:space="preserve">   thermal_chamber</text>
+<text x="976" y="292" font-size="11" fill="#111827" xml:space="preserve">pcr_4: steps 19</text>
+<text x="976" y="308" font-size="11" fill="#6b7280" xml:space="preserve">   thermal_chamber</text>
+<text x="976" y="324" font-size="11" fill="#111827" xml:space="preserve">pool_2: steps 24</text>
+<text x="976" y="340" font-size="11" fill="#6b7280" xml:space="preserve">   pool</text>
+<text x="976" y="356" font-size="11" fill="#111827" xml:space="preserve">release_trap: steps 20</text>
+<text x="976" y="372" font-size="11" fill="#6b7280" xml:space="preserve">   trap_chamber</text>
+<rect x="24" y="498" width="250" height="118" rx="6" fill="#f6f7f9" stroke="#4b5563" stroke-width="1.4"/>
+<path d="M25,528 L273,528" stroke="#4b5563" stroke-width="0.8"/>
+<text x="34" y="518" font-size="13" font-weight="700" fill="#111827">chip4_bead_binding_wash_elution</text>
+<text x="34" y="544" font-size="11" fill="#111827" xml:space="preserve">Bead binding, ethanol wash and elution</text>
+<text x="34" y="560" font-size="11" fill="#111827" xml:space="preserve">chip</text>
+<text x="34" y="576" font-size="11" fill="#111827" xml:space="preserve">bead_chamber: steps 21, 22, 23</text>
+<text x="34" y="592" font-size="11" fill="#6b7280" xml:space="preserve">   magnetic_chamber</text>
+<rect x="338" y="498" width="250" height="86" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="348" y="518" font-size="13" font-weight="700" fill="#111827">Bench (off chip)</text>
+<text x="348" y="544" font-size="11" fill="#6b7280" xml:space="preserve">25. Measure library concentration and</text>
+<text x="348" y="560" font-size="11" fill="#6b7280" xml:space="preserve">fragment size.</text>
+</svg></div>
+<h2>What went in</h2>
+<div class="scroll"><table class="kv"><tr><td>Source</td><td>prompt: Grow three iPSC-derived cell types (neurons, microglia, astrocytes) side by...</td></tr><tr><td>File</td><td>-</td></tr><tr><td>Citation</td><td>-</td></tr><tr><td>User goal</td><td>Grow three iPSC-derived cell types (neurons, microglia, astrocytes) side by side, first apart and then
+sharing medium. Then detach the cells, wrap single cells in semi-permeable hydrogel capsules, break the
+emulsion and cure the capsule shells with light, lyse the cells inside the capsules, wash, and reverse
+transcribe the RNA. Split the capsules into four sublibraries for index PCR, release the cDNA from the
+capsules and clean the library up with magnetic beads so it is ready for sequencing.</td></tr><tr><td>Protocol goal (as extracted)</td><td>Grow iPSC-derived neurons, microglia and astrocytes side by side (first apart, then sharing medium), then encapsulate single cells in semi-permeable hydrogel capsules, lyse, reverse transcribe, split into four index-PCR sublibraries, release the cDNA and clean up the library with magnetic beads for sequencing.</td></tr><tr><td>Agent</td><td>replay of autochip/out/live_prompt_unconstrained/agent</td></tr><tr><td>Constraints</td><td>unconstrained: No limits</td></tr></table></div>
+<h2>Constraints</h2>
+<ul><li>Fabrication: other</li><li>Multilayer: allowed, vias between layers</li><li>Channel crossings: allowed</li><li>Thermal zones on one chip: not stated (assume no: clashing temperatures go on different chips)</li><li>On-chip valves: allowed, pneumatic_membrane</li><li>Max chip footprint: no limit; edge margin 2 mm; max chips: no limit</li><li>Depth: no maximum</li><li>Smallest features: open channel 0.05 mm, enclosed channel 0.05 mm, wall 0.05 mm, gap 0.01 mm</li><li>Ports: any number per chip, min diameter 0.8 mm, min pitch 3 mm, connector press_fit_tubing, placed on the top</li><li>Parts: library_and_parametric (library parts may be scaled)</li><li>Off-chip equipment available: syringe_pump, pressure_controller, heater, incubator_37c, cold_plate, thermocycler, peltier_stage, led_405nm, magnet, microscope, centrifuge, pipette; pump lines: no limit; manual bench steps allowed</li><li>Objective: most_on_chip</li></ul>
+<h2>Chips</h2>
+<p>Why the protocol is split this way: Four chips. Chip 1 is the 37 °C culture and cell-prep chip. Chip 2 makes the capsules, which brings oil, and cures them. Chip 3 sits on the thermocycler for lysis, RT, index PCR and release. Chip 4 sits over the magnet for bead clean-up. Culture is kept apart from oil. Curing needs the 405 nm LED, the thermal steps need the thermocycler and the clean-up needs the magnet, so the equipment never has to be shared on one chip. All capsule traps use a 10 um mesh, below 0.4 x the 28 um capsule diameter, so capsules cannot slip through. Counting and fluorometer QC are done on the bench. Because the four portions carry different indexes, they are pooled after release and before bead clean-up, so step 24 is carried by the pool part on chip 3.</p>
+<div class="scroll"><table><thead><tr><th>Chip</th><th>Purpose</th><th>Steps</th><th>Modules (part)</th><th>Ports</th><th>Footprint (mm)</th><th>Layers</th><th>Constraint findings</th></tr></thead><tbody><tr><td><strong>chip1_triculture_dissociation_quench_cell_wash_filter</strong> Tri-culture, dissociation, quench, cell wash and filter chip</td><td>Grows three iPSC-derived populations in separate chambers (apart, then sharing medium through the central junction), detaches them, quenches the enzyme, moves the cells into clean buffer and filters out clumps.</td><td>1, 2, 3, 4, 5, 6, 7</td><td>split_1 (splitter), culture_neurons (culture_chamber_param), culture_microglia (culture_chamber_param), culture_astrocytes (culture_chamber_param), junction_mid (pool), quench_join (merge), quench_mix (mixer), cell_wash (spiral_separator), cell_filter (pillar_filter)</td><td>13 (6 in, 7 out)</td><td>59 x 49</td><td>3 (unspecified)</td><td>1 warning</td></tr><tr><td><strong>chip2_encapsulation_emulsion_break_capsule_wash_curing</strong> Encapsulation, emulsion break, capsule wash and curing chip</td><td>Merges cells into core solution, makes single-cell shell/core droplets in fluorinated oil, then breaks the emulsion, washes, cures and washes the capsules in a trap.</td><td>9, 10, 11, 12, 13</td><td>core_join (merge), core_mix (mixer), encap_junction (droplet_junction), capsule_trap (trap_chamber)</td><td>8 (6 in, 2 out)</td><td>23.5 x 32</td><td>3 (unspecified)</td><td>none</td></tr><tr><td><strong>chip3_lysis_rt_split_index_pcr_pool_release</strong> Lysis, RT, split, index PCR, pool and release chip</td><td>Lyses cells in capsules, reverse transcribes, splits into four portions for index PCR, pools them and releases the cDNA.</td><td>14, 15, 16, 17, 18, 19, 20, 24</td><td>reaction_trap (trap_chamber), split_2 (splitter), pcr_1 (thermal_chamber), pcr_2 (thermal_chamber), pcr_3 (thermal_chamber), pcr_4 (thermal_chamber), pool_2 (pool), release_trap (trap_chamber)</td><td>15 (8 in, 7 out)</td><td>55.5 x 44</td><td>3 (unspecified)</td><td>1 warning</td></tr><tr><td><strong>chip4_bead_binding_wash_elution</strong> Bead binding, ethanol wash and elution chip</td><td>Binds cDNA to magnetic beads, washes on the magnet and elutes the library.</td><td>21, 22, 23</td><td>bead_chamber (magnetic_chamber)</td><td>6 (4 in, 2 out)</td><td>23 x 14</td><td>3 (unspecified)</td><td>none</td></tr></tbody></table></div>
+<h3>chip1_triculture_dissociation_quench_cell_wash_filter: constraint findings</h3>
+<ul><li><span class="sev-warning">warning</span> [layout.lane_isolation] lanes culture_neurons, culture_microglia, culture_astrocytes share &#x27;split_1&#x27; and &#x27;junction_mid&#x27;: filling one lane through its own inlet with outlet_1 vented also pushes up to 21% of the flow through the other lanes. To fill one lane alone, feed the lane&#x27;s inlet and vent its own &lt;lane&gt;_vent_out port with outlet_1 capped: then no liquid enters the other lanes.</li></ul>
+<p><em>chip1_triculture_dissociation_quench_cell_wash_filter is its own chip because:</em> First chip: flow starts with cell seeding at inlet_1. It runs at 37 °C for long culture and must stay free of oil.</p>
+<p><em>chip2_encapsulation_emulsion_break_capsule_wash_curing is its own chip because:</em> Oil must be kept off the culture chip. Curing needs the 405 nm LED, which differs from the thermocycler chip.</p>
+<h3>chip3_lysis_rt_split_index_pcr_pool_release: constraint findings</h3>
+<ul><li><span class="sev-warning">warning</span> [layout.lane_isolation] lanes pcr_1, pcr_2, pcr_3, pcr_4 share &#x27;split_2&#x27; and &#x27;pool_2&#x27;: filling one lane through its own inlet with outlet_1 vented also pushes up to 38% of the flow through the other lanes. To fill one lane alone, feed the lane&#x27;s inlet and vent its own &lt;lane&gt;_vent_out port with outlet_1 capped: then no liquid enters the other lanes.</li></ul>
+<p><em>chip3_lysis_rt_split_index_pcr_pool_release is its own chip because:</em> Lysis, RT, PCR and release are thermal steps, so the chip sits on the thermocycler. This differs from the LED curing chip and the magnet chip.</p>
+<p><em>chip4_bead_binding_wash_elution is its own chip because:</em> It needs the magnet, which cannot share a chip with the thermocycler.</p>
+<h2>Step coverage</h2>
+<div class="scroll"><table><thead><tr><th>Step</th><th>Action</th><th>What</th><th>Where</th><th>Run steps</th></tr></thead><tbody><tr><td>1</td><td>culture</td><td>Culture neurons, microglia and astrocytes in separate vessels, side by side, each in its own medium.</td><td>chip1_triculture_dissociation_quench_cell_wash_filter.culture_neurons</td><td>chip1_triculture_dissociation_quench_cell_wash_filter #1 Load cells from the bench; chip1_triculture_dissociation_quench_cell_wash_filter #2 Load cells from the bench; chip1_triculture_dissociation_quench_cell_wash_filter #3 Load cells from the bench; chip1_triculture_dissociation_quench_cell_wash_filter #4 Culture apart 7 d (3 chambers, own medium each, change every 1 d)</td></tr><tr><td>2</td><td>culture</td><td>Continue culture of the three cell types sharing medium (co-culture or shared medium flow).</td><td>chip1_triculture_dissociation_quench_cell_wash_filter.culture_neurons</td><td>chip1_triculture_dissociation_quench_cell_wash_filter #5 Culture apart 1 d (3 chambers, own medium each, change every 12 h); chip1_triculture_dissociation_quench_cell_wash_filter #6 Culture sharing medium 1 d (feed culture_neurons, vent the others)</td></tr><tr><td>3</td><td>dissociate</td><td>Detach the cells with a dissociation enzyme.</td><td>chip1_triculture_dissociation_quench_cell_wash_filter.culture_neurons</td><td>chip1_triculture_dissociation_quench_cell_wash_filter #7 Exchange: dissociation_enzyme; chip1_triculture_dissociation_quench_cell_wash_filter #8 Exchange: dissociation_enzyme; chip1_triculture_dissociation_quench_cell_wash_filter #9 Exchange: dissociation_enzyme; chip1_triculture_dissociation_quench_cell_wash_filter #10 Incubate</td></tr><tr><td>4</td><td>quench</td><td>Quench the dissociation enzyme.</td><td>chip1_triculture_dissociation_quench_cell_wash_filter.quench_join</td><td>chip1_triculture_dissociation_quench_cell_wash_filter #11 Mix quench_solution into the stream</td></tr><tr><td>5</td><td>centrifuge</td><td>Centrifuge the cell suspension to pellet the cells.</td><td>chip1_triculture_dissociation_quench_cell_wash_filter.cell_wash</td><td>chip1_triculture_dissociation_quench_cell_wash_filter #12 Exchange: wash_buffer; chip1_triculture_dissociation_quench_cell_wash_filter #13 Incubate</td></tr><tr><td>6</td><td>resuspend</td><td>Resuspend the cells in wash buffer.</td><td>chip1_triculture_dissociation_quench_cell_wash_filter.cell_wash</td><td>chip1_triculture_dissociation_quench_cell_wash_filter #14 Exchange: wash_buffer</td></tr><tr><td>7</td><td>filter</td><td>Filter the suspension through a cell strainer to remove clumps.</td><td>chip1_triculture_dissociation_quench_cell_wash_filter.cell_filter</td><td>chip1_triculture_dissociation_quench_cell_wash_filter #15 Pass through</td></tr><tr><td>8</td><td>count</td><td>Count the cells and check viability.</td><td>off chip (bench)</td><td></td></tr><tr><td>9</td><td>encapsulate</td><td>Wrap single cells in droplets of shell polymer around an aqueous core, formed in fluorinated oil at a chip junction.</td><td>chip2_encapsulation_emulsion_break_capsule_wash_curing.encap_junction</td><td>chip2_encapsulation_emulsion_break_capsule_wash_curing #1 Encapsulate (co-flow)</td></tr><tr><td>10</td><td>break_emulsion</td><td>Break the emulsion with an emulsion-breaking agent and remove the oil phase.</td><td>chip2_encapsulation_emulsion_break_capsule_wash_curing.capsule_trap</td><td>chip2_encapsulation_emulsion_break_capsule_wash_curing #2 Exchange: emulsion_breaker</td></tr><tr><td>11</td><td>wash_particles</td><td>Wash the capsules to remove leftover oil.</td><td>chip2_encapsulation_emulsion_break_capsule_wash_curing.capsule_trap</td><td>chip2_encapsulation_emulsion_break_capsule_wash_curing #3 Exchange: wash_buffer x3</td></tr><tr><td>12</td><td>cure</td><td>Cure the capsule shells with light.</td><td>chip2_encapsulation_emulsion_break_capsule_wash_curing.capsule_trap</td><td>chip2_encapsulation_emulsion_break_capsule_wash_curing #4 Cure (405 nm)</td></tr><tr><td>13</td><td>wash_particles</td><td>Wash the cured capsules.</td><td>chip2_encapsulation_emulsion_break_capsule_wash_curing.capsule_trap</td><td>chip2_encapsulation_emulsion_break_capsule_wash_curing #5 Exchange: wash_buffer x2; chip2_encapsulation_emulsion_break_capsule_wash_curing #6 Collect the capsules (outlet_1)</td></tr><tr><td>14</td><td>lyse</td><td>Lyse the cells inside the capsules (placeholder time and temperature).</td><td>chip3_lysis_rt_split_index_pcr_pool_release.reaction_trap</td><td>chip3_lysis_rt_split_index_pcr_pool_release #1 Load capsules from the hand-off from chip2_encapsulation_emulsion_break_capsule_wash_curing; chip3_lysis_rt_split_index_pcr_pool_release #2 Exchange: lysis_buffer; chip3_lysis_rt_split_index_pcr_pool_release #3 Incubate</td></tr><tr><td>15</td><td>wash_particles</td><td>Wash the capsules after lysis.</td><td>chip3_lysis_rt_split_index_pcr_pool_release.reaction_trap</td><td>chip3_lysis_rt_split_index_pcr_pool_release #4 Exchange: wash_buffer x3</td></tr><tr><td>16</td><td>reverse_transcribe</td><td>Reverse transcribe the RNA inside the capsules (placeholder time and temperature).</td><td>chip3_lysis_rt_split_index_pcr_pool_release.reaction_trap</td><td>chip3_lysis_rt_split_index_pcr_pool_release #5 Exchange: rt_mix; chip3_lysis_rt_split_index_pcr_pool_release #6 Incubate</td></tr><tr><td>17</td><td>wash_particles</td><td>Wash the capsules after reverse transcription.</td><td>chip3_lysis_rt_split_index_pcr_pool_release.reaction_trap</td><td>chip3_lysis_rt_split_index_pcr_pool_release #7 Exchange: wash_buffer x2</td></tr><tr><td>18</td><td>split</td><td>Split the capsules into four sublibrary portions.</td><td>chip3_lysis_rt_split_index_pcr_pool_release.split_2</td><td>chip3_lysis_rt_split_index_pcr_pool_release #8 Split</td></tr><tr><td>19</td><td>amplify</td><td>Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).</td><td>chip3_lysis_rt_split_index_pcr_pool_release.pcr_1</td><td>chip3_lysis_rt_split_index_pcr_pool_release #9 Exchange: index_mix_1; chip3_lysis_rt_split_index_pcr_pool_release #10 Exchange: index_mix_2; chip3_lysis_rt_split_index_pcr_pool_release #11 Exchange: index_mix_3; chip3_lysis_rt_split_index_pcr_pool_release #12 Exchange: index_mix_4; chip3_lysis_rt_split_index_pcr_pool_release #13 Thermal cycling: N cycles</td></tr><tr><td>20</td><td>release</td><td>Release the cDNA from the capsules by digesting the shell with a shell-digesting enzyme (placeholder time and temperature).</td><td>chip3_lysis_rt_split_index_pcr_pool_release.release_trap</td><td>chip3_lysis_rt_split_index_pcr_pool_release #14 Move capsules: pcr_1 → release_trap; chip3_lysis_rt_split_index_pcr_pool_release #15 Release with release_enzyme</td></tr><tr><td>21</td><td>bind_beads</td><td>Bind the released cDNA to magnetic beads.</td><td>chip4_bead_binding_wash_elution.bead_chamber</td><td>chip4_bead_binding_wash_elution #1 Exchange: magnetic_beads; chip4_bead_binding_wash_elution #2 Load nucleic_acid from the hand-off from chip3_lysis_rt_split_index_pcr_pool_release; chip4_bead_binding_wash_elution #3 Incubate</td></tr><tr><td>22</td><td>wash_particles</td><td>Wash the beads on a magnet.</td><td>chip4_bead_binding_wash_elution.bead_chamber</td><td>chip4_bead_binding_wash_elution #4 Exchange: ethanol_wash x2</td></tr><tr><td>23</td><td>elute</td><td>Elute the library from the beads.</td><td>chip4_bead_binding_wash_elution.bead_chamber</td><td>chip4_bead_binding_wash_elution #5 Exchange: elution_buffer; chip4_bead_binding_wash_elution #6 Incubate; chip4_bead_binding_wash_elution #7 Collect the library (outlet_1)</td></tr><tr><td>24</td><td>pool</td><td>Pool the four cleaned-up sublibraries for sequencing.</td><td>chip3_lysis_rt_split_index_pcr_pool_release.pool_2</td><td>chip3_lysis_rt_split_index_pcr_pool_release #16 Pool; chip3_lysis_rt_split_index_pcr_pool_release #17 Collect the library (outlet_1)</td></tr><tr><td>25</td><td>measure</td><td>Measure library concentration and fragment size.</td><td>off chip (bench)</td><td></td></tr></tbody></table></div>
+<h2>Off-chip steps</h2>
+<div class="scroll"><table><thead><tr><th>Steps</th><th>Why off chip</th><th>Equipment</th></tr></thead><tbody><tr><td>8</td><td>Cell counting and viability check are bench steps; the cell counter is not in the lab equipment list.</td><td>pipette, microscope</td></tr><tr><td>25</td><td>Library concentration and size measurement are done on the bench (fluorometer is not on the lab list).</td><td>pipette</td></tr></tbody></table></div>
+<h2>Missing parts</h2>
+<p>None.</p>
+<h2>Hand-offs</h2>
+<div class="scroll"><table><thead><tr><th>From</th><th>To</th><th>Carries</th><th>How</th><th>Via bench steps</th></tr></thead><tbody><tr><td>chip1_triculture_dissociation_quench_cell_wash_filter <code>outlet_1</code></td><td>chip2_encapsulation_emulsion_break_capsule_wash_curing <code>inlet_1</code></td><td>filtered single cells (cell count checked on the bench)</td><td>off chip step</td><td>8</td></tr><tr><td>chip2_encapsulation_emulsion_break_capsule_wash_curing <code>outlet_1</code></td><td>chip3_lysis_rt_split_index_pcr_pool_release <code>inlet_1</code></td><td>cured capsules</td><td>tubing</td><td>-</td></tr><tr><td>chip3_lysis_rt_split_index_pcr_pool_release <code>outlet_1</code></td><td>chip4_bead_binding_wash_elution <code>inlet_1</code></td><td>released cDNA</td><td>tubing</td><td>-</td></tr></tbody></table></div>
+<h2>Assumptions</h2>
+<ul><li>(extract) No written protocol was given; the full step list is expanded from standard published methods.</li><li>(extract) Added steps: separate and shared-medium culture details, quench, centrifuge, resuspend, filter, count, post-emulsion-break oil wash, post-cure wash, post-lysis wash, post-RT wash, pooling and final QC.</li><li>(extract) Culture durations, dissociation time and temperature, centrifuge speed, volumes, curing time, 405 nm curing light and wash repeat counts are typical stand-in values.</li><li>(extract) Lysis, reverse transcription, index PCR and enzymatic release times, temperatures and cycle numbers are left as placeholders for the lab to set.</li><li>(extract) The order break emulsion then cure follows the goal text; the capsules are taken to be collected into aqueous phase after the emulsion is broken.</li><li>(extract) Magnetic bead clean-up is written out as bind, wash on magnet and elute.</li><li>(extract) Reagent identities (shell polymer, oil, enzymes, buffers) are generic assumptions.</li><li>(extract) step 1 was inferred, not stated: Culture neurons, microglia and astrocytes in separate vessels, side by side, each in its own medium.</li><li>(extract) step 2 was inferred, not stated: Continue culture of the three cell types sharing medium (co-culture or shared medium flow).</li><li>(extract) step 3 was inferred, not stated: Detach the cells with a dissociation enzyme.</li><li>(extract) step 4 was inferred, not stated: Quench the dissociation enzyme.</li><li>(extract) step 5 was inferred, not stated: Centrifuge the cell suspension to pellet the cells.</li><li>(extract) step 6 was inferred, not stated: Resuspend the cells in wash buffer.</li><li>(extract) step 7 was inferred, not stated: Filter the suspension through a cell strainer to remove clumps.</li><li>(extract) step 8 was inferred, not stated: Count the cells and check viability.</li><li>(extract) step 11 was inferred, not stated: Wash the capsules to remove leftover oil.</li><li>(extract) step 12 was inferred, not stated: Cure the capsule shells with light.</li><li>(extract) step 13 was inferred, not stated: Wash the cured capsules.</li><li>(extract) step 14 was inferred, not stated: Lyse the cells inside the capsules (placeholder time and temperature).</li><li>(extract) step 15 was inferred, not stated: Wash the capsules after lysis.</li><li>(extract) step 16 was inferred, not stated: Reverse transcribe the RNA inside the capsules (placeholder time and temperature).</li><li>(extract) step 17 was inferred, not stated: Wash the capsules after reverse transcription.</li><li>(extract) step 21 was inferred, not stated: Bind the released cDNA to magnetic beads.</li><li>(extract) step 22 was inferred, not stated: Wash the beads on a magnet.</li><li>(extract) step 23 was inferred, not stated: Elute the library from the beads.</li><li>(extract) step 24 was inferred, not stated: Pool the four cleaned-up sublibraries for sequencing.</li><li>(extract) step 25 was inferred, not stated: Measure library concentration and fragment size.</li><li>(run plan) Exchanges push 3 chamber volumes per wash; bench volumes don&#x27;t carry over to the chip.</li><li>(run plan) Default flows where the protocol gives none: cells 10, capsules 20, droplets 5, beads 20, gel 5, oil 10, anything else 20 µL/min; lowered automatically when the chamber shear limit (cells 1, capsules 5, droplets 5 dyn/cm2) would be passed.</li><li>(run plan) Encapsulation co-flow when the chip spec has none: core / shell / oil 120 / 120 / 600 µL/h.</li><li>(run plan) No on-chip valves: each step&#x27;s flow is set by which syringe pushes, which outlet is open and which ports are capped.</li><li>(run plan) Pressures are on-chip only (operator/network.py); tubing adds to what the pump sees.</li></ul>
+<h2>Flow-check results</h2>
+<p>Every step&#x27;s port states were solved with operator/network.py on the chip spec: does the flow go through the target module, does anything flow back into modules holding other material, pressure against the constraints, shear in cell- and capsule-holding modules, pump range and number of pump lines.</p>
+<h3>chip1_triculture_dissociation_quench_cell_wash_filter: Tri-culture, dissociation, quench, cell wash and filter chip</h3>
+<div class="scroll"><table><thead><tr><th>#</th><th>IR step</th><th>Module</th><th>What</th><th>Port states</th><th>Through target (µL/min)</th><th>Max kPa</th><th>Shear (dyn/cm2)</th><th>Result</th></tr></thead><tbody><tr><td>1</td><td>1</td><td>culture_neurons</td><td>Load cells from the bench</td><td>FEED culture_medium_neurons_in 10 µL/min (cells_for_culture_neurons) | VENT culture_neurons_vent_out | rest capped</td><td>10</td><td>0.0021</td><td>0.0032</td><td>OK</td></tr><tr><td>2</td><td>1</td><td>culture_microglia</td><td>Load cells from the bench</td><td>FEED culture_medium_microglia_in 10 µL/min (cells_for_culture_microglia) | VENT microglia_vent_out | rest capped</td><td>10</td><td>0.0021</td><td>0.0032</td><td>OK</td></tr><tr><td>3</td><td>1</td><td>culture_astrocytes</td><td>Load cells from the bench</td><td>FEED culture_medium_astrocytes_in 10 µL/min (cells_for_culture_astrocytes) | VENT astrocytes_vent_out | rest capped</td><td>10</td><td>0.0021</td><td>0.0032</td><td>OK</td></tr><tr><td>4</td><td>1</td><td>culture_neurons</td><td>Culture apart 7 d (3 chambers, own medium each, change every 1 d)</td><td>FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons); culture_medium_microglia_in 10 µL/min (culture_medium_microglia); culture_medium_astrocytes_in 10 µL/min (culture_medium_astrocytes) | VENT culture_neurons_vent_out, microglia_vent_out, astrocytes_vent_out | rest capped</td><td>10</td><td>0.0021</td><td>0.0032</td><td>OK</td></tr><tr><td>5</td><td>2</td><td>culture_neurons</td><td>Culture apart 1 d (3 chambers, own medium each, change every 12 h)</td><td>FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons); culture_medium_microglia_in 10 µL/min (culture_medium_microglia); culture_medium_astrocytes_in 10 µL/min (culture_medium_astrocytes) | VENT culture_neurons_vent_out, microglia_vent_out, astrocytes_vent_out | rest capped</td><td>10</td><td>0.0021</td><td>0.0032</td><td>OK</td></tr><tr><td>6</td><td>2</td><td>culture_neurons</td><td>Culture sharing medium 1 d (feed culture_neurons, vent the others)</td><td>FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons) | VENT microglia_vent_out, astrocytes_vent_out | rest capped</td><td>10</td><td>0.0021</td><td>0.0032</td><td>OK</td></tr><tr><td>7</td><td>3</td><td>culture_neurons</td><td>Exchange: dissociation_enzyme</td><td>FEED culture_medium_neurons_in 10 µL/min (dissociation_enzyme) | VENT culture_neurons_vent_out | rest capped</td><td>10</td><td>0.0021</td><td>0.0032</td><td>OK</td></tr><tr><td>8</td><td>3</td><td>culture_microglia</td><td>Exchange: dissociation_enzyme</td><td>FEED culture_medium_microglia_in 10 µL/min (dissociation_enzyme) | VENT microglia_vent_out | rest capped</td><td>10</td><td>0.0021</td><td>0.0032</td><td>OK</td></tr><tr><td>9</td><td>3</td><td>culture_astrocytes</td><td>Exchange: dissociation_enzyme</td><td>FEED culture_medium_astrocytes_in 10 µL/min (dissociation_enzyme) | VENT astrocytes_vent_out | rest capped</td><td>10</td><td>0.0021</td><td>0.0032</td><td>OK</td></tr><tr><td>10</td><td>3</td><td>culture_astrocytes</td><td>Incubate</td><td>all capped</td><td></td><td></td><td></td><td>no flow: every port capped</td></tr><tr><td>11</td><td>4</td><td>quench_join</td><td>Mix quench_solution into the stream</td><td>FEED inlet_1 10 µL/min (carrier_buffer); quench_solution_in 10 µL/min (quench_solution) | VENT cell_wash_waste_out | rest capped</td><td>20</td><td>0.0631</td><td>0.0988</td><td>OK</td></tr><tr><td>12</td><td>5</td><td>cell_wash</td><td>Exchange: wash_buffer</td><td>FEED wash_buffer_in 10 µL/min (wash_buffer) | VENT cell_wash_waste_out | rest capped</td><td>10</td><td>0.0359</td><td>0.0025</td><td>OK</td></tr><tr><td>13</td><td>5</td><td>cell_wash</td><td>Incubate</td><td>all capped</td><td></td><td></td><td></td><td>no flow: every port capped</td></tr><tr><td>14</td><td>6</td><td>cell_wash</td><td>Exchange: wash_buffer</td><td>FEED wash_buffer_in 10 µL/min (wash_buffer) | VENT cell_wash_waste_out | rest capped</td><td>10</td><td>0.0359</td><td>0.0025</td><td>OK</td></tr><tr><td>15</td><td>7</td><td>cell_filter</td><td>Pass through</td><td>FEED inlet_1 10 µL/min (carrier_buffer) | VENT outlet_1 | rest capped</td><td>10</td><td>0.0066</td><td>0.0444</td><td>OK</td></tr></tbody></table></div>
+<ul><li><span class="sev-warning">warning</span> step 3: module culture_neurons has no inlet named for dissociation_enzyme; it goes in through culture_medium_neurons_in (swap that syringe and prime the line first)</li><li><span class="sev-warning">warning</span> step 3: module culture_microglia has no inlet named for dissociation_enzyme; it goes in through culture_medium_microglia_in (swap that syringe and prime the line first)</li><li><span class="sev-warning">warning</span> step 3: module culture_astrocytes has no inlet named for dissociation_enzyme; it goes in through culture_medium_astrocytes_in (swap that syringe and prime the line first)</li></ul>
+<p>Operator planner: accepted, 15 events in <code>runs/chip1_triculture_dissociation_quench_cell_wash_filter.twin_run.json</code>.</p>
+<h3>chip2_encapsulation_emulsion_break_capsule_wash_curing: Encapsulation, emulsion break, capsule wash and curing chip</h3>
+<div class="scroll"><table><thead><tr><th>#</th><th>IR step</th><th>Module</th><th>What</th><th>Port states</th><th>Through target (µL/min)</th><th>Max kPa</th><th>Shear (dyn/cm2)</th><th>Result</th></tr></thead><tbody><tr><td>1</td><td>9</td><td>encap_junction</td><td>Encapsulate (co-flow)</td><td>FEED inlet_1 1 µL/min (cells_suspension); core_solution_in 1 µL/min (core_solution); shell_polymer_in 2 µL/min (shell_polymer); fluorinated_oil_in 10 µL/min (fluorinated_oil) | VENT capsule_trap_waste_out | rest capped</td><td>14</td><td>0.0133</td><td>0.0415</td><td>OK</td></tr><tr><td>2</td><td>10</td><td>capsule_trap</td><td>Exchange: emulsion_breaker</td><td>FEED emulsion_breaker_in 5 µL/min (emulsion_breaker) | VENT capsule_trap_waste_out | rest capped</td><td>5</td><td>0.0011</td><td>0.00226</td><td>OK</td></tr><tr><td>3</td><td>11</td><td>capsule_trap</td><td>Exchange: wash_buffer x3</td><td>FEED wash_buffer_in 20 µL/min (wash_buffer) | VENT capsule_trap_waste_out | rest capped</td><td>20</td><td>0.0043</td><td>0.00905</td><td>OK</td></tr><tr><td>4</td><td>12</td><td>capsule_trap</td><td>Cure (405 nm)</td><td>all capped</td><td></td><td></td><td></td><td>no flow: every port capped</td></tr><tr><td>5</td><td>13</td><td>capsule_trap</td><td>Exchange: wash_buffer x2</td><td>FEED wash_buffer_in 20 µL/min (wash_buffer) | VENT capsule_trap_waste_out | rest capped</td><td>20</td><td>0.0043</td><td>0.00905</td><td>OK</td></tr><tr><td>6</td><td>13</td><td>capsule_trap</td><td>Collect the capsules (outlet_1)</td><td>FEED wash_buffer_in 20 µL/min (collection_buffer) | VENT outlet_1 | rest capped</td><td>20</td><td>0.0031</td><td>0.00905</td><td>OK</td></tr></tbody></table></div>
+<p>Operator planner: accepted, 6 events in <code>runs/chip2_encapsulation_emulsion_break_capsule_wash_curing.twin_run.json</code>.</p>
+<h3>chip3_lysis_rt_split_index_pcr_pool_release: Lysis, RT, split, index PCR, pool and release chip</h3>
+<div class="scroll"><table><thead><tr><th>#</th><th>IR step</th><th>Module</th><th>What</th><th>Port states</th><th>Through target (µL/min)</th><th>Max kPa</th><th>Shear (dyn/cm2)</th><th>Result</th></tr></thead><tbody><tr><td>1</td><td>14</td><td>reaction_trap</td><td>Load capsules from the hand-off from chip2_encapsulation_emulsion_break_capsule_wash_curing</td><td>FEED inlet_1 20 µL/min (capsules_sample) | VENT reaction_trap_waste_out | rest capped</td><td>20</td><td>0.0375</td><td>0.00905</td><td>OK</td></tr><tr><td>2</td><td>14</td><td>reaction_trap</td><td>Exchange: lysis_buffer</td><td>FEED wash_buffer_in 20 µL/min (lysis_buffer) | VENT reaction_trap_waste_out | rest capped</td><td>20</td><td>0.0734</td><td>0.00905</td><td>OK</td></tr><tr><td>3</td><td>14</td><td>reaction_trap</td><td>Incubate</td><td>all capped</td><td></td><td></td><td></td><td>no flow: every port capped</td></tr><tr><td>4</td><td>15</td><td>reaction_trap</td><td>Exchange: wash_buffer x3</td><td>FEED wash_buffer_in 20 µL/min (wash_buffer) | VENT reaction_trap_waste_out | rest capped</td><td>20</td><td>0.0734</td><td>0.00905</td><td>OK</td></tr><tr><td>5</td><td>16</td><td>reaction_trap</td><td>Exchange: rt_mix</td><td>FEED inlet_1 20 µL/min (rt_mix) | VENT reaction_trap_waste_out | rest capped</td><td>20</td><td>0.0375</td><td>0.00905</td><td>OK</td></tr><tr><td>6</td><td>16</td><td>reaction_trap</td><td>Incubate</td><td>all capped</td><td></td><td></td><td></td><td>no flow: every port capped</td></tr><tr><td>7</td><td>17</td><td>reaction_trap</td><td>Exchange: wash_buffer x2</td><td>FEED wash_buffer_in 20 µL/min (wash_buffer) | VENT reaction_trap_waste_out | rest capped</td><td>20</td><td>0.0734</td><td>0.00905</td><td>OK</td></tr><tr><td>8</td><td>18</td><td>split_2</td><td>Split</td><td>FEED inlet_1 20 µL/min (carrier_buffer) | VENT pcr_1_vent_out, pcr_2_vent_out, pcr_3_vent_out, pcr_4_vent_out | rest capped</td><td>20</td><td>0.0018</td><td>0.00213</td><td>OK</td></tr><tr><td>9</td><td>19</td><td>pcr_1</td><td>Exchange: index_mix_1</td><td>FEED index_mix_1_in 20 µL/min (index_mix_1) | VENT pcr_1_vent_out | rest capped</td><td>20</td><td>0.0042</td><td>0.0128</td><td>OK</td></tr><tr><td>10</td><td>19</td><td>pcr_2</td><td>Exchange: index_mix_2</td><td>FEED index_mix_2_in 20 µL/min (index_mix_2) | VENT pcr_2_vent_out | rest capped</td><td>20</td><td>0.0042</td><td>0.0128</td><td>OK</td></tr><tr><td>11</td><td>19</td><td>pcr_3</td><td>Exchange: index_mix_3</td><td>FEED index_mix_3_in 20 µL/min (index_mix_3) | VENT pcr_3_vent_out | rest capped</td><td>20</td><td>0.0042</td><td>0.0128</td><td>OK</td></tr><tr><td>12</td><td>19</td><td>pcr_4</td><td>Exchange: index_mix_4</td><td>FEED index_mix_4_in 20 µL/min (index_mix_4) | VENT pcr_4_vent_out | rest capped</td><td>20</td><td>0.0042</td><td>0.0128</td><td>OK</td></tr><tr><td>13</td><td>19</td><td>pcr_4</td><td>Thermal cycling: N cycles</td><td>all capped</td><td></td><td></td><td></td><td>no flow: every port capped</td></tr><tr><td>14</td><td>20</td><td>release_trap</td><td>Move capsules: pcr_1 → release_trap</td><td>FEED inlet_1 20 µL/min (carrier_buffer) | VENT release_trap_waste_out | rest capped</td><td>20</td><td>0.0404</td><td>0.00905</td><td>OK</td></tr><tr><td>15</td><td>20</td><td>release_trap</td><td>Release with release_enzyme</td><td>FEED release_enzyme_in 20 µL/min (release_enzyme) | VENT outlet_1 | rest capped</td><td>20</td><td>0.0418</td><td>0.00905</td><td>OK</td></tr><tr><td>16</td><td>24</td><td>pool_2</td><td>Pool</td><td>FEED inlet_1 20 µL/min (library_suspension) | VENT outlet_1 | rest capped</td><td>20</td><td>0.0089</td><td>0.00213</td><td>OK</td></tr><tr><td>17</td><td>24</td><td>pool_2</td><td>Collect the library (outlet_1)</td><td>FEED inlet_1 20 µL/min (collection_buffer) | VENT outlet_1 | rest capped</td><td>20</td><td>0.0089</td><td>0.00213</td><td>OK</td></tr></tbody></table></div>
+<p>Operator planner: accepted, 17 events in <code>runs/chip3_lysis_rt_split_index_pcr_pool_release.twin_run.json</code>.</p>
+<h3>chip4_bead_binding_wash_elution: Bead binding, ethanol wash and elution chip</h3>
+<div class="scroll"><table><thead><tr><th>#</th><th>IR step</th><th>Module</th><th>What</th><th>Port states</th><th>Through target (µL/min)</th><th>Max kPa</th><th>Shear (dyn/cm2)</th><th>Result</th></tr></thead><tbody><tr><td>1</td><td>21</td><td>bead_chamber</td><td>Exchange: magnetic_beads</td><td>FEED magnetic_beads_in 20 µL/min (magnetic_beads) | VENT bead_waste_out | rest capped</td><td>20</td><td>0.0044</td><td>0.00905</td><td>OK</td></tr><tr><td>2</td><td>21</td><td>bead_chamber</td><td>Load nucleic_acid from the hand-off from chip3_lysis_rt_split_index_pcr_pool_release</td><td>FEED inlet_1 20 µL/min (nucleic_acid_sample) | VENT bead_waste_out | rest capped</td><td>20</td><td>0.0062</td><td>0.00905</td><td>OK</td></tr><tr><td>3</td><td>21</td><td>bead_chamber</td><td>Incubate</td><td>all capped</td><td></td><td></td><td></td><td>no flow: every port capped</td></tr><tr><td>4</td><td>22</td><td>bead_chamber</td><td>Exchange: ethanol_wash x2</td><td>FEED ethanol_wash_in 20 µL/min (ethanol_wash) | VENT bead_waste_out | rest capped</td><td>20</td><td>0.0044</td><td>0.00905</td><td>OK</td></tr><tr><td>5</td><td>23</td><td>bead_chamber</td><td>Exchange: elution_buffer</td><td>FEED elution_buffer_in 20 µL/min (elution_buffer) | VENT bead_waste_out | rest capped</td><td>20</td><td>0.0044</td><td>0.00905</td><td>OK</td></tr><tr><td>6</td><td>23</td><td>bead_chamber</td><td>Incubate</td><td>all capped</td><td></td><td></td><td></td><td>no flow: every port capped</td></tr><tr><td>7</td><td>23</td><td>bead_chamber</td><td>Collect the library (outlet_1)</td><td>FEED elution_buffer_in 20 µL/min (collection_buffer) | VENT outlet_1 | rest capped</td><td>20</td><td>0.0072</td><td>0.00905</td><td>OK</td></tr></tbody></table></div>
+<p>Operator planner: accepted, 7 events in <code>runs/chip4_bead_binding_wash_elution.twin_run.json</code>.</p>
+<h2>Lab run sheet</h2>
+<p>The whole protocol as it runs in the lab, in protocol order across chips, bench steps and hand-offs. FEED = the pump pushes into the port, VENT = open to a tube, every port not named is capped. The same sheet is in <code>runs/pipeline_run_sheet.md</code>.</p>
+<ol class="seq">
+<li class="on_chip"><span class="tag">step 1 · chip1_triculture_dissociation_quench_cell_wash_filter · culture_neurons</span>Culture neurons, microglia and astrocytes in separate vessels, side by side, each in its own medium.<div class="ph">#1 <strong>Load cells from the bench</strong>: FEED culture_medium_neurons_in 10 µL/min (cells_for_culture_neurons) | VENT culture_neurons_vent_out | rest capped; 15 min. Watch: the cells arrives in culture_neurons and stays there; liquid leaves at culture_neurons_vent_out</div><div class="ph">#2 <strong>Load cells from the bench</strong>: FEED culture_medium_microglia_in 10 µL/min (cells_for_culture_microglia) | VENT microglia_vent_out | rest capped; 15 min. Watch: the cells arrives in culture_microglia and stays there; liquid leaves at microglia_vent_out</div><div class="ph">#3 <strong>Load cells from the bench</strong>: FEED culture_medium_astrocytes_in 10 µL/min (cells_for_culture_astrocytes) | VENT astrocytes_vent_out | rest capped; 15 min. Watch: the cells arrives in culture_astrocytes and stays there; liquid leaves at astrocytes_vent_out</div><div class="ph">#4 <strong>Culture apart 7 d (3 chambers, own medium each, change every 1 d)</strong>: FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons); culture_medium_microglia_in 10 µL/min (culture_medium_microglia); culture_medium_astrocytes_in 10 µL/min (culture_medium_astrocytes) | VENT culture_neurons_vent_out, microglia_vent_out, astrocytes_vent_out | rest capped; 7 d; 37 °C. Watch: every 1 d, all 3 pumps together: each chamber&#x27;s medium leaves through its own vent and nothing crosses the junction; check each culture on the microscope</div></li>
+<li class="on_chip"><span class="tag">step 2 · chip1_triculture_dissociation_quench_cell_wash_filter · culture_neurons</span>Continue culture of the three cell types sharing medium (co-culture or shared medium flow).<div class="ph">#5 <strong>Culture apart 1 d (3 chambers, own medium each, change every 12 h)</strong>: FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons); culture_medium_microglia_in 10 µL/min (culture_medium_microglia); culture_medium_astrocytes_in 10 µL/min (culture_medium_astrocytes) | VENT culture_neurons_vent_out, microglia_vent_out, astrocytes_vent_out | rest capped; 1 d; 37 °C. Watch: every 12 h, all 3 pumps together: each chamber&#x27;s medium leaves through its own vent and nothing crosses the junction; check each culture on the microscope</div><div class="ph">#6 <strong>Culture sharing medium 1 d (feed culture_neurons, vent the others)</strong>: FEED culture_medium_neurons_in 10 µL/min (culture_medium_neurons) | VENT microglia_vent_out, astrocytes_vent_out | rest capped; 1 d; 37 °C. Watch: medium from culture_neurons reaches the other chambers through the junction and leaves at microglia_vent_out, astrocytes_vent_out</div></li>
+<li class="on_chip"><span class="tag">step 3 · chip1_triculture_dissociation_quench_cell_wash_filter · culture_neurons</span>Detach the cells with a dissociation enzyme.<div class="ph">#7 <strong>Exchange: dissociation_enzyme</strong>: FEED culture_medium_neurons_in 10 µL/min (dissociation_enzyme) | VENT culture_neurons_vent_out | rest capped; 15 min; 37 °C. Watch: dissociation_enzyme reaches culture_neurons and leaves at culture_neurons_vent_out; no bubbles in the chamber</div><div class="ph">#8 <strong>Exchange: dissociation_enzyme</strong>: FEED culture_medium_microglia_in 10 µL/min (dissociation_enzyme) | VENT microglia_vent_out | rest capped; 15 min; 37 °C. Watch: dissociation_enzyme reaches culture_microglia and leaves at microglia_vent_out; no bubbles in the chamber</div><div class="ph">#9 <strong>Exchange: dissociation_enzyme</strong>: FEED culture_medium_astrocytes_in 10 µL/min (dissociation_enzyme) | VENT astrocytes_vent_out | rest capped; 15 min; 37 °C. Watch: dissociation_enzyme reaches culture_astrocytes and leaves at astrocytes_vent_out; no bubbles in the chamber</div><div class="ph">#10 <strong>Incubate</strong>: all capped; 10 min; 37 °C. Watch: temperature steady at 37 °C; nothing moving; capped ports not leaking</div></li>
+<li class="on_chip"><span class="tag">step 4 · chip1_triculture_dissociation_quench_cell_wash_filter · quench_join</span>Quench the dissociation enzyme.<div class="ph">#11 <strong>Mix quench_solution into the stream</strong>: FEED inlet_1 10 µL/min (carrier_buffer); quench_solution_in 10 µL/min (quench_solution) | VENT cell_wash_waste_out | rest capped; 28.4 min. Watch: material moves from culture_neurons through quench_join towards cell_wash_waste_out; streams merge evenly; no clogging; stop the pumps once the material has reached cell_wash (its next step)</div></li>
+<li class="on_chip"><span class="tag">step 5 · chip1_triculture_dissociation_quench_cell_wash_filter · cell_wash</span>Centrifuge the cell suspension to pellet the cells.<div class="ph">#12 <strong>Exchange: wash_buffer</strong>: FEED wash_buffer_in 10 µL/min (wash_buffer) | VENT cell_wash_waste_out | rest capped; 6.14 min. Watch: wash_buffer reaches cell_wash and leaves at cell_wash_waste_out; no bubbles in the chamber; cells stay in place</div><div class="ph">#13 <strong>Incubate</strong>: all capped; 5 min; 22 °C. Watch: temperature steady at 22 °C; nothing moving; capped ports not leaking</div></li>
+<li class="on_chip"><span class="tag">step 6 · chip1_triculture_dissociation_quench_cell_wash_filter · cell_wash</span>Resuspend the cells in wash buffer.<div class="ph">#14 <strong>Exchange: wash_buffer</strong>: FEED wash_buffer_in 10 µL/min (wash_buffer) | VENT cell_wash_waste_out | rest capped; 12.3 min. Watch: wash_buffer reaches cell_wash and leaves at cell_wash_waste_out; no bubbles in the chamber; cells stay in place</div></li>
+<li class="on_chip"><span class="tag">step 7 · chip1_triculture_dissociation_quench_cell_wash_filter · cell_filter</span>Filter the suspension through a cell strainer to remove clumps.<div class="ph">#15 <strong>Pass through</strong>: FEED inlet_1 10 µL/min (carrier_buffer) | VENT outlet_1 | rest capped; 8.31 min. Watch: material moves from cell_wash through cell_filter towards outlet_1; streams merge evenly; no clogging; collect into the tube labelled &#x27;chip1_triculture_dissociation_quench_cell_wash_filter: cells after step 7, for chip2_encapsulation_emulsion_break_capsule_wash_curing inlet_1&#x27;</div></li>
+<li class="handoff"><span class="tag">hand-off</span>Hand-off out of chip1_triculture_dissociation_quench_cell_wash_filter (filtered single cells (cell count checked on the bench)): collect it from outlet_1 of chip1_triculture_dissociation_quench_cell_wash_filter into a tube, then do bench step(s) 8.</li>
+<li class="off_chip"><span class="tag">step 8 · bench</span>Count the cells and check viability.<div class="ph">Equipment: pipette, microscope</div><div class="ph">Off chip because: Cell counting and viability check are bench steps; the cell counter is not in the lab equipment list.</div></li>
+<li class="handoff"><span class="tag">hand-off</span>Hand-off into chip2_encapsulation_emulsion_break_capsule_wash_curing (filtered single cells (cell count checked on the bench)): load the tube into the syringe on inlet_1 of chip2_encapsulation_emulsion_break_capsule_wash_curing (the sample line for chip2_encapsulation_emulsion_break_capsule_wash_curing&#x27;s first step).</li>
+<li class="on_chip"><span class="tag">step 9 · chip2_encapsulation_emulsion_break_capsule_wash_curing · encap_junction</span>Wrap single cells in droplets of shell polymer around an aqueous core, formed in fluorinated oil at a chip junction.<div class="ph">#1 <strong>Encapsulate (co-flow)</strong>: FEED inlet_1 1 µL/min (cells_suspension); core_solution_in 1 µL/min (core_solution); shell_polymer_in 2 µL/min (shell_polymer); fluorinated_oil_in 10 µL/min (fluorinated_oil) | VENT capsule_trap_waste_out | rest capped; 30 min. Watch: steady droplet break-up at encap_junction (microscope); droplets travel on towards capsule_trap_waste_out; no oil backing up into the core line; stop the pumps once the material has reached capsule_trap (its next step)</div></li>
+<li class="on_chip"><span class="tag">step 10 · chip2_encapsulation_emulsion_break_capsule_wash_curing · capsule_trap</span>Break the emulsion with an emulsion-breaking agent and remove the oil phase.<div class="ph">#2 <strong>Exchange: emulsion_breaker</strong>: FEED emulsion_breaker_in 5 µL/min (emulsion_breaker) | VENT capsule_trap_waste_out | rest capped; 30 min. Watch: emulsion_breaker reaches capsule_trap and leaves at capsule_trap_waste_out; no bubbles in the chamber</div></li>
+<li class="on_chip"><span class="tag">step 11 · chip2_encapsulation_emulsion_break_capsule_wash_curing · capsule_trap</span>Wash the capsules to remove leftover oil.<div class="ph">#3 <strong>Exchange: wash_buffer x3</strong>: FEED wash_buffer_in 20 µL/min (wash_buffer) | VENT capsule_trap_waste_out | rest capped; 22.5 min. Watch: wash_buffer reaches capsule_trap and leaves at capsule_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh</div></li>
+<li class="on_chip"><span class="tag">step 12 · chip2_encapsulation_emulsion_break_capsule_wash_curing · capsule_trap</span>Cure the capsule shells with light.<div class="ph">#4 <strong>Cure (405 nm)</strong>: all capped; 1 min; light 405 nm. Watch: 405 nm light over capsule_trap for 1 min; nothing flows</div></li>
+<li class="on_chip"><span class="tag">step 13 · chip2_encapsulation_emulsion_break_capsule_wash_curing · capsule_trap</span>Wash the cured capsules.<div class="ph">#5 <strong>Exchange: wash_buffer x2</strong>: FEED wash_buffer_in 20 µL/min (wash_buffer) | VENT capsule_trap_waste_out | rest capped; 15 min. Watch: wash_buffer reaches capsule_trap and leaves at capsule_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh</div><div class="ph">#6 <strong>Collect the capsules (outlet_1)</strong>: FEED wash_buffer_in 20 µL/min (collection_buffer) | VENT outlet_1 | rest capped; 5 min. Watch: the capsules leaves capsule_trap through outlet_1 into the tube labelled &#x27;chip2_encapsulation_emulsion_break_capsule_wash_curing: capsules after step 13, for chip3_lysis_rt_split_index_pcr_pool_release inlet_1&#x27;; never to waste</div></li>
+<li class="handoff"><span class="tag">hand-off</span>Hand-off chip2_encapsulation_emulsion_break_capsule_wash_curing → chip3_lysis_rt_split_index_pcr_pool_release (cured capsules): move the outlet_1 tubing of chip2_encapsulation_emulsion_break_capsule_wash_curing to inlet_1 of chip3_lysis_rt_split_index_pcr_pool_release; keep every other port of both chips capped.</li>
+<li class="on_chip"><span class="tag">step 14 · chip3_lysis_rt_split_index_pcr_pool_release · reaction_trap</span>Lyse the cells inside the capsules (placeholder time and temperature).<div class="ph">#1 <strong>Load capsules from the hand-off from chip2_encapsulation_emulsion_break_capsule_wash_curing</strong>: FEED inlet_1 20 µL/min (capsules_sample) | VENT reaction_trap_waste_out | rest capped; 3.75 min. Watch: the capsules arrives in reaction_trap and stays there; liquid leaves at reaction_trap_waste_out</div><div class="ph">#2 <strong>Exchange: lysis_buffer</strong>: FEED wash_buffer_in 20 µL/min (lysis_buffer) | VENT reaction_trap_waste_out | rest capped; 3.75 min. Watch: lysis_buffer reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh</div><div class="ph">#3 <strong>Incubate</strong>: all capped; 10 min; 22 °C. Watch: temperature steady at 22 °C; nothing moving; capped ports not leaking</div></li>
+<li class="on_chip"><span class="tag">step 15 · chip3_lysis_rt_split_index_pcr_pool_release · reaction_trap</span>Wash the capsules after lysis.<div class="ph">#4 <strong>Exchange: wash_buffer x3</strong>: FEED wash_buffer_in 20 µL/min (wash_buffer) | VENT reaction_trap_waste_out | rest capped; 22.5 min. Watch: wash_buffer reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh</div></li>
+<li class="on_chip"><span class="tag">step 16 · chip3_lysis_rt_split_index_pcr_pool_release · reaction_trap</span>Reverse transcribe the RNA inside the capsules (placeholder time and temperature).<div class="ph">#5 <strong>Exchange: rt_mix</strong>: FEED inlet_1 20 µL/min (rt_mix) | VENT reaction_trap_waste_out | rest capped; 3.75 min; 42 °C. Watch: rt_mix reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh</div><div class="ph">#6 <strong>Incubate</strong>: all capped; 1 h; 42 °C. Watch: temperature steady at 42 °C; nothing moving; capped ports not leaking</div></li>
+<li class="on_chip"><span class="tag">step 17 · chip3_lysis_rt_split_index_pcr_pool_release · reaction_trap</span>Wash the capsules after reverse transcription.<div class="ph">#7 <strong>Exchange: wash_buffer x2</strong>: FEED wash_buffer_in 20 µL/min (wash_buffer) | VENT reaction_trap_waste_out | rest capped; 15 min. Watch: wash_buffer reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh</div></li>
+<li class="on_chip"><span class="tag">step 18 · chip3_lysis_rt_split_index_pcr_pool_release · split_2</span>Split the capsules into four sublibrary portions.<div class="ph">#8 <strong>Split</strong>: FEED inlet_1 20 µL/min (carrier_buffer) | VENT pcr_1_vent_out, pcr_2_vent_out, pcr_3_vent_out, pcr_4_vent_out | rest capped; 9.15 min. Watch: material moves from reaction_trap through split_2 towards pcr_1_vent_out, pcr_2_vent_out, pcr_3_vent_out, pcr_4_vent_out; streams merge evenly; no clogging; stop the pumps once the material is spread over pcr_1, pcr_2, pcr_3, pcr_4</div></li>
+<li class="on_chip"><span class="tag">step 19 · chip3_lysis_rt_split_index_pcr_pool_release · pcr_1</span>Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).<div class="ph">#9 <strong>Exchange: index_mix_1</strong>: FEED index_mix_1_in 20 µL/min (index_mix_1) | VENT pcr_1_vent_out | rest capped; 1.88 min; 72 °C. Watch: index_mix_1 reaches pcr_1 and leaves at pcr_1_vent_out; no bubbles in the chamber; capsules stay on the mesh</div><div class="ph">#10 <strong>Exchange: index_mix_2</strong>: FEED index_mix_2_in 20 µL/min (index_mix_2) | VENT pcr_2_vent_out | rest capped; 1.88 min; 72 °C. Watch: index_mix_2 reaches pcr_2 and leaves at pcr_2_vent_out; no bubbles in the chamber; capsules stay on the mesh</div><div class="ph">#11 <strong>Exchange: index_mix_3</strong>: FEED index_mix_3_in 20 µL/min (index_mix_3) | VENT pcr_3_vent_out | rest capped; 1.88 min; 72 °C. Watch: index_mix_3 reaches pcr_3 and leaves at pcr_3_vent_out; no bubbles in the chamber; capsules stay on the mesh</div><div class="ph">#12 <strong>Exchange: index_mix_4</strong>: FEED index_mix_4_in 20 µL/min (index_mix_4) | VENT pcr_4_vent_out | rest capped; 1.88 min; 72 °C. Watch: index_mix_4 reaches pcr_4 and leaves at pcr_4_vent_out; no bubbles in the chamber; capsules stay on the mesh</div><div class="ph">#13 <strong>Thermal cycling: N cycles</strong>: all capped; 38.2 min; 95 °C. Watch: block runs the program on thermal zone pcr_zone; ports stay capped; no bubbles or evaporation in pcr_4</div></li>
+<li class="on_chip"><span class="tag">step 20 · chip3_lysis_rt_split_index_pcr_pool_release · release_trap</span>Release the cDNA from the capsules by digesting the shell with a shell-digesting enzyme (placeholder time and temperature).<div class="ph">#14 <strong>Move capsules: pcr_1 → release_trap</strong>: FEED inlet_1 20 µL/min (carrier_buffer) | VENT release_trap_waste_out | rest capped; 7.5 min. Watch: the capsules arrives in release_trap and stays there; liquid leaves at release_trap_waste_out</div><div class="ph">#15 <strong>Release with release_enzyme</strong>: FEED release_enzyme_in 20 µL/min (release_enzyme) | VENT outlet_1 | rest capped; 5 min. Watch: material leaves through outlet_1 into a collection tube; stop when release_trap is clear; collect into the tube labelled &#x27;chip3_lysis_rt_split_index_pcr_pool_release: nucleic_acid after step 20, for chip4_bead_binding_wash_elution inlet_1&#x27;</div></li>
+<li class="handoff"><span class="tag">hand-off</span>Hand-off chip3_lysis_rt_split_index_pcr_pool_release → chip4_bead_binding_wash_elution (released cDNA): move the outlet_1 tubing of chip3_lysis_rt_split_index_pcr_pool_release to inlet_1 of chip4_bead_binding_wash_elution; keep every other port of both chips capped.</li>
+<li class="on_chip"><span class="tag">step 21 · chip4_bead_binding_wash_elution · bead_chamber</span>Bind the released cDNA to magnetic beads.<div class="ph">#1 <strong>Exchange: magnetic_beads</strong>: FEED magnetic_beads_in 20 µL/min (magnetic_beads) | VENT bead_waste_out | rest capped; 3.75 min; 22 °C. Watch: magnetic_beads reaches bead_chamber and leaves at bead_waste_out; no bubbles in the chamber</div><div class="ph">#2 <strong>Load nucleic_acid from the hand-off from chip3_lysis_rt_split_index_pcr_pool_release</strong>: FEED inlet_1 20 µL/min (nucleic_acid_sample) | VENT bead_waste_out | rest capped; 3.75 min. Watch: the nucleic_acid arrives in bead_chamber; stop the pump as soon as it is there, before it runs on towards bead_waste_out</div><div class="ph">#3 <strong>Incubate</strong>: all capped; 5 min; 22 °C. Watch: temperature steady at 22 °C; nothing moving; capped ports not leaking</div></li>
+<li class="on_chip"><span class="tag">step 22 · chip4_bead_binding_wash_elution · bead_chamber</span>Wash the beads on a magnet.<div class="ph">#4 <strong>Exchange: ethanol_wash x2</strong>: FEED ethanol_wash_in 20 µL/min (ethanol_wash) | VENT bead_waste_out | rest capped; 15 min; magnet on. Watch: ethanol_wash reaches bead_chamber and leaves at bead_waste_out; no bubbles in the chamber; magnet on, beads stay put</div></li>
+<li class="on_chip"><span class="tag">step 23 · chip4_bead_binding_wash_elution · bead_chamber</span>Elute the library from the beads.<div class="ph">#5 <strong>Exchange: elution_buffer</strong>: FEED elution_buffer_in 20 µL/min (elution_buffer) | VENT bead_waste_out | rest capped; 3.75 min; 22 °C; magnet on. Watch: elution_buffer reaches bead_chamber and leaves at bead_waste_out; no bubbles in the chamber; magnet on, beads stay put</div><div class="ph">#6 <strong>Incubate</strong>: all capped; 2 min; 22 °C; magnet on. Watch: temperature steady at 22 °C; nothing moving; capped ports not leaking</div><div class="ph">#7 <strong>Collect the library (outlet_1)</strong>: FEED elution_buffer_in 20 µL/min (collection_buffer) | VENT outlet_1 | rest capped; 5 min; magnet on. Watch: the library leaves bead_chamber through outlet_1 into the tube labelled &#x27;chip4_bead_binding_wash_elution: library after step 23&#x27;; magnet on so the beads stay behind; never to waste</div></li>
+<li class="on_chip"><span class="tag">step 24 · chip3_lysis_rt_split_index_pcr_pool_release · pool_2</span>Pool the four cleaned-up sublibraries for sequencing.<div class="ph">#16 <strong>Pool</strong>: FEED inlet_1 20 µL/min (library_suspension) | VENT outlet_1 | rest capped; 1.65 min. Watch: material moves from the inlet through pool_2 towards outlet_1; streams merge evenly; no clogging</div><div class="ph">#17 <strong>Collect the library (outlet_1)</strong>: FEED inlet_1 20 µL/min (collection_buffer) | VENT outlet_1 | rest capped; 1.65 min. Watch: the library leaves pool_2 through outlet_1 into the tube labelled &#x27;chip3_lysis_rt_split_index_pcr_pool_release: library after step 24, for chip4_bead_binding_wash_elution inlet_1&#x27;; never to waste</div></li>
+<li class="off_chip"><span class="tag">step 25 · bench</span>Measure library concentration and fragment size.<div class="ph">Equipment: pipette</div><div class="ph">Off chip because: Library concentration and size measurement are done on the bench (fluorometer is not on the lab list).</div></li>
+</ol>
+<details><summary>chip1_triculture_dissociation_quench_cell_wash_filter set-up: syringes and equipment</summary><div class="scroll"><table><thead><tr><th>Port</th><th>Syringe</th><th>Load (uL)</th><th>Run steps</th></tr></thead><tbody><tr><td><code>culture_medium_neurons_in</code></td><td>cells_for_culture_neurons</td><td>180</td><td>1</td></tr><tr><td><code>culture_medium_microglia_in</code></td><td>cells_for_culture_microglia</td><td>180</td><td>2</td></tr><tr><td><code>culture_medium_astrocytes_in</code></td><td>cells_for_culture_astrocytes</td><td>180</td><td>3</td></tr><tr><td><code>culture_medium_neurons_in</code></td><td>culture_medium_neurons</td><td>1980</td><td>4, 5, 6</td></tr><tr><td><code>culture_medium_microglia_in</code></td><td>culture_medium_microglia</td><td>1620</td><td>4, 5</td></tr><tr><td><code>culture_medium_astrocytes_in</code></td><td>culture_medium_astrocytes</td><td>1620</td><td>4, 5</td></tr><tr><td><code>culture_medium_neurons_in</code></td><td>dissociation_enzyme</td><td>180</td><td>7</td></tr><tr><td><code>culture_medium_microglia_in</code></td><td>dissociation_enzyme</td><td>180</td><td>8</td></tr><tr><td><code>culture_medium_astrocytes_in</code></td><td>dissociation_enzyme</td><td>180</td><td>9</td></tr><tr><td><code>inlet_1</code></td><td>carrier_buffer</td><td>440</td><td>11, 15</td></tr><tr><td><code>quench_solution_in</code></td><td>quench_solution</td><td>341</td><td>11</td></tr><tr><td><code>wash_buffer_in</code></td><td>wash_buffer</td><td>221</td><td>12, 14</td></tr></tbody></table></div><ul><li>syringe pump with 3 independent lines</li><li>heater / stage-top incubator (37 C)</li><li>microscope</li><li>tubing for every used port, plugs for capped ports, waste and collection tubes</li></ul></details>
+<details><summary>chip2_encapsulation_emulsion_break_capsule_wash_curing set-up: syringes and equipment</summary><div class="scroll"><table><thead><tr><th>Port</th><th>Syringe</th><th>Load (uL)</th><th>Run steps</th></tr></thead><tbody><tr><td><code>inlet_1</code></td><td>cells_suspension</td><td>36</td><td>1</td></tr><tr><td><code>core_solution_in</code></td><td>core_solution</td><td>36</td><td>1</td></tr><tr><td><code>shell_polymer_in</code></td><td>shell_polymer</td><td>72</td><td>1</td></tr><tr><td><code>fluorinated_oil_in</code></td><td>fluorinated_oil</td><td>360</td><td>1</td></tr><tr><td><code>emulsion_breaker_in</code></td><td>emulsion_breaker</td><td>180</td><td>2</td></tr><tr><td><code>wash_buffer_in</code></td><td>wash_buffer</td><td>900</td><td>3, 5</td></tr><tr><td><code>wash_buffer_in</code></td><td>collection_buffer</td><td>120</td><td>6</td></tr></tbody></table></div><ul><li>syringe pump with 4 independent lines</li><li>LED / lamp at 405 nm</li><li>microscope</li><li>tubing for every used port, plugs for capped ports, waste and collection tubes</li></ul></details>
+<details><summary>chip3_lysis_rt_split_index_pcr_pool_release set-up: syringes and equipment</summary><div class="scroll"><table><thead><tr><th>Port</th><th>Syringe</th><th>Load (uL)</th><th>Run steps</th></tr></thead><tbody><tr><td><code>inlet_1</code></td><td>capsules_sample</td><td>90</td><td>1</td></tr><tr><td><code>wash_buffer_in</code></td><td>lysis_buffer</td><td>90</td><td>2</td></tr><tr><td><code>wash_buffer_in</code></td><td>wash_buffer</td><td>900</td><td>4, 7</td></tr><tr><td><code>inlet_1</code></td><td>rt_mix</td><td>90</td><td>5</td></tr><tr><td><code>inlet_1</code></td><td>carrier_buffer</td><td>400</td><td>8, 14</td></tr><tr><td><code>index_mix_1_in</code></td><td>index_mix_1</td><td>45</td><td>9</td></tr><tr><td><code>index_mix_2_in</code></td><td>index_mix_2</td><td>45</td><td>10</td></tr><tr><td><code>index_mix_3_in</code></td><td>index_mix_3</td><td>45</td><td>11</td></tr><tr><td><code>index_mix_4_in</code></td><td>index_mix_4</td><td>45</td><td>12</td></tr><tr><td><code>release_enzyme_in</code></td><td>release_enzyme</td><td>120</td><td>15</td></tr><tr><td><code>inlet_1</code></td><td>library_suspension</td><td>40</td><td>16</td></tr><tr><td><code>inlet_1</code></td><td>collection_buffer</td><td>40</td><td>17</td></tr></tbody></table></div><ul><li>syringe pump with 1 independent line</li><li>heater / stage-top incubator (42, 72, 95 C)</li><li>thermocycler for thermal cycling (pcr_zone)</li><li>tubing for every used port, plugs for capped ports, waste and collection tubes</li></ul></details>
+<details><summary>chip4_bead_binding_wash_elution set-up: syringes and equipment</summary><div class="scroll"><table><thead><tr><th>Port</th><th>Syringe</th><th>Load (uL)</th><th>Run steps</th></tr></thead><tbody><tr><td><code>magnetic_beads_in</code></td><td>magnetic_beads</td><td>90</td><td>1</td></tr><tr><td><code>inlet_1</code></td><td>nucleic_acid_sample</td><td>90</td><td>2</td></tr><tr><td><code>ethanol_wash_in</code></td><td>ethanol_wash</td><td>360</td><td>4</td></tr><tr><td><code>elution_buffer_in</code></td><td>elution_buffer</td><td>90</td><td>5</td></tr><tr><td><code>elution_buffer_in</code></td><td>collection_buffer</td><td>120</td><td>7</td></tr></tbody></table></div><ul><li>syringe pump with 1 independent line</li><li>magnet under the chip</li><li>tubing for every used port, plugs for capped ports, waste and collection tubes</li></ul></details>
+<h2>Chip drawings</h2><p>Top views to scale from the layout stage (<code>cad/&lt;chip&gt;/</code>).</p>
+<h3>chip1_triculture_dissociation_quench_cell_wash_filter: Tri-culture, dissociation, quench, cell wash and filter chip</h3><div class="figure"><svg xmlns="http://www.w3.org/2000/svg" width="887" height="775" viewBox="0 0 887 775" font-family="Helvetica, Arial, sans-serif">
+<rect width="100%" height="100%" fill="white"/>
+<text x="56" y="22" font-size="15" font-weight="bold">chip1_triculture_dissociation_quench_cell_wash_filter: Tri-culture, dissociation, quench, cell wash and filter chip</text>
+<text x="56" y="40" font-size="11" fill="#444">59 x 49 mm, top view, to scale (13.6 px/mm). Origin bottom-left. Constraints: unconstrained (other). Depth 0.3 mm.</text>
+<line x1="56.00" y1="730.67" x2="56.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="56.00" y="744.67" font-size="10" text-anchor="middle" fill="#555">0</text>
+<line x1="69.61" y1="730.67" x2="69.61" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="83.21" y1="730.67" x2="83.21" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="96.82" y1="730.67" x2="96.82" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="110.42" y1="730.67" x2="110.42" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="124.03" y1="730.67" x2="124.03" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="124.03" y="744.67" font-size="10" text-anchor="middle" fill="#555">5</text>
+<line x1="137.63" y1="730.67" x2="137.63" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="151.24" y1="730.67" x2="151.24" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="164.84" y1="730.67" x2="164.84" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="178.45" y1="730.67" x2="178.45" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="192.05" y1="730.67" x2="192.05" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="192.05" y="744.67" font-size="10" text-anchor="middle" fill="#555">10</text>
+<line x1="205.66" y1="730.67" x2="205.66" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="219.27" y1="730.67" x2="219.27" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="232.87" y1="730.67" x2="232.87" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="246.48" y1="730.67" x2="246.48" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="260.08" y1="730.67" x2="260.08" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="260.08" y="744.67" font-size="10" text-anchor="middle" fill="#555">15</text>
+<line x1="273.69" y1="730.67" x2="273.69" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="287.29" y1="730.67" x2="287.29" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="300.90" y1="730.67" x2="300.90" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="314.50" y1="730.67" x2="314.50" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="328.11" y1="730.67" x2="328.11" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="328.11" y="744.67" font-size="10" text-anchor="middle" fill="#555">20</text>
+<line x1="341.71" y1="730.67" x2="341.71" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="355.32" y1="730.67" x2="355.32" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="368.93" y1="730.67" x2="368.93" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="382.53" y1="730.67" x2="382.53" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="396.14" y1="730.67" x2="396.14" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="396.14" y="744.67" font-size="10" text-anchor="middle" fill="#555">25</text>
+<line x1="409.74" y1="730.67" x2="409.74" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="423.35" y1="730.67" x2="423.35" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="436.95" y1="730.67" x2="436.95" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="450.56" y1="730.67" x2="450.56" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="464.16" y1="730.67" x2="464.16" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="464.16" y="744.67" font-size="10" text-anchor="middle" fill="#555">30</text>
+<line x1="477.77" y1="730.67" x2="477.77" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="491.37" y1="730.67" x2="491.37" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="504.98" y1="730.67" x2="504.98" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="518.59" y1="730.67" x2="518.59" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="532.19" y1="730.67" x2="532.19" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="532.19" y="744.67" font-size="10" text-anchor="middle" fill="#555">35</text>
+<line x1="545.80" y1="730.67" x2="545.80" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="559.40" y1="730.67" x2="559.40" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="573.01" y1="730.67" x2="573.01" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="586.61" y1="730.67" x2="586.61" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="600.22" y1="730.67" x2="600.22" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="600.22" y="744.67" font-size="10" text-anchor="middle" fill="#555">40</text>
+<line x1="613.82" y1="730.67" x2="613.82" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="627.43" y1="730.67" x2="627.43" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="641.03" y1="730.67" x2="641.03" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="654.64" y1="730.67" x2="654.64" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="668.24" y1="730.67" x2="668.24" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="668.24" y="744.67" font-size="10" text-anchor="middle" fill="#555">45</text>
+<line x1="681.85" y1="730.67" x2="681.85" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="695.46" y1="730.67" x2="695.46" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="709.06" y1="730.67" x2="709.06" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="722.67" y1="730.67" x2="722.67" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="736.27" y1="730.67" x2="736.27" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="736.27" y="744.67" font-size="10" text-anchor="middle" fill="#555">50</text>
+<line x1="749.88" y1="730.67" x2="749.88" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="763.48" y1="730.67" x2="763.48" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="777.09" y1="730.67" x2="777.09" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="790.69" y1="730.67" x2="790.69" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="804.30" y1="730.67" x2="804.30" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="804.30" y="744.67" font-size="10" text-anchor="middle" fill="#555">55</text>
+<line x1="817.90" y1="730.67" x2="817.90" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="831.51" y1="730.67" x2="831.51" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="845.12" y1="730.67" x2="845.12" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="858.72" y1="730.67" x2="858.72" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="730.67" x2="858.72" y2="730.67" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="734.17" font-size="10" text-anchor="end" fill="#555">0</text>
+<line x1="56.00" y1="717.06" x2="858.72" y2="717.06" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="703.46" x2="858.72" y2="703.46" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="689.85" x2="858.72" y2="689.85" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="676.24" x2="858.72" y2="676.24" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="662.64" x2="858.72" y2="662.64" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="666.14" font-size="10" text-anchor="end" fill="#555">5</text>
+<line x1="56.00" y1="649.03" x2="858.72" y2="649.03" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="635.43" x2="858.72" y2="635.43" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="621.82" x2="858.72" y2="621.82" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="608.22" x2="858.72" y2="608.22" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="594.61" x2="858.72" y2="594.61" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="598.11" font-size="10" text-anchor="end" fill="#555">10</text>
+<line x1="56.00" y1="581.01" x2="858.72" y2="581.01" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="567.40" x2="858.72" y2="567.40" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="553.80" x2="858.72" y2="553.80" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="540.19" x2="858.72" y2="540.19" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="526.59" x2="858.72" y2="526.59" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="530.09" font-size="10" text-anchor="end" fill="#555">15</text>
+<line x1="56.00" y1="512.98" x2="858.72" y2="512.98" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="499.37" x2="858.72" y2="499.37" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="485.77" x2="858.72" y2="485.77" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="472.16" x2="858.72" y2="472.16" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="458.56" x2="858.72" y2="458.56" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="462.06" font-size="10" text-anchor="end" fill="#555">20</text>
+<line x1="56.00" y1="444.95" x2="858.72" y2="444.95" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="431.35" x2="858.72" y2="431.35" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="417.74" x2="858.72" y2="417.74" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="404.14" x2="858.72" y2="404.14" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="390.53" x2="858.72" y2="390.53" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="394.03" font-size="10" text-anchor="end" fill="#555">25</text>
+<line x1="56.00" y1="376.93" x2="858.72" y2="376.93" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="363.32" x2="858.72" y2="363.32" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="349.71" x2="858.72" y2="349.71" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="336.11" x2="858.72" y2="336.11" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="322.50" x2="858.72" y2="322.50" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="326.00" font-size="10" text-anchor="end" fill="#555">30</text>
+<line x1="56.00" y1="308.90" x2="858.72" y2="308.90" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="295.29" x2="858.72" y2="295.29" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="281.69" x2="858.72" y2="281.69" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="268.08" x2="858.72" y2="268.08" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="254.48" x2="858.72" y2="254.48" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="257.98" font-size="10" text-anchor="end" fill="#555">35</text>
+<line x1="56.00" y1="240.87" x2="858.72" y2="240.87" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="227.27" x2="858.72" y2="227.27" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="213.66" x2="858.72" y2="213.66" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="200.05" x2="858.72" y2="200.05" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="186.45" x2="858.72" y2="186.45" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="189.95" font-size="10" text-anchor="end" fill="#555">40</text>
+<line x1="56.00" y1="172.84" x2="858.72" y2="172.84" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="159.24" x2="858.72" y2="159.24" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="145.63" x2="858.72" y2="145.63" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="132.03" x2="858.72" y2="132.03" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="118.42" x2="858.72" y2="118.42" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="121.92" font-size="10" text-anchor="end" fill="#555">45</text>
+<line x1="56.00" y1="104.82" x2="858.72" y2="104.82" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="91.21" x2="858.72" y2="91.21" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="77.61" x2="858.72" y2="77.61" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="64.00" x2="858.72" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<text x="457.36" y="760.67" font-size="10" text-anchor="middle" fill="#555">x (mm)</text>
+<rect x="56.00" y="64.00" width="802.72" height="666.67" fill="none" stroke="#111" stroke-width="2"/>
+<rect x="114.50" y="192.57" width="27.21" height="409.52" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="155.32" y="127.95" width="272.11" height="136.05" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="155.32" y="329.31" width="272.11" height="136.05" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="155.32" y="530.67" width="272.11" height="136.05" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="441.03" y="192.57" width="27.21" height="409.52" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="490.01" y="385.09" width="24.49" height="24.49" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="536.27" y="380.33" width="35.37" height="34.01" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="585.25" y="310.26" width="174.15" height="174.15" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="773.01" y="383.73" width="27.21" height="27.21" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<polyline points="90.01,397.33 114.50,397.33" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="468.24,397.33 490.01,397.33" fill="none" stroke="#2f6fb0" stroke-width="4.08" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="514.50,397.33 536.27,397.33" fill="none" stroke="#2f6fb0" stroke-width="4.08" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="571.65,397.33 585.25,397.33" fill="none" stroke="#2f6fb0" stroke-width="4.08" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="759.40,397.33 773.01,397.33" fill="none" stroke="#2f6fb0" stroke-width="4.08" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="800.22,397.33 824.71,397.33" fill="none" stroke="#2f6fb0" stroke-width="4.08" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="141.71,195.97 155.32,195.97" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="141.71,397.33 155.32,397.33" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="141.71,598.69 155.32,598.69" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="427.43,195.97 441.03,195.97" fill="none" stroke="#2f6fb0" stroke-width="4.08" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="427.43,397.33 441.03,397.33" fill="none" stroke="#2f6fb0" stroke-width="4.08" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="427.43,598.69 441.03,598.69" fill="none" stroke="#2f6fb0" stroke-width="4.08" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="291.37,115.70 291.37,127.95" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="291.37,264.00 291.37,276.24" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="291.37,317.06 291.37,329.31" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="270.97,465.36 270.97,477.61" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="311.78,465.36 311.78,477.61" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="291.37,518.42 291.37,530.67" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="270.97,666.72 270.97,678.97" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="311.78,666.72 311.78,678.97" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="502.26,98.01 502.26,385.09" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="672.33,98.01 672.33,310.26" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="672.33,484.41 672.33,696.65" fill="none" stroke="#2f6fb0" stroke-width="2.72" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<text x="128.11" y="617.10" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">split_1</text>
+<text x="128.11" y="629.10" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">2 x 30.1 x 0.5 mm</text>
+<text x="291.37" y="193.32" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">culture_neurons</text>
+<text x="291.37" y="205.32" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">20 x 10 x 0.5 mm</text>
+<text x="291.37" y="394.68" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">culture_microglia</text>
+<text x="291.37" y="406.68" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">20 x 10 x 0.5 mm</text>
+<text x="291.37" y="596.04" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">culture_astrocytes</text>
+<text x="291.37" y="608.04" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">20 x 10 x 0.5 mm</text>
+<text x="454.64" y="617.10" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">junction_mid</text>
+<text x="454.64" y="629.10" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">2 x 30.1 x 0.5 mm</text>
+<text x="502.26" y="424.58" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">quench_join</text>
+<text x="502.26" y="436.58" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">1.8 x 1.8 x 0.3 mm</text>
+<text x="553.96" y="360.03" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">quench_mix</text>
+<text x="553.96" y="372.03" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">2.6 x 2.5 x 0.3 mm</text>
+<text x="672.33" y="394.68" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">cell_wash</text>
+<text x="672.33" y="406.68" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">12.8 x 12.8 x 0.5 mm</text>
+<text x="786.61" y="425.94" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">cell_filter</text>
+<text x="786.61" y="437.94" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">2 x 2 x 0.3 mm</text>
+<text x="17.81" y="394.83" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">inlet_1</text>
+<text x="17.81" y="405.83" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(2.5, 24.5)</text>
+<text x="747.10" y="394.83" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">outlet_1</text>
+<text x="747.10" y="405.83" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(56.5, 24.5)</text>
+<text x="216.37" y="89.90" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">culture_medium_neurons_in</text>
+<text x="216.37" y="100.90" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(17.3, 45.2)</text>
+<text x="304.18" y="273.74" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">culture_neurons_vent_out</text>
+<text x="304.18" y="284.74" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(17.3, 33.4)</text>
+<text x="304.18" y="314.56" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">culture_medium_microglia_in</text>
+<text x="304.18" y="325.56" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(17.3, 30.4)</text>
+<text x="150.16" y="475.11" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">microglia_vent_out</text>
+<text x="150.16" y="486.11" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(15.8, 18.6)</text>
+<text x="324.59" y="475.11" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">culture_microglia_vent_out</text>
+<text x="324.59" y="486.11" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(18.8, 18.6)</text>
+<text x="304.18" y="515.92" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">culture_medium_astrocytes_in</text>
+<text x="304.18" y="526.92" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(17.3, 15.6)</text>
+<text x="213.97" y="699.77" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">astrocytes_vent_out</text>
+<text x="213.97" y="710.77" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(15.8, 3.8)</text>
+<text x="230.78" y="653.16" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">culture_astrocytes_vent_out</text>
+<text x="230.78" y="664.16" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(18.8, 3.8)</text>
+<text x="515.06" y="95.51" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">quench_solution_in</text>
+<text x="515.06" y="106.51" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(32.8, 46.5)</text>
+<text x="685.13" y="95.51" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">wash_buffer_in</text>
+<text x="685.13" y="106.51" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(45.3, 46.5)</text>
+<text x="685.13" y="694.15" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">cell_wash_waste_out</text>
+<text x="685.13" y="705.15" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(45.3, 2.5)</text>
+<circle cx="90.01" cy="397.33" r="6.80" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="824.71" cy="397.33" r="6.80" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="291.37" cy="115.70" r="6.80" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="291.37" cy="276.24" r="6.80" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="291.37" cy="317.06" r="6.80" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="270.97" cy="477.61" r="6.80" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="311.78" cy="477.61" r="6.80" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="291.37" cy="518.42" r="6.80" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="270.97" cy="678.97" r="6.80" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="311.78" cy="678.97" r="6.80" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="502.26" cy="98.01" r="6.80" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="672.33" cy="98.01" r="6.80" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="672.33" cy="696.65" r="6.80" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<rect x="56" y="755.6666666666666" width="12" height="10" fill="#2e9e44"/>
+<text x="72" y="764.6666666666666" font-size="10" fill="#333">inlet</text>
+<rect x="109.0" y="755.6666666666666" width="12" height="10" fill="#d23c3c"/>
+<text x="125.0" y="764.6666666666666" font-size="10" fill="#333">outlet</text>
+<rect x="168.2" y="755.6666666666666" width="12" height="10" fill="#2f6fb0"/>
+<text x="184.2" y="764.6666666666666" font-size="10" fill="#333">channel (true width)</text>
+</svg></div>
+<h3>chip2_encapsulation_emulsion_break_capsule_wash_curing: Encapsulation, emulsion break, capsule wash and curing chip</h3><div class="figure"><svg xmlns="http://www.w3.org/2000/svg" width="574" height="775" viewBox="0 0 574 775" font-family="Helvetica, Arial, sans-serif">
+<rect width="100%" height="100%" fill="white"/>
+<text x="56" y="22" font-size="15" font-weight="bold">chip2_encapsulation_emulsion_break_capsule_wash_curing: Encapsulation, emulsion break, capsule wash and curing chip</text>
+<text x="56" y="40" font-size="11" fill="#444">23.5 x 32 mm, top view, to scale (20.8 px/mm). Origin bottom-left. Constraints: unconstrained (other). Depth 0.3 mm.</text>
+<line x1="56.00" y1="730.67" x2="56.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="56.00" y="744.67" font-size="10" text-anchor="middle" fill="#555">0</text>
+<line x1="76.83" y1="730.67" x2="76.83" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="97.67" y1="730.67" x2="97.67" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="118.50" y1="730.67" x2="118.50" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="139.33" y1="730.67" x2="139.33" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="160.17" y1="730.67" x2="160.17" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="160.17" y="744.67" font-size="10" text-anchor="middle" fill="#555">5</text>
+<line x1="181.00" y1="730.67" x2="181.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="201.83" y1="730.67" x2="201.83" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="222.67" y1="730.67" x2="222.67" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="243.50" y1="730.67" x2="243.50" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="264.33" y1="730.67" x2="264.33" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="264.33" y="744.67" font-size="10" text-anchor="middle" fill="#555">10</text>
+<line x1="285.17" y1="730.67" x2="285.17" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="306.00" y1="730.67" x2="306.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="326.83" y1="730.67" x2="326.83" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="347.67" y1="730.67" x2="347.67" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="368.50" y1="730.67" x2="368.50" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="368.50" y="744.67" font-size="10" text-anchor="middle" fill="#555">15</text>
+<line x1="389.33" y1="730.67" x2="389.33" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="410.17" y1="730.67" x2="410.17" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="431.00" y1="730.67" x2="431.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="451.83" y1="730.67" x2="451.83" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="472.67" y1="730.67" x2="472.67" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="472.67" y="744.67" font-size="10" text-anchor="middle" fill="#555">20</text>
+<line x1="493.50" y1="730.67" x2="493.50" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="514.33" y1="730.67" x2="514.33" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="535.17" y1="730.67" x2="535.17" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="730.67" x2="545.58" y2="730.67" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="734.17" font-size="10" text-anchor="end" fill="#555">0</text>
+<line x1="56.00" y1="709.83" x2="545.58" y2="709.83" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="689.00" x2="545.58" y2="689.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="668.17" x2="545.58" y2="668.17" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="647.33" x2="545.58" y2="647.33" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="626.50" x2="545.58" y2="626.50" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="630.00" font-size="10" text-anchor="end" fill="#555">5</text>
+<line x1="56.00" y1="605.67" x2="545.58" y2="605.67" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="584.83" x2="545.58" y2="584.83" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="564.00" x2="545.58" y2="564.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="543.17" x2="545.58" y2="543.17" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="522.33" x2="545.58" y2="522.33" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="525.83" font-size="10" text-anchor="end" fill="#555">10</text>
+<line x1="56.00" y1="501.50" x2="545.58" y2="501.50" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="480.67" x2="545.58" y2="480.67" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="459.83" x2="545.58" y2="459.83" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="439.00" x2="545.58" y2="439.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="418.17" x2="545.58" y2="418.17" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="421.67" font-size="10" text-anchor="end" fill="#555">15</text>
+<line x1="56.00" y1="397.33" x2="545.58" y2="397.33" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="376.50" x2="545.58" y2="376.50" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="355.67" x2="545.58" y2="355.67" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="334.83" x2="545.58" y2="334.83" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="314.00" x2="545.58" y2="314.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="317.50" font-size="10" text-anchor="end" fill="#555">20</text>
+<line x1="56.00" y1="293.17" x2="545.58" y2="293.17" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="272.33" x2="545.58" y2="272.33" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="251.50" x2="545.58" y2="251.50" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="230.67" x2="545.58" y2="230.67" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="209.83" x2="545.58" y2="209.83" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="213.33" font-size="10" text-anchor="end" fill="#555">25</text>
+<line x1="56.00" y1="189.00" x2="545.58" y2="189.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="168.17" x2="545.58" y2="168.17" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="147.33" x2="545.58" y2="147.33" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="126.50" x2="545.58" y2="126.50" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="105.67" x2="545.58" y2="105.67" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="109.17" font-size="10" text-anchor="end" fill="#555">30</text>
+<line x1="56.00" y1="84.83" x2="545.58" y2="84.83" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="64.00" x2="545.58" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<text x="300.79" y="760.67" font-size="10" text-anchor="middle" fill="#555">x (mm)</text>
+<rect x="56.00" y="64.00" width="489.58" height="666.67" fill="none" stroke="#111" stroke-width="2"/>
+<rect x="149.75" y="143.79" width="62.50" height="62.50" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="397.67" y="228.38" width="54.17" height="52.08" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="149.75" y="339.83" width="62.50" height="62.50" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="149.75" y="512.01" width="294.63" height="147.31" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<polyline points="108.08,175.04 149.75,175.04" fill="none" stroke="#2f6fb0" stroke-width="6.25" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="212.25,175.04 462.25,175.04 462.25,254.42 451.83,254.42" fill="none" stroke="#2f6fb0" stroke-width="10.42" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="397.67,254.42 139.33,254.42 139.33,371.08 149.75,371.08" fill="none" stroke="#2f6fb0" stroke-width="10.42" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="212.25,371.08 462.25,371.08 462.25,461.29 139.33,461.29 139.33,585.67 149.75,585.67" fill="none" stroke="#2f6fb0" stroke-width="10.42" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="444.38,585.67 493.50,585.67" fill="none" stroke="#2f6fb0" stroke-width="10.42" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="181.00,116.08 181.00,143.79" fill="none" stroke="#2f6fb0" stroke-width="4.17" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="181.00,312.12 181.00,339.83" fill="none" stroke="#2f6fb0" stroke-width="4.17" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="181.00,430.04 181.00,402.33" fill="none" stroke="#2f6fb0" stroke-width="4.17" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="265.79,492.54 265.79,512.01" fill="none" stroke="#2f6fb0" stroke-width="4.17" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="328.29,492.54 328.29,512.01" fill="none" stroke="#2f6fb0" stroke-width="4.17" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="297.04,659.32 297.04,678.58" fill="none" stroke="#2f6fb0" stroke-width="4.17" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<text x="181.00" y="221.29" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">core_join</text>
+<text x="181.00" y="233.29" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">3 x 3 x 0.3 mm</text>
+<text x="424.75" y="295.46" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">core_mix</text>
+<text x="424.75" y="307.46" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">2.6 x 2.5 x 0.3 mm</text>
+<text x="264.45" y="368.43" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">encap_junction</text>
+<text x="264.45" y="380.43" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">3 x 3 x 0.3 mm</text>
+<text x="297.06" y="583.02" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">capsule_trap</text>
+<text x="297.06" y="595.02" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">14.1 x 7.07 x 0.5 mm</text>
+<text x="26.87" y="172.54" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">inlet_1</text>
+<text x="26.87" y="183.54" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(2.5, 26.67)</text>
+<text x="509.92" y="583.17" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">outlet_1</text>
+<text x="509.92" y="594.17" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(21, 6.96)</text>
+<text x="197.42" y="113.58" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">core_solution_in</text>
+<text x="197.42" y="124.58" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(6, 29.5)</text>
+<text x="197.42" y="309.62" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">shell_polymer_in</text>
+<text x="197.42" y="320.62" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(6, 20.09)</text>
+<text x="197.42" y="427.54" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">fluorinated_oil_in</text>
+<text x="197.42" y="438.54" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(6, 14.43)</text>
+<text x="135.38" y="490.04" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">emulsion_breaker_in</text>
+<text x="135.38" y="501.04" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(10.07, 11.43)</text>
+<text x="344.71" y="490.04" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">wash_buffer_in</text>
+<text x="344.71" y="501.04" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(13.07, 11.43)</text>
+<text x="313.46" y="676.08" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">capsule_trap_waste_out</text>
+<text x="313.46" y="687.08" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(11.57, 2.5)</text>
+<circle cx="108.08" cy="175.04" r="10.42" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="493.50" cy="585.67" r="10.42" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="181.00" cy="116.08" r="10.42" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="181.00" cy="312.12" r="10.42" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="181.00" cy="430.04" r="10.42" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="265.79" cy="492.54" r="10.42" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="328.29" cy="492.54" r="10.42" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="297.04" cy="678.58" r="10.42" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<rect x="56" y="755.6666666666666" width="12" height="10" fill="#2e9e44"/>
+<text x="72" y="764.6666666666666" font-size="10" fill="#333">inlet</text>
+<rect x="109.0" y="755.6666666666666" width="12" height="10" fill="#d23c3c"/>
+<text x="125.0" y="764.6666666666666" font-size="10" fill="#333">outlet</text>
+<rect x="168.2" y="755.6666666666666" width="12" height="10" fill="#2f6fb0"/>
+<text x="184.2" y="764.6666666666666" font-size="10" fill="#333">channel (true width)</text>
+</svg></div>
+<h3>chip3_lysis_rt_split_index_pcr_pool_release: Lysis, RT, split, index PCR, pool and release chip</h3><div class="figure"><svg xmlns="http://www.w3.org/2000/svg" width="925" height="775" viewBox="0 0 925 775" font-family="Helvetica, Arial, sans-serif">
+<rect width="100%" height="100%" fill="white"/>
+<text x="56" y="22" font-size="15" font-weight="bold">chip3_lysis_rt_split_index_pcr_pool_release: Lysis, RT, split, index PCR, pool and release chip</text>
+<text x="56" y="40" font-size="11" fill="#444">55.5 x 44 mm, top view, to scale (15.2 px/mm). Origin bottom-left. Constraints: unconstrained (other). Depth 0.3 mm.</text>
+<line x1="56.00" y1="730.67" x2="56.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="56.00" y="744.67" font-size="10" text-anchor="middle" fill="#555">0</text>
+<line x1="71.15" y1="730.67" x2="71.15" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="86.30" y1="730.67" x2="86.30" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="101.45" y1="730.67" x2="101.45" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="116.61" y1="730.67" x2="116.61" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="131.76" y1="730.67" x2="131.76" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="131.76" y="744.67" font-size="10" text-anchor="middle" fill="#555">5</text>
+<line x1="146.91" y1="730.67" x2="146.91" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="162.06" y1="730.67" x2="162.06" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="177.21" y1="730.67" x2="177.21" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="192.36" y1="730.67" x2="192.36" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="207.52" y1="730.67" x2="207.52" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="207.52" y="744.67" font-size="10" text-anchor="middle" fill="#555">10</text>
+<line x1="222.67" y1="730.67" x2="222.67" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="237.82" y1="730.67" x2="237.82" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="252.97" y1="730.67" x2="252.97" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="268.12" y1="730.67" x2="268.12" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="283.27" y1="730.67" x2="283.27" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="283.27" y="744.67" font-size="10" text-anchor="middle" fill="#555">15</text>
+<line x1="298.42" y1="730.67" x2="298.42" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="313.58" y1="730.67" x2="313.58" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="328.73" y1="730.67" x2="328.73" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="343.88" y1="730.67" x2="343.88" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="359.03" y1="730.67" x2="359.03" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="359.03" y="744.67" font-size="10" text-anchor="middle" fill="#555">20</text>
+<line x1="374.18" y1="730.67" x2="374.18" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="389.33" y1="730.67" x2="389.33" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="404.48" y1="730.67" x2="404.48" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="419.64" y1="730.67" x2="419.64" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="434.79" y1="730.67" x2="434.79" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="434.79" y="744.67" font-size="10" text-anchor="middle" fill="#555">25</text>
+<line x1="449.94" y1="730.67" x2="449.94" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="465.09" y1="730.67" x2="465.09" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="480.24" y1="730.67" x2="480.24" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="495.39" y1="730.67" x2="495.39" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="510.55" y1="730.67" x2="510.55" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="510.55" y="744.67" font-size="10" text-anchor="middle" fill="#555">30</text>
+<line x1="525.70" y1="730.67" x2="525.70" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="540.85" y1="730.67" x2="540.85" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="556.00" y1="730.67" x2="556.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="571.15" y1="730.67" x2="571.15" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="586.30" y1="730.67" x2="586.30" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="586.30" y="744.67" font-size="10" text-anchor="middle" fill="#555">35</text>
+<line x1="601.45" y1="730.67" x2="601.45" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="616.61" y1="730.67" x2="616.61" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="631.76" y1="730.67" x2="631.76" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="646.91" y1="730.67" x2="646.91" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="662.06" y1="730.67" x2="662.06" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="662.06" y="744.67" font-size="10" text-anchor="middle" fill="#555">40</text>
+<line x1="677.21" y1="730.67" x2="677.21" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="692.36" y1="730.67" x2="692.36" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="707.52" y1="730.67" x2="707.52" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="722.67" y1="730.67" x2="722.67" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="737.82" y1="730.67" x2="737.82" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="737.82" y="744.67" font-size="10" text-anchor="middle" fill="#555">45</text>
+<line x1="752.97" y1="730.67" x2="752.97" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="768.12" y1="730.67" x2="768.12" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="783.27" y1="730.67" x2="783.27" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="798.42" y1="730.67" x2="798.42" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="813.58" y1="730.67" x2="813.58" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="813.58" y="744.67" font-size="10" text-anchor="middle" fill="#555">50</text>
+<line x1="828.73" y1="730.67" x2="828.73" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="843.88" y1="730.67" x2="843.88" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="859.03" y1="730.67" x2="859.03" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="874.18" y1="730.67" x2="874.18" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="889.33" y1="730.67" x2="889.33" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="889.33" y="744.67" font-size="10" text-anchor="middle" fill="#555">55</text>
+<line x1="56.00" y1="730.67" x2="896.91" y2="730.67" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="734.17" font-size="10" text-anchor="end" fill="#555">0</text>
+<line x1="56.00" y1="715.52" x2="896.91" y2="715.52" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="700.36" x2="896.91" y2="700.36" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="685.21" x2="896.91" y2="685.21" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="670.06" x2="896.91" y2="670.06" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="654.91" x2="896.91" y2="654.91" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="658.41" font-size="10" text-anchor="end" fill="#555">5</text>
+<line x1="56.00" y1="639.76" x2="896.91" y2="639.76" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="624.61" x2="896.91" y2="624.61" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="609.45" x2="896.91" y2="609.45" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="594.30" x2="896.91" y2="594.30" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="579.15" x2="896.91" y2="579.15" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="582.65" font-size="10" text-anchor="end" fill="#555">10</text>
+<line x1="56.00" y1="564.00" x2="896.91" y2="564.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="548.85" x2="896.91" y2="548.85" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="533.70" x2="896.91" y2="533.70" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="518.55" x2="896.91" y2="518.55" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="503.39" x2="896.91" y2="503.39" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="506.89" font-size="10" text-anchor="end" fill="#555">15</text>
+<line x1="56.00" y1="488.24" x2="896.91" y2="488.24" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="473.09" x2="896.91" y2="473.09" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="457.94" x2="896.91" y2="457.94" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="442.79" x2="896.91" y2="442.79" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="427.64" x2="896.91" y2="427.64" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="431.14" font-size="10" text-anchor="end" fill="#555">20</text>
+<line x1="56.00" y1="412.48" x2="896.91" y2="412.48" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="397.33" x2="896.91" y2="397.33" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="382.18" x2="896.91" y2="382.18" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="367.03" x2="896.91" y2="367.03" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="351.88" x2="896.91" y2="351.88" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="355.38" font-size="10" text-anchor="end" fill="#555">25</text>
+<line x1="56.00" y1="336.73" x2="896.91" y2="336.73" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="321.58" x2="896.91" y2="321.58" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="306.42" x2="896.91" y2="306.42" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="291.27" x2="896.91" y2="291.27" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="276.12" x2="896.91" y2="276.12" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="279.62" font-size="10" text-anchor="end" fill="#555">30</text>
+<line x1="56.00" y1="260.97" x2="896.91" y2="260.97" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="245.82" x2="896.91" y2="245.82" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="230.67" x2="896.91" y2="230.67" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="215.52" x2="896.91" y2="215.52" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="200.36" x2="896.91" y2="200.36" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="203.86" font-size="10" text-anchor="end" fill="#555">35</text>
+<line x1="56.00" y1="185.21" x2="896.91" y2="185.21" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="170.06" x2="896.91" y2="170.06" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="154.91" x2="896.91" y2="154.91" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="139.76" x2="896.91" y2="139.76" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="124.61" x2="896.91" y2="124.61" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="128.11" font-size="10" text-anchor="end" fill="#555">40</text>
+<line x1="56.00" y1="109.45" x2="896.91" y2="109.45" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="94.30" x2="896.91" y2="94.30" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="79.15" x2="896.91" y2="79.15" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="64.00" x2="896.91" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<text x="476.45" y="760.67" font-size="10" text-anchor="middle" fill="#555">x (mm)</text>
+<rect x="56.00" y="64.00" width="840.91" height="666.67" fill="none" stroke="#111" stroke-width="2"/>
+<rect x="124.18" y="343.76" width="214.27" height="107.14" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="353.58" y="169.30" width="30.30" height="456.06" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="399.03" y="136.73" width="151.52" height="75.76" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="399.03" y="285.21" width="151.52" height="75.76" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="399.03" y="433.70" width="151.52" height="75.76" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="399.03" y="582.18" width="151.52" height="75.76" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="565.70" y="169.30" width="30.30" height="456.06" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<rect x="611.15" y="343.76" width="214.27" height="107.14" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<polyline points="93.88,397.33 124.18,397.33" fill="none" stroke="#2f6fb0" stroke-width="7.58" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="338.46,397.33 353.58,397.33" fill="none" stroke="#2f6fb0" stroke-width="7.58" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="596.00,397.33 611.15,397.33" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="825.43,397.33 859.03,397.33" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="383.88,174.61 399.03,174.61" fill="none" stroke="#2f6fb0" stroke-width="7.58" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="383.88,323.09 399.03,323.09" fill="none" stroke="#2f6fb0" stroke-width="7.58" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="383.88,471.58 399.03,471.58" fill="none" stroke="#2f6fb0" stroke-width="7.58" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="383.88,620.06 399.03,620.06" fill="none" stroke="#2f6fb0" stroke-width="7.58" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="550.55,174.61 565.70,174.61" fill="none" stroke="#2f6fb0" stroke-width="7.58" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="550.55,323.09 565.70,323.09" fill="none" stroke="#2f6fb0" stroke-width="7.58" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="550.55,471.58 565.70,471.58" fill="none" stroke="#2f6fb0" stroke-width="7.58" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="550.55,620.06 565.70,620.06" fill="none" stroke="#2f6fb0" stroke-width="7.58" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="208.58,101.88 208.58,343.77" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="254.03,101.88 254.03,343.77" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="231.30,450.90 231.30,692.79" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="474.79,123.09 474.79,136.73" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="474.79,212.48 474.79,226.12" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="474.79,271.58 474.79,285.21" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="474.79,360.97 474.79,374.61" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="474.79,420.06 474.79,433.70" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="474.79,509.45 474.79,523.09" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="474.79,568.55 474.79,582.18" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="474.79,657.94 474.79,671.58" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="718.27,101.88 718.27,343.77" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="718.27,450.90 718.27,692.79" fill="none" stroke="#2f6fb0" stroke-width="3.03" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<text x="231.32" y="394.68" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">reaction_trap</text>
+<text x="231.32" y="406.68" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">14.1 x 7.07 x 0.5 mm</text>
+<text x="445.98" y="394.68" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">split_2</text>
+<text x="445.98" y="406.68" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">2 x 30.1 x 0.5 mm</text>
+<text x="474.79" y="171.96" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">pcr_1</text>
+<text x="474.79" y="183.96" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">10 x 5 x 0.5 mm</text>
+<text x="474.79" y="320.44" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">pcr_2</text>
+<text x="474.79" y="332.44" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">10 x 5 x 0.5 mm</text>
+<text x="474.79" y="468.93" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">pcr_3</text>
+<text x="474.79" y="480.93" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">10 x 5 x 0.5 mm</text>
+<text x="474.79" y="617.41" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">pcr_4</text>
+<text x="474.79" y="629.41" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">10 x 5 x 0.5 mm</text>
+<text x="580.85" y="672.66" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">pool_2</text>
+<text x="580.85" y="684.66" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">2 x 30.1 x 0.5 mm</text>
+<text x="718.29" y="394.68" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">release_trap</text>
+<text x="718.29" y="406.68" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">14.1 x 7.07 x 0.5 mm</text>
+<text x="31.70" y="394.83" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">inlet_1</text>
+<text x="31.70" y="405.83" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(2.5, 22)</text>
+<text x="835.03" y="370.76" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">outlet_1</text>
+<text x="835.03" y="381.76" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(53, 22)</text>
+<text x="105.00" y="99.38" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">reagent_line_in</text>
+<text x="105.00" y="110.38" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(10.07, 41.5)</text>
+<text x="267.61" y="99.38" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">wash_buffer_in</text>
+<text x="267.61" y="110.38" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(13.07, 41.5)</text>
+<text x="79.73" y="690.29" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">reaction_trap_waste_out</text>
+<text x="79.73" y="701.29" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(11.57, 2.5)</text>
+<text x="488.36" y="120.59" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">index_mix_1_in</text>
+<text x="488.36" y="131.59" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(27.64, 40.1)</text>
+<text x="432.79" y="247.70" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">pcr_1_vent_out</text>
+<text x="432.79" y="258.70" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(27.64, 33.3)</text>
+<text x="486.09" y="290.88" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">index_mix_2_in</text>
+<text x="486.09" y="301.88" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(27.64, 30.3)</text>
+<text x="486.09" y="350.30" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">pcr_2_vent_out</text>
+<text x="486.09" y="361.30" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(27.64, 23.5)</text>
+<text x="486.09" y="439.36" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">index_mix_3_in</text>
+<text x="486.09" y="450.36" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(27.64, 20.5)</text>
+<text x="432.79" y="544.67" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">pcr_3_vent_out</text>
+<text x="432.79" y="555.67" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(27.64, 13.7)</text>
+<text x="486.09" y="587.85" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">index_mix_4_in</text>
+<text x="486.09" y="598.85" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(27.64, 10.7)</text>
+<text x="377.21" y="669.08" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">pcr_4_vent_out</text>
+<text x="377.21" y="680.08" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(27.64, 3.9)</text>
+<text x="731.85" y="99.38" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">release_enzyme_in</text>
+<text x="731.85" y="110.38" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(43.71, 41.5)</text>
+<text x="731.85" y="690.29" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">release_trap_waste_out</text>
+<text x="731.85" y="701.29" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(43.71, 2.5)</text>
+<circle cx="93.88" cy="397.33" r="7.58" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="859.03" cy="397.33" r="7.58" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="208.58" cy="101.88" r="7.58" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="254.03" cy="101.88" r="7.58" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="231.30" cy="692.79" r="7.58" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="474.79" cy="123.09" r="7.58" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="474.79" cy="226.12" r="7.58" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="474.79" cy="271.58" r="7.58" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="474.79" cy="374.61" r="7.58" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="474.79" cy="420.06" r="7.58" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="474.79" cy="523.09" r="7.58" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="474.79" cy="568.55" r="7.58" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="474.79" cy="671.58" r="7.58" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="718.27" cy="101.88" r="7.58" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="718.27" cy="692.79" r="7.58" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<rect x="56" y="755.6666666666667" width="12" height="10" fill="#2e9e44"/>
+<text x="72" y="764.6666666666667" font-size="10" fill="#333">inlet</text>
+<rect x="109.0" y="755.6666666666667" width="12" height="10" fill="#d23c3c"/>
+<text x="125.0" y="764.6666666666667" font-size="10" fill="#333">outlet</text>
+<rect x="168.2" y="755.6666666666667" width="12" height="10" fill="#2f6fb0"/>
+<text x="184.2" y="764.6666666666667" font-size="10" fill="#333">channel (true width)</text>
+</svg></div>
+<h3>chip4_bead_binding_wash_elution: Bead binding, ethanol wash and elution chip</h3><div class="figure"><svg xmlns="http://www.w3.org/2000/svg" width="1004" height="668" viewBox="0 0 1004 668" font-family="Helvetica, Arial, sans-serif">
+<rect width="100%" height="100%" fill="white"/>
+<text x="56" y="22" font-size="15" font-weight="bold">chip4_bead_binding_wash_elution: Bead binding, ethanol wash and elution chip</text>
+<text x="56" y="40" font-size="11" fill="#444">23 x 14 mm, top view, to scale (40 px/mm). Origin bottom-left. Constraints: unconstrained (other). Depth 0.3 mm.</text>
+<line x1="56.00" y1="624.00" x2="56.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="56.00" y="638.00" font-size="10" text-anchor="middle" fill="#555">0</text>
+<line x1="96.00" y1="624.00" x2="96.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="136.00" y1="624.00" x2="136.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="176.00" y1="624.00" x2="176.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="216.00" y1="624.00" x2="216.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="256.00" y1="624.00" x2="256.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="256.00" y="638.00" font-size="10" text-anchor="middle" fill="#555">5</text>
+<line x1="296.00" y1="624.00" x2="296.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="336.00" y1="624.00" x2="336.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="376.00" y1="624.00" x2="376.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="416.00" y1="624.00" x2="416.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="456.00" y1="624.00" x2="456.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="456.00" y="638.00" font-size="10" text-anchor="middle" fill="#555">10</text>
+<line x1="496.00" y1="624.00" x2="496.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="536.00" y1="624.00" x2="536.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="576.00" y1="624.00" x2="576.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="616.00" y1="624.00" x2="616.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="656.00" y1="624.00" x2="656.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="656.00" y="638.00" font-size="10" text-anchor="middle" fill="#555">15</text>
+<line x1="696.00" y1="624.00" x2="696.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="736.00" y1="624.00" x2="736.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="776.00" y1="624.00" x2="776.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="816.00" y1="624.00" x2="816.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="856.00" y1="624.00" x2="856.00" y2="64.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="856.00" y="638.00" font-size="10" text-anchor="middle" fill="#555">20</text>
+<line x1="896.00" y1="624.00" x2="896.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="936.00" y1="624.00" x2="936.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="976.00" y1="624.00" x2="976.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="624.00" x2="976.00" y2="624.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="627.50" font-size="10" text-anchor="end" fill="#555">0</text>
+<line x1="56.00" y1="584.00" x2="976.00" y2="584.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="544.00" x2="976.00" y2="544.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="504.00" x2="976.00" y2="504.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="464.00" x2="976.00" y2="464.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="424.00" x2="976.00" y2="424.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="427.50" font-size="10" text-anchor="end" fill="#555">5</text>
+<line x1="56.00" y1="384.00" x2="976.00" y2="384.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="344.00" x2="976.00" y2="344.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="304.00" x2="976.00" y2="304.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="264.00" x2="976.00" y2="264.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="224.00" x2="976.00" y2="224.00" stroke="#c4c4c4" stroke-width="1"/>
+<text x="50.00" y="227.50" font-size="10" text-anchor="end" fill="#555">10</text>
+<line x1="56.00" y1="184.00" x2="976.00" y2="184.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="144.00" x2="976.00" y2="144.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="104.00" x2="976.00" y2="104.00" stroke="#ececec" stroke-width="0.5"/>
+<line x1="56.00" y1="64.00" x2="976.00" y2="64.00" stroke="#ececec" stroke-width="0.5"/>
+<text x="516.00" y="654.00" font-size="10" text-anchor="middle" fill="#555">x (mm)</text>
+<rect x="56.00" y="64.00" width="920.00" height="560.00" fill="none" stroke="#111" stroke-width="2"/>
+<rect x="224.00" y="202.58" width="565.68" height="282.84" fill="#dbe9f7" stroke="#2b4f7a" stroke-width="1.2"/>
+<polyline points="156.00,344.00 224.00,344.00" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="789.68,344.00 876.00,344.00" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="446.80,164.00 446.80,202.58" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="566.80,164.00 566.80,202.58" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="446.80,485.42 446.80,524.00" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<polyline points="566.80,524.00 566.80,485.42" fill="none" stroke="#2f6fb0" stroke-width="8.00" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.9"/>
+<text x="506.84" y="341.35" font-size="11" font-weight="bold" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">bead_chamber</text>
+<text x="506.84" y="353.35" font-size="10" text-anchor="middle" fill="#13314f" stroke="white" stroke-width="3" paint-order="stroke">14.1 x 7.07 x 0.5 mm</text>
+<text x="86.80" y="341.50" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">inlet_1</text>
+<text x="86.80" y="352.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(2.5, 7)</text>
+<text x="902.00" y="341.50" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">outlet_1</text>
+<text x="902.00" y="352.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(20.5, 7)</text>
+<text x="318.80" y="161.50" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">magnetic_beads_in</text>
+<text x="318.80" y="172.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(9.77, 11.5)</text>
+<text x="592.80" y="161.50" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">ethanol_wash_in</text>
+<text x="592.80" y="172.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(12.77, 11.5)</text>
+<text x="336.80" y="521.50" font-size="10" fill="#d23c3c" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">bead_waste_out</text>
+<text x="336.80" y="532.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(9.77, 2.5)</text>
+<text x="592.80" y="521.50" font-size="10" fill="#2e9e44" font-weight="bold" stroke="white" stroke-width="3" paint-order="stroke">elution_buffer_in</text>
+<text x="592.80" y="532.50" font-size="9" fill="#333" stroke="white" stroke-width="3" paint-order="stroke">(12.77, 2.5)</text>
+<circle cx="156.00" cy="344.00" r="20.00" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="876.00" cy="344.00" r="20.00" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="446.80" cy="164.00" r="20.00" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="566.80" cy="164.00" r="20.00" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<circle cx="446.80" cy="524.00" r="20.00" fill="#d23c3c" stroke="#111" stroke-width="1"/>
+<circle cx="566.80" cy="524.00" r="20.00" fill="#2e9e44" stroke="#111" stroke-width="1"/>
+<rect x="56" y="649.0" width="12" height="10" fill="#2e9e44"/>
+<text x="72" y="658.0" font-size="10" fill="#333">inlet</text>
+<rect x="109.0" y="649.0" width="12" height="10" fill="#d23c3c"/>
+<text x="125.0" y="658.0" font-size="10" fill="#333">outlet</text>
+<rect x="168.2" y="649.0" width="12" height="10" fill="#2f6fb0"/>
+<text x="184.2" y="658.0" font-size="10" fill="#333">channel (true width)</text>
+</svg></div>
+<h2>Files</h2>
+<ul><li><code>agent/extract.json</code>: agent exchanges (prompts, answers)</li><li><code>agent/extract.log.json</code>: agent exchanges (prompts, answers)</li><li><code>agent/partition.json</code>: agent exchanges (prompts, answers)</li><li><code>agent/partition.log.json</code>: agent exchanges (prompts, answers)</li><li><code>agent/partition__resplit_5dd39539.json</code>: agent exchanges (prompts, answers)</li><li><code>agent/partition__resplit_5dd39539.log.json</code>: agent exchanges (prompts, answers)</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/BUILD.md</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/README.md</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/chip1_triculture_dissociation_quench_cell_wash_filter.dxf</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/chip1_triculture_dissociation_quench_cell_wash_filter.png</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/chip1_triculture_dissociation_quench_cell_wash_filter.stl</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/chip1_triculture_dissociation_quench_cell_wash_filter.svg</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/chip1_triculture_dissociation_quench_cell_wash_filter_fluidic.stl</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/chip1_triculture_dissociation_quench_cell_wash_filter_fusion.py</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/parts/cell_filter.stl</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/parts/cell_wash.stl</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/parts/culture_astrocytes.stl</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/parts/culture_microglia.stl</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/parts/culture_neurons.stl</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/parts/junction_mid.stl</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/parts/quench_join.stl</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/parts/quench_mix.stl</code>: CAD</li><li><code>cad/chip1_triculture_dissociation_quench_cell_wash_filter/parts/split_1.stl</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/BUILD.md</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/README.md</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/chip2_encapsulation_emulsion_break_capsule_wash_curing.dxf</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/chip2_encapsulation_emulsion_break_capsule_wash_curing.png</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/chip2_encapsulation_emulsion_break_capsule_wash_curing.stl</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/chip2_encapsulation_emulsion_break_capsule_wash_curing.svg</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/chip2_encapsulation_emulsion_break_capsule_wash_curing_fluidic.stl</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/chip2_encapsulation_emulsion_break_capsule_wash_curing_fusion.py</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/parts/capsule_trap.stl</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/parts/core_join.stl</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/parts/core_mix.stl</code>: CAD</li><li><code>cad/chip2_encapsulation_emulsion_break_capsule_wash_curing/parts/encap_junction.stl</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/BUILD.md</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/README.md</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/chip3_lysis_rt_split_index_pcr_pool_release.dxf</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/chip3_lysis_rt_split_index_pcr_pool_release.png</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/chip3_lysis_rt_split_index_pcr_pool_release.stl</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/chip3_lysis_rt_split_index_pcr_pool_release.svg</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/chip3_lysis_rt_split_index_pcr_pool_release_fluidic.stl</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/chip3_lysis_rt_split_index_pcr_pool_release_fusion.py</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/parts/pcr_1.stl</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/parts/pcr_2.stl</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/parts/pcr_3.stl</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/parts/pcr_4.stl</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/parts/pool_2.stl</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/parts/reaction_trap.stl</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/parts/release_trap.stl</code>: CAD</li><li><code>cad/chip3_lysis_rt_split_index_pcr_pool_release/parts/split_2.stl</code>: CAD</li><li><code>cad/chip4_bead_binding_wash_elution/BUILD.md</code>: CAD</li><li><code>cad/chip4_bead_binding_wash_elution/README.md</code>: CAD</li><li><code>cad/chip4_bead_binding_wash_elution/chip4_bead_binding_wash_elution.dxf</code>: CAD</li><li><code>cad/chip4_bead_binding_wash_elution/chip4_bead_binding_wash_elution.png</code>: CAD</li><li><code>cad/chip4_bead_binding_wash_elution/chip4_bead_binding_wash_elution.stl</code>: CAD</li><li><code>cad/chip4_bead_binding_wash_elution/chip4_bead_binding_wash_elution.svg</code>: CAD</li><li><code>cad/chip4_bead_binding_wash_elution/chip4_bead_binding_wash_elution_fluidic.stl</code>: CAD</li><li><code>cad/chip4_bead_binding_wash_elution/chip4_bead_binding_wash_elution_fusion.py</code>: CAD</li><li><code>cad/chip4_bead_binding_wash_elution/parts/bead_chamber.stl</code>: CAD</li><li><code>chip_plan.json</code>: chip plan: chips, modules, hand-offs, off-chip steps, missing parts</li><li><code>chips/chip1_triculture_dissociation_quench_cell_wash_filter.json</code>: chip spec (contract format)</li><li><code>chips/chip2_encapsulation_emulsion_break_capsule_wash_curing.json</code>: chip spec (contract format)</li><li><code>chips/chip3_lysis_rt_split_index_pcr_pool_release.json</code>: chip spec (contract format)</li><li><code>chips/chip4_bead_binding_wash_elution.json</code>: chip spec (contract format)</li><li><code>constraints.json</code>: the constraints used</li><li><code>designs/chip1_triculture_dissociation_quench_cell_wash_filter.json</code>: chip design file (chip/designs format)</li><li><code>designs/chip2_encapsulation_emulsion_break_capsule_wash_curing.json</code>: chip design file (chip/designs format)</li><li><code>designs/chip3_lysis_rt_split_index_pcr_pool_release.json</code>: chip design file (chip/designs format)</li><li><code>designs/chip4_bead_binding_wash_elution.json</code>: chip design file (chip/designs format)</li><li><code>layout_findings.json</code>: </li><li><code>overview.png</code>: pipeline overview drawing</li><li><code>overview.svg</code>: pipeline overview drawing</li><li><code>pipeline.json</code>: pipeline (pipeline.schema.json)</li><li><code>protocol_ir.json</code>: protocol IR: typed steps</li><li><code>report.html</code>: this report</li><li><code>report.md</code>: this report</li><li><code>run_meta.json</code>: </li><li><code>runs/chip1_triculture_dissociation_quench_cell_wash_filter.protocol.json</code>: run protocol (protocol.schema.json)</li><li><code>runs/chip1_triculture_dissociation_quench_cell_wash_filter.run.json</code>: run program: port states per step + flow check</li><li><code>runs/chip1_triculture_dissociation_quench_cell_wash_filter.run_sheet.md</code>: wet-lab run sheet for one chip</li><li><code>runs/chip1_triculture_dissociation_quench_cell_wash_filter.twin_run.json</code>: operator planner run (what the twin replays)</li><li><code>runs/chip2_encapsulation_emulsion_break_capsule_wash_curing.protocol.json</code>: run protocol (protocol.schema.json)</li><li><code>runs/chip2_encapsulation_emulsion_break_capsule_wash_curing.run.json</code>: run program: port states per step + flow check</li><li><code>runs/chip2_encapsulation_emulsion_break_capsule_wash_curing.run_sheet.md</code>: wet-lab run sheet for one chip</li><li><code>runs/chip2_encapsulation_emulsion_break_capsule_wash_curing.twin_run.json</code>: operator planner run (what the twin replays)</li><li><code>runs/chip3_lysis_rt_split_index_pcr_pool_release.protocol.json</code>: run protocol (protocol.schema.json)</li><li><code>runs/chip3_lysis_rt_split_index_pcr_pool_release.run.json</code>: run program: port states per step + flow check</li><li><code>runs/chip3_lysis_rt_split_index_pcr_pool_release.run_sheet.md</code>: wet-lab run sheet for one chip</li><li><code>runs/chip3_lysis_rt_split_index_pcr_pool_release.twin_run.json</code>: operator planner run (what the twin replays)</li><li><code>runs/chip4_bead_binding_wash_elution.protocol.json</code>: run protocol (protocol.schema.json)</li><li><code>runs/chip4_bead_binding_wash_elution.run.json</code>: run program: port states per step + flow check</li><li><code>runs/chip4_bead_binding_wash_elution.run_sheet.md</code>: wet-lab run sheet for one chip</li><li><code>runs/chip4_bead_binding_wash_elution.twin_run.json</code>: operator planner run (what the twin replays)</li><li><code>runs/pipeline_run.json</code>: the same, as data</li><li><code>runs/pipeline_run_sheet.md</code>: wet-lab run sheet for the whole protocol</li><li><code>source.json</code>: the source text</li></ul>
+<footer>Generated by autochip. Placeholder values throughout; check before a wet-lab run.</footer>
+</main></body></html>

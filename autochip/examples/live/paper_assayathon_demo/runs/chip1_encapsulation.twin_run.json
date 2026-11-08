@@ -1,0 +1,26 @@
+{
+  "protocol_id": "spc_single_cell_workflow_chip1_encapsulation",
+  "protocol_name": "Single-cell processing inside semi-permeable capsules: Encapsulation chip",
+  "chip_id": "chip1_encapsulation",
+  "chip_spec": "autochip/examples/live/paper_assayathon_demo/chips/chip1_encapsulation.json",
+  "operator": "planner",
+  "created_at": "2026-11-08T09:36:00Z",
+  "placeholder": true,
+  "total_duration_s": 1800.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 1800.0,
+      "command": "encapsulate",
+      "args": {
+        "target": "droplets_1",
+        "core_flow_ul_h": 120.0,
+        "shell_flow_ul_h": 120.0,
+        "oil_flow_ul_h": 600.0,
+        "capsules": 100000
+      },
+      "narration": "IR step 10 (droplets_1): encapsulate: FEED inlet_1 (cells_in_core_solution) at 2 uL/min, shell_polymer_in (shell_polymer) at 2 uL/min, fluorinated_oil_in (fluorinated_oil) at 10 uL/min, VENT outlet_1, all else capped. Co-flow the cell/core solution with warm shell polymer solution and focus with fluorinated oil at a flow-focusing junction to make droplets.",
+      "protocol_step": 1
+    }
+  ]
+}

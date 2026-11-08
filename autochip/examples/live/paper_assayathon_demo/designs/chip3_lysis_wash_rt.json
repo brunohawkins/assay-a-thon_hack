@@ -1,0 +1,76 @@
+{
+  "id": "chip3_lysis_wash_rt",
+  "name": "Lysis, wash and reverse transcription chip",
+  "description": "Lyses the cells, washes, and runs reverse transcription inside the capsules held in one trap. Parametric parts: modules lysis_rt_trap use the nearest library block as a stand-in (real part and sizing in autochip_part / params). build_chip.py builds the stand-ins at library size; the exact chip needs the autochip layout stage.",
+  "source": "autochip chip plan spc_single_cell_workflow_assayathon_demo (protocol spc_single_cell_workflow, constraints assayathon_demo)",
+  "placeholder": true,
+  "needs_autochip_layout": true,
+  "temp_c": null,
+  "equipment": [
+    "heater",
+    "syringe_pump"
+  ],
+  "modules": [
+    {
+      "id": "lysis_rt_trap",
+      "part": "culture_chamber",
+      "steps": [
+        16,
+        17,
+        18,
+        19
+      ],
+      "does": "A mesh with 25 um pores holds the capsules while lysis buffer, wash buffer, RT mix and wash buffer are flushed through in turn. They share one water-based reagent_line, with the syringe swapped between steps. The chip sits on a heater for the incubations.",
+      "inlets": [
+        "reagent_line"
+      ],
+      "outlets": [
+        "trap_waste"
+      ],
+      "mesh_pore_um": 25,
+      "autochip_part": "trap_chamber",
+      "params": {
+        "volume_ul": 50,
+        "depth_mm": 0.3,
+        "retention": "mesh",
+        "gap_um": 25
+      }
+    }
+  ],
+  "off_chip": [
+    {
+      "steps": [
+        20,
+        21
+      ],
+      "why": "Index PCR reaches 95 C, above the 50 C limit of the printed resin. The capsules are split into four portions by pipette and cycled in the thermocycler, each with its own index primer mix."
+    },
+    {
+      "steps": [
+        22
+      ],
+      "why": "Shell digestion is done at the bench by pipette after PCR."
+    },
+    {
+      "steps": [
+        23,
+        24,
+        25
+      ],
+      "why": "Bead binding, ethanol washes and elution are done as a bench kit. The lab has no magnet."
+    },
+    {
+      "steps": [
+        26
+      ],
+      "why": "Library concentration and fragment size are measured on bench instruments."
+    }
+  ],
+  "missing_parts": [],
+  "steps_text": {
+    "16": "Exchange the buffer for lysis buffer and incubate the capsules.",
+    "17": "Wash the capsules in wash buffer.",
+    "18": "Exchange the buffer for reverse transcription mix and incubate the capsules.",
+    "19": "Wash the capsules twice."
+  }
+}

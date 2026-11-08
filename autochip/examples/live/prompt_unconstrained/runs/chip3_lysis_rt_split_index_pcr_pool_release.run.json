@@ -1,0 +1,1997 @@
+{
+  "kind": "chip_run_program",
+  "chip": "chip3_lysis_rt_split_index_pcr_pool_release",
+  "chip_name": "Lysis, RT, split, index PCR, pool and release chip",
+  "purpose": "Lyses cells in capsules, reverse transcribes, splits into four portions for index PCR, pools them and releases the cDNA.",
+  "placeholder": true,
+  "created_at": "2026-11-08T09:35:58Z",
+  "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
+  "limits": {
+    "pump_channels": null,
+    "flow_range_ul_min": null,
+    "max_pressure_kpa": null,
+    "chamber_shear_limit_dyn_cm2": {
+      "cells": 1.0,
+      "capsules": 5.0,
+      "droplets": 5.0
+    },
+    "channel_shear_limit_cells_dyn_cm2": 10.0
+  },
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "role": "load",
+      "module": "reaction_trap"
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "role": "transfer",
+      "module": "release_trap"
+    },
+    {
+      "id": "reagent_line_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "reaction_trap"
+    },
+    {
+      "id": "wash_buffer_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "reaction_trap"
+    },
+    {
+      "id": "reaction_trap_waste_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "reaction_trap"
+    },
+    {
+      "id": "index_mix_1_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "pcr_1"
+    },
+    {
+      "id": "pcr_1_vent_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "pcr_1"
+    },
+    {
+      "id": "index_mix_2_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "pcr_2"
+    },
+    {
+      "id": "pcr_2_vent_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "pcr_2"
+    },
+    {
+      "id": "index_mix_3_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "pcr_3"
+    },
+    {
+      "id": "pcr_3_vent_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "pcr_3"
+    },
+    {
+      "id": "index_mix_4_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "pcr_4"
+    },
+    {
+      "id": "pcr_4_vent_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "pcr_4"
+    },
+    {
+      "id": "release_enzyme_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "release_trap"
+    },
+    {
+      "id": "release_trap_waste_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "release_trap"
+    }
+  ],
+  "total_duration_s": 11367.0,
+  "steps": [
+    {
+      "ir_step": 14,
+      "ir_action": "load",
+      "ir_text": "Lyse the cells inside the capsules (placeholder time and temperature).",
+      "module": "reaction_trap",
+      "target": "reaction_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "move",
+      "title": "Load capsules from the hand-off from chip2_encapsulation_emulsion_break_capsule_wash_curing",
+      "operation": "load",
+      "duration_s": 225.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the capsules arrives in reaction_trap and stays there; liquid leaves at reaction_trap_waste_out",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "capsules_sample",
+          "ul_min": 20.0,
+          "volume_ul": 75.0,
+          "time_s": 225.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "reaction_trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0375,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "reaction_trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "loads_from": {
+        "port": "inlet_1",
+        "chip": "chip2_encapsulation_emulsion_break_capsule_wash_curing"
+      },
+      "t_start_s": 0.0,
+      "n": 1
+    },
+    {
+      "ir_step": 14,
+      "ir_action": "lyse",
+      "ir_text": "Lyse the cells inside the capsules (placeholder time and temperature).",
+      "module": "reaction_trap",
+      "target": "reaction_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: lysis_buffer",
+      "operation": "exchange",
+      "duration_s": 225.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "lysis_buffer reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "FEED",
+          "reagent": "lysis_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 75.0,
+          "time_s": 225.0
+        },
+        "reaction_trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "wash_buffer_in"
+      ],
+      "vents": [
+        "reaction_trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0734,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "wash_buffer_in": 20.0,
+          "reaction_trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 225.0,
+      "n": 2
+    },
+    {
+      "ir_step": 14,
+      "ir_action": "lyse",
+      "ir_text": "Lyse the cells inside the capsules (placeholder time and temperature).",
+      "module": "reaction_trap",
+      "target": "reaction_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "hold",
+      "title": "Incubate",
+      "operation": "hold_temp",
+      "duration_s": 600.0,
+      "temp_c": 22.0,
+      "wait_s": 600.0,
+      "watch": "temperature steady at 22 C; nothing moving; capped ports not leaking",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 450.0,
+      "n": 3
+    },
+    {
+      "ir_step": 15,
+      "ir_action": "wash_particles",
+      "ir_text": "Wash the capsules after lysis.",
+      "module": "reaction_trap",
+      "target": "reaction_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: wash_buffer x3",
+      "operation": "exchange",
+      "duration_s": 1350.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "wash_buffer reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "FEED",
+          "reagent": "wash_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 450.0,
+          "time_s": 1350.0
+        },
+        "reaction_trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "wash_buffer_in"
+      ],
+      "vents": [
+        "reaction_trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 3,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0734,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "wash_buffer_in": 20.0,
+          "reaction_trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 1050.0,
+      "n": 4
+    },
+    {
+      "ir_step": 16,
+      "ir_action": "reverse_transcribe",
+      "ir_text": "Reverse transcribe the RNA inside the capsules (placeholder time and temperature).",
+      "module": "reaction_trap",
+      "target": "reaction_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 16: module reaction_trap has no inlet named for rt_mix; it goes in through inlet_1 (swap that syringe and prime the line first)",
+          "step": 16
+        }
+      ],
+      "phase": "fill",
+      "title": "Exchange: rt_mix",
+      "operation": "exchange",
+      "duration_s": 225.0,
+      "temp_c": 42.0,
+      "wait_s": 0.0,
+      "watch": "rt_mix reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "rt_mix",
+          "ul_min": 20.0,
+          "volume_ul": 75.0,
+          "time_s": 225.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "reaction_trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0375,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "reaction_trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 2400.0,
+      "n": 5
+    },
+    {
+      "ir_step": 16,
+      "ir_action": "reverse_transcribe",
+      "ir_text": "Reverse transcribe the RNA inside the capsules (placeholder time and temperature).",
+      "module": "reaction_trap",
+      "target": "reaction_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "hold",
+      "title": "Incubate",
+      "operation": "hold_temp",
+      "duration_s": 3600.0,
+      "temp_c": 42.0,
+      "wait_s": 3600.0,
+      "watch": "temperature steady at 42 C; nothing moving; capped ports not leaking",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 2625.0,
+      "n": 6
+    },
+    {
+      "ir_step": 17,
+      "ir_action": "wash_particles",
+      "ir_text": "Wash the capsules after reverse transcription.",
+      "module": "reaction_trap",
+      "target": "reaction_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: wash_buffer x2",
+      "operation": "exchange",
+      "duration_s": 900.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "wash_buffer reaches reaction_trap and leaves at reaction_trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "FEED",
+          "reagent": "wash_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 300.0,
+          "time_s": 900.0
+        },
+        "reaction_trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "wash_buffer_in"
+      ],
+      "vents": [
+        "reaction_trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 2,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0734,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "wash_buffer_in": 20.0,
+          "reaction_trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 6225.0,
+      "n": 7
+    },
+    {
+      "ir_step": 18,
+      "ir_action": "split",
+      "ir_text": "Split the capsules into four sublibrary portions.",
+      "module": "split_2",
+      "target": "split_2",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "lanes": [
+        {
+          "module": "pcr_1",
+          "chamber": "pcr_1"
+        },
+        {
+          "module": "pcr_2",
+          "chamber": "pcr_2"
+        },
+        {
+          "module": "pcr_3",
+          "chamber": "pcr_3"
+        },
+        {
+          "module": "pcr_4",
+          "chamber": "pcr_4"
+        }
+      ],
+      "phase": "flow",
+      "title": "Split",
+      "operation": "split",
+      "duration_s": 549.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "material moves from reaction_trap through split_2 towards pcr_1_vent_out, pcr_2_vent_out, pcr_3_vent_out, pcr_4_vent_out; streams merge evenly; no clogging; stop the pumps once the material is spread over pcr_1, pcr_2, pcr_3, pcr_4",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "carrier_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 183.0,
+          "time_s": 549.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "pcr_1_vent_out",
+        "pcr_2_vent_out",
+        "pcr_3_vent_out",
+        "pcr_4_vent_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [
+          "reaction_trap"
+        ],
+        "stray": [],
+        "max_pressure_kpa": 0.0018,
+        "target_shear_dyn_cm2": 0.00213,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "pcr_1_vent_out": -5.0,
+          "pcr_2_vent_out": -5.0,
+          "pcr_3_vent_out": -5.0,
+          "pcr_4_vent_out": -5.0
+        },
+        "issues": []
+      },
+      "t_start_s": 7125.0,
+      "n": 8
+    },
+    {
+      "ir_step": 19,
+      "ir_action": "amplify",
+      "ir_text": "Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+      "module": "pcr_1",
+      "target": "pcr_1",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "siblings": [
+        "pcr_2",
+        "pcr_3",
+        "pcr_4"
+      ],
+      "leak_reported": false,
+      "lane_index": 1,
+      "phase": "fill",
+      "title": "Exchange: index_mix_1",
+      "operation": "exchange",
+      "duration_s": 112.5,
+      "temp_c": 72.0,
+      "wait_s": 0.0,
+      "watch": "index_mix_1 reaches pcr_1 and leaves at pcr_1_vent_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "FEED",
+          "reagent": "index_mix_1",
+          "ul_min": 20.0,
+          "volume_ul": 37.5,
+          "time_s": 112.5
+        },
+        "pcr_1_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "index_mix_1_in"
+      ],
+      "vents": [
+        "pcr_1_vent_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "sibling_flow_ul_min": 0.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0042,
+        "target_shear_dyn_cm2": 0.0128,
+        "port_flow_ul_min": {
+          "index_mix_1_in": 20.0,
+          "pcr_1_vent_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 7674.0,
+      "n": 9
+    },
+    {
+      "ir_step": 19,
+      "ir_action": "amplify",
+      "ir_text": "Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+      "module": "pcr_2",
+      "target": "pcr_2",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "siblings": [
+        "pcr_1",
+        "pcr_3",
+        "pcr_4"
+      ],
+      "leak_reported": false,
+      "lane_index": 2,
+      "phase": "fill",
+      "title": "Exchange: index_mix_2",
+      "operation": "exchange",
+      "duration_s": 112.5,
+      "temp_c": 72.0,
+      "wait_s": 0.0,
+      "watch": "index_mix_2 reaches pcr_2 and leaves at pcr_2_vent_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "FEED",
+          "reagent": "index_mix_2",
+          "ul_min": 20.0,
+          "volume_ul": 37.5,
+          "time_s": 112.5
+        },
+        "pcr_2_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "index_mix_2_in"
+      ],
+      "vents": [
+        "pcr_2_vent_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "sibling_flow_ul_min": 0.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0042,
+        "target_shear_dyn_cm2": 0.0128,
+        "port_flow_ul_min": {
+          "index_mix_2_in": 20.0,
+          "pcr_2_vent_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 7786.5,
+      "n": 10
+    },
+    {
+      "ir_step": 19,
+      "ir_action": "amplify",
+      "ir_text": "Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+      "module": "pcr_3",
+      "target": "pcr_3",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "siblings": [
+        "pcr_1",
+        "pcr_2",
+        "pcr_4"
+      ],
+      "leak_reported": false,
+      "lane_index": 3,
+      "phase": "fill",
+      "title": "Exchange: index_mix_3",
+      "operation": "exchange",
+      "duration_s": 112.5,
+      "temp_c": 72.0,
+      "wait_s": 0.0,
+      "watch": "index_mix_3 reaches pcr_3 and leaves at pcr_3_vent_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "FEED",
+          "reagent": "index_mix_3",
+          "ul_min": 20.0,
+          "volume_ul": 37.5,
+          "time_s": 112.5
+        },
+        "pcr_3_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "index_mix_3_in"
+      ],
+      "vents": [
+        "pcr_3_vent_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "sibling_flow_ul_min": 0.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0042,
+        "target_shear_dyn_cm2": 0.0128,
+        "port_flow_ul_min": {
+          "index_mix_3_in": 20.0,
+          "pcr_3_vent_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 7899.0,
+      "n": 11
+    },
+    {
+      "ir_step": 19,
+      "ir_action": "amplify",
+      "ir_text": "Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+      "module": "pcr_4",
+      "target": "pcr_4",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "siblings": [
+        "pcr_1",
+        "pcr_2",
+        "pcr_3"
+      ],
+      "leak_reported": false,
+      "lane_index": 4,
+      "phase": "fill",
+      "title": "Exchange: index_mix_4",
+      "operation": "exchange",
+      "duration_s": 112.5,
+      "temp_c": 72.0,
+      "wait_s": 0.0,
+      "watch": "index_mix_4 reaches pcr_4 and leaves at pcr_4_vent_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "FEED",
+          "reagent": "index_mix_4",
+          "ul_min": 20.0,
+          "volume_ul": 37.5,
+          "time_s": 112.5
+        },
+        "pcr_4_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "index_mix_4_in"
+      ],
+      "vents": [
+        "pcr_4_vent_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "sibling_flow_ul_min": 0.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0042,
+        "target_shear_dyn_cm2": 0.0128,
+        "port_flow_ul_min": {
+          "index_mix_4_in": 20.0,
+          "pcr_4_vent_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 8011.5,
+      "n": 12
+    },
+    {
+      "ir_step": 19,
+      "ir_action": "amplify",
+      "ir_text": "Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+      "module": "pcr_4",
+      "target": "pcr_4",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "siblings": [
+        "pcr_1",
+        "pcr_2",
+        "pcr_3"
+      ],
+      "leak_reported": false,
+      "lane_index": 4,
+      "phase": "hold",
+      "title": "Thermal cycling: N cycles",
+      "operation": "hold_temp",
+      "duration_s": 2295.0,
+      "temp_c": 95.0,
+      "wait_s": 2295.0,
+      "watch": "block runs the program on thermal zone pcr_zone; ports stay capped; no bubbles or evaporation in pcr_4",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "thermal_program": {
+        "placeholder": true,
+        "initial_denature": {
+          "temp_c": 95,
+          "s": 120
+        },
+        "cycles": null,
+        "denature": {
+          "temp_c": 95,
+          "s": 15
+        },
+        "anneal": {
+          "temp_c": 60,
+          "s": 30
+        },
+        "extend": {
+          "temp_c": 72,
+          "s": 30
+        },
+        "final_extend": {
+          "temp_c": 72,
+          "s": 300
+        },
+        "then_hold_c": 4
+      },
+      "thermal_zone": "pcr_zone",
+      "device": "thermocycler",
+      "program_text": "N cycles of 95 \u00b0C 15 s / 60 \u00b0C 30 s / 72 \u00b0C 30 s, after 95 \u00b0C 120 s, then 72 \u00b0C 5 min and hold 4 \u00b0C (placeholder program)",
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 8124.0,
+      "n": 13
+    },
+    {
+      "ir_step": 20,
+      "ir_action": "transfer",
+      "ir_text": "Release the cDNA from the capsules by digesting the shell with a shell-digesting enzyme (placeholder time and temperature).",
+      "module": "release_trap",
+      "target": "release_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "move",
+      "title": "Move capsules: pcr_1 \u2192 release_trap",
+      "operation": "transfer",
+      "duration_s": 450.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the capsules arrives in release_trap and stays there; liquid leaves at release_trap_waste_out",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "carrier_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 150.0,
+          "time_s": 450.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "release_trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [
+          "reaction_trap",
+          "split_2",
+          "pcr_1",
+          "pcr_2",
+          "pcr_3",
+          "pcr_4",
+          "pool_2"
+        ],
+        "stray": [],
+        "max_pressure_kpa": 0.0404,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "release_trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 10419.0,
+      "n": 14
+    },
+    {
+      "ir_step": 20,
+      "ir_action": "release",
+      "ir_text": "Release the cDNA from the capsules by digesting the shell with a shell-digesting enzyme (placeholder time and temperature).",
+      "module": "release_trap",
+      "target": "release_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "collect_label": "chip3_lysis_rt_split_index_pcr_pool_release: nucleic_acid after step 20, for chip4_bead_binding_wash_elution inlet_1",
+      "phase": "out",
+      "title": "Release with release_enzyme",
+      "operation": "release",
+      "duration_s": 300.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "material leaves through outlet_1 into a collection tube; stop when release_trap is clear; collect into the tube labelled 'chip3_lysis_rt_split_index_pcr_pool_release: nucleic_acid after step 20, for chip4_bead_binding_wash_elution inlet_1'",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "VENT",
+          "to": "tube labelled 'chip3_lysis_rt_split_index_pcr_pool_release: nucleic_acid after step 20, for chip4_bead_binding_wash_elution inlet_1'"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "FEED",
+          "reagent": "release_enzyme",
+          "ul_min": 20.0,
+          "volume_ul": 100.0,
+          "time_s": 300.0
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "release_enzyme_in"
+      ],
+      "vents": [
+        "outlet_1"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0418,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "outlet_1": -20.0,
+          "release_enzyme_in": 20.0
+        },
+        "issues": []
+      },
+      "collects": {
+        "port": "outlet_1",
+        "label": "chip3_lysis_rt_split_index_pcr_pool_release: nucleic_acid after step 20, for chip4_bead_binding_wash_elution inlet_1",
+        "material": "nucleic_acid"
+      },
+      "t_start_s": 10869.0,
+      "n": 15
+    },
+    {
+      "ir_step": 24,
+      "ir_action": "pool",
+      "ir_text": "Pool the four cleaned-up sublibraries for sequencing.",
+      "module": "pool_2",
+      "target": "pool_2",
+      "holds": "library",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 24 (Pool): the outflow passes release_trap on its way to outlet_1",
+          "step": 24
+        }
+      ],
+      "phase": "flow",
+      "title": "Pool",
+      "operation": "pool",
+      "duration_s": 99.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "material moves from the inlet through pool_2 towards outlet_1; streams merge evenly; no clogging",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "library_suspension",
+          "ul_min": 20.0,
+          "volume_ul": 33.0,
+          "time_s": 99.0
+        },
+        "outlet_1": {
+          "state": "VENT",
+          "to": "waste tube"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "outlet_1"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [
+          "reaction_trap",
+          "split_2",
+          "pcr_1",
+          "pcr_2",
+          "pcr_3",
+          "pcr_4",
+          "release_trap"
+        ],
+        "stray": [],
+        "max_pressure_kpa": 0.0089,
+        "target_shear_dyn_cm2": 0.00213,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "outlet_1": -20.0
+        },
+        "issues": [
+          {
+            "severity": "info",
+            "message": "the outflow passes release_trap on its way to outlet_1"
+          }
+        ]
+      },
+      "t_start_s": 11169.0,
+      "n": 16
+    },
+    {
+      "ir_step": 24,
+      "ir_action": "collect",
+      "ir_text": "Pool the four cleaned-up sublibraries for sequencing.",
+      "module": "pool_2",
+      "target": "pool_2",
+      "holds": "library",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 24 (Collect the library (outlet_1)): the outflow passes release_trap on its way to outlet_1",
+          "step": 24
+        }
+      ],
+      "collect_label": "chip3_lysis_rt_split_index_pcr_pool_release: library after step 24, for chip4_bead_binding_wash_elution inlet_1",
+      "phase": "collect",
+      "title": "Collect the library (outlet_1)",
+      "operation": "transfer",
+      "duration_s": 99.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the library leaves pool_2 through outlet_1 into the tube labelled 'chip3_lysis_rt_split_index_pcr_pool_release: library after step 24, for chip4_bead_binding_wash_elution inlet_1'; never to waste",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "collection_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 33.0,
+          "time_s": 99.0
+        },
+        "outlet_1": {
+          "state": "VENT",
+          "to": "tube labelled 'chip3_lysis_rt_split_index_pcr_pool_release: library after step 24, for chip4_bead_binding_wash_elution inlet_1'"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "reaction_trap_waste_out": {
+          "state": "CAP"
+        },
+        "index_mix_1_in": {
+          "state": "CAP"
+        },
+        "pcr_1_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_2_in": {
+          "state": "CAP"
+        },
+        "pcr_2_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_3_in": {
+          "state": "CAP"
+        },
+        "pcr_3_vent_out": {
+          "state": "CAP"
+        },
+        "index_mix_4_in": {
+          "state": "CAP"
+        },
+        "pcr_4_vent_out": {
+          "state": "CAP"
+        },
+        "release_enzyme_in": {
+          "state": "CAP"
+        },
+        "release_trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "outlet_1"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [
+          "reaction_trap",
+          "split_2",
+          "pcr_1",
+          "pcr_2",
+          "pcr_3",
+          "pcr_4",
+          "release_trap"
+        ],
+        "stray": [],
+        "max_pressure_kpa": 0.0089,
+        "target_shear_dyn_cm2": 0.00213,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "outlet_1": -20.0
+        },
+        "issues": [
+          {
+            "severity": "info",
+            "message": "the outflow passes release_trap on its way to outlet_1"
+          }
+        ]
+      },
+      "collects": {
+        "port": "outlet_1",
+        "label": "chip3_lysis_rt_split_index_pcr_pool_release: library after step 24, for chip4_bead_binding_wash_elution inlet_1",
+        "material": "library"
+      },
+      "t_start_s": 11268.0,
+      "n": 17
+    }
+  ],
+  "syringes": [
+    {
+      "port": "inlet_1",
+      "reagent": "capsules_sample",
+      "volume_ul": 75.0,
+      "steps": [
+        1
+      ],
+      "first_step": 1,
+      "load_ul": 90.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "wash_buffer_in",
+      "reagent": "lysis_buffer",
+      "volume_ul": 75.0,
+      "steps": [
+        2
+      ],
+      "first_step": 2,
+      "load_ul": 90.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "wash_buffer_in",
+      "reagent": "wash_buffer",
+      "volume_ul": 750.0,
+      "steps": [
+        4,
+        7
+      ],
+      "first_step": 4,
+      "load_ul": 900.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "rt_mix",
+      "volume_ul": 75.0,
+      "steps": [
+        5
+      ],
+      "first_step": 5,
+      "load_ul": 90.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "carrier_buffer",
+      "volume_ul": 333.0,
+      "steps": [
+        8,
+        14
+      ],
+      "first_step": 8,
+      "load_ul": 400.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "index_mix_1_in",
+      "reagent": "index_mix_1",
+      "volume_ul": 37.5,
+      "steps": [
+        9
+      ],
+      "first_step": 9,
+      "load_ul": 45.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "index_mix_2_in",
+      "reagent": "index_mix_2",
+      "volume_ul": 37.5,
+      "steps": [
+        10
+      ],
+      "first_step": 10,
+      "load_ul": 45.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "index_mix_3_in",
+      "reagent": "index_mix_3",
+      "volume_ul": 37.5,
+      "steps": [
+        11
+      ],
+      "first_step": 11,
+      "load_ul": 45.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "index_mix_4_in",
+      "reagent": "index_mix_4",
+      "volume_ul": 37.5,
+      "steps": [
+        12
+      ],
+      "first_step": 12,
+      "load_ul": 45.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "release_enzyme_in",
+      "reagent": "release_enzyme",
+      "volume_ul": 100.0,
+      "steps": [
+        15
+      ],
+      "first_step": 15,
+      "load_ul": 120.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "library_suspension",
+      "volume_ul": 33.0,
+      "steps": [
+        16
+      ],
+      "first_step": 16,
+      "load_ul": 40.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "collection_buffer",
+      "volume_ul": 33.0,
+      "steps": [
+        17
+      ],
+      "first_step": 17,
+      "load_ul": 40.0,
+      "syringe_ml": 1
+    }
+  ],
+  "equipment": [
+    "syringe pump with 1 independent line",
+    "heater / stage-top incubator (42, 72, 95 C)",
+    "thermocycler for thermal cycling (pcr_zone)",
+    "tubing for every used port, plugs for capped ports, waste and collection tubes"
+  ],
+  "twin_run": {
+    "ok": true,
+    "path": "autochip/examples/live/prompt_unconstrained/runs/chip3_lysis_rt_split_index_pcr_pool_release.twin_run.json",
+    "events": 17,
+    "in_repo": true,
+    "chip_spec": "autochip/examples/live/prompt_unconstrained/chips/chip3_lysis_rt_split_index_pcr_pool_release.json"
+  },
+  "protocol": "runs/chip3_lysis_rt_split_index_pcr_pool_release.protocol.json",
+  "chip_spec": "chips/chip3_lysis_rt_split_index_pcr_pool_release.json",
+  "checks": [
+    {
+      "severity": "info",
+      "message": "step 16: module reaction_trap has no inlet named for rt_mix; it goes in through inlet_1 (swap that syringe and prime the line first)",
+      "step": 16
+    },
+    {
+      "severity": "info",
+      "message": "step 24 (Pool): the outflow passes release_trap on its way to outlet_1",
+      "step": 24
+    },
+    {
+      "severity": "info",
+      "message": "step 24 (Collect the library (outlet_1)): the outflow passes release_trap on its way to outlet_1",
+      "step": 24
+    },
+    {
+      "severity": "info",
+      "message": "the operator's planner (operator/planner.py) accepts this protocol: 17 events in runs/chip3_lysis_rt_split_index_pcr_pool_release.twin_run.json, chip stored as autochip/examples/live/prompt_unconstrained/chips/chip3_lysis_rt_split_index_pcr_pool_release.json"
+    }
+  ]
+}

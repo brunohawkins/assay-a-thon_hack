@@ -1,0 +1,118 @@
+{
+  "protocol_id": "spc_capsule_workflow_chip3_filter_lysis_rt_wash",
+  "protocol_name": "Semi-permeable capsule (SPC) workflow: Capsule filter, lysis, reverse transcription and wash chip",
+  "chip_id": "chip3_filter_lysis_rt_wash",
+  "chip_spec": "autochip/examples/live/protocol_resin_multilayer/chips/chip3_filter_lysis_rt_wash.json",
+  "operator": "planner",
+  "created_at": "2026-11-08T09:36:02Z",
+  "placeholder": true,
+  "total_duration_s": 7545.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 345.0,
+      "command": "load",
+      "args": {
+        "target": "aggregate_filter",
+        "volume_ul": 20.0
+      },
+      "narration": "IR step 15 (aggregate_filter): transfer: FEED inlet_1 (capsules_suspension) at 20 uL/min, VENT reaction_trap_waste_out, all else capped. Filter the capsules through a 100 um strainer to remove aggregates.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 345.0,
+      "duration_s": 225.0,
+      "command": "exchange",
+      "args": {
+        "target": "reaction_trap",
+        "reagent": "lysis_buffer",
+        "volume_ul": 75.0,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "reaction_trap_waste_out"
+      },
+      "narration": "IR step 16 (reaction_trap): exchange to lysis_buffer: FEED reagent_line_in (lysis_buffer) at 20 uL/min, VENT reaction_trap_waste_out, all else capped; 1.5 chamber volumes (75 uL) per wash (default flow). Exchange the buffer for lysis buffer and incubate.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 570.0,
+      "duration_s": 600.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "reaction_trap",
+        "temp_c": 22.0,
+        "duration_s": 600.0
+      },
+      "narration": "IR step 16 (reaction_trap): incubate in place: all ports capped, hold 22 C for 10 min (placeholder time). Exchange the buffer for lysis buffer and incubate.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 1170.0,
+      "duration_s": 1350.0,
+      "command": "exchange",
+      "args": {
+        "target": "reaction_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 150.0,
+        "washes": 3,
+        "flow_ul_min": 20.0,
+        "waste": "reaction_trap_waste_out"
+      },
+      "narration": "IR step 17 (reaction_trap): exchange to wash_buffer: FEED reagent_line_in (wash_buffer) at 20 uL/min, VENT reaction_trap_waste_out, all else capped; 3 chamber volumes (150 uL) per wash x 3 washes (default flow). Wash the capsules in wash buffer.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 2520.0,
+      "duration_s": 225.0,
+      "command": "exchange",
+      "args": {
+        "target": "reaction_trap",
+        "reagent": "rt_mix",
+        "volume_ul": 75.0,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "reaction_trap_waste_out"
+      },
+      "narration": "IR step 18 (reaction_trap): exchange to rt_mix: FEED reagent_line_in (rt_mix) at 20 uL/min, VENT reaction_trap_waste_out, all else capped; 1.5 chamber volumes (75 uL) per wash (default flow). Exchange into reverse transcription mix and incubate.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 2745.0,
+      "duration_s": 3600.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "reaction_trap",
+        "temp_c": 42.0,
+        "duration_s": 3600.0
+      },
+      "narration": "IR step 18 (reaction_trap): incubate in place: all ports capped, hold 42 C for 1 h (placeholder time). Exchange into reverse transcription mix and incubate.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 6345.0,
+      "duration_s": 900.0,
+      "command": "exchange",
+      "args": {
+        "target": "reaction_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 150.0,
+        "washes": 2,
+        "flow_ul_min": 20.0,
+        "waste": "reaction_trap_waste_out"
+      },
+      "narration": "IR step 19 (reaction_trap): exchange to wash_buffer: FEED reagent_line_in (wash_buffer) at 20 uL/min, VENT reaction_trap_waste_out, all else capped; 3 chamber volumes (150 uL) per wash x 2 washes (default flow). Wash the capsules.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 7245.0,
+      "duration_s": 300.0,
+      "command": "transfer",
+      "args": {
+        "source": "reaction_trap",
+        "target": "outlet_1"
+      },
+      "narration": "IR step 19 (reaction_trap): collect the capsules: FEED reagent_line_in (buffer push), VENT outlet_1 into a tube labelled 'chip3_filter_lysis_rt_wash: capsules after step 19, for chip4_shell_release_bead_capture_wash_elution inlet_1'. Every other port capped.",
+      "protocol_step": 8
+    }
+  ]
+}

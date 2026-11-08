@@ -1,0 +1,598 @@
+{
+  "kind": "chip_plan",
+  "id": "spc_capsule_workflow_resin_print_multilayer",
+  "name": "Semi-permeable capsule (SPC) workflow on resin_print_multilayer",
+  "protocol_id": "spc_capsule_workflow",
+  "constraints_id": "resin_print_multilayer",
+  "rationale": "Four chips. Chip 1 (37 C) covers cell rinse, dissociation, quench, wash, core mixing and droplet formation. Chip 2 is cold (4 C) for gelation, then oil removal, curing and capsule wash. Chip 3 takes the capsule filter plus lysis, RT and washes. The split from the previous plan fixes the size error: the filter moved off the cold chip. Index PCR reaches 95 C, above the 50 C limit of the printed resin, so the split (20) and the index PCR (21) are done off chip in tubes on the thermocycler. The portions are pooled by pipette and returned to chip 4, which digests the shells and does the magnetic bead cleanup. Chip 4 has no thermocycler, so the magnet is the only equipment there. Culture (1), counting (8) and measurement (26) stay on the bench. The 40 um cell strainer (7) has no usable part, because the pillar filter cannot go below 100 um.",
+  "chips": [
+    {
+      "id": "chip1_rinse_dissociation_quench_wash_encapsulation",
+      "name": "Cell rinse, dissociation, quench, wash and encapsulation chip",
+      "purpose": "Rinses and detaches the cells, quenches the enzyme, washes the cells in a spiral, mixes in core solution and forms ~70 um droplets at the flow-focusing junction.",
+      "steps": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        9,
+        10
+      ],
+      "why_separate": "First chip: the flow starts with cells loaded into inlet_1 after off-chip culture. Warm (37 C) cell handling is kept apart from the cold gelation on chip 2, and oil must not reach other cell steps.",
+      "temp_c": 37,
+      "equipment": [
+        "heater",
+        "syringe_pump"
+      ],
+      "modules": [
+        {
+          "id": "culture_1",
+          "part": "culture_chamber_param",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 100,
+            "depth_mm": 0.5
+          },
+          "steps": [
+            2,
+            3
+          ],
+          "inlets": [
+            "reagent_line"
+          ],
+          "outlets": [
+            "culture_1_waste"
+          ],
+          "does": "Holds the cells while buffer rinses them and then the dissociation enzyme detaches them. Both are water-based, so one shared reagent_line is used and the syringe is swapped between steps.",
+          "holds": "cells"
+        },
+        {
+          "id": "quench_join",
+          "part": "merge",
+          "part_source": "parametric",
+          "params": {
+            "shape": "t"
+          },
+          "steps": [
+            4
+          ],
+          "inlets": [
+            "quench_medium"
+          ],
+          "does": "Quench medium joins the cell stream to stop the enzyme.",
+          "holds": "cells"
+        },
+        {
+          "id": "quench_mix",
+          "part": "mixer",
+          "part_source": "parametric",
+          "params": {
+            "length_mm": 30,
+            "flow_ul_min": 10,
+            "width_mm": 1.0,
+            "viscous": false
+          },
+          "steps": [
+            4
+          ],
+          "does": "Mixes the quench medium into the cell stream gently.",
+          "holds": "cells"
+        },
+        {
+          "id": "cell_wash",
+          "part": "spiral_separator",
+          "part_source": "parametric",
+          "params": {
+            "turns": 4,
+            "width_mm": 0.5
+          },
+          "steps": [
+            5,
+            6
+          ],
+          "inlets": [
+            "wash_buffer"
+          ],
+          "outlets": [
+            "cell_wash_waste"
+          ],
+          "does": "Moves the cells into clean wash buffer, replacing the centrifuge pellet and the two resuspension washes (run twice).",
+          "holds": "cells"
+        },
+        {
+          "id": "core_join",
+          "part": "merge",
+          "part_source": "parametric",
+          "params": {
+            "shape": "t"
+          },
+          "steps": [
+            9
+          ],
+          "inlets": [
+            "core_solution"
+          ],
+          "does": "Core solution joins the washed cell stream so the cells are suspended for encapsulation.",
+          "holds": "cells"
+        },
+        {
+          "id": "core_mix",
+          "part": "mixer",
+          "part_source": "parametric",
+          "params": {
+            "length_mm": 30,
+            "flow_ul_min": 10,
+            "width_mm": 1.0,
+            "viscous": false
+          },
+          "steps": [
+            9
+          ],
+          "does": "Mixes the cells into the core solution just before the junction.",
+          "holds": "cells"
+        },
+        {
+          "id": "droplets_1",
+          "part": "cross_junction",
+          "part_source": "library",
+          "steps": [
+            10
+          ],
+          "inlets": [
+            "shell_polymer",
+            "fluorinated_oil"
+          ],
+          "does": "The cell/core stream arrives on the main line, warm shell polymer and fluorinated oil enter through their own inlets, and ~70 um droplets pinch off.",
+          "holds": "droplets"
+        }
+      ],
+      "inputs": [
+        {
+          "name": "inlet_1",
+          "from": "external",
+          "carries": "cells from off-chip culture"
+        },
+        {
+          "name": "reagent_line_in",
+          "from": "external",
+          "carries": "wash_buffer then dissociation_enzyme"
+        },
+        {
+          "name": "quench_medium_in",
+          "from": "external",
+          "carries": "quench_medium"
+        },
+        {
+          "name": "wash_buffer_in",
+          "from": "external",
+          "carries": "wash_buffer"
+        },
+        {
+          "name": "core_solution_in",
+          "from": "external",
+          "carries": "core_solution"
+        },
+        {
+          "name": "shell_polymer_in",
+          "from": "external",
+          "carries": "shell_polymer"
+        },
+        {
+          "name": "fluorinated_oil_in",
+          "from": "external",
+          "carries": "fluorinated_oil"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "outlet_1",
+          "to": "chip2_gelation_emulsion_break_cure_wash.inlet_1",
+          "carries": "droplets"
+        },
+        {
+          "name": "culture_1_waste_out",
+          "to": "waste"
+        },
+        {
+          "name": "cell_wash_waste_out",
+          "to": "waste"
+        }
+      ]
+    },
+    {
+      "id": "chip2_gelation_emulsion_break_cure_wash",
+      "name": "Gelation, emulsion breaking, curing and capsule wash chip",
+      "purpose": "Gels the shells in a cold delay line, then breaks the emulsion, photocures and washes the capsules in a trap.",
+      "steps": [
+        11,
+        12,
+        13,
+        14
+      ],
+      "why_separate": "Cold (4 C) gelation clashes with 37 C cell handling, and the oil must stay off the cell chip.",
+      "temp_c": 4,
+      "equipment": [
+        "cold_plate",
+        "led_405nm",
+        "syringe_pump"
+      ],
+      "modules": [
+        {
+          "id": "gelation_delay",
+          "part": "delay_line",
+          "part_source": "parametric",
+          "params": {
+            "residence_s": 1800,
+            "flow_ul_min": 5,
+            "width_mm": 1.5
+          },
+          "steps": [
+            11
+          ],
+          "does": "Gives the emulsion a 30 min cold residence on the cold plate so the shells gel. A low flow keeps the line small enough for the chip.",
+          "holds": "droplets"
+        },
+        {
+          "id": "capsule_trap",
+          "part": "trap_chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 50,
+            "depth_mm": 0.5,
+            "retention": "mesh",
+            "gap_um": 25
+          },
+          "steps": [
+            12,
+            13,
+            14
+          ],
+          "inlets": [
+            "emulsion_breaking_agent",
+            "photoinitiator",
+            "wash_buffer"
+          ],
+          "outlets": [
+            "capsule_trap_waste"
+          ],
+          "does": "A 25 um mesh holds the capsules while the breaking agent removes the oil, the photoinitiator is flushed in and 405 nm light cures the shells, and buffer washes them.",
+          "mesh_pore_um": 25,
+          "holds": "capsules"
+        }
+      ],
+      "inputs": [
+        {
+          "name": "inlet_1",
+          "from": "chip1_rinse_dissociation_quench_wash_encapsulation.outlet_1",
+          "carries": "droplets"
+        },
+        {
+          "name": "emulsion_breaking_agent_in",
+          "from": "external",
+          "carries": "emulsion_breaking_agent"
+        },
+        {
+          "name": "photoinitiator_in",
+          "from": "external",
+          "carries": "photoinitiator"
+        },
+        {
+          "name": "wash_buffer_in",
+          "from": "external",
+          "carries": "wash_buffer"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "outlet_1",
+          "to": "chip3_filter_lysis_rt_wash.inlet_1",
+          "carries": "capsules"
+        },
+        {
+          "name": "capsule_trap_waste_out",
+          "to": "waste"
+        }
+      ]
+    },
+    {
+      "id": "chip3_filter_lysis_rt_wash",
+      "name": "Capsule filter, lysis, reverse transcription and wash chip",
+      "purpose": "Removes aggregates from the capsules, then lyses the cells, washes, reverse transcribes and washes again in a trap.",
+      "steps": [
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "why_separate": "Splits the load off the cold chip so each chip fits the 75 x 50 mm limit, and keeps the 4 C zone apart from the warm lysis and RT steps.",
+      "temp_c": null,
+      "equipment": [
+        "heater",
+        "syringe_pump"
+      ],
+      "modules": [
+        {
+          "id": "aggregate_filter",
+          "part": "pillar_filter",
+          "part_source": "parametric",
+          "params": {
+            "gap_um": 100,
+            "purpose": "capsule_aggregates"
+          },
+          "steps": [
+            15
+          ],
+          "does": "A pillar filter with 100 um gaps removes aggregates from the 70 um capsules.",
+          "holds": "capsules"
+        },
+        {
+          "id": "reaction_trap",
+          "part": "trap_chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 50,
+            "depth_mm": 0.5,
+            "retention": "mesh",
+            "gap_um": 25
+          },
+          "steps": [
+            16,
+            17,
+            18,
+            19
+          ],
+          "inlets": [
+            "reagent_line"
+          ],
+          "outlets": [
+            "reaction_trap_waste"
+          ],
+          "does": "Holds the capsules on a 25 um mesh while lysis buffer, wash buffer, RT mix and wash buffer are flushed in turn. All are water-based, so one shared reagent_line is used and the syringe is swapped between steps.",
+          "mesh_pore_um": 25,
+          "holds": "capsules"
+        }
+      ],
+      "inputs": [
+        {
+          "name": "inlet_1",
+          "from": "chip2_gelation_emulsion_break_cure_wash.outlet_1",
+          "carries": "capsules"
+        },
+        {
+          "name": "reagent_line_in",
+          "from": "external",
+          "carries": "lysis_buffer, wash_buffer, rt_mix, wash_buffer in turn"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "outlet_1",
+          "to": "external",
+          "carries": "RT-treated capsules for off-chip split and index PCR"
+        },
+        {
+          "name": "reaction_trap_waste_out",
+          "to": "waste"
+        }
+      ]
+    },
+    {
+      "id": "chip4_shell_release_bead_capture_wash_elution",
+      "name": "Shell release, bead capture, ethanol wash and elution chip",
+      "purpose": "Digests the capsule shells to release cDNA, then binds the library to magnetic beads, washes them with ethanol on the magnet and elutes in water.",
+      "steps": [
+        22,
+        23,
+        24,
+        25
+      ],
+      "why_separate": "Index PCR (95 C) is off chip on a thermocycler, so the capsules come back by pipette. This chip needs only the magnet.",
+      "temp_c": null,
+      "equipment": [
+        "magnet",
+        "syringe_pump"
+      ],
+      "modules": [
+        {
+          "id": "release_trap",
+          "part": "trap_chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 50,
+            "depth_mm": 0.5,
+            "retention": "mesh",
+            "gap_um": 25
+          },
+          "steps": [
+            22
+          ],
+          "inlets": [
+            "shell_digesting_enzyme"
+          ],
+          "outlets": [
+            "release_trap_waste"
+          ],
+          "does": "Holds the capsules while the shell-digesting enzyme dissolves the shells and releases the cDNA, which leaves through the main line.",
+          "mesh_pore_um": 25,
+          "holds": "capsules"
+        },
+        {
+          "id": "beads_1",
+          "part": "magnetic_chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 50,
+            "depth_mm": 0.5
+          },
+          "steps": [
+            23,
+            24,
+            25
+          ],
+          "inlets": [
+            "magnetic_beads",
+            "ethanol_wash",
+            "elution_buffer"
+          ],
+          "outlets": [
+            "beads_1_waste"
+          ],
+          "does": "Beads bind the library, are held over the magnet during ethanol washes, and the library is then eluted in water.",
+          "holds": "beads"
+        }
+      ],
+      "inputs": [
+        {
+          "name": "inlet_1",
+          "from": "external",
+          "carries": "pooled indexed capsules from off-chip PCR"
+        },
+        {
+          "name": "shell_digesting_enzyme_in",
+          "from": "external",
+          "carries": "shell_digesting_enzyme"
+        },
+        {
+          "name": "magnetic_beads_in",
+          "from": "external",
+          "carries": "magnetic_beads"
+        },
+        {
+          "name": "ethanol_wash_in",
+          "from": "external",
+          "carries": "ethanol_wash"
+        },
+        {
+          "name": "elution_buffer_in",
+          "from": "external",
+          "carries": "elution_buffer"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "outlet_1",
+          "to": "external",
+          "carries": "eluted library"
+        },
+        {
+          "name": "release_trap_waste_out",
+          "to": "waste"
+        },
+        {
+          "name": "beads_1_waste_out",
+          "to": "waste"
+        }
+      ]
+    }
+  ],
+  "handoffs": [
+    {
+      "from_chip": "chip1_rinse_dissociation_quench_wash_encapsulation",
+      "from_output": "outlet_1",
+      "to_chip": "chip2_gelation_emulsion_break_cure_wash",
+      "to_input": "inlet_1",
+      "carries": "droplets",
+      "method": "tubing"
+    },
+    {
+      "from_chip": "chip2_gelation_emulsion_break_cure_wash",
+      "from_output": "outlet_1",
+      "to_chip": "chip3_filter_lysis_rt_wash",
+      "to_input": "inlet_1",
+      "carries": "capsules",
+      "method": "tubing"
+    },
+    {
+      "from_chip": "chip3_filter_lysis_rt_wash",
+      "from_output": "outlet_1",
+      "to_chip": "chip4_shell_release_bead_capture_wash_elution",
+      "to_input": "inlet_1",
+      "carries": "capsules",
+      "method": "off_chip_step",
+      "via_steps": [
+        20,
+        21
+      ]
+    }
+  ],
+  "off_chip": [
+    {
+      "steps": [
+        1
+      ],
+      "why": "Three-day culture of adherent cells in a CO2 incubator is done in a vessel at the bench.",
+      "equipment": [
+        "pipette"
+      ]
+    },
+    {
+      "steps": [
+        8
+      ],
+      "why": "Cell counting and viability check are done on the bench.",
+      "equipment": [
+        "microscope"
+      ]
+    },
+    {
+      "steps": [
+        20,
+        21
+      ],
+      "why": "Index PCR reaches 95 C, above the 50 C limit of the printed resin. The capsules are split by pipette into four tubes, each gets its own index primer mix, and they cycle on the thermocycler. They are then pooled and loaded onto chip 4.",
+      "equipment": [
+        "pipette",
+        "thermocycler"
+      ]
+    },
+    {
+      "steps": [
+        26
+      ],
+      "why": "Library concentration and size measurement is done on the bench; the lab has no fluorometer in its list, so it is a manual step on the eluted sample.",
+      "equipment": [
+        "pipette"
+      ]
+    }
+  ],
+  "missing_parts": [
+    {
+      "steps": [
+        7
+      ],
+      "need": "Pillar filter with ~30 um gap for cells (0.75 x the 40 um nozzle)",
+      "why": "The pillar filter cannot go below 100 um gap, and a 100 um gap would not protect the 40 um nozzle from clumps.",
+      "workaround": "Strain the cells off chip through a 30-40 um strainer before loading, or place a bought mesh in a trap."
+    }
+  ],
+  "coverage": {
+    "1": "off_chip",
+    "2": "chip1_rinse_dissociation_quench_wash_encapsulation.culture_1",
+    "3": "chip1_rinse_dissociation_quench_wash_encapsulation.culture_1",
+    "4": "chip1_rinse_dissociation_quench_wash_encapsulation.quench_join",
+    "5": "chip1_rinse_dissociation_quench_wash_encapsulation.cell_wash",
+    "6": "chip1_rinse_dissociation_quench_wash_encapsulation.cell_wash",
+    "7": "missing",
+    "8": "off_chip",
+    "9": "chip1_rinse_dissociation_quench_wash_encapsulation.core_join",
+    "10": "chip1_rinse_dissociation_quench_wash_encapsulation.droplets_1",
+    "11": "chip2_gelation_emulsion_break_cure_wash.gelation_delay",
+    "12": "chip2_gelation_emulsion_break_cure_wash.capsule_trap",
+    "13": "chip2_gelation_emulsion_break_cure_wash.capsule_trap",
+    "14": "chip2_gelation_emulsion_break_cure_wash.capsule_trap",
+    "15": "chip3_filter_lysis_rt_wash.aggregate_filter",
+    "16": "chip3_filter_lysis_rt_wash.reaction_trap",
+    "17": "chip3_filter_lysis_rt_wash.reaction_trap",
+    "18": "chip3_filter_lysis_rt_wash.reaction_trap",
+    "19": "chip3_filter_lysis_rt_wash.reaction_trap",
+    "20": "off_chip",
+    "21": "off_chip",
+    "22": "chip4_shell_release_bead_capture_wash_elution.release_trap",
+    "23": "chip4_shell_release_bead_capture_wash_elution.beads_1",
+    "24": "chip4_shell_release_bead_capture_wash_elution.beads_1",
+    "25": "chip4_shell_release_bead_capture_wash_elution.beads_1",
+    "26": "off_chip"
+  }
+}

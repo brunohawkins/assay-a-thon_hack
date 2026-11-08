@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 640" width="1240" height="640" font-family="Helvetica, Arial, sans-serif" role="img" aria-label="iPSC tri-culture to capsule-based single-cell RNA library: chip pipeline">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="24" y="30" font-size="15" font-weight="700" fill="#111827">iPSC tri-culture to capsule-based single-cell RNA library: chip pipeline</text>
+<path d="M274,76 L336,76" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<text x="306" y="44" font-size="10" text-anchor="middle" fill="#6b7280">filtered</text>
+<text x="306" y="56" font-size="10" text-anchor="middle" fill="#6b7280">single cells</text>
+<text x="306" y="68" font-size="10" text-anchor="middle" fill="#6b7280">(cell count</text>
+<path d="M588,76 L650,76" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<path d="M902,76 L964,76" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<text x="934" y="44" font-size="10" text-anchor="middle" fill="#6b7280">cured</text>
+<text x="934" y="56" font-size="10" text-anchor="middle" fill="#6b7280">capsules</text>
+<text x="934" y="68" font-size="10" text-anchor="middle" fill="#6b7280">(tubing)</text>
+<path d="M1091.0,396 L1091.0,463.0 L149.0,463.0 L149.0,496" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<text x="620" y="425" font-size="10" text-anchor="middle" fill="#6b7280">released</text>
+<text x="620" y="437" font-size="10" text-anchor="middle" fill="#6b7280">cDNA</text>
+<text x="620" y="449" font-size="10" text-anchor="middle" fill="#6b7280">(tubing)</text>
+<path d="M274,520 L336,520" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<rect x="24" y="54" width="250" height="374" rx="6" fill="#f6f7f9" stroke="#4b5563" stroke-width="1.4"/>
+<path d="M25,84 L273,84" stroke="#4b5563" stroke-width="0.8"/>
+<text x="34" y="74" font-size="13" font-weight="700" fill="#111827">chip1_triculture_dissociation_quen</text>
+<text x="34" y="100" font-size="11" fill="#111827" xml:space="preserve">Tri-culture, dissociation, quench,</text>
+<text x="34" y="116" font-size="11" fill="#111827" xml:space="preserve">cell wash and filter chip</text>
+<text x="34" y="132" font-size="11" fill="#111827" xml:space="preserve">split_1</text>
+<text x="34" y="148" font-size="11" fill="#6b7280" xml:space="preserve">   splitter</text>
+<text x="34" y="164" font-size="11" fill="#111827" xml:space="preserve">culture_neurons: steps 1, 2, 3</text>
+<text x="34" y="180" font-size="11" fill="#6b7280" xml:space="preserve">   culture_chamber_param</text>
+<text x="34" y="196" font-size="11" fill="#111827" xml:space="preserve">culture_microglia: steps 1, 2, 3</text>
+<text x="34" y="212" font-size="11" fill="#6b7280" xml:space="preserve">   culture_chamber_param</text>
+<text x="34" y="228" font-size="11" fill="#111827" xml:space="preserve">culture_astrocytes: steps 1, 2, 3</text>
+<text x="34" y="244" font-size="11" fill="#6b7280" xml:space="preserve">   culture_chamber_param</text>
+<text x="34" y="260" font-size="11" fill="#111827" xml:space="preserve">junction_mid: steps 2, 3</text>
+<text x="34" y="276" font-size="11" fill="#6b7280" xml:space="preserve">   pool</text>
+<text x="34" y="292" font-size="11" fill="#111827" xml:space="preserve">quench_join: steps 4</text>
+<text x="34" y="308" font-size="11" fill="#6b7280" xml:space="preserve">   merge</text>
+<text x="34" y="324" font-size="11" fill="#111827" xml:space="preserve">quench_mix: steps 4</text>
+<text x="34" y="340" font-size="11" fill="#6b7280" xml:space="preserve">   mixer</text>
+<text x="34" y="356" font-size="11" fill="#111827" xml:space="preserve">cell_wash: steps 5, 6</text>
+<text x="34" y="372" font-size="11" fill="#6b7280" xml:space="preserve">   spiral_separator</text>
+<text x="34" y="388" font-size="11" fill="#111827" xml:space="preserve">cell_filter: steps 7</text>
+<text x="34" y="404" font-size="11" fill="#6b7280" xml:space="preserve">   pillar_filter</text>
+<rect x="338" y="54" width="250" height="86" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="348" y="74" font-size="13" font-weight="700" fill="#111827">Bench (off chip)</text>
+<text x="348" y="100" font-size="11" fill="#6b7280" xml:space="preserve">8. Count the cells and check</text>
+<text x="348" y="116" font-size="11" fill="#6b7280" xml:space="preserve">viability.</text>
+<rect x="652" y="54" width="250" height="214" rx="6" fill="#f6f7f9" stroke="#4b5563" stroke-width="1.4"/>
+<path d="M653,84 L901,84" stroke="#4b5563" stroke-width="0.8"/>
+<text x="662" y="74" font-size="13" font-weight="700" fill="#111827">chip2_encapsulation_emulsion_break</text>
+<text x="662" y="100" font-size="11" fill="#111827" xml:space="preserve">Encapsulation, emulsion break, capsule</text>
+<text x="662" y="116" font-size="11" fill="#111827" xml:space="preserve">wash and curing chip</text>
+<text x="662" y="132" font-size="11" fill="#111827" xml:space="preserve">core_join: steps 9</text>
+<text x="662" y="148" font-size="11" fill="#6b7280" xml:space="preserve">   merge</text>
+<text x="662" y="164" font-size="11" fill="#111827" xml:space="preserve">core_mix: steps 9</text>
+<text x="662" y="180" font-size="11" fill="#6b7280" xml:space="preserve">   mixer</text>
+<text x="662" y="196" font-size="11" fill="#111827" xml:space="preserve">encap_junction: steps 9</text>
+<text x="662" y="212" font-size="11" fill="#6b7280" xml:space="preserve">   droplet_junction</text>
+<text x="662" y="228" font-size="11" fill="#111827" xml:space="preserve">capsule_trap: steps 10, 11, 12, 13</text>
+<text x="662" y="244" font-size="11" fill="#6b7280" xml:space="preserve">   trap_chamber</text>
+<rect x="966" y="54" width="250" height="342" rx="6" fill="#f6f7f9" stroke="#4b5563" stroke-width="1.4"/>
+<path d="M967,84 L1215,84" stroke="#4b5563" stroke-width="0.8"/>
+<text x="976" y="74" font-size="13" font-weight="700" fill="#111827">chip3_lysis_rt_split_index_pcr_poo</text>
+<text x="976" y="100" font-size="11" fill="#111827" xml:space="preserve">Lysis, RT, split, index PCR, pool and</text>
+<text x="976" y="116" font-size="11" fill="#111827" xml:space="preserve">release chip</text>
+<text x="976" y="132" font-size="11" fill="#111827" xml:space="preserve">reaction_trap: steps 14, 15, 16, 17</text>
+<text x="976" y="148" font-size="11" fill="#6b7280" xml:space="preserve">   trap_chamber</text>
+<text x="976" y="164" font-size="11" fill="#111827" xml:space="preserve">split_2: steps 18</text>
+<text x="976" y="180" font-size="11" fill="#6b7280" xml:space="preserve">   splitter</text>
+<text x="976" y="196" font-size="11" fill="#111827" xml:space="preserve">pcr_1: steps 19</text>
+<text x="976" y="212" font-size="11" fill="#6b7280" xml:space="preserve">   thermal_chamber</text>
+<text x="976" y="228" font-size="11" fill="#111827" xml:space="preserve">pcr_2: steps 19</text>
+<text x="976" y="244" font-size="11" fill="#6b7280" xml:space="preserve">   thermal_chamber</text>
+<text x="976" y="260" font-size="11" fill="#111827" xml:space="preserve">pcr_3: steps 19</text>
+<text x="976" y="276" font-size="11" fill="#6b7280" xml:space="preserve">   thermal_chamber</text>
+<text x="976" y="292" font-size="11" fill="#111827" xml:space="preserve">pcr_4: steps 19</text>
+<text x="976" y="308" font-size="11" fill="#6b7280" xml:space="preserve">   thermal_chamber</text>
+<text x="976" y="324" font-size="11" fill="#111827" xml:space="preserve">pool_2: steps 24</text>
+<text x="976" y="340" font-size="11" fill="#6b7280" xml:space="preserve">   pool</text>
+<text x="976" y="356" font-size="11" fill="#111827" xml:space="preserve">release_trap: steps 20</text>
+<text x="976" y="372" font-size="11" fill="#6b7280" xml:space="preserve">   trap_chamber</text>
+<rect x="24" y="498" width="250" height="118" rx="6" fill="#f6f7f9" stroke="#4b5563" stroke-width="1.4"/>
+<path d="M25,528 L273,528" stroke="#4b5563" stroke-width="0.8"/>
+<text x="34" y="518" font-size="13" font-weight="700" fill="#111827">chip4_bead_binding_wash_elution</text>
+<text x="34" y="544" font-size="11" fill="#111827" xml:space="preserve">Bead binding, ethanol wash and elution</text>
+<text x="34" y="560" font-size="11" fill="#111827" xml:space="preserve">chip</text>
+<text x="34" y="576" font-size="11" fill="#111827" xml:space="preserve">bead_chamber: steps 21, 22, 23</text>
+<text x="34" y="592" font-size="11" fill="#6b7280" xml:space="preserve">   magnetic_chamber</text>
+<rect x="338" y="498" width="250" height="86" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="348" y="518" font-size="13" font-weight="700" fill="#111827">Bench (off chip)</text>
+<text x="348" y="544" font-size="11" fill="#6b7280" xml:space="preserve">25. Measure library concentration and</text>
+<text x="348" y="560" font-size="11" fill="#6b7280" xml:space="preserve">fragment size.</text>
+</svg>

@@ -1,0 +1,511 @@
+{
+  "kind": "protocol_ir",
+  "id": "ipsc_triculture_single_cell_capsule_rnaseq",
+  "name": "iPSC tri-culture to capsule-based single-cell RNA library",
+  "goal": "Grow iPSC-derived neurons, microglia and astrocytes side by side (first apart, then sharing medium), then encapsulate single cells in semi-permeable hydrogel capsules, lyse, reverse transcribe, split into four index-PCR sublibraries, release the cDNA and clean up the library with magnetic beads for sequencing.",
+  "source": {
+    "kind": "prompt",
+    "file": null,
+    "title": "Grow three iPSC-derived cell types (neurons, microglia, astrocytes) side by...",
+    "citation": null
+  },
+  "placeholder": true,
+  "assumptions": [
+    "No written protocol was given; the full step list is expanded from standard published methods.",
+    "Added steps: separate and shared-medium culture details, quench, centrifuge, resuspend, filter, count, post-emulsion-break oil wash, post-cure wash, post-lysis wash, post-RT wash, pooling and final QC.",
+    "Culture durations, dissociation time and temperature, centrifuge speed, volumes, curing time, 405 nm curing light and wash repeat counts are typical stand-in values.",
+    "Lysis, reverse transcription, index PCR and enzymatic release times, temperatures and cycle numbers are left as placeholders for the lab to set.",
+    "The order break emulsion then cure follows the goal text; the capsules are taken to be collected into aqueous phase after the emulsion is broken.",
+    "Magnetic bead clean-up is written out as bind, wash on magnet and elute.",
+    "Reagent identities (shell polymer, oil, enzymes, buffers) are generic assumptions."
+  ],
+  "materials": [
+    {
+      "id": "cells",
+      "kind": "cells"
+    },
+    {
+      "id": "droplets",
+      "kind": "droplets"
+    },
+    {
+      "id": "capsules",
+      "kind": "capsules",
+      "note": "semi-permeable hydrogel capsules, one cell each"
+    },
+    {
+      "id": "nucleic_acid",
+      "kind": "nucleic_acid"
+    },
+    {
+      "id": "beads",
+      "kind": "beads"
+    },
+    {
+      "id": "library",
+      "kind": "library"
+    }
+  ],
+  "reagents": [
+    {
+      "id": "culture_medium",
+      "role": "maintain and feed the cells"
+    },
+    {
+      "id": "dissociation_enzyme",
+      "role": "detach cells"
+    },
+    {
+      "id": "quench_solution",
+      "role": "stop the dissociation enzyme"
+    },
+    {
+      "id": "wash_buffer",
+      "role": "wash cells and capsules"
+    },
+    {
+      "id": "shell_polymer",
+      "role": "photocurable capsule shell",
+      "viscous": true
+    },
+    {
+      "id": "core_solution",
+      "role": "aqueous core carrying the cell"
+    },
+    {
+      "id": "fluorinated_oil",
+      "role": "continuous oil phase",
+      "immiscible": true
+    },
+    {
+      "id": "emulsion_breaker",
+      "role": "break the emulsion and remove the oil"
+    },
+    {
+      "id": "lysis_buffer",
+      "role": "lyse the cells inside capsules"
+    },
+    {
+      "id": "rt_mix",
+      "role": "reverse transcribe the RNA"
+    },
+    {
+      "id": "pcr_mix",
+      "role": "index PCR amplification"
+    },
+    {
+      "id": "index_primers",
+      "role": "sublibrary indexing"
+    },
+    {
+      "id": "release_enzyme",
+      "role": "digest the capsule shell to release the cDNA"
+    },
+    {
+      "id": "magnetic_beads",
+      "role": "library clean-up"
+    },
+    {
+      "id": "ethanol_wash",
+      "role": "wash beads"
+    },
+    {
+      "id": "elution_buffer",
+      "role": "elute the library"
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "text": "Culture neurons, microglia and astrocytes in separate vessels, side by side, each in its own medium.",
+      "action": "culture",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "culture_medium"
+      ],
+      "duration_s": 604800,
+      "temp_c": 37,
+      "conditions": {
+        "co2": true
+      },
+      "equipment": [
+        "co2_incubator"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true,
+      "note": "Duration is a stand-in."
+    },
+    {
+      "n": 2,
+      "text": "Continue culture of the three cell types sharing medium (co-culture or shared medium flow).",
+      "action": "culture",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "culture_medium"
+      ],
+      "duration_s": 172800,
+      "temp_c": 37,
+      "conditions": {
+        "co2": true
+      },
+      "equipment": [
+        "co2_incubator"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 3,
+      "text": "Detach the cells with a dissociation enzyme.",
+      "action": "dissociate",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "dissociation_enzyme"
+      ],
+      "duration_s": 600,
+      "temp_c": 37,
+      "equipment": [
+        "co2_incubator"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 4,
+      "text": "Quench the dissociation enzyme.",
+      "action": "quench",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "quench_solution"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 5,
+      "text": "Centrifuge the cell suspension to pellet the cells.",
+      "action": "centrifuge",
+      "input_material": "cells",
+      "output_material": "cells",
+      "duration_s": 300,
+      "equipment": [
+        "centrifuge"
+      ],
+      "on_chip_hint": "off_chip",
+      "source_ref": "prompt",
+      "assumed": true,
+      "note": "About 300 g, stand-in value."
+    },
+    {
+      "n": 6,
+      "text": "Resuspend the cells in wash buffer.",
+      "action": "resuspend",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "wash_buffer"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 7,
+      "text": "Filter the suspension through a cell strainer to remove clumps.",
+      "action": "filter",
+      "input_material": "cells",
+      "output_material": "cells",
+      "equipment": [
+        "cell_strainer"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 8,
+      "text": "Count the cells and check viability.",
+      "action": "count",
+      "input_material": "cells",
+      "output_material": "cells",
+      "equipment": [
+        "cell_counter"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 9,
+      "text": "Wrap single cells in droplets of shell polymer around an aqueous core, formed in fluorinated oil at a chip junction.",
+      "action": "encapsulate",
+      "input_material": "cells",
+      "output_material": "droplets",
+      "reagents": [
+        "core_solution",
+        "shell_polymer",
+        "fluorinated_oil"
+      ],
+      "equipment": [
+        "syringe_pumps",
+        "microscope"
+      ],
+      "on_chip_hint": "required",
+      "source_ref": "prompt",
+      "assumed": false,
+      "note": "Flows of the core, shell and oil streams not given."
+    },
+    {
+      "n": 10,
+      "text": "Break the emulsion with an emulsion-breaking agent and remove the oil phase.",
+      "action": "break_emulsion",
+      "input_material": "droplets",
+      "output_material": "capsules",
+      "reagents": [
+        "emulsion_breaker"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": false
+    },
+    {
+      "n": 11,
+      "text": "Wash the capsules to remove leftover oil.",
+      "action": "wash_particles",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "wash_buffer"
+      ],
+      "repeats": 3,
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 12,
+      "text": "Cure the capsule shells with light.",
+      "action": "cure",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "duration_s": 60,
+      "conditions": {
+        "light_nm": 405
+      },
+      "equipment": [
+        "light_source_405nm"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 13,
+      "text": "Wash the cured capsules.",
+      "action": "wash_particles",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "wash_buffer"
+      ],
+      "repeats": 2,
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 14,
+      "text": "Lyse the cells inside the capsules (placeholder time and temperature).",
+      "action": "lyse",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "lysis_buffer"
+      ],
+      "duration_s": null,
+      "temp_c": null,
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 15,
+      "text": "Wash the capsules after lysis.",
+      "action": "wash_particles",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "wash_buffer"
+      ],
+      "repeats": 3,
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true,
+      "note": "Repeat count is a stand-in."
+    },
+    {
+      "n": 16,
+      "text": "Reverse transcribe the RNA inside the capsules (placeholder time and temperature).",
+      "action": "reverse_transcribe",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "rt_mix"
+      ],
+      "duration_s": null,
+      "temp_c": null,
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 17,
+      "text": "Wash the capsules after reverse transcription.",
+      "action": "wash_particles",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "wash_buffer"
+      ],
+      "repeats": 2,
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 18,
+      "text": "Split the capsules into four sublibrary portions.",
+      "action": "split",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "note": "Four sublibraries.",
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": false
+    },
+    {
+      "n": 19,
+      "text": "Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+      "action": "amplify",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "pcr_mix",
+        "index_primers"
+      ],
+      "duration_s": null,
+      "temp_c": null,
+      "conditions": {
+        "thermal_cycles": null
+      },
+      "equipment": [
+        "thermocycler"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": false
+    },
+    {
+      "n": 20,
+      "text": "Release the cDNA from the capsules by digesting the shell with a shell-digesting enzyme (placeholder time and temperature).",
+      "action": "release",
+      "input_material": "capsules",
+      "output_material": "nucleic_acid",
+      "reagents": [
+        "release_enzyme"
+      ],
+      "duration_s": null,
+      "temp_c": null,
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": false
+    },
+    {
+      "n": 21,
+      "text": "Bind the released cDNA to magnetic beads.",
+      "action": "bind_beads",
+      "input_material": "nucleic_acid",
+      "output_material": "beads",
+      "reagents": [
+        "magnetic_beads"
+      ],
+      "duration_s": 300,
+      "temp_c": 22,
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 22,
+      "text": "Wash the beads on a magnet.",
+      "action": "wash_particles",
+      "input_material": "beads",
+      "output_material": "beads",
+      "reagents": [
+        "ethanol_wash"
+      ],
+      "repeats": 2,
+      "conditions": {
+        "magnet": true
+      },
+      "equipment": [
+        "magnetic_stand"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 23,
+      "text": "Elute the library from the beads.",
+      "action": "elute",
+      "input_material": "beads",
+      "output_material": "library",
+      "reagents": [
+        "elution_buffer"
+      ],
+      "duration_s": 120,
+      "temp_c": 22,
+      "conditions": {
+        "magnet": true
+      },
+      "equipment": [
+        "magnetic_stand"
+      ],
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 24,
+      "text": "Pool the four cleaned-up sublibraries for sequencing.",
+      "action": "pool",
+      "input_material": "library",
+      "output_material": "library",
+      "on_chip_hint": "possible",
+      "source_ref": "prompt",
+      "assumed": true
+    },
+    {
+      "n": 25,
+      "text": "Measure library concentration and fragment size.",
+      "action": "measure",
+      "input_material": "library",
+      "output_material": "library",
+      "equipment": [
+        "fluorometer"
+      ],
+      "on_chip_hint": "off_chip",
+      "source_ref": "prompt",
+      "assumed": true
+    }
+  ]
+}

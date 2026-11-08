@@ -1,0 +1,58 @@
+{
+  "id": "chip2_emulsion_break_curing_wash_filter",
+  "name": "Emulsion break, curing, wash and capsule filter chip",
+  "description": "Breaks the emulsion, photocures the shells, washes the capsules and removes aggregates. Parametric parts: modules capsule_trap use the nearest library block as a stand-in (real part and sizing in autochip_part / params). Modules listed in missing_parts with a 'module' field are parametric with no library block. build_chip.py builds the stand-ins at library size; the exact chip needs the autochip layout stage.",
+  "source": "autochip chip plan spc_single_cell_workflow_assayathon_demo (protocol spc_single_cell_workflow, constraints assayathon_demo)",
+  "placeholder": true,
+  "needs_autochip_layout": true,
+  "temp_c": null,
+  "equipment": [
+    "led_405nm",
+    "syringe_pump"
+  ],
+  "modules": [
+    {
+      "id": "capsule_trap",
+      "part": "culture_chamber",
+      "steps": [
+        12,
+        13,
+        14
+      ],
+      "does": "A mesh with 25 um pores (under 0.4 x the capsule size) holds the capsules. Emulsion-breaking agent (own line) flushes the oil out, then photoinitiator is flushed in and cured under 405 nm. The same water-based reagent_line carries photoinitiator and then wash buffer, with the syringe swapped between steps.",
+      "inlets": [
+        "emulsion_breaking_agent",
+        "reagent_line"
+      ],
+      "outlets": [
+        "trap_waste"
+      ],
+      "mesh_pore_um": 25,
+      "autochip_part": "trap_chamber",
+      "params": {
+        "volume_ul": 50,
+        "depth_mm": 0.3,
+        "retention": "mesh",
+        "gap_um": 25
+      }
+    }
+  ],
+  "off_chip": [],
+  "missing_parts": [
+    {
+      "steps": [
+        15
+      ],
+      "need": "pillar_filter (gap_um=100, purpose=capsule_aggregates)",
+      "why": "parametric part with no library block; the autochip layout stage draws it",
+      "module": "aggregate_filter",
+      "inlets": []
+    }
+  ],
+  "steps_text": {
+    "12": "Add emulsion-breaking agent and remove the oil phase.",
+    "13": "Photocure the capsule shells with 405 nm light in the presence of photoinitiator.",
+    "14": "Wash the capsules in buffer to remove oil and free reagents.",
+    "15": "Filter the capsules through a strainer to remove aggregates."
+  }
+}

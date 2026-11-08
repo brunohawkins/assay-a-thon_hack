@@ -1,0 +1,219 @@
+{
+  "kind": "protocol_ir",
+  "id": "generic_capsule_demo",
+  "name": "Generic cell-to-capsule demo (placeholder)",
+  "goal": "Grow cells, detach them, wrap them in capsules and lyse them inside the capsules.",
+  "source": {
+    "kind": "protocol",
+    "file": "generic_protocol.md",
+    "title": "Generic capsule protocol",
+    "citation": null
+  },
+  "placeholder": true,
+  "assumptions": [
+    "Volumes are placeholders.",
+    "Room temperature is 22 C."
+  ],
+  "materials": [
+    {
+      "id": "cells",
+      "kind": "cells"
+    },
+    {
+      "id": "capsules",
+      "kind": "capsules",
+      "size_um": 70
+    }
+  ],
+  "reagents": [
+    {
+      "id": "culture_medium"
+    },
+    {
+      "id": "wash_buffer"
+    },
+    {
+      "id": "dissociation_enzyme"
+    },
+    {
+      "id": "quench_medium"
+    },
+    {
+      "id": "core_solution"
+    },
+    {
+      "id": "shell_polymer",
+      "viscous": true
+    },
+    {
+      "id": "oil",
+      "immiscible": true
+    },
+    {
+      "id": "emulsion_breaker"
+    },
+    {
+      "id": "lysis_buffer"
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "text": "Culture the cells at 37 C for 3 days with a daily medium change.",
+      "action": "culture",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "culture_medium"
+      ],
+      "volume_ul": null,
+      "duration_s": 259200,
+      "temp_c": 37,
+      "conditions": {
+        "co2": true
+      },
+      "on_chip_hint": "possible"
+    },
+    {
+      "n": 2,
+      "text": "Rinse the cells once with buffer.",
+      "action": "wash_cells",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "wash_buffer"
+      ],
+      "volume_ul": 200,
+      "repeats": 1
+    },
+    {
+      "n": 3,
+      "text": "Add dissociation enzyme and incubate 5 min at 37 C.",
+      "action": "dissociate",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "dissociation_enzyme"
+      ],
+      "volume_ul": 100,
+      "duration_s": 300,
+      "temp_c": 37
+    },
+    {
+      "n": 4,
+      "text": "Add quench medium and mix gently.",
+      "action": "quench",
+      "input_material": "cells",
+      "output_material": "cells",
+      "reagents": [
+        "quench_medium"
+      ],
+      "volume_ul": 200
+    },
+    {
+      "n": 5,
+      "text": "Centrifuge and remove the supernatant.",
+      "action": "centrifuge",
+      "input_material": "cells",
+      "output_material": "cells",
+      "equipment": [
+        "centrifuge"
+      ],
+      "on_chip_hint": "off_chip"
+    },
+    {
+      "n": 6,
+      "text": "Count the cells and check viability.",
+      "action": "count",
+      "input_material": "cells",
+      "output_material": "cells",
+      "equipment": [
+        "microscope"
+      ],
+      "on_chip_hint": "off_chip"
+    },
+    {
+      "n": 7,
+      "text": "Co-flow the cells in core solution with shell polymer and oil to make droplets.",
+      "action": "encapsulate",
+      "input_material": "cells",
+      "output_material": "droplets",
+      "reagents": [
+        "core_solution",
+        "shell_polymer",
+        "oil"
+      ],
+      "flow_ul_min": null
+    },
+    {
+      "n": 8,
+      "text": "Keep the emulsion cold for 20 min so the shell gels.",
+      "action": "incubate",
+      "input_material": "droplets",
+      "output_material": "droplets",
+      "duration_s": 1200,
+      "temp_c": 4,
+      "conditions": {
+        "cold": true
+      }
+    },
+    {
+      "n": 9,
+      "text": "Break the emulsion and remove the oil.",
+      "action": "break_emulsion",
+      "input_material": "droplets",
+      "output_material": "capsules",
+      "reagents": [
+        "emulsion_breaker"
+      ]
+    },
+    {
+      "n": 10,
+      "text": "Photocure the shells with 405 nm light for 30 s.",
+      "action": "cure",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "duration_s": 30,
+      "conditions": {
+        "light_nm": 405
+      }
+    },
+    {
+      "n": 11,
+      "text": "Wash the capsules three times in buffer.",
+      "action": "wash_particles",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "wash_buffer"
+      ],
+      "repeats": 3
+    },
+    {
+      "n": 12,
+      "text": "Filter the capsules through a 100 um strainer.",
+      "action": "filter",
+      "input_material": "capsules",
+      "output_material": "capsules"
+    },
+    {
+      "n": 13,
+      "text": "Exchange into lysis buffer and incubate placeholder time and temperature.",
+      "action": "lyse",
+      "input_material": "capsules",
+      "output_material": "capsules",
+      "reagents": [
+        "lysis_buffer"
+      ],
+      "duration_s": null
+    },
+    {
+      "n": 14,
+      "text": "Measure the product on a plate reader.",
+      "action": "measure",
+      "input_material": "capsules",
+      "output_material": "none",
+      "on_chip_hint": "off_chip"
+    }
+  ]
+}

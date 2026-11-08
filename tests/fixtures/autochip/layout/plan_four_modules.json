@@ -1,0 +1,107 @@
+{
+  "kind": "chip_plan",
+  "id": "four_modules",
+  "name": "Four modules on one chip (library + parametric)",
+  "protocol_id": "fixture_ir",
+  "constraints_id": "resin_print_multilayer",
+  "rationale": "Everything runs at room temperature on one resin chip.",
+  "chips": [
+    {
+      "id": "prep_chip",
+      "name": "Cell prep chip",
+      "purpose": "Dissociate cells, quench, mix and strain them before encapsulation.",
+      "steps": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "temp_c": 37,
+      "modules": [
+        {
+          "id": "dissociate",
+          "part": "chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 20,
+            "depth_mm": 0.5
+          },
+          "steps": [
+            1
+          ],
+          "inlets": [
+            "enzyme"
+          ],
+          "does": "Holds the cells while the dissociation enzyme flows past.",
+          "holds": "cells"
+        },
+        {
+          "id": "quench_join",
+          "part": "t_junction",
+          "part_source": "library",
+          "steps": [
+            2
+          ],
+          "inlets": [
+            "quench"
+          ],
+          "does": "Adds quench medium to the cell stream.",
+          "holds": "cells"
+        },
+        {
+          "id": "quench_mix",
+          "part": "delay_line",
+          "part_source": "parametric",
+          "params": {
+            "residence_s": 30,
+            "flow_ul_min": 5
+          },
+          "steps": [
+            3
+          ],
+          "does": "Gives the enzyme 30 s to be neutralised.",
+          "holds": "cells"
+        },
+        {
+          "id": "strain",
+          "part": "pillar_filter",
+          "part_source": "parametric",
+          "params": {
+            "gap_um": 30
+          },
+          "steps": [
+            4
+          ],
+          "outlets": [
+            "clumps"
+          ],
+          "does": "Strains cell clumps before the encapsulation chip.",
+          "holds": "cells"
+        }
+      ],
+      "inputs": [
+        {
+          "name": "cells",
+          "from": "external",
+          "carries": "cells"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "single_cells",
+          "to": "external",
+          "carries": "cells"
+        }
+      ]
+    }
+  ],
+  "handoffs": [],
+  "off_chip": [],
+  "missing_parts": [],
+  "coverage": {
+    "1": "prep_chip.dissociate",
+    "2": "prep_chip.quench_join",
+    "3": "prep_chip.quench_mix",
+    "4": "prep_chip.strain"
+  }
+}

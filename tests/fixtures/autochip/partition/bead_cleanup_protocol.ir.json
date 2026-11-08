@@ -1,0 +1,127 @@
+{
+  "kind": "protocol_ir",
+  "id": "bead_cleanup_protocol",
+  "name": "Magnetic bead DNA clean-up",
+  "goal": "Clean up a DNA sample on magnetic beads.",
+  "source": {
+    "kind": "protocol",
+    "file": "autochip/examples/bead_cleanup_protocol.md",
+    "title": "Magnetic bead DNA clean-up (generic, after any amplification)"
+  },
+  "placeholder": true,
+  "assumptions": [
+    "Hand-written test fixture."
+  ],
+  "materials": [
+    {
+      "id": "dna",
+      "kind": "nucleic_acid"
+    },
+    {
+      "id": "beads",
+      "kind": "beads",
+      "size_um": 1
+    }
+  ],
+  "reagents": [
+    {
+      "id": "bead_suspension"
+    },
+    {
+      "id": "ethanol_80"
+    },
+    {
+      "id": "elution_buffer"
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "text": "Mix the DNA sample with bead suspension (0.8x) and incubate 5 min at room temperature.",
+      "action": "bind_beads",
+      "input_material": "nucleic_acid",
+      "output_material": "beads",
+      "reagents": [
+        "bead_suspension"
+      ],
+      "volume_ul": 90,
+      "duration_s": 300
+    },
+    {
+      "n": 2,
+      "text": "Place on a magnet for 2 min until clear; discard the supernatant.",
+      "action": "magnetic_separate",
+      "input_material": "beads",
+      "output_material": "beads",
+      "duration_s": 120,
+      "conditions": {
+        "magnet": true
+      },
+      "equipment": [
+        "magnet"
+      ]
+    },
+    {
+      "n": 3,
+      "text": "Wash the beads with ethanol wash solution on the magnet; repeat once.",
+      "action": "wash_particles",
+      "input_material": "beads",
+      "output_material": "beads",
+      "reagents": [
+        "ethanol_80"
+      ],
+      "volume_ul": 200,
+      "repeats": 2,
+      "conditions": {
+        "magnet": true
+      },
+      "equipment": [
+        "magnet"
+      ]
+    },
+    {
+      "n": 4,
+      "text": "Air-dry the beads for 2 min.",
+      "action": "incubate",
+      "input_material": "beads",
+      "output_material": "beads",
+      "duration_s": 120
+    },
+    {
+      "n": 5,
+      "text": "Remove from the magnet, resuspend the beads in elution buffer and incubate 2 min.",
+      "action": "elute",
+      "input_material": "beads",
+      "output_material": "nucleic_acid",
+      "reagents": [
+        "elution_buffer"
+      ],
+      "volume_ul": 20,
+      "duration_s": 120
+    },
+    {
+      "n": 6,
+      "text": "Place on the magnet and collect the clear eluate.",
+      "action": "collect",
+      "input_material": "nucleic_acid",
+      "output_material": "nucleic_acid",
+      "conditions": {
+        "magnet": true
+      },
+      "equipment": [
+        "magnet"
+      ]
+    },
+    {
+      "n": 7,
+      "text": "Measure DNA concentration.",
+      "action": "measure",
+      "input_material": "nucleic_acid",
+      "output_material": "nucleic_acid",
+      "equipment": [
+        "plate_reader"
+      ],
+      "on_chip_hint": "off_chip"
+    }
+  ]
+}

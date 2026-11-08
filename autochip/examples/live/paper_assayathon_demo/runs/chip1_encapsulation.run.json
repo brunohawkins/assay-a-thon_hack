@@ -1,0 +1,189 @@
+{
+  "kind": "chip_run_program",
+  "chip": "chip1_encapsulation",
+  "chip_name": "Encapsulation chip",
+  "purpose": "Cells in core solution are pinched into shell-polymer droplets by fluorinated oil at a flow-focusing junction.",
+  "placeholder": true,
+  "created_at": "2026-11-08T09:36:00Z",
+  "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
+  "limits": {
+    "pump_channels": 4,
+    "flow_range_ul_min": [
+      0.1,
+      500
+    ],
+    "max_pressure_kpa": null,
+    "chamber_shear_limit_dyn_cm2": {
+      "cells": 1.0,
+      "capsules": 5.0,
+      "droplets": 5.0
+    },
+    "channel_shear_limit_cells_dyn_cm2": 10.0
+  },
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "role": "load",
+      "module": "droplets_1"
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "role": "transfer",
+      "module": "droplets_1"
+    },
+    {
+      "id": "shell_polymer_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "droplets_1"
+    },
+    {
+      "id": "fluorinated_oil_in",
+      "type": "inlet",
+      "role": "oil",
+      "module": "droplets_1"
+    }
+  ],
+  "total_duration_s": 1800.0,
+  "steps": [
+    {
+      "ir_step": 10,
+      "ir_action": "encapsulate",
+      "ir_text": "Co-flow the cell/core solution with warm shell polymer solution and focus with fluorinated oil at a flow-focusing junction to make droplets.",
+      "module": "droplets_1",
+      "target": "droplets_1",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "collect_label": "chip1_encapsulation: droplets after step 10, for chip2_emulsion_break_curing_wash_filter inlet_1",
+      "phase": "flow",
+      "title": "Encapsulate (co-flow)",
+      "operation": "encapsulate",
+      "duration_s": 1800.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "steady droplet break-up at droplets_1 (microscope); droplets travel on towards outlet_1; no oil backing up into the core line; keep shell_polymer_in (shell_polymer) warm (37 C syringe heater) up to the chip; the cold zone starts downstream; collect into the tube labelled 'chip1_encapsulation: droplets after step 10, for chip2_emulsion_break_curing_wash_filter inlet_1'",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "cells_in_core_solution",
+          "ul_min": 2.0,
+          "volume_ul": 60.0,
+          "time_s": 1800.0
+        },
+        "outlet_1": {
+          "state": "VENT",
+          "to": "tube labelled 'chip1_encapsulation: droplets after step 10, for chip2_emulsion_break_curing_wash_filter inlet_1'"
+        },
+        "shell_polymer_in": {
+          "state": "FEED",
+          "reagent": "shell_polymer",
+          "ul_min": 2.0,
+          "line_temp_c": 37.0,
+          "volume_ul": 60.0,
+          "time_s": 1800.0
+        },
+        "fluorinated_oil_in": {
+          "state": "FEED",
+          "reagent": "fluorinated_oil",
+          "ul_min": 10.0,
+          "volume_ul": 300.0,
+          "time_s": 1800.0
+        }
+      },
+      "feeds": [
+        "inlet_1",
+        "shell_polymer_in",
+        "fluorinated_oil_in"
+      ],
+      "vents": [
+        "outlet_1"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 14.0,
+        "total_feed_ul_min": 14.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.003,
+        "target_shear_dyn_cm2": 0.04148,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "inlet_1": 2.0,
+          "outlet_1": -14.0,
+          "shell_polymer_in": 2.0,
+          "fluorinated_oil_in": 10.0
+        },
+        "issues": []
+      },
+      "collects": {
+        "port": "outlet_1",
+        "label": "chip1_encapsulation: droplets after step 10, for chip2_emulsion_break_curing_wash_filter inlet_1",
+        "material": "droplets"
+      },
+      "t_start_s": 0.0,
+      "n": 1
+    }
+  ],
+  "syringes": [
+    {
+      "port": "inlet_1",
+      "reagent": "cells_in_core_solution",
+      "volume_ul": 60.0,
+      "steps": [
+        1
+      ],
+      "first_step": 1,
+      "load_ul": 72.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "shell_polymer_in",
+      "reagent": "shell_polymer",
+      "volume_ul": 60.0,
+      "steps": [
+        1
+      ],
+      "first_step": 1,
+      "load_ul": 72.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "fluorinated_oil_in",
+      "reagent": "fluorinated_oil",
+      "volume_ul": 300.0,
+      "steps": [
+        1
+      ],
+      "first_step": 1,
+      "load_ul": 360.0,
+      "syringe_ml": 1
+    }
+  ],
+  "equipment": [
+    "syringe pump with 3 independent lines",
+    "syringe heater / warm jacket on the shell_polymer syringe and line (37 C)",
+    "microscope",
+    "tubing for every used port, plugs for capped ports, waste and collection tubes"
+  ],
+  "twin_run": {
+    "ok": true,
+    "path": "autochip/examples/live/paper_assayathon_demo/runs/chip1_encapsulation.twin_run.json",
+    "events": 1,
+    "in_repo": true,
+    "chip_spec": "autochip/examples/live/paper_assayathon_demo/chips/chip1_encapsulation.json"
+  },
+  "protocol": "runs/chip1_encapsulation.protocol.json",
+  "chip_spec": "chips/chip1_encapsulation.json",
+  "checks": [
+    {
+      "severity": "info",
+      "message": "the operator's planner (operator/planner.py) accepts this protocol: 1 events in runs/chip1_encapsulation.twin_run.json, chip stored as autochip/examples/live/paper_assayathon_demo/chips/chip1_encapsulation.json"
+    }
+  ]
+}

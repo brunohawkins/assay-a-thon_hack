@@ -1,0 +1,78 @@
+{
+  "id": "chip1_encapsulation",
+  "name": "Encapsulation chip",
+  "description": "Cells in core solution are pinched into shell-polymer droplets by fluorinated oil at a flow-focusing junction. Parametric parts: modules droplets_1 use the nearest library block as a stand-in (real part and sizing in autochip_part / params). build_chip.py builds the stand-ins at library size; the exact chip needs the autochip layout stage.",
+  "source": "autochip chip plan spc_single_cell_workflow_assayathon_demo (protocol spc_single_cell_workflow, constraints assayathon_demo)",
+  "placeholder": true,
+  "needs_autochip_layout": true,
+  "temp_c": null,
+  "equipment": [
+    "syringe_pump"
+  ],
+  "modules": [
+    {
+      "id": "droplets_1",
+      "part": "cross_junction",
+      "steps": [
+        10
+      ],
+      "does": "The cell/core stream arrives on the main line (centre). The shell_polymer and fluorinated_oil lines pinch it into droplets. The nozzle is the smallest the part allows (200 um), so droplets will be larger than the 70 um target.",
+      "inlets": [
+        "shell_polymer",
+        "fluorinated_oil"
+      ],
+      "autochip_part": "droplet_junction",
+      "params": {
+        "nozzle_um": 200
+      }
+    }
+  ],
+  "off_chip": [
+    {
+      "steps": [
+        1,
+        2,
+        3
+      ],
+      "why": "Culture, rinse and enzyme detachment of adherent cells in a vessel, done off chip."
+    },
+    {
+      "steps": [
+        4,
+        5,
+        6
+      ],
+      "why": "Quench, centrifuge and wash are done at the bench with the centrifuge."
+    },
+    {
+      "steps": [
+        8
+      ],
+      "why": "Counting and viability check are done at the bench."
+    },
+    {
+      "steps": [
+        9
+      ],
+      "why": "Resuspending in core solution is a pipette step before loading the syringe for chip 1."
+    },
+    {
+      "steps": [
+        11
+      ],
+      "why": "The emulsion is gelled on the cold plate off chip. A 30 min delay line would not fit a 30 x 20 mm chip."
+    }
+  ],
+  "missing_parts": [
+    {
+      "steps": [
+        7
+      ],
+      "need": "pillar filter with about 30 um gap (0.75 x the encapsulation nozzle) for cells upstream of the junction",
+      "why": "A 30 um gap is below the smallest gap the process makes (60 um)."
+    }
+  ],
+  "steps_text": {
+    "10": "Co-flow the cell/core solution with warm shell polymer solution and focus with fluorinated oil at a flow-focusing junction to make droplets."
+  }
+}

@@ -1,0 +1,636 @@
+{
+  "kind": "chip_run_program",
+  "chip": "chip3_lysis_wash_rt",
+  "chip_name": "Lysis, wash and reverse transcription chip",
+  "purpose": "Lyses the cells, washes, and runs reverse transcription inside the capsules held in one trap.",
+  "placeholder": true,
+  "created_at": "2026-11-08T09:36:00Z",
+  "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
+  "limits": {
+    "pump_channels": 4,
+    "flow_range_ul_min": [
+      0.1,
+      500
+    ],
+    "max_pressure_kpa": null,
+    "chamber_shear_limit_dyn_cm2": {
+      "cells": 1.0,
+      "capsules": 5.0,
+      "droplets": 5.0
+    },
+    "channel_shear_limit_cells_dyn_cm2": 10.0
+  },
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "role": "load",
+      "module": "lysis_rt_trap"
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "role": "harvest",
+      "module": "lysis_rt_trap"
+    },
+    {
+      "id": "reagent_line_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "lysis_rt_trap"
+    },
+    {
+      "id": "trap_waste_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "lysis_rt_trap"
+    }
+  ],
+  "total_duration_s": 7425.0,
+  "steps": [
+    {
+      "ir_step": 16,
+      "ir_action": "load",
+      "ir_text": "Exchange the buffer for lysis buffer and incubate the capsules.",
+      "module": "lysis_rt_trap",
+      "target": "lysis_rt_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "move",
+      "title": "Load capsules from the hand-off from chip2_emulsion_break_curing_wash_filter",
+      "operation": "load",
+      "duration_s": 225.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the capsules arrives in lysis_rt_trap and stays there; liquid leaves at trap_waste_out",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "capsules_sample",
+          "ul_min": 20.0,
+          "volume_ul": 75.0,
+          "time_s": 225.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.005,
+        "target_shear_dyn_cm2": 0.01947,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "loads_from": {
+        "port": "inlet_1",
+        "chip": "chip2_emulsion_break_curing_wash_filter"
+      },
+      "t_start_s": 0.0,
+      "n": 1
+    },
+    {
+      "ir_step": 16,
+      "ir_action": "lyse",
+      "ir_text": "Exchange the buffer for lysis buffer and incubate the capsules.",
+      "module": "lysis_rt_trap",
+      "target": "lysis_rt_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 16: module lysis_rt_trap has no inlet named for lysis_buffer; it goes in through inlet_1 (swap that syringe and prime the line first)",
+          "step": 16
+        }
+      ],
+      "phase": "fill",
+      "title": "Exchange: lysis_buffer",
+      "operation": "exchange",
+      "duration_s": 225.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "lysis_buffer reaches lysis_rt_trap and leaves at trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "lysis_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 75.0,
+          "time_s": 225.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.005,
+        "target_shear_dyn_cm2": 0.01947,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 225.0,
+      "n": 2
+    },
+    {
+      "ir_step": 16,
+      "ir_action": "lyse",
+      "ir_text": "Exchange the buffer for lysis buffer and incubate the capsules.",
+      "module": "lysis_rt_trap",
+      "target": "lysis_rt_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "hold",
+      "title": "Incubate",
+      "operation": "hold_temp",
+      "duration_s": 600.0,
+      "temp_c": 22.0,
+      "wait_s": 600.0,
+      "watch": "temperature steady at 22 C; nothing moving; capped ports not leaking",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 450.0,
+      "n": 3
+    },
+    {
+      "ir_step": 17,
+      "ir_action": "wash_particles",
+      "ir_text": "Wash the capsules in wash buffer.",
+      "module": "lysis_rt_trap",
+      "target": "lysis_rt_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 17: module lysis_rt_trap has no inlet named for wash_buffer; it goes in through inlet_1 (swap that syringe and prime the line first)",
+          "step": 17
+        }
+      ],
+      "phase": "fill",
+      "title": "Exchange: wash_buffer x3",
+      "operation": "exchange",
+      "duration_s": 1350.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "wash_buffer reaches lysis_rt_trap and leaves at trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "wash_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 450.0,
+          "time_s": 1350.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 3,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.005,
+        "target_shear_dyn_cm2": 0.01947,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 1050.0,
+      "n": 4
+    },
+    {
+      "ir_step": 18,
+      "ir_action": "reverse_transcribe",
+      "ir_text": "Exchange the buffer for reverse transcription mix and incubate the capsules.",
+      "module": "lysis_rt_trap",
+      "target": "lysis_rt_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 18: module lysis_rt_trap has no inlet named for rt_mix; it goes in through inlet_1 (swap that syringe and prime the line first)",
+          "step": 18
+        }
+      ],
+      "phase": "fill",
+      "title": "Exchange: rt_mix",
+      "operation": "exchange",
+      "duration_s": 225.0,
+      "temp_c": 42.0,
+      "wait_s": 0.0,
+      "watch": "rt_mix reaches lysis_rt_trap and leaves at trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "rt_mix",
+          "ul_min": 20.0,
+          "volume_ul": 75.0,
+          "time_s": 225.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.005,
+        "target_shear_dyn_cm2": 0.01947,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 2400.0,
+      "n": 5
+    },
+    {
+      "ir_step": 18,
+      "ir_action": "reverse_transcribe",
+      "ir_text": "Exchange the buffer for reverse transcription mix and incubate the capsules.",
+      "module": "lysis_rt_trap",
+      "target": "lysis_rt_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "hold",
+      "title": "Incubate",
+      "operation": "hold_temp",
+      "duration_s": 3600.0,
+      "temp_c": 42.0,
+      "wait_s": 3600.0,
+      "watch": "temperature steady at 42 C; nothing moving; capped ports not leaking",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 2625.0,
+      "n": 6
+    },
+    {
+      "ir_step": 19,
+      "ir_action": "wash_particles",
+      "ir_text": "Wash the capsules twice.",
+      "module": "lysis_rt_trap",
+      "target": "lysis_rt_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 19: module lysis_rt_trap has no inlet named for wash_buffer; it goes in through inlet_1 (swap that syringe and prime the line first)",
+          "step": 19
+        }
+      ],
+      "phase": "fill",
+      "title": "Exchange: wash_buffer x2",
+      "operation": "exchange",
+      "duration_s": 900.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "wash_buffer reaches lysis_rt_trap and leaves at trap_waste_out; no bubbles in the chamber; capsules stay on the mesh",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "wash_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 300.0,
+          "time_s": 900.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "trap_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "trap_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 2,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.005,
+        "target_shear_dyn_cm2": 0.01947,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "trap_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 6225.0,
+      "n": 7
+    },
+    {
+      "ir_step": 19,
+      "ir_action": "collect",
+      "ir_text": "Wash the capsules twice.",
+      "module": "lysis_rt_trap",
+      "target": "lysis_rt_trap",
+      "holds": "capsules",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "collect_label": "chip3_lysis_wash_rt: capsules after step 19",
+      "phase": "collect",
+      "title": "Collect the capsules (outlet_1)",
+      "operation": "transfer",
+      "duration_s": 300.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the capsules leaves lysis_rt_trap through outlet_1 into the tube labelled 'chip3_lysis_wash_rt: capsules after step 19'; never to waste",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "VENT",
+          "to": "tube labelled 'chip3_lysis_wash_rt: capsules after step 19'"
+        },
+        "reagent_line_in": {
+          "state": "FEED",
+          "reagent": "collection_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 100.0,
+          "time_s": 300.0
+        },
+        "trap_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "reagent_line_in"
+      ],
+      "vents": [
+        "outlet_1"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0051,
+        "target_shear_dyn_cm2": 0.01947,
+        "port_flow_ul_min": {
+          "outlet_1": -20.0,
+          "reagent_line_in": 20.0
+        },
+        "issues": []
+      },
+      "collects": {
+        "port": "outlet_1",
+        "label": "chip3_lysis_wash_rt: capsules after step 19",
+        "material": "capsules"
+      },
+      "t_start_s": 7125.0,
+      "n": 8
+    }
+  ],
+  "syringes": [
+    {
+      "port": "inlet_1",
+      "reagent": "capsules_sample",
+      "volume_ul": 75.0,
+      "steps": [
+        1
+      ],
+      "first_step": 1,
+      "load_ul": 90.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "lysis_buffer",
+      "volume_ul": 75.0,
+      "steps": [
+        2
+      ],
+      "first_step": 2,
+      "load_ul": 90.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "wash_buffer",
+      "volume_ul": 750.0,
+      "steps": [
+        4,
+        7
+      ],
+      "first_step": 4,
+      "load_ul": 900.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "rt_mix",
+      "volume_ul": 75.0,
+      "steps": [
+        5
+      ],
+      "first_step": 5,
+      "load_ul": 90.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "reagent_line_in",
+      "reagent": "collection_buffer",
+      "volume_ul": 100.0,
+      "steps": [
+        8
+      ],
+      "first_step": 8,
+      "load_ul": 120.0,
+      "syringe_ml": 1
+    }
+  ],
+  "equipment": [
+    "syringe pump with 1 independent line",
+    "heater / stage-top incubator (42 C)",
+    "tubing for every used port, plugs for capped ports, waste and collection tubes"
+  ],
+  "twin_run": {
+    "ok": true,
+    "path": "autochip/examples/live/paper_assayathon_demo/runs/chip3_lysis_wash_rt.twin_run.json",
+    "events": 8,
+    "in_repo": true,
+    "chip_spec": "autochip/examples/live/paper_assayathon_demo/chips/chip3_lysis_wash_rt.json"
+  },
+  "protocol": "runs/chip3_lysis_wash_rt.protocol.json",
+  "chip_spec": "chips/chip3_lysis_wash_rt.json",
+  "checks": [
+    {
+      "severity": "info",
+      "message": "step 16: module lysis_rt_trap has no inlet named for lysis_buffer; it goes in through inlet_1 (swap that syringe and prime the line first)",
+      "step": 16
+    },
+    {
+      "severity": "info",
+      "message": "step 17: module lysis_rt_trap has no inlet named for wash_buffer; it goes in through inlet_1 (swap that syringe and prime the line first)",
+      "step": 17
+    },
+    {
+      "severity": "info",
+      "message": "step 18: module lysis_rt_trap has no inlet named for rt_mix; it goes in through inlet_1 (swap that syringe and prime the line first)",
+      "step": 18
+    },
+    {
+      "severity": "info",
+      "message": "step 19: module lysis_rt_trap has no inlet named for wash_buffer; it goes in through inlet_1 (swap that syringe and prime the line first)",
+      "step": 19
+    },
+    {
+      "severity": "info",
+      "message": "the operator's planner (operator/planner.py) accepts this protocol: 8 events in runs/chip3_lysis_wash_rt.twin_run.json, chip stored as autochip/examples/live/paper_assayathon_demo/chips/chip3_lysis_wash_rt.json"
+    }
+  ]
+}

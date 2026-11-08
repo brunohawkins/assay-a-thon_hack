@@ -1,0 +1,5 @@
+Grow three iPSC-derived cell types (neurons, microglia, astrocytes) side by side, first apart and then
+sharing medium. Then detach the cells, wrap single cells in semi-permeable hydrogel capsules, break the
+emulsion and cure the capsule shells with light, lyse the cells inside the capsules, wash, and reverse
+transcribe the RNA. Split the capsules into four sublibraries for index PCR, release the cDNA from the
+capsules and clean the library up with magnetic beads so it is ready for sequencing.

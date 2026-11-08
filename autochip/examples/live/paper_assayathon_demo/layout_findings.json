@@ -1,0 +1,34 @@
+{
+  "chip1_encapsulation": {
+    "spec_id": "chip1_encapsulation",
+    "spec_sha1": "4119ca13827c86fa32970c66f5d442badd5f0600",
+    "violations": []
+  },
+  "chip2_emulsion_break_curing_wash_filter": {
+    "spec_id": "chip2_emulsion_break_curing_wash_filter",
+    "spec_sha1": "67ee2fa1f1b53cc343eef3bf8486d9308e1ba936",
+    "violations": [
+      {
+        "severity": "warning",
+        "rule": "layout.reshaped",
+        "message": "to fit the chip limit, reshaped parametric parts capsule_trap (same volume / channel length; aspect x0.5)."
+      },
+      {
+        "severity": "error",
+        "rule": "min_feature.gap_mm",
+        "message": "chamber 'capsule_trap' retains with pillars 25 um apart, below the 60 um smallest gap this process makes. This process has one fluidic layer, so a bought mesh floor has nothing to clamp it either. Needs a bought mesh held by a second layer (another process), finer features, or the retention step off-chip."
+      }
+    ]
+  },
+  "chip3_lysis_wash_rt": {
+    "spec_id": "chip3_lysis_wash_rt",
+    "spec_sha1": "1e97ef5e36f3cf5f28929f755e01bf1cfb613f2b",
+    "violations": [
+      {
+        "severity": "error",
+        "rule": "min_feature.gap_mm",
+        "message": "chamber 'lysis_rt_trap' retains with pillars 25 um apart, below the 60 um smallest gap this process makes. This process has one fluidic layer, so a bought mesh floor has nothing to clamp it either. Needs a bought mesh held by a second layer (another process), finer features, or the retention step off-chip."
+      }
+    ]
+  }
+}

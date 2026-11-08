@@ -1,0 +1,94 @@
+{
+  "protocol_id": "ipsc_triculture_single_cell_capsule_rnaseq_chip2_encapsulation_emulsion_break_capsule_wash_curing",
+  "protocol_name": "iPSC tri-culture to capsule-based single-cell RNA library: Encapsulation, emulsion break, capsule wash and curing chip",
+  "chip_id": "chip2_encapsulation_emulsion_break_capsule_wash_curing",
+  "chip_spec": "autochip/examples/live/prompt_unconstrained/chips/chip2_encapsulation_emulsion_break_capsule_wash_curing.json",
+  "operator": "planner",
+  "created_at": "2026-11-08T09:35:58Z",
+  "placeholder": true,
+  "total_duration_s": 6210.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 1800.0,
+      "command": "encapsulate",
+      "args": {
+        "target": "encap_junction",
+        "core_flow_ul_h": 120.0,
+        "shell_flow_ul_h": 120.0,
+        "oil_flow_ul_h": 600.0,
+        "capsules": 100000
+      },
+      "narration": "IR step 9 (encap_junction): encapsulate: FEED inlet_1 (cells_suspension) at 1 uL/min, core_solution_in (core_solution) at 1 uL/min, shell_polymer_in (shell_polymer) at 2 uL/min, fluorinated_oil_in (fluorinated_oil) at 10 uL/min, VENT capsule_trap_waste_out, all else capped. Wrap single cells in droplets of shell polymer around an aqueous core, formed in fluorinated oil at a chip junction.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 1800.0,
+      "duration_s": 1800.0,
+      "command": "exchange",
+      "args": {
+        "target": "capsule_trap",
+        "reagent": "emulsion_breaker",
+        "volume_ul": 150.0,
+        "washes": 1,
+        "flow_ul_min": 5.0,
+        "waste": "capsule_trap_waste_out"
+      },
+      "narration": "IR step 10 (capsule_trap): exchange to emulsion_breaker: FEED emulsion_breaker_in (emulsion_breaker) at 5 uL/min, VENT capsule_trap_waste_out, all else capped; 3 chamber volumes (150 uL) per wash (default flow). Break the emulsion with an emulsion-breaking agent and remove the oil phase.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 3600.0,
+      "duration_s": 1350.0,
+      "command": "exchange",
+      "args": {
+        "target": "capsule_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 150.0,
+        "washes": 3,
+        "flow_ul_min": 20.0,
+        "waste": "capsule_trap_waste_out"
+      },
+      "narration": "IR step 11 (capsule_trap): exchange to wash_buffer: FEED wash_buffer_in (wash_buffer) at 20 uL/min, VENT capsule_trap_waste_out, all else capped; 3 chamber volumes (150 uL) per wash x 3 washes (default flow). Wash the capsules to remove leftover oil.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 4950.0,
+      "duration_s": 60.0,
+      "command": "cure",
+      "args": {
+        "target": "capsule_trap",
+        "wavelength_nm": 405.0,
+        "duration_s": 60.0
+      },
+      "narration": "IR step 12 (capsule_trap): cure under 405 nm light for 1 min, all ports capped. Cure the capsule shells with light.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 5010.0,
+      "duration_s": 900.0,
+      "command": "exchange",
+      "args": {
+        "target": "capsule_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 150.0,
+        "washes": 2,
+        "flow_ul_min": 20.0,
+        "waste": "capsule_trap_waste_out"
+      },
+      "narration": "IR step 13 (capsule_trap): exchange to wash_buffer: FEED wash_buffer_in (wash_buffer) at 20 uL/min, VENT capsule_trap_waste_out, all else capped; 3 chamber volumes (150 uL) per wash x 2 washes (default flow). Wash the cured capsules.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 5910.0,
+      "duration_s": 300.0,
+      "command": "transfer",
+      "args": {
+        "source": "capsule_trap",
+        "target": "outlet_1"
+      },
+      "narration": "IR step 13 (capsule_trap): collect the capsules: FEED wash_buffer_in (buffer push), VENT outlet_1 into a tube labelled 'chip2_encapsulation_emulsion_break_capsule_wash_curing: capsules after step 13, for chip3_lysis_rt_split_index_pcr_pool_release inlet_1'. Every other port capped.",
+      "protocol_step": 6
+    }
+  ]
+}

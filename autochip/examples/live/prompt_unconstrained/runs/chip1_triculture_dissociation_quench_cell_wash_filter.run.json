@@ -1,0 +1,1818 @@
+{
+  "kind": "chip_run_program",
+  "chip": "chip1_triculture_dissociation_quench_cell_wash_filter",
+  "chip_name": "Tri-culture, dissociation, quench, cell wash and filter chip",
+  "purpose": "Grows three iPSC-derived populations in separate chambers (apart, then sharing medium through the central junction), detaches them, quenches the enzyme, moves the cells into clean buffer and filters out clumps.",
+  "placeholder": true,
+  "created_at": "2026-11-08T09:35:58Z",
+  "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
+  "limits": {
+    "pump_channels": null,
+    "flow_range_ul_min": null,
+    "max_pressure_kpa": null,
+    "chamber_shear_limit_dyn_cm2": {
+      "cells": 1.0,
+      "capsules": 5.0,
+      "droplets": 5.0
+    },
+    "channel_shear_limit_cells_dyn_cm2": 10.0
+  },
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "role": "load",
+      "module": "split_1"
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "role": "transfer",
+      "module": "cell_filter"
+    },
+    {
+      "id": "culture_medium_neurons_in",
+      "type": "inlet",
+      "role": "medium",
+      "module": "culture_neurons"
+    },
+    {
+      "id": "culture_neurons_vent_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "culture_neurons"
+    },
+    {
+      "id": "culture_medium_microglia_in",
+      "type": "inlet",
+      "role": "medium",
+      "module": "culture_microglia"
+    },
+    {
+      "id": "microglia_vent_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "culture_microglia"
+    },
+    {
+      "id": "culture_microglia_vent_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "culture_microglia"
+    },
+    {
+      "id": "culture_medium_astrocytes_in",
+      "type": "inlet",
+      "role": "medium",
+      "module": "culture_astrocytes"
+    },
+    {
+      "id": "astrocytes_vent_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "culture_astrocytes"
+    },
+    {
+      "id": "culture_astrocytes_vent_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "culture_astrocytes"
+    },
+    {
+      "id": "quench_solution_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "quench_join"
+    },
+    {
+      "id": "wash_buffer_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "cell_wash"
+    },
+    {
+      "id": "cell_wash_waste_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "cell_wash"
+    }
+  ],
+  "total_duration_s": 787207.8,
+  "steps": [
+    {
+      "ir_step": 1,
+      "ir_action": "load",
+      "ir_text": "Culture neurons, microglia and astrocytes in separate vessels, side by side, each in its own medium.",
+      "module": "culture_neurons",
+      "target": "culture_neurons",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "siblings": [
+        "culture_microglia",
+        "culture_astrocytes"
+      ],
+      "phase": "move",
+      "title": "Load cells from the bench",
+      "operation": "load",
+      "duration_s": 900.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the cells arrives in culture_neurons and stays there; liquid leaves at culture_neurons_vent_out",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "FEED",
+          "reagent": "cells_for_culture_neurons",
+          "ul_min": 10.0,
+          "volume_ul": 150.0,
+          "time_s": 900.0
+        },
+        "culture_neurons_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_medium_microglia_in": {
+          "state": "CAP"
+        },
+        "microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "CAP"
+        },
+        "astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "culture_medium_neurons_in"
+      ],
+      "vents": [
+        "culture_neurons_vent_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "sibling_flow_ul_min": 0.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0021,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "culture_medium_neurons_in": 10.0,
+          "culture_neurons_vent_out": -10.0
+        },
+        "issues": []
+      },
+      "loads_from": {
+        "port": "culture_medium_neurons_in",
+        "chip": null
+      },
+      "t_start_s": 0.0,
+      "n": 1
+    },
+    {
+      "ir_step": 1,
+      "ir_action": "load",
+      "ir_text": "Culture neurons, microglia and astrocytes in separate vessels, side by side, each in its own medium.",
+      "module": "culture_microglia",
+      "target": "culture_microglia",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "siblings": [
+        "culture_neurons",
+        "culture_astrocytes"
+      ],
+      "phase": "move",
+      "title": "Load cells from the bench",
+      "operation": "load",
+      "duration_s": 900.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the cells arrives in culture_microglia and stays there; liquid leaves at microglia_vent_out",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "CAP"
+        },
+        "culture_neurons_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_microglia_in": {
+          "state": "FEED",
+          "reagent": "cells_for_culture_microglia",
+          "ul_min": 10.0,
+          "volume_ul": 150.0,
+          "time_s": 900.0
+        },
+        "microglia_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "CAP"
+        },
+        "astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "culture_medium_microglia_in"
+      ],
+      "vents": [
+        "microglia_vent_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "sibling_flow_ul_min": 0.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0021,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "culture_medium_microglia_in": 10.0,
+          "microglia_vent_out": -10.0
+        },
+        "issues": []
+      },
+      "loads_from": {
+        "port": "culture_medium_microglia_in",
+        "chip": null
+      },
+      "t_start_s": 900.0,
+      "n": 2
+    },
+    {
+      "ir_step": 1,
+      "ir_action": "load",
+      "ir_text": "Culture neurons, microglia and astrocytes in separate vessels, side by side, each in its own medium.",
+      "module": "culture_astrocytes",
+      "target": "culture_astrocytes",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "siblings": [
+        "culture_neurons",
+        "culture_microglia"
+      ],
+      "phase": "move",
+      "title": "Load cells from the bench",
+      "operation": "load",
+      "duration_s": 900.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the cells arrives in culture_astrocytes and stays there; liquid leaves at astrocytes_vent_out",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "CAP"
+        },
+        "culture_neurons_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_microglia_in": {
+          "state": "CAP"
+        },
+        "microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "FEED",
+          "reagent": "cells_for_culture_astrocytes",
+          "ul_min": 10.0,
+          "volume_ul": 150.0,
+          "time_s": 900.0
+        },
+        "astrocytes_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "culture_medium_astrocytes_in"
+      ],
+      "vents": [
+        "astrocytes_vent_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "sibling_flow_ul_min": 0.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0021,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "culture_medium_astrocytes_in": 10.0,
+          "astrocytes_vent_out": -10.0
+        },
+        "issues": []
+      },
+      "loads_from": {
+        "port": "culture_medium_astrocytes_in",
+        "chip": null
+      },
+      "t_start_s": 1800.0,
+      "n": 3
+    },
+    {
+      "ir_step": 1,
+      "ir_action": "culture",
+      "ir_text": "Culture neurons, microglia and astrocytes in separate vessels, side by side, each in its own medium.",
+      "module": "culture_neurons",
+      "target": "culture_neurons",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "lanes": [
+        {
+          "module": "culture_neurons",
+          "chamber": "culture_neurons"
+        },
+        {
+          "module": "culture_microglia",
+          "chamber": "culture_microglia"
+        },
+        {
+          "module": "culture_astrocytes",
+          "chamber": "culture_astrocytes"
+        }
+      ],
+      "phase": "culture",
+      "title": "Culture apart 7 d (3 chambers, own medium each, change every 1 d)",
+      "operation": "culture",
+      "duration_s": 604800.0,
+      "temp_c": 37.0,
+      "wait_s": 604800.0,
+      "watch": "every 1 d, all 3 pumps together: each chamber's medium leaves through its own vent and nothing crosses the junction; check each culture on the microscope",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "FEED",
+          "reagent": "culture_medium_neurons",
+          "ul_min": 10.0,
+          "volume_ul": 1050.0,
+          "time_s": 900.0,
+          "repeat_every_s": 86400.0,
+          "repeats": 7,
+          "lane": "culture_neurons"
+        },
+        "culture_neurons_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_medium_microglia_in": {
+          "state": "FEED",
+          "reagent": "culture_medium_microglia",
+          "ul_min": 10.0,
+          "volume_ul": 1050.0,
+          "time_s": 900.0,
+          "repeat_every_s": 86400.0,
+          "repeats": 7,
+          "lane": "culture_microglia"
+        },
+        "microglia_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "FEED",
+          "reagent": "culture_medium_astrocytes",
+          "ul_min": 10.0,
+          "volume_ul": 1050.0,
+          "time_s": 900.0,
+          "repeat_every_s": 86400.0,
+          "repeats": 7,
+          "lane": "culture_astrocytes"
+        },
+        "astrocytes_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "culture_medium_neurons_in",
+        "culture_medium_microglia_in",
+        "culture_medium_astrocytes_in"
+      ],
+      "vents": [
+        "culture_neurons_vent_out",
+        "microglia_vent_out",
+        "astrocytes_vent_out"
+      ],
+      "rate_defaulted": true,
+      "repeat": {
+        "every_s": 86400.0,
+        "times": 7
+      },
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 30.0,
+        "lane_purity": {
+          "culture_neurons": 1.0,
+          "culture_microglia": 1.0,
+          "culture_astrocytes": 1.0
+        },
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0021,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "culture_medium_neurons_in": 10.0,
+          "culture_neurons_vent_out": -10.0,
+          "culture_medium_microglia_in": 10.0,
+          "microglia_vent_out": -10.0,
+          "culture_medium_astrocytes_in": 10.0,
+          "astrocytes_vent_out": -10.0
+        },
+        "issues": []
+      },
+      "t_start_s": 2700.0,
+      "n": 4
+    },
+    {
+      "ir_step": 2,
+      "ir_action": "culture",
+      "ir_text": "Continue culture of the three cell types sharing medium (co-culture or shared medium flow).",
+      "module": "culture_neurons",
+      "target": "culture_neurons",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "lanes": [
+        {
+          "module": "culture_neurons",
+          "chamber": "culture_neurons"
+        },
+        {
+          "module": "culture_microglia",
+          "chamber": "culture_microglia"
+        },
+        {
+          "module": "culture_astrocytes",
+          "chamber": "culture_astrocytes"
+        }
+      ],
+      "phase": "culture",
+      "title": "Culture apart 1 d (3 chambers, own medium each, change every 12 h)",
+      "operation": "culture",
+      "duration_s": 86400.0,
+      "temp_c": 37.0,
+      "wait_s": 86400.0,
+      "watch": "every 12 h, all 3 pumps together: each chamber's medium leaves through its own vent and nothing crosses the junction; check each culture on the microscope",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "FEED",
+          "reagent": "culture_medium_neurons",
+          "ul_min": 10.0,
+          "volume_ul": 300.0,
+          "time_s": 900.0,
+          "repeat_every_s": 43200.0,
+          "repeats": 2,
+          "lane": "culture_neurons"
+        },
+        "culture_neurons_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_medium_microglia_in": {
+          "state": "FEED",
+          "reagent": "culture_medium_microglia",
+          "ul_min": 10.0,
+          "volume_ul": 300.0,
+          "time_s": 900.0,
+          "repeat_every_s": 43200.0,
+          "repeats": 2,
+          "lane": "culture_microglia"
+        },
+        "microglia_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "FEED",
+          "reagent": "culture_medium_astrocytes",
+          "ul_min": 10.0,
+          "volume_ul": 300.0,
+          "time_s": 900.0,
+          "repeat_every_s": 43200.0,
+          "repeats": 2,
+          "lane": "culture_astrocytes"
+        },
+        "astrocytes_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "culture_medium_neurons_in",
+        "culture_medium_microglia_in",
+        "culture_medium_astrocytes_in"
+      ],
+      "vents": [
+        "culture_neurons_vent_out",
+        "microglia_vent_out",
+        "astrocytes_vent_out"
+      ],
+      "rate_defaulted": true,
+      "repeat": {
+        "every_s": 43200.0,
+        "times": 2
+      },
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 30.0,
+        "lane_purity": {
+          "culture_neurons": 1.0,
+          "culture_microglia": 1.0,
+          "culture_astrocytes": 1.0
+        },
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0021,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "culture_medium_neurons_in": 10.0,
+          "culture_neurons_vent_out": -10.0,
+          "culture_medium_microglia_in": 10.0,
+          "microglia_vent_out": -10.0,
+          "culture_medium_astrocytes_in": 10.0,
+          "astrocytes_vent_out": -10.0
+        },
+        "issues": []
+      },
+      "t_start_s": 607500.0,
+      "n": 5
+    },
+    {
+      "ir_step": 2,
+      "ir_action": "culture",
+      "ir_text": "Continue culture of the three cell types sharing medium (co-culture or shared medium flow).",
+      "module": "culture_neurons",
+      "target": "culture_neurons",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "lanes": [
+        {
+          "module": "culture_neurons",
+          "chamber": "culture_neurons"
+        },
+        {
+          "module": "culture_microglia",
+          "chamber": "culture_microglia"
+        },
+        {
+          "module": "culture_astrocytes",
+          "chamber": "culture_astrocytes"
+        }
+      ],
+      "share": true,
+      "phase": "culture",
+      "title": "Culture sharing medium 1 d (feed culture_neurons, vent the others)",
+      "operation": "culture",
+      "duration_s": 86400.0,
+      "temp_c": 37.0,
+      "wait_s": 86400.0,
+      "watch": "medium from culture_neurons reaches the other chambers through the junction and leaves at microglia_vent_out, astrocytes_vent_out",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "FEED",
+          "reagent": "culture_medium_neurons",
+          "ul_min": 10.0,
+          "volume_ul": 300.0,
+          "time_s": 900.0,
+          "repeat_every_s": 43200.0,
+          "repeats": 2
+        },
+        "culture_neurons_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_microglia_in": {
+          "state": "CAP"
+        },
+        "microglia_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "CAP"
+        },
+        "astrocytes_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "culture_medium_neurons_in"
+      ],
+      "vents": [
+        "microglia_vent_out",
+        "astrocytes_vent_out"
+      ],
+      "rate_defaulted": true,
+      "repeat": {
+        "every_s": 43200.0,
+        "times": 2
+      },
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0021,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.0,
+        "port_flow_ul_min": {
+          "culture_medium_neurons_in": 10.0,
+          "microglia_vent_out": -5.0,
+          "astrocytes_vent_out": -5.0
+        },
+        "issues": []
+      },
+      "t_start_s": 693900.0,
+      "n": 6
+    },
+    {
+      "ir_step": 3,
+      "ir_action": "dissociate",
+      "ir_text": "Detach the cells with a dissociation enzyme.",
+      "module": "culture_neurons",
+      "target": "culture_neurons",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "warning",
+          "message": "step 3: module culture_neurons has no inlet named for dissociation_enzyme; it goes in through culture_medium_neurons_in (swap that syringe and prime the line first)",
+          "step": 3
+        }
+      ],
+      "siblings": [
+        "culture_microglia",
+        "culture_astrocytes"
+      ],
+      "leak_reported": false,
+      "lane_index": 1,
+      "phase": "fill",
+      "title": "Exchange: dissociation_enzyme",
+      "operation": "exchange",
+      "duration_s": 900.0,
+      "temp_c": 37,
+      "wait_s": 0.0,
+      "watch": "dissociation_enzyme reaches culture_neurons and leaves at culture_neurons_vent_out; no bubbles in the chamber",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "FEED",
+          "reagent": "dissociation_enzyme",
+          "ul_min": 10.0,
+          "volume_ul": 150.0,
+          "time_s": 900.0
+        },
+        "culture_neurons_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_medium_microglia_in": {
+          "state": "CAP"
+        },
+        "microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "CAP"
+        },
+        "astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "culture_medium_neurons_in"
+      ],
+      "vents": [
+        "culture_neurons_vent_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "sibling_flow_ul_min": 0.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0021,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "culture_medium_neurons_in": 10.0,
+          "culture_neurons_vent_out": -10.0
+        },
+        "issues": []
+      },
+      "t_start_s": 780300.0,
+      "n": 7
+    },
+    {
+      "ir_step": 3,
+      "ir_action": "dissociate",
+      "ir_text": "Detach the cells with a dissociation enzyme.",
+      "module": "culture_microglia",
+      "target": "culture_microglia",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "warning",
+          "message": "step 3: module culture_microglia has no inlet named for dissociation_enzyme; it goes in through culture_medium_microglia_in (swap that syringe and prime the line first)",
+          "step": 3
+        }
+      ],
+      "siblings": [
+        "culture_neurons",
+        "culture_astrocytes"
+      ],
+      "leak_reported": false,
+      "lane_index": 2,
+      "phase": "fill",
+      "title": "Exchange: dissociation_enzyme",
+      "operation": "exchange",
+      "duration_s": 900.0,
+      "temp_c": 37,
+      "wait_s": 0.0,
+      "watch": "dissociation_enzyme reaches culture_microglia and leaves at microglia_vent_out; no bubbles in the chamber",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "CAP"
+        },
+        "culture_neurons_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_microglia_in": {
+          "state": "FEED",
+          "reagent": "dissociation_enzyme",
+          "ul_min": 10.0,
+          "volume_ul": 150.0,
+          "time_s": 900.0
+        },
+        "microglia_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "CAP"
+        },
+        "astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "culture_medium_microglia_in"
+      ],
+      "vents": [
+        "microglia_vent_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "sibling_flow_ul_min": 0.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0021,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "culture_medium_microglia_in": 10.0,
+          "microglia_vent_out": -10.0
+        },
+        "issues": []
+      },
+      "t_start_s": 781200.0,
+      "n": 8
+    },
+    {
+      "ir_step": 3,
+      "ir_action": "dissociate",
+      "ir_text": "Detach the cells with a dissociation enzyme.",
+      "module": "culture_astrocytes",
+      "target": "culture_astrocytes",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "warning",
+          "message": "step 3: module culture_astrocytes has no inlet named for dissociation_enzyme; it goes in through culture_medium_astrocytes_in (swap that syringe and prime the line first)",
+          "step": 3
+        }
+      ],
+      "siblings": [
+        "culture_neurons",
+        "culture_microglia"
+      ],
+      "leak_reported": false,
+      "lane_index": 3,
+      "phase": "fill",
+      "title": "Exchange: dissociation_enzyme",
+      "operation": "exchange",
+      "duration_s": 900.0,
+      "temp_c": 37,
+      "wait_s": 0.0,
+      "watch": "dissociation_enzyme reaches culture_astrocytes and leaves at astrocytes_vent_out; no bubbles in the chamber",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "CAP"
+        },
+        "culture_neurons_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_microglia_in": {
+          "state": "CAP"
+        },
+        "microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "FEED",
+          "reagent": "dissociation_enzyme",
+          "ul_min": 10.0,
+          "volume_ul": 150.0,
+          "time_s": 900.0
+        },
+        "astrocytes_vent_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "culture_medium_astrocytes_in"
+      ],
+      "vents": [
+        "astrocytes_vent_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "sibling_flow_ul_min": 0.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0021,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "culture_medium_astrocytes_in": 10.0,
+          "astrocytes_vent_out": -10.0
+        },
+        "issues": []
+      },
+      "t_start_s": 782100.0,
+      "n": 9
+    },
+    {
+      "ir_step": 3,
+      "ir_action": "dissociate",
+      "ir_text": "Detach the cells with a dissociation enzyme.",
+      "module": "culture_astrocytes",
+      "target": "culture_astrocytes",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "siblings": [
+        "culture_neurons",
+        "culture_microglia"
+      ],
+      "leak_reported": false,
+      "lane_index": 3,
+      "phase": "hold",
+      "title": "Incubate",
+      "operation": "hold_temp",
+      "duration_s": 600.0,
+      "temp_c": 37,
+      "wait_s": 600.0,
+      "watch": "temperature steady at 37 C; nothing moving; capped ports not leaking",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "CAP"
+        },
+        "culture_neurons_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_microglia_in": {
+          "state": "CAP"
+        },
+        "microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "CAP"
+        },
+        "astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 783000.0,
+      "n": 10
+    },
+    {
+      "ir_step": 4,
+      "ir_action": "quench",
+      "ir_text": "Quench the dissociation enzyme.",
+      "module": "quench_join",
+      "target": "quench_join",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 4 (Mix quench_solution into the stream): the outflow passes quench_mix, cell_wash on its way to cell_wash_waste_out",
+          "step": 4
+        }
+      ],
+      "phase": "flow",
+      "title": "Mix quench_solution into the stream",
+      "operation": "mix",
+      "duration_s": 1703.4,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "material moves from culture_neurons through quench_join towards cell_wash_waste_out; streams merge evenly; no clogging; stop the pumps once the material has reached cell_wash (its next step)",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "carrier_buffer",
+          "ul_min": 10.0,
+          "volume_ul": 283.9,
+          "time_s": 1703.4
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "CAP"
+        },
+        "culture_neurons_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_microglia_in": {
+          "state": "CAP"
+        },
+        "microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "CAP"
+        },
+        "astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "FEED",
+          "reagent": "quench_solution",
+          "ul_min": 10.0,
+          "volume_ul": 283.9,
+          "time_s": 1703.4
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        }
+      },
+      "feeds": [
+        "inlet_1",
+        "quench_solution_in"
+      ],
+      "vents": [
+        "cell_wash_waste_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [
+          "split_1",
+          "culture_neurons",
+          "culture_microglia",
+          "culture_astrocytes",
+          "junction_mid",
+          "quench_mix",
+          "cell_wash"
+        ],
+        "stray": [],
+        "max_pressure_kpa": 0.0631,
+        "target_shear_dyn_cm2": 0.09877,
+        "max_channel_shear_dyn_cm2": 0.8889,
+        "port_flow_ul_min": {
+          "inlet_1": 10.0,
+          "quench_solution_in": 10.0,
+          "cell_wash_waste_out": -20.0
+        },
+        "issues": [
+          {
+            "severity": "info",
+            "message": "the outflow passes quench_mix, cell_wash on its way to cell_wash_waste_out"
+          }
+        ]
+      },
+      "t_start_s": 783600.0,
+      "n": 11
+    },
+    {
+      "ir_step": 5,
+      "ir_action": "centrifuge",
+      "ir_text": "Centrifuge the cell suspension to pellet the cells.",
+      "module": "cell_wash",
+      "target": "cell_wash",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: wash_buffer",
+      "operation": "exchange",
+      "duration_s": 368.4,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "wash_buffer reaches cell_wash and leaves at cell_wash_waste_out; no bubbles in the chamber; cells stay in place",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "CAP"
+        },
+        "culture_neurons_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_microglia_in": {
+          "state": "CAP"
+        },
+        "microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "CAP"
+        },
+        "astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "FEED",
+          "reagent": "wash_buffer",
+          "ul_min": 10.0,
+          "volume_ul": 61.4,
+          "time_s": 368.4
+        },
+        "cell_wash_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        }
+      },
+      "feeds": [
+        "wash_buffer_in"
+      ],
+      "vents": [
+        "cell_wash_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0359,
+        "target_shear_dyn_cm2": 0.0025,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "wash_buffer_in": 10.0,
+          "cell_wash_waste_out": -10.0
+        },
+        "issues": []
+      },
+      "t_start_s": 785303.4,
+      "n": 12
+    },
+    {
+      "ir_step": 5,
+      "ir_action": "centrifuge",
+      "ir_text": "Centrifuge the cell suspension to pellet the cells.",
+      "module": "cell_wash",
+      "target": "cell_wash",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "hold",
+      "title": "Incubate",
+      "operation": "hold_temp",
+      "duration_s": 300.0,
+      "temp_c": 22.0,
+      "wait_s": 300.0,
+      "watch": "temperature steady at 22 C; nothing moving; capped ports not leaking",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "CAP"
+        },
+        "culture_neurons_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_microglia_in": {
+          "state": "CAP"
+        },
+        "microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "CAP"
+        },
+        "astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 785671.8,
+      "n": 13
+    },
+    {
+      "ir_step": 6,
+      "ir_action": "resuspend",
+      "ir_text": "Resuspend the cells in wash buffer.",
+      "module": "cell_wash",
+      "target": "cell_wash",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: wash_buffer",
+      "operation": "exchange",
+      "duration_s": 737.4,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "wash_buffer reaches cell_wash and leaves at cell_wash_waste_out; no bubbles in the chamber; cells stay in place",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "culture_medium_neurons_in": {
+          "state": "CAP"
+        },
+        "culture_neurons_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_microglia_in": {
+          "state": "CAP"
+        },
+        "microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "CAP"
+        },
+        "astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "FEED",
+          "reagent": "wash_buffer",
+          "ul_min": 10.0,
+          "volume_ul": 122.9,
+          "time_s": 737.4
+        },
+        "cell_wash_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        }
+      },
+      "feeds": [
+        "wash_buffer_in"
+      ],
+      "vents": [
+        "cell_wash_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0359,
+        "target_shear_dyn_cm2": 0.0025,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "wash_buffer_in": 10.0,
+          "cell_wash_waste_out": -10.0
+        },
+        "issues": []
+      },
+      "t_start_s": 785971.8,
+      "n": 14
+    },
+    {
+      "ir_step": 7,
+      "ir_action": "filter",
+      "ir_text": "Filter the suspension through a cell strainer to remove clumps.",
+      "module": "cell_filter",
+      "target": "cell_filter",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "collect_label": "chip1_triculture_dissociation_quench_cell_wash_filter: cells after step 7, for chip2_encapsulation_emulsion_break_capsule_wash_curing inlet_1",
+      "phase": "flow",
+      "title": "Pass through",
+      "operation": "transfer",
+      "duration_s": 498.6,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "material moves from cell_wash through cell_filter towards outlet_1; streams merge evenly; no clogging; collect into the tube labelled 'chip1_triculture_dissociation_quench_cell_wash_filter: cells after step 7, for chip2_encapsulation_emulsion_break_capsule_wash_curing inlet_1'",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "carrier_buffer",
+          "ul_min": 10.0,
+          "volume_ul": 83.1,
+          "time_s": 498.6
+        },
+        "outlet_1": {
+          "state": "VENT",
+          "to": "tube labelled 'chip1_triculture_dissociation_quench_cell_wash_filter: cells after step 7, for chip2_encapsulation_emulsion_break_capsule_wash_curing inlet_1'"
+        },
+        "culture_medium_neurons_in": {
+          "state": "CAP"
+        },
+        "culture_neurons_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_microglia_in": {
+          "state": "CAP"
+        },
+        "microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_microglia_vent_out": {
+          "state": "CAP"
+        },
+        "culture_medium_astrocytes_in": {
+          "state": "CAP"
+        },
+        "astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "culture_astrocytes_vent_out": {
+          "state": "CAP"
+        },
+        "quench_solution_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "outlet_1"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "passes": [
+          "split_1",
+          "culture_neurons",
+          "culture_microglia",
+          "culture_astrocytes",
+          "junction_mid",
+          "quench_join",
+          "quench_mix",
+          "cell_wash"
+        ],
+        "stray": [],
+        "max_pressure_kpa": 0.0066,
+        "target_shear_dyn_cm2": 0.04444,
+        "max_channel_shear_dyn_cm2": 0.4444,
+        "port_flow_ul_min": {
+          "inlet_1": 10.0,
+          "outlet_1": -10.0
+        },
+        "issues": []
+      },
+      "collects": {
+        "port": "outlet_1",
+        "label": "chip1_triculture_dissociation_quench_cell_wash_filter: cells after step 7, for chip2_encapsulation_emulsion_break_capsule_wash_curing inlet_1",
+        "material": "cells"
+      },
+      "t_start_s": 786709.2,
+      "n": 15
+    }
+  ],
+  "syringes": [
+    {
+      "port": "culture_medium_neurons_in",
+      "reagent": "cells_for_culture_neurons",
+      "volume_ul": 150.0,
+      "steps": [
+        1
+      ],
+      "first_step": 1,
+      "load_ul": 180.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "culture_medium_microglia_in",
+      "reagent": "cells_for_culture_microglia",
+      "volume_ul": 150.0,
+      "steps": [
+        2
+      ],
+      "first_step": 2,
+      "load_ul": 180.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "culture_medium_astrocytes_in",
+      "reagent": "cells_for_culture_astrocytes",
+      "volume_ul": 150.0,
+      "steps": [
+        3
+      ],
+      "first_step": 3,
+      "load_ul": 180.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "culture_medium_neurons_in",
+      "reagent": "culture_medium_neurons",
+      "volume_ul": 1650.0,
+      "steps": [
+        4,
+        5,
+        6
+      ],
+      "first_step": 4,
+      "load_ul": 1980.0,
+      "syringe_ml": 3
+    },
+    {
+      "port": "culture_medium_microglia_in",
+      "reagent": "culture_medium_microglia",
+      "volume_ul": 1350.0,
+      "steps": [
+        4,
+        5
+      ],
+      "first_step": 4,
+      "load_ul": 1620.0,
+      "syringe_ml": 3
+    },
+    {
+      "port": "culture_medium_astrocytes_in",
+      "reagent": "culture_medium_astrocytes",
+      "volume_ul": 1350.0,
+      "steps": [
+        4,
+        5
+      ],
+      "first_step": 4,
+      "load_ul": 1620.0,
+      "syringe_ml": 3
+    },
+    {
+      "port": "culture_medium_neurons_in",
+      "reagent": "dissociation_enzyme",
+      "volume_ul": 150.0,
+      "steps": [
+        7
+      ],
+      "first_step": 7,
+      "load_ul": 180.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "culture_medium_microglia_in",
+      "reagent": "dissociation_enzyme",
+      "volume_ul": 150.0,
+      "steps": [
+        8
+      ],
+      "first_step": 8,
+      "load_ul": 180.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "culture_medium_astrocytes_in",
+      "reagent": "dissociation_enzyme",
+      "volume_ul": 150.0,
+      "steps": [
+        9
+      ],
+      "first_step": 9,
+      "load_ul": 180.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "carrier_buffer",
+      "volume_ul": 367.0,
+      "steps": [
+        11,
+        15
+      ],
+      "first_step": 11,
+      "load_ul": 440.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "quench_solution_in",
+      "reagent": "quench_solution",
+      "volume_ul": 283.9,
+      "steps": [
+        11
+      ],
+      "first_step": 11,
+      "load_ul": 341.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "wash_buffer_in",
+      "reagent": "wash_buffer",
+      "volume_ul": 184.3,
+      "steps": [
+        12,
+        14
+      ],
+      "first_step": 12,
+      "load_ul": 221.0,
+      "syringe_ml": 1
+    }
+  ],
+  "equipment": [
+    "syringe pump with 3 independent lines",
+    "heater / stage-top incubator (37 C)",
+    "microscope",
+    "tubing for every used port, plugs for capped ports, waste and collection tubes"
+  ],
+  "twin_run": {
+    "ok": true,
+    "path": "autochip/examples/live/prompt_unconstrained/runs/chip1_triculture_dissociation_quench_cell_wash_filter.twin_run.json",
+    "events": 15,
+    "in_repo": true,
+    "chip_spec": "autochip/examples/live/prompt_unconstrained/chips/chip1_triculture_dissociation_quench_cell_wash_filter.json"
+  },
+  "protocol": "runs/chip1_triculture_dissociation_quench_cell_wash_filter.protocol.json",
+  "chip_spec": "chips/chip1_triculture_dissociation_quench_cell_wash_filter.json",
+  "checks": [
+    {
+      "severity": "warning",
+      "message": "step 3: module culture_neurons has no inlet named for dissociation_enzyme; it goes in through culture_medium_neurons_in (swap that syringe and prime the line first)",
+      "step": 3
+    },
+    {
+      "severity": "warning",
+      "message": "step 3: module culture_microglia has no inlet named for dissociation_enzyme; it goes in through culture_medium_microglia_in (swap that syringe and prime the line first)",
+      "step": 3
+    },
+    {
+      "severity": "warning",
+      "message": "step 3: module culture_astrocytes has no inlet named for dissociation_enzyme; it goes in through culture_medium_astrocytes_in (swap that syringe and prime the line first)",
+      "step": 3
+    },
+    {
+      "severity": "info",
+      "message": "step 4 (Mix quench_solution into the stream): the outflow passes quench_mix, cell_wash on its way to cell_wash_waste_out",
+      "step": 4
+    },
+    {
+      "severity": "info",
+      "message": "the operator's planner (operator/planner.py) accepts this protocol: 15 events in runs/chip1_triculture_dissociation_quench_cell_wash_filter.twin_run.json, chip stored as autochip/examples/live/prompt_unconstrained/chips/chip1_triculture_dissociation_quench_cell_wash_filter.json"
+    }
+  ]
+}

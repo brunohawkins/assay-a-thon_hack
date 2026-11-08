@@ -1,0 +1,244 @@
+{
+  "protocol_id": "ipsc_triculture_single_cell_capsule_rnaseq_chip3_lysis_rt_split_index_pcr_pool_release",
+  "protocol_name": "iPSC tri-culture to capsule-based single-cell RNA library: Lysis, RT, split, index PCR, pool and release chip",
+  "chip_id": "chip3_lysis_rt_split_index_pcr_pool_release",
+  "chip_spec": "autochip/examples/live/prompt_unconstrained/chips/chip3_lysis_rt_split_index_pcr_pool_release.json",
+  "operator": "planner",
+  "created_at": "2026-11-08T09:35:58Z",
+  "placeholder": true,
+  "total_duration_s": 11367.0,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 225.0,
+      "command": "load",
+      "args": {
+        "target": "reaction_trap",
+        "volume_ul": 75.0
+      },
+      "narration": "IR step 14 (reaction_trap): load the capsules from the hand-off from chip2_encapsulation_emulsion_break_capsule_wash_curing: syringe on inlet_1 at 20 uL/min, VENT reaction_trap_waste_out. Every other port capped.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 225.0,
+      "duration_s": 225.0,
+      "command": "exchange",
+      "args": {
+        "target": "reaction_trap",
+        "reagent": "lysis_buffer",
+        "volume_ul": 75.0,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "reaction_trap_waste_out"
+      },
+      "narration": "IR step 14 (reaction_trap): exchange to lysis_buffer: FEED wash_buffer_in (lysis_buffer) at 20 uL/min, VENT reaction_trap_waste_out, all else capped; 1.5 chamber volumes (75 uL) per wash (default flow). Lyse the cells inside the capsules (placeholder time and temperature).",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 450.0,
+      "duration_s": 600.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "reaction_trap",
+        "temp_c": 22.0,
+        "duration_s": 600.0
+      },
+      "narration": "IR step 14 (reaction_trap): incubate in place: all ports capped, hold 22 C for 10 min (placeholder time). Lyse the cells inside the capsules (placeholder time and temperature).",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 1050.0,
+      "duration_s": 1350.0,
+      "command": "exchange",
+      "args": {
+        "target": "reaction_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 150.0,
+        "washes": 3,
+        "flow_ul_min": 20.0,
+        "waste": "reaction_trap_waste_out"
+      },
+      "narration": "IR step 15 (reaction_trap): exchange to wash_buffer: FEED wash_buffer_in (wash_buffer) at 20 uL/min, VENT reaction_trap_waste_out, all else capped; 3 chamber volumes (150 uL) per wash x 3 washes (default flow). Wash the capsules after lysis.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 2400.0,
+      "duration_s": 225.0,
+      "command": "exchange",
+      "args": {
+        "target": "reaction_trap",
+        "reagent": "rt_mix",
+        "volume_ul": 75.0,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "reaction_trap_waste_out"
+      },
+      "narration": "IR step 16 (reaction_trap): exchange to rt_mix: FEED inlet_1 (rt_mix) at 20 uL/min, VENT reaction_trap_waste_out, all else capped; 1.5 chamber volumes (75 uL) per wash (default flow). Reverse transcribe the RNA inside the capsules (placeholder time and temperature).",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 2625.0,
+      "duration_s": 3600.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "reaction_trap",
+        "temp_c": 42.0,
+        "duration_s": 3600.0
+      },
+      "narration": "IR step 16 (reaction_trap): incubate in place: all ports capped, hold 42 C for 1 h (placeholder time). Reverse transcribe the RNA inside the capsules (placeholder time and temperature).",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 6225.0,
+      "duration_s": 900.0,
+      "command": "exchange",
+      "args": {
+        "target": "reaction_trap",
+        "reagent": "wash_buffer",
+        "volume_ul": 150.0,
+        "washes": 2,
+        "flow_ul_min": 20.0,
+        "waste": "reaction_trap_waste_out"
+      },
+      "narration": "IR step 17 (reaction_trap): exchange to wash_buffer: FEED wash_buffer_in (wash_buffer) at 20 uL/min, VENT reaction_trap_waste_out, all else capped; 3 chamber volumes (150 uL) per wash x 2 washes (default flow). Wash the capsules after reverse transcription.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 7125.0,
+      "duration_s": 549.0,
+      "command": "split",
+      "args": {
+        "source": "split_2",
+        "targets": [
+          "pcr_1",
+          "pcr_2",
+          "pcr_3",
+          "pcr_4"
+        ]
+      },
+      "narration": "IR step 18 (split_2): split: FEED inlet_1 (carrier_buffer) at 20 uL/min, VENT pcr_1_vent_out, pcr_2_vent_out, pcr_3_vent_out, pcr_4_vent_out, all else capped. Split the capsules into four sublibrary portions.",
+      "protocol_step": 8
+    },
+    {
+      "t_s": 7674.0,
+      "duration_s": 112.5,
+      "command": "exchange",
+      "args": {
+        "target": "pcr_1",
+        "reagent": "index_mix_1",
+        "volume_ul": 37.5,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "pcr_1_vent_out"
+      },
+      "narration": "IR step 19 (pcr_1): exchange to index_mix_1: FEED index_mix_1_in (index_mix_1) at 20 uL/min, VENT pcr_1_vent_out, all else capped; 1.5 chamber volumes (37.5 uL) per wash (default flow). Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+      "protocol_step": 9
+    },
+    {
+      "t_s": 7786.5,
+      "duration_s": 112.5,
+      "command": "exchange",
+      "args": {
+        "target": "pcr_2",
+        "reagent": "index_mix_2",
+        "volume_ul": 37.5,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "pcr_2_vent_out"
+      },
+      "narration": "IR step 19 (pcr_2): exchange to index_mix_2: FEED index_mix_2_in (index_mix_2) at 20 uL/min, VENT pcr_2_vent_out, all else capped; 1.5 chamber volumes (37.5 uL) per wash (default flow). Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+      "protocol_step": 10
+    },
+    {
+      "t_s": 7899.0,
+      "duration_s": 112.5,
+      "command": "exchange",
+      "args": {
+        "target": "pcr_3",
+        "reagent": "index_mix_3",
+        "volume_ul": 37.5,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "pcr_3_vent_out"
+      },
+      "narration": "IR step 19 (pcr_3): exchange to index_mix_3: FEED index_mix_3_in (index_mix_3) at 20 uL/min, VENT pcr_3_vent_out, all else capped; 1.5 chamber volumes (37.5 uL) per wash (default flow). Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+      "protocol_step": 11
+    },
+    {
+      "t_s": 8011.5,
+      "duration_s": 112.5,
+      "command": "exchange",
+      "args": {
+        "target": "pcr_4",
+        "reagent": "index_mix_4",
+        "volume_ul": 37.5,
+        "washes": 1,
+        "flow_ul_min": 20.0,
+        "waste": "pcr_4_vent_out"
+      },
+      "narration": "IR step 19 (pcr_4): exchange to index_mix_4: FEED index_mix_4_in (index_mix_4) at 20 uL/min, VENT pcr_4_vent_out, all else capped; 1.5 chamber volumes (37.5 uL) per wash (default flow). Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+      "protocol_step": 12
+    },
+    {
+      "t_s": 8124.0,
+      "duration_s": 2295.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "pcr_4",
+        "temp_c": 95.0,
+        "duration_s": 2295.0
+      },
+      "narration": "IR step 19 (pcr_4): thermal cycling on thermocycler (thermal zone pcr_zone), all ports capped: N cycles of 95 °C 15 s / 60 °C 30 s / 72 °C 30 s, after 95 °C 120 s, then 72 °C 5 min and hold 4 °C (placeholder program). Run index PCR on each sublibrary with its own index (placeholder cycles, times and temperatures).",
+      "protocol_step": 13
+    },
+    {
+      "t_s": 10419.0,
+      "duration_s": 450.0,
+      "command": "transfer",
+      "args": {
+        "source": "pcr_1",
+        "target": "release_trap"
+      },
+      "narration": "IR step 20 (release_trap): move the capsules from pcr_1 to release_trap: FEED inlet_1 (carrier buffer), VENT release_trap_waste_out. Every other port capped.",
+      "protocol_step": 14
+    },
+    {
+      "t_s": 10869.0,
+      "duration_s": 300.0,
+      "command": "release",
+      "args": {
+        "target": "release_trap",
+        "reagent": "release_enzyme"
+      },
+      "narration": "IR step 20 (release_trap): release: FEED release_enzyme_in (release_enzyme) at 20 uL/min, VENT outlet_1, all else capped. Release the cDNA from the capsules by digesting the shell with a shell-digesting enzyme (placeholder time and temperature).",
+      "protocol_step": 15
+    },
+    {
+      "t_s": 11169.0,
+      "duration_s": 99.0,
+      "command": "pool",
+      "args": {
+        "sources": [
+          "pcr_1",
+          "pcr_2",
+          "pcr_3",
+          "pcr_4"
+        ],
+        "target": "pool_2"
+      },
+      "narration": "IR step 24 (pool_2): pool: FEED inlet_1 (library_suspension) at 20 uL/min, VENT outlet_1, all else capped. Pool the four cleaned-up sublibraries for sequencing.",
+      "protocol_step": 16
+    },
+    {
+      "t_s": 11268.0,
+      "duration_s": 99.0,
+      "command": "transfer",
+      "args": {
+        "source": "pool_2",
+        "target": "outlet_1"
+      },
+      "narration": "IR step 24 (pool_2): collect the library: FEED inlet_1 (buffer push), VENT outlet_1 into a tube labelled 'chip3_lysis_rt_split_index_pcr_pool_release: library after step 24, for chip4_bead_binding_wash_elution inlet_1'. Every other port capped.",
+      "protocol_step": 17
+    }
+  ]
+}

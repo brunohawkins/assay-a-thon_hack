@@ -1,0 +1,7 @@
+Step,Description,Volume (µL),Time (min),Temp (°C)
+1,Mix the DNA sample with bead suspension and incubate,40,5,22
+2,Place on a magnet and discard the supernatant,,2,
+3,"Wash the beads with ethanol wash solution on the magnet, twice",200,0.5,
+4,Air-dry the beads,,2,
+5,Resuspend the beads in elution buffer,20,2,
+6,Place on the magnet and collect the eluate,,1,

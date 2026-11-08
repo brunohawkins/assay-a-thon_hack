@@ -1,0 +1,1090 @@
+{
+  "kind": "chip_run_program",
+  "chip": "chip1_rinse_dissociation_quench_wash_encapsulation",
+  "chip_name": "Cell rinse, dissociation, quench, wash and encapsulation chip",
+  "purpose": "Rinses and detaches the cells, quenches the enzyme, washes the cells in a spiral, mixes in core solution and forms ~70 um droplets at the flow-focusing junction.",
+  "placeholder": true,
+  "created_at": "2026-11-08T09:36:02Z",
+  "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
+  "limits": {
+    "pump_channels": 6,
+    "flow_range_ul_min": null,
+    "max_pressure_kpa": null,
+    "chamber_shear_limit_dyn_cm2": {
+      "cells": 1.0,
+      "capsules": 5.0,
+      "droplets": 5.0
+    },
+    "channel_shear_limit_cells_dyn_cm2": 10.0
+  },
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "role": "load",
+      "module": "culture_1"
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "role": "transfer",
+      "module": "droplets_1"
+    },
+    {
+      "id": "reagent_line_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "culture_1"
+    },
+    {
+      "id": "culture_1_waste_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "culture_1"
+    },
+    {
+      "id": "quench_medium_in",
+      "type": "inlet",
+      "role": "medium",
+      "module": "quench_join"
+    },
+    {
+      "id": "wash_buffer_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "cell_wash"
+    },
+    {
+      "id": "cell_wash_waste_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "cell_wash"
+    },
+    {
+      "id": "core_solution_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "core_join"
+    },
+    {
+      "id": "shell_polymer_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "droplets_1"
+    },
+    {
+      "id": "fluorinated_oil_in",
+      "type": "inlet",
+      "role": "oil",
+      "module": "droplets_1"
+    }
+  ],
+  "total_duration_s": 15207.6,
+  "steps": [
+    {
+      "ir_step": 2,
+      "ir_action": "load",
+      "ir_text": "Remove the medium and rinse the cells once with buffer.",
+      "module": "culture_1",
+      "target": "culture_1",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "move",
+      "title": "Load cells from the bench",
+      "operation": "load",
+      "duration_s": 900.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the cells arrives in culture_1 and stays there; liquid leaves at culture_1_waste_out",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "cells_sample",
+          "ul_min": 10.0,
+          "volume_ul": 150.0,
+          "time_s": 900.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "culture_1_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "quench_medium_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        },
+        "core_solution_in": {
+          "state": "CAP"
+        },
+        "shell_polymer_in": {
+          "state": "CAP"
+        },
+        "fluorinated_oil_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "culture_1_waste_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0008,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.1778,
+        "port_flow_ul_min": {
+          "inlet_1": 10.0,
+          "culture_1_waste_out": -10.0
+        },
+        "issues": []
+      },
+      "loads_from": {
+        "port": "inlet_1",
+        "chip": null
+      },
+      "t_start_s": 0.0,
+      "n": 1
+    },
+    {
+      "ir_step": 2,
+      "ir_action": "wash_cells",
+      "ir_text": "Remove the medium and rinse the cells once with buffer.",
+      "module": "culture_1",
+      "target": "culture_1",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 2: module culture_1 has no inlet named for wash_buffer; it goes in through inlet_1 (swap that syringe and prime the line first)",
+          "step": 2
+        }
+      ],
+      "phase": "fill",
+      "title": "Exchange: wash_buffer",
+      "operation": "exchange",
+      "duration_s": 1800.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "wash_buffer reaches culture_1 and leaves at culture_1_waste_out; no bubbles in the chamber; cells stay in place",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "wash_buffer",
+          "ul_min": 10.0,
+          "volume_ul": 300.0,
+          "time_s": 1800.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "culture_1_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "quench_medium_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        },
+        "core_solution_in": {
+          "state": "CAP"
+        },
+        "shell_polymer_in": {
+          "state": "CAP"
+        },
+        "fluorinated_oil_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "culture_1_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0008,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.1778,
+        "port_flow_ul_min": {
+          "inlet_1": 10.0,
+          "culture_1_waste_out": -10.0
+        },
+        "issues": []
+      },
+      "t_start_s": 900.0,
+      "n": 2
+    },
+    {
+      "ir_step": 3,
+      "ir_action": "dissociate",
+      "ir_text": "Add dissociation enzyme and incubate to detach the cells.",
+      "module": "culture_1",
+      "target": "culture_1",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 3: module culture_1 has no inlet named for dissociation_enzyme; it goes in through inlet_1 (swap that syringe and prime the line first)",
+          "step": 3
+        }
+      ],
+      "phase": "fill",
+      "title": "Exchange: dissociation_enzyme",
+      "operation": "exchange",
+      "duration_s": 900.0,
+      "temp_c": 37,
+      "wait_s": 0.0,
+      "watch": "dissociation_enzyme reaches culture_1 and leaves at culture_1_waste_out; no bubbles in the chamber",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "dissociation_enzyme",
+          "ul_min": 10.0,
+          "volume_ul": 150.0,
+          "time_s": 900.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "culture_1_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "quench_medium_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        },
+        "core_solution_in": {
+          "state": "CAP"
+        },
+        "shell_polymer_in": {
+          "state": "CAP"
+        },
+        "fluorinated_oil_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "culture_1_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0008,
+        "target_shear_dyn_cm2": 0.0032,
+        "max_channel_shear_dyn_cm2": 0.1778,
+        "port_flow_ul_min": {
+          "inlet_1": 10.0,
+          "culture_1_waste_out": -10.0
+        },
+        "issues": []
+      },
+      "t_start_s": 2700.0,
+      "n": 3
+    },
+    {
+      "ir_step": 3,
+      "ir_action": "dissociate",
+      "ir_text": "Add dissociation enzyme and incubate to detach the cells.",
+      "module": "culture_1",
+      "target": "culture_1",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "hold",
+      "title": "Incubate",
+      "operation": "hold_temp",
+      "duration_s": 300.0,
+      "temp_c": 37,
+      "wait_s": 300.0,
+      "watch": "temperature steady at 37 C; nothing moving; capped ports not leaking",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "culture_1_waste_out": {
+          "state": "CAP"
+        },
+        "quench_medium_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        },
+        "core_solution_in": {
+          "state": "CAP"
+        },
+        "shell_polymer_in": {
+          "state": "CAP"
+        },
+        "fluorinated_oil_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 3600.0,
+      "n": 4
+    },
+    {
+      "ir_step": 4,
+      "ir_action": "quench",
+      "ir_text": "Add quench medium and mix gently to stop the enzyme.",
+      "module": "quench_join",
+      "target": "quench_join",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 4 (Mix quench_medium into the stream): the outflow passes quench_mix, cell_wash on its way to cell_wash_waste_out",
+          "step": 4
+        }
+      ],
+      "phase": "flow",
+      "title": "Mix quench_medium into the stream",
+      "operation": "mix",
+      "duration_s": 2248.2,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "material moves from culture_1 through quench_join towards cell_wash_waste_out; streams merge evenly; no clogging; stop the pumps once the material has reached cell_wash (its next step)",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "carrier_buffer",
+          "ul_min": 10.0,
+          "volume_ul": 374.7,
+          "time_s": 2248.2
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "culture_1_waste_out": {
+          "state": "CAP"
+        },
+        "quench_medium_in": {
+          "state": "FEED",
+          "reagent": "quench_medium",
+          "ul_min": 10.0,
+          "volume_ul": 374.7,
+          "time_s": 2248.2
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "core_solution_in": {
+          "state": "CAP"
+        },
+        "shell_polymer_in": {
+          "state": "CAP"
+        },
+        "fluorinated_oil_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1",
+        "quench_medium_in"
+      ],
+      "vents": [
+        "cell_wash_waste_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [
+          "culture_1",
+          "quench_mix",
+          "cell_wash"
+        ],
+        "stray": [],
+        "max_pressure_kpa": 0.0115,
+        "target_shear_dyn_cm2": 0.05926,
+        "max_channel_shear_dyn_cm2": 0.3556,
+        "port_flow_ul_min": {
+          "inlet_1": 10.0,
+          "quench_medium_in": 10.0,
+          "cell_wash_waste_out": -20.0
+        },
+        "issues": [
+          {
+            "severity": "info",
+            "message": "the outflow passes quench_mix, cell_wash on its way to cell_wash_waste_out"
+          }
+        ]
+      },
+      "t_start_s": 3900.0,
+      "n": 5
+    },
+    {
+      "ir_step": 5,
+      "ir_action": "centrifuge",
+      "ir_text": "Centrifuge the cells and remove the supernatant.",
+      "module": "cell_wash",
+      "target": "cell_wash",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: wash_buffer",
+      "operation": "exchange",
+      "duration_s": 762.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "wash_buffer reaches cell_wash and leaves at cell_wash_waste_out; no bubbles in the chamber; cells stay in place",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "culture_1_waste_out": {
+          "state": "CAP"
+        },
+        "quench_medium_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "FEED",
+          "reagent": "wash_buffer",
+          "ul_min": 10.0,
+          "volume_ul": 127.0,
+          "time_s": 762.0
+        },
+        "cell_wash_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "core_solution_in": {
+          "state": "CAP"
+        },
+        "shell_polymer_in": {
+          "state": "CAP"
+        },
+        "fluorinated_oil_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "wash_buffer_in"
+      ],
+      "vents": [
+        "cell_wash_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0007,
+        "target_shear_dyn_cm2": 0.00174,
+        "max_channel_shear_dyn_cm2": 0.1778,
+        "port_flow_ul_min": {
+          "wash_buffer_in": 10.0,
+          "cell_wash_waste_out": -10.0
+        },
+        "issues": []
+      },
+      "t_start_s": 6148.2,
+      "n": 6
+    },
+    {
+      "ir_step": 5,
+      "ir_action": "centrifuge",
+      "ir_text": "Centrifuge the cells and remove the supernatant.",
+      "module": "cell_wash",
+      "target": "cell_wash",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "hold",
+      "title": "Incubate",
+      "operation": "hold_temp",
+      "duration_s": 300.0,
+      "temp_c": 22.0,
+      "wait_s": 300.0,
+      "watch": "temperature steady at 22 C; nothing moving; capped ports not leaking",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "culture_1_waste_out": {
+          "state": "CAP"
+        },
+        "quench_medium_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        },
+        "core_solution_in": {
+          "state": "CAP"
+        },
+        "shell_polymer_in": {
+          "state": "CAP"
+        },
+        "fluorinated_oil_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 6910.2,
+      "n": 7
+    },
+    {
+      "ir_step": 6,
+      "ir_action": "resuspend",
+      "ir_text": "Resuspend the pellet in wash buffer to wash the cells; repeat the wash once.",
+      "module": "cell_wash",
+      "target": "cell_wash",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: wash_buffer x2",
+      "operation": "exchange",
+      "duration_s": 3046.8,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "wash_buffer reaches cell_wash and leaves at cell_wash_waste_out; no bubbles in the chamber; cells stay in place",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "culture_1_waste_out": {
+          "state": "CAP"
+        },
+        "quench_medium_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "FEED",
+          "reagent": "wash_buffer",
+          "ul_min": 10.0,
+          "volume_ul": 507.8,
+          "time_s": 3046.8
+        },
+        "cell_wash_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "core_solution_in": {
+          "state": "CAP"
+        },
+        "shell_polymer_in": {
+          "state": "CAP"
+        },
+        "fluorinated_oil_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "wash_buffer_in"
+      ],
+      "vents": [
+        "cell_wash_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 2,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 10.0,
+        "total_feed_ul_min": 10.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0007,
+        "target_shear_dyn_cm2": 0.00174,
+        "max_channel_shear_dyn_cm2": 0.1778,
+        "port_flow_ul_min": {
+          "wash_buffer_in": 10.0,
+          "cell_wash_waste_out": -10.0
+        },
+        "issues": []
+      },
+      "t_start_s": 7210.2,
+      "n": 8
+    },
+    {
+      "ir_step": 9,
+      "ir_action": "resuspend",
+      "ir_text": "Resuspend the cells in core solution at the loading density.",
+      "module": "core_join",
+      "target": "core_join",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [
+        {
+          "severity": "info",
+          "message": "step 9 (Mix core_solution into the stream): the outflow passes core_mix, droplets_1 on its way to outlet_1",
+          "step": 9
+        }
+      ],
+      "phase": "flow",
+      "title": "Mix core_solution into the stream",
+      "operation": "mix",
+      "duration_s": 3150.6,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "material moves from cell_wash through core_join towards outlet_1; streams merge evenly; no clogging; stop the pumps once the material has reached droplets_1 (its next step)",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "carrier_buffer",
+          "ul_min": 10.0,
+          "volume_ul": 525.1,
+          "time_s": 3150.6
+        },
+        "outlet_1": {
+          "state": "VENT",
+          "to": "waste tube"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "culture_1_waste_out": {
+          "state": "CAP"
+        },
+        "quench_medium_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        },
+        "core_solution_in": {
+          "state": "FEED",
+          "reagent": "core_solution",
+          "ul_min": 10.0,
+          "volume_ul": 525.1,
+          "time_s": 3150.6
+        },
+        "shell_polymer_in": {
+          "state": "CAP"
+        },
+        "fluorinated_oil_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1",
+        "core_solution_in"
+      ],
+      "vents": [
+        "outlet_1"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [
+          "culture_1",
+          "quench_join",
+          "quench_mix",
+          "cell_wash",
+          "core_mix",
+          "droplets_1"
+        ],
+        "stray": [],
+        "max_pressure_kpa": 0.0248,
+        "target_shear_dyn_cm2": 0.05926,
+        "max_channel_shear_dyn_cm2": 0.3556,
+        "port_flow_ul_min": {
+          "inlet_1": 10.0,
+          "outlet_1": -20.0,
+          "core_solution_in": 10.0
+        },
+        "issues": [
+          {
+            "severity": "info",
+            "message": "the outflow passes core_mix, droplets_1 on its way to outlet_1"
+          }
+        ]
+      },
+      "t_start_s": 10257.0,
+      "n": 9
+    },
+    {
+      "ir_step": 10,
+      "ir_action": "encapsulate",
+      "ir_text": "Co-flow the cell/core solution with warm shell polymer solution and focus with fluorinated oil with surfactant at a flow-focusing junction to form droplets of about 70 um.",
+      "module": "droplets_1",
+      "target": "droplets_1",
+      "holds": "cells",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "collect_label": "chip1_rinse_dissociation_quench_wash_encapsulation: droplets after step 10, for chip2_gelation_emulsion_break_cure_wash inlet_1",
+      "phase": "flow",
+      "title": "Encapsulate (co-flow)",
+      "operation": "encapsulate",
+      "duration_s": 1800.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "steady droplet break-up at droplets_1 (microscope); droplets travel on towards outlet_1; no oil backing up into the core line; keep shell_polymer_in (shell_polymer) warm (37 C syringe heater) up to the chip; the cold zone starts downstream; collect into the tube labelled 'chip1_rinse_dissociation_quench_wash_encapsulation: droplets after step 10, for chip2_gelation_emulsion_break_cure_wash inlet_1'",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "core_solution",
+          "ul_min": 2.0,
+          "volume_ul": 60.0,
+          "time_s": 1800.0
+        },
+        "outlet_1": {
+          "state": "VENT",
+          "to": "tube labelled 'chip1_rinse_dissociation_quench_wash_encapsulation: droplets after step 10, for chip2_gelation_emulsion_break_cure_wash inlet_1'"
+        },
+        "reagent_line_in": {
+          "state": "CAP"
+        },
+        "culture_1_waste_out": {
+          "state": "CAP"
+        },
+        "quench_medium_in": {
+          "state": "CAP"
+        },
+        "wash_buffer_in": {
+          "state": "CAP"
+        },
+        "cell_wash_waste_out": {
+          "state": "CAP"
+        },
+        "core_solution_in": {
+          "state": "CAP"
+        },
+        "shell_polymer_in": {
+          "state": "FEED",
+          "reagent": "shell_polymer",
+          "ul_min": 2.0,
+          "line_temp_c": 37.0,
+          "volume_ul": 60.0,
+          "time_s": 1800.0
+        },
+        "fluorinated_oil_in": {
+          "state": "FEED",
+          "reagent": "fluorinated_oil",
+          "ul_min": 10.0,
+          "volume_ul": 300.0,
+          "time_s": 1800.0
+        }
+      },
+      "feeds": [
+        "inlet_1",
+        "shell_polymer_in",
+        "fluorinated_oil_in"
+      ],
+      "vents": [
+        "outlet_1"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 14.0,
+        "total_feed_ul_min": 14.0,
+        "passes": [
+          "culture_1",
+          "quench_join",
+          "quench_mix",
+          "cell_wash",
+          "core_join",
+          "core_mix"
+        ],
+        "stray": [],
+        "max_pressure_kpa": 0.007,
+        "target_shear_dyn_cm2": 0.00056,
+        "max_channel_shear_dyn_cm2": 0.2489,
+        "port_flow_ul_min": {
+          "inlet_1": 2.0,
+          "outlet_1": -14.0,
+          "shell_polymer_in": 2.0,
+          "fluorinated_oil_in": 10.0
+        },
+        "issues": []
+      },
+      "collects": {
+        "port": "outlet_1",
+        "label": "chip1_rinse_dissociation_quench_wash_encapsulation: droplets after step 10, for chip2_gelation_emulsion_break_cure_wash inlet_1",
+        "material": "droplets"
+      },
+      "t_start_s": 13407.6,
+      "n": 10
+    }
+  ],
+  "syringes": [
+    {
+      "port": "inlet_1",
+      "reagent": "cells_sample",
+      "volume_ul": 150.0,
+      "steps": [
+        1
+      ],
+      "first_step": 1,
+      "load_ul": 180.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "wash_buffer",
+      "volume_ul": 300.0,
+      "steps": [
+        2
+      ],
+      "first_step": 2,
+      "load_ul": 360.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "dissociation_enzyme",
+      "volume_ul": 150.0,
+      "steps": [
+        3
+      ],
+      "first_step": 3,
+      "load_ul": 180.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "carrier_buffer",
+      "volume_ul": 899.8,
+      "steps": [
+        5,
+        9
+      ],
+      "first_step": 5,
+      "load_ul": 1080.0,
+      "syringe_ml": 3
+    },
+    {
+      "port": "quench_medium_in",
+      "reagent": "quench_medium",
+      "volume_ul": 374.7,
+      "steps": [
+        5
+      ],
+      "first_step": 5,
+      "load_ul": 450.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "wash_buffer_in",
+      "reagent": "wash_buffer",
+      "volume_ul": 634.8,
+      "steps": [
+        6,
+        8
+      ],
+      "first_step": 6,
+      "load_ul": 762.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "core_solution_in",
+      "reagent": "core_solution",
+      "volume_ul": 525.1,
+      "steps": [
+        9
+      ],
+      "first_step": 9,
+      "load_ul": 630.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "core_solution",
+      "volume_ul": 60.0,
+      "steps": [
+        10
+      ],
+      "first_step": 10,
+      "load_ul": 72.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "shell_polymer_in",
+      "reagent": "shell_polymer",
+      "volume_ul": 60.0,
+      "steps": [
+        10
+      ],
+      "first_step": 10,
+      "load_ul": 72.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "fluorinated_oil_in",
+      "reagent": "fluorinated_oil",
+      "volume_ul": 300.0,
+      "steps": [
+        10
+      ],
+      "first_step": 10,
+      "load_ul": 360.0,
+      "syringe_ml": 1
+    }
+  ],
+  "equipment": [
+    "syringe pump with 3 independent lines",
+    "heater / stage-top incubator (37 C)",
+    "syringe heater / warm jacket on the shell_polymer syringe and line (37 C)",
+    "microscope",
+    "tubing for every used port, plugs for capped ports, waste and collection tubes"
+  ],
+  "twin_run": {
+    "ok": true,
+    "path": "autochip/examples/live/protocol_resin_multilayer/runs/chip1_rinse_dissociation_quench_wash_encapsulation.twin_run.json",
+    "events": 10,
+    "in_repo": true,
+    "chip_spec": "autochip/examples/live/protocol_resin_multilayer/chips/chip1_rinse_dissociation_quench_wash_encapsulation.json"
+  },
+  "protocol": "runs/chip1_rinse_dissociation_quench_wash_encapsulation.protocol.json",
+  "chip_spec": "chips/chip1_rinse_dissociation_quench_wash_encapsulation.json",
+  "checks": [
+    {
+      "severity": "info",
+      "message": "step 2: module culture_1 has no inlet named for wash_buffer; it goes in through inlet_1 (swap that syringe and prime the line first)",
+      "step": 2
+    },
+    {
+      "severity": "info",
+      "message": "step 3: module culture_1 has no inlet named for dissociation_enzyme; it goes in through inlet_1 (swap that syringe and prime the line first)",
+      "step": 3
+    },
+    {
+      "severity": "info",
+      "message": "step 4 (Mix quench_medium into the stream): the outflow passes quench_mix, cell_wash on its way to cell_wash_waste_out",
+      "step": 4
+    },
+    {
+      "severity": "info",
+      "message": "step 9 (Mix core_solution into the stream): the outflow passes core_mix, droplets_1 on its way to outlet_1",
+      "step": 9
+    },
+    {
+      "severity": "info",
+      "message": "the operator's planner (operator/planner.py) accepts this protocol: 10 events in runs/chip1_rinse_dissociation_quench_wash_encapsulation.twin_run.json, chip stored as autochip/examples/live/protocol_resin_multilayer/chips/chip1_rinse_dissociation_quench_wash_encapsulation.json"
+    }
+  ]
+}

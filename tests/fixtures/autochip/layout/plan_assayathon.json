@@ -1,0 +1,119 @@
+{
+  "kind": "chip_plan",
+  "id": "assayathon",
+  "name": "Library-only plan for the 30 x 20 mm assay-a-thon chips",
+  "protocol_id": "fixture_ir",
+  "constraints_id": "assayathon_demo",
+  "chips": [
+    {
+      "id": "capsule_chip",
+      "name": "Encapsulate and gel",
+      "purpose": "Make capsules at a cross junction and let them gel in a serpentine, then trap them.",
+      "steps": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "modules": [
+        {
+          "id": "encapsulate",
+          "part": "cross_junction",
+          "part_source": "library",
+          "steps": [
+            1
+          ],
+          "inlets": [
+            "oil"
+          ],
+          "does": "Cross junction pinches the cell stream into droplets with oil.",
+          "holds": "droplets"
+        },
+        {
+          "id": "gelation",
+          "part": "serpentine_channel",
+          "part_source": "library",
+          "steps": [
+            2
+          ],
+          "does": "Droplets gel while they flow through the serpentine.",
+          "holds": "capsules"
+        },
+        {
+          "id": "join_wash",
+          "part": "t_junction",
+          "part_source": "library",
+          "steps": [
+            3
+          ],
+          "inlets": [
+            "wash"
+          ],
+          "does": "Adds wash buffer to break the emulsion.",
+          "holds": "capsules"
+        },
+        {
+          "id": "trap",
+          "part": "culture_chamber",
+          "part_source": "library",
+          "steps": [
+            4
+          ],
+          "outlets": [
+            "waste"
+          ],
+          "mesh_pore_um": 20,
+          "does": "Holds the capsules on a mesh while oil and wash drain.",
+          "holds": "capsules"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "capsules",
+          "to": "external",
+          "carries": "capsules"
+        }
+      ]
+    },
+    {
+      "id": "busy_chip",
+      "name": "Too many reagents",
+      "purpose": "A wash chamber with five reagent lines: more ports than the demo chips take.",
+      "steps": [
+        5
+      ],
+      "modules": [
+        {
+          "id": "wash_1",
+          "part": "culture_chamber",
+          "part_source": "library",
+          "steps": [
+            5
+          ],
+          "inlets": [
+            "buffer_a",
+            "buffer_b",
+            "dye",
+            "fixative",
+            "medium"
+          ],
+          "outlets": [
+            "waste"
+          ],
+          "does": "Washes and stains the capsules.",
+          "holds": "capsules"
+        }
+      ]
+    }
+  ],
+  "handoffs": [],
+  "off_chip": [],
+  "missing_parts": [],
+  "coverage": {
+    "1": "capsule_chip.encapsulate",
+    "2": "capsule_chip.gelation",
+    "3": "capsule_chip.join_wash",
+    "4": "capsule_chip.trap",
+    "5": "busy_chip.wash_1"
+  }
+}

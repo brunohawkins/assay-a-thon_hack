@@ -1,0 +1,67 @@
+{
+  "id": "unconstrained",
+  "name": "No limits",
+  "description": "Default. Any process, any size, multilayer and parametric parts allowed. Use it to see the ideal chip breakdown before fitting it to a machine. Thermal zoning is not assumed, so steps at clashing temperatures land on separate chips; set fabrication.thermal_zoning_allowed to merge them.",
+  "fabrication": {
+    "method": "other",
+    "multilayer": {
+      "allowed": true,
+      "max_fluidic_layers": null,
+      "vias_allowed": true
+    },
+    "channel_crossings_allowed": true,
+    "on_chip_valves": {
+      "allowed": true,
+      "type": "pneumatic_membrane"
+    },
+    "depth": {
+      "max_mm": null,
+      "single_depth": false
+    },
+    "min_feature": {
+      "open_channel_width_mm": 0.05,
+      "enclosed_channel_width_mm": 0.05,
+      "wall_mm": 0.05,
+      "gap_mm": 0.01
+    }
+  },
+  "envelope": {
+    "printable_area_mm": null,
+    "max_chip_mm": null,
+    "max_chips": null,
+    "edge_margin_mm": 2
+  },
+  "ports": {
+    "max_per_chip": null,
+    "min_diameter_mm": 0.8,
+    "min_pitch_mm": 3,
+    "connector": "press_fit_tubing",
+    "placement": "top"
+  },
+  "parts": {
+    "source": "library_and_parametric",
+    "allow_scaling": true
+  },
+  "off_chip": {
+    "equipment": [
+      "syringe_pump",
+      "pressure_controller",
+      "heater",
+      "incubator_37c",
+      "cold_plate",
+      "thermocycler",
+      "peltier_stage",
+      "led_405nm",
+      "magnet",
+      "microscope",
+      "centrifuge",
+      "pipette"
+    ],
+    "pump_channels": null,
+    "manual_steps_allowed": true
+  },
+  "objectives": {
+    "prefer": "most_on_chip"
+  },
+  "notes": []
+}

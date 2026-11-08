@@ -1,0 +1,113 @@
+{
+  "kind": "chip_plan",
+  "id": "long_chain",
+  "name": "Six modules, no limits",
+  "protocol_id": "fixture_ir",
+  "constraints_id": "unconstrained",
+  "chips": [
+    {
+      "id": "long_chip",
+      "name": "Six-module chain",
+      "purpose": "Six modules in a row, to exercise the near-square snake layout.",
+      "steps": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "modules": [
+        {
+          "id": "load",
+          "part": "chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 10
+          },
+          "steps": [
+            1
+          ],
+          "does": "Loading chamber.",
+          "holds": "cells"
+        },
+        {
+          "id": "join",
+          "part": "y_junction",
+          "part_source": "library",
+          "steps": [
+            2
+          ],
+          "inlets": [
+            "reagent_a"
+          ],
+          "does": "Adds reagent A.",
+          "holds": "cells"
+        },
+        {
+          "id": "mix",
+          "part": "mixer",
+          "part_source": "parametric",
+          "params": {
+            "length_mm": 40
+          },
+          "steps": [
+            3
+          ],
+          "does": "Mixes.",
+          "holds": "cells"
+        },
+        {
+          "id": "incubate",
+          "part": "delay_line",
+          "part_source": "parametric",
+          "steps": [
+            4
+          ],
+          "does": "Incubates in flow.",
+          "holds": "cells"
+        },
+        {
+          "id": "gate",
+          "part": "normally_closed_valve",
+          "part_source": "library",
+          "steps": [
+            5
+          ],
+          "does": "Valve that holds the stream until release.",
+          "holds": "cells"
+        },
+        {
+          "id": "collect",
+          "part": "chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 25
+          },
+          "steps": [
+            6
+          ],
+          "inlets": [
+            "medium"
+          ],
+          "outlets": [
+            "waste"
+          ],
+          "does": "Collects the cells.",
+          "holds": "cells"
+        }
+      ]
+    }
+  ],
+  "handoffs": [],
+  "off_chip": [],
+  "missing_parts": [],
+  "coverage": {
+    "1": "long_chip.load",
+    "2": "long_chip.join",
+    "3": "long_chip.mix",
+    "4": "long_chip.incubate",
+    "5": "long_chip.gate",
+    "6": "long_chip.collect"
+  }
+}

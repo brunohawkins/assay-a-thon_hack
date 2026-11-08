@@ -1,0 +1,34 @@
+{
+  "chip1_triculture_dissociation_quench_cell_wash_filter": {
+    "spec_id": "chip1_triculture_dissociation_quench_cell_wash_filter",
+    "spec_sha1": "4634bb6aea723c9a434f37b2f6fdbed3602f3d83",
+    "violations": [
+      {
+        "severity": "warning",
+        "rule": "layout.lane_isolation",
+        "message": "lanes culture_neurons, culture_microglia, culture_astrocytes share 'split_1' and 'junction_mid': filling one lane through its own inlet with outlet_1 vented also pushes up to 21% of the flow through the other lanes. To fill one lane alone, feed the lane's inlet and vent its own <lane>_vent_out port with outlet_1 capped: then no liquid enters the other lanes."
+      }
+    ]
+  },
+  "chip2_encapsulation_emulsion_break_capsule_wash_curing": {
+    "spec_id": "chip2_encapsulation_emulsion_break_capsule_wash_curing",
+    "spec_sha1": "57a51778d5740823f7b6793fa294704af7a0c736",
+    "violations": []
+  },
+  "chip3_lysis_rt_split_index_pcr_pool_release": {
+    "spec_id": "chip3_lysis_rt_split_index_pcr_pool_release",
+    "spec_sha1": "00201a19c4d61a3245d87ce482b457db917a35b9",
+    "violations": [
+      {
+        "severity": "warning",
+        "rule": "layout.lane_isolation",
+        "message": "lanes pcr_1, pcr_2, pcr_3, pcr_4 share 'split_2' and 'pool_2': filling one lane through its own inlet with outlet_1 vented also pushes up to 38% of the flow through the other lanes. To fill one lane alone, feed the lane's inlet and vent its own <lane>_vent_out port with outlet_1 capped: then no liquid enters the other lanes."
+      }
+    ]
+  },
+  "chip4_bead_binding_wash_elution": {
+    "spec_id": "chip4_bead_binding_wash_elution",
+    "spec_sha1": "3fbd425bd5ae9b953e5eca3c5b00e46566998b40",
+    "violations": []
+  }
+}

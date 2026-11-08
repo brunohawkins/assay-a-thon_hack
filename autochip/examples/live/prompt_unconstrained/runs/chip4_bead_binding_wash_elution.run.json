@@ -1,0 +1,580 @@
+{
+  "kind": "chip_run_program",
+  "chip": "chip4_bead_binding_wash_elution",
+  "chip_name": "Bead binding, ethanol wash and elution chip",
+  "purpose": "Binds cDNA to magnetic beads, washes on the magnet and elutes the library.",
+  "placeholder": true,
+  "created_at": "2026-11-08T09:35:58Z",
+  "port_states": "FEED = a syringe pump pushes at the given rate; VENT = open outlet to a tube; CAP = plugged",
+  "limits": {
+    "pump_channels": null,
+    "flow_range_ul_min": null,
+    "max_pressure_kpa": null,
+    "chamber_shear_limit_dyn_cm2": {
+      "cells": 1.0,
+      "capsules": 5.0,
+      "droplets": 5.0
+    },
+    "channel_shear_limit_cells_dyn_cm2": 10.0
+  },
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "role": "load",
+      "module": "bead_chamber"
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "role": "harvest",
+      "module": "bead_chamber"
+    },
+    {
+      "id": "magnetic_beads_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "bead_chamber"
+    },
+    {
+      "id": "ethanol_wash_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "bead_chamber"
+    },
+    {
+      "id": "bead_waste_out",
+      "type": "outlet",
+      "role": "waste",
+      "module": "bead_chamber"
+    },
+    {
+      "id": "elution_buffer_in",
+      "type": "inlet",
+      "role": "reagent",
+      "module": "bead_chamber"
+    }
+  ],
+  "total_duration_s": 2295.0,
+  "steps": [
+    {
+      "ir_step": 21,
+      "ir_action": "bind_beads",
+      "ir_text": "Bind the released cDNA to magnetic beads.",
+      "module": "bead_chamber",
+      "target": "bead_chamber",
+      "holds": "nucleic_acid",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: magnetic_beads",
+      "operation": "exchange",
+      "duration_s": 225.0,
+      "temp_c": 22,
+      "wait_s": 0.0,
+      "watch": "magnetic_beads reaches bead_chamber and leaves at bead_waste_out; no bubbles in the chamber",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "magnetic_beads_in": {
+          "state": "FEED",
+          "reagent": "magnetic_beads",
+          "ul_min": 20.0,
+          "volume_ul": 75.0,
+          "time_s": 225.0
+        },
+        "ethanol_wash_in": {
+          "state": "CAP"
+        },
+        "bead_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "elution_buffer_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "magnetic_beads_in"
+      ],
+      "vents": [
+        "bead_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0044,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "magnetic_beads_in": 20.0,
+          "bead_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 0.0,
+      "n": 1
+    },
+    {
+      "ir_step": 21,
+      "ir_action": "load",
+      "ir_text": "Bind the released cDNA to magnetic beads.",
+      "module": "bead_chamber",
+      "target": "bead_chamber",
+      "holds": "nucleic_acid",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "move",
+      "title": "Load nucleic_acid from the hand-off from chip3_lysis_rt_split_index_pcr_pool_release",
+      "operation": "load",
+      "duration_s": 225.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the nucleic_acid arrives in bead_chamber; stop the pump as soon as it is there, before it runs on towards bead_waste_out",
+      "ports": {
+        "inlet_1": {
+          "state": "FEED",
+          "reagent": "nucleic_acid_sample",
+          "ul_min": 20.0,
+          "volume_ul": 75.0,
+          "time_s": 225.0
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "magnetic_beads_in": {
+          "state": "CAP"
+        },
+        "ethanol_wash_in": {
+          "state": "CAP"
+        },
+        "bead_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "elution_buffer_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "inlet_1"
+      ],
+      "vents": [
+        "bead_waste_out"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0062,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "inlet_1": 20.0,
+          "bead_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "loads_from": {
+        "port": "inlet_1",
+        "chip": "chip3_lysis_rt_split_index_pcr_pool_release"
+      },
+      "t_start_s": 225.0,
+      "n": 2
+    },
+    {
+      "ir_step": 21,
+      "ir_action": "bind_beads",
+      "ir_text": "Bind the released cDNA to magnetic beads.",
+      "module": "bead_chamber",
+      "target": "bead_chamber",
+      "holds": "nucleic_acid",
+      "magnet": false,
+      "light": null,
+      "issues": [],
+      "phase": "hold",
+      "title": "Incubate",
+      "operation": "hold_temp",
+      "duration_s": 300.0,
+      "temp_c": 22,
+      "wait_s": 300.0,
+      "watch": "temperature steady at 22 C; nothing moving; capped ports not leaking",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "magnetic_beads_in": {
+          "state": "CAP"
+        },
+        "ethanol_wash_in": {
+          "state": "CAP"
+        },
+        "bead_waste_out": {
+          "state": "CAP"
+        },
+        "elution_buffer_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 450.0,
+      "n": 3
+    },
+    {
+      "ir_step": 22,
+      "ir_action": "wash_particles",
+      "ir_text": "Wash the beads on a magnet.",
+      "module": "bead_chamber",
+      "target": "bead_chamber",
+      "holds": "beads",
+      "magnet": true,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: ethanol_wash x2",
+      "operation": "exchange",
+      "duration_s": 900.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "ethanol_wash reaches bead_chamber and leaves at bead_waste_out; no bubbles in the chamber; magnet on, beads stay put",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "magnetic_beads_in": {
+          "state": "CAP"
+        },
+        "ethanol_wash_in": {
+          "state": "FEED",
+          "reagent": "ethanol_wash",
+          "ul_min": 20.0,
+          "volume_ul": 300.0,
+          "time_s": 900.0
+        },
+        "bead_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "elution_buffer_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [
+        "ethanol_wash_in"
+      ],
+      "vents": [
+        "bead_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 2,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0044,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "ethanol_wash_in": 20.0,
+          "bead_waste_out": -20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 750.0,
+      "n": 4
+    },
+    {
+      "ir_step": 23,
+      "ir_action": "elute",
+      "ir_text": "Elute the library from the beads.",
+      "module": "bead_chamber",
+      "target": "bead_chamber",
+      "holds": "beads",
+      "magnet": true,
+      "light": null,
+      "issues": [],
+      "phase": "fill",
+      "title": "Exchange: elution_buffer",
+      "operation": "exchange",
+      "duration_s": 225.0,
+      "temp_c": 22,
+      "wait_s": 0.0,
+      "watch": "elution_buffer reaches bead_chamber and leaves at bead_waste_out; no bubbles in the chamber; magnet on, beads stay put",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "magnetic_beads_in": {
+          "state": "CAP"
+        },
+        "ethanol_wash_in": {
+          "state": "CAP"
+        },
+        "bead_waste_out": {
+          "state": "VENT",
+          "to": "waste"
+        },
+        "elution_buffer_in": {
+          "state": "FEED",
+          "reagent": "elution_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 75.0,
+          "time_s": 225.0
+        }
+      },
+      "feeds": [
+        "elution_buffer_in"
+      ],
+      "vents": [
+        "bead_waste_out"
+      ],
+      "rate_defaulted": true,
+      "washes": 1,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0044,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "bead_waste_out": -20.0,
+          "elution_buffer_in": 20.0
+        },
+        "issues": []
+      },
+      "t_start_s": 1650.0,
+      "n": 5
+    },
+    {
+      "ir_step": 23,
+      "ir_action": "elute",
+      "ir_text": "Elute the library from the beads.",
+      "module": "bead_chamber",
+      "target": "bead_chamber",
+      "holds": "beads",
+      "magnet": true,
+      "light": null,
+      "issues": [],
+      "phase": "hold",
+      "title": "Incubate",
+      "operation": "hold_temp",
+      "duration_s": 120.0,
+      "temp_c": 22,
+      "wait_s": 120.0,
+      "watch": "temperature steady at 22 C; nothing moving; capped ports not leaking",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "CAP"
+        },
+        "magnetic_beads_in": {
+          "state": "CAP"
+        },
+        "ethanol_wash_in": {
+          "state": "CAP"
+        },
+        "bead_waste_out": {
+          "state": "CAP"
+        },
+        "elution_buffer_in": {
+          "state": "CAP"
+        }
+      },
+      "feeds": [],
+      "vents": [],
+      "flow_check": {
+        "ok": true,
+        "solved": false,
+        "note": "no flow: every port capped"
+      },
+      "t_start_s": 1875.0,
+      "n": 6
+    },
+    {
+      "ir_step": 23,
+      "ir_action": "collect",
+      "ir_text": "Elute the library from the beads.",
+      "module": "bead_chamber",
+      "target": "bead_chamber",
+      "holds": "library",
+      "magnet": true,
+      "light": null,
+      "issues": [],
+      "collect_label": "chip4_bead_binding_wash_elution: library after step 23",
+      "phase": "collect",
+      "title": "Collect the library (outlet_1)",
+      "operation": "transfer",
+      "duration_s": 300.0,
+      "temp_c": null,
+      "wait_s": 0.0,
+      "watch": "the library leaves bead_chamber through outlet_1 into the tube labelled 'chip4_bead_binding_wash_elution: library after step 23'; magnet on so the beads stay behind; never to waste",
+      "ports": {
+        "inlet_1": {
+          "state": "CAP"
+        },
+        "outlet_1": {
+          "state": "VENT",
+          "to": "tube labelled 'chip4_bead_binding_wash_elution: library after step 23'"
+        },
+        "magnetic_beads_in": {
+          "state": "CAP"
+        },
+        "ethanol_wash_in": {
+          "state": "CAP"
+        },
+        "bead_waste_out": {
+          "state": "CAP"
+        },
+        "elution_buffer_in": {
+          "state": "FEED",
+          "reagent": "collection_buffer",
+          "ul_min": 20.0,
+          "volume_ul": 100.0,
+          "time_s": 300.0
+        }
+      },
+      "feeds": [
+        "elution_buffer_in"
+      ],
+      "vents": [
+        "outlet_1"
+      ],
+      "rate_defaulted": true,
+      "flow_check": {
+        "ok": true,
+        "solved": true,
+        "through_target_ul_min": 20.0,
+        "total_feed_ul_min": 20.0,
+        "passes": [],
+        "stray": [],
+        "max_pressure_kpa": 0.0072,
+        "target_shear_dyn_cm2": 0.00905,
+        "port_flow_ul_min": {
+          "outlet_1": -20.0,
+          "elution_buffer_in": 20.0
+        },
+        "issues": []
+      },
+      "collects": {
+        "port": "outlet_1",
+        "label": "chip4_bead_binding_wash_elution: library after step 23",
+        "material": "library"
+      },
+      "t_start_s": 1995.0,
+      "n": 7
+    }
+  ],
+  "syringes": [
+    {
+      "port": "magnetic_beads_in",
+      "reagent": "magnetic_beads",
+      "volume_ul": 75.0,
+      "steps": [
+        1
+      ],
+      "first_step": 1,
+      "load_ul": 90.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "inlet_1",
+      "reagent": "nucleic_acid_sample",
+      "volume_ul": 75.0,
+      "steps": [
+        2
+      ],
+      "first_step": 2,
+      "load_ul": 90.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "ethanol_wash_in",
+      "reagent": "ethanol_wash",
+      "volume_ul": 300.0,
+      "steps": [
+        4
+      ],
+      "first_step": 4,
+      "load_ul": 360.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "elution_buffer_in",
+      "reagent": "elution_buffer",
+      "volume_ul": 75.0,
+      "steps": [
+        5
+      ],
+      "first_step": 5,
+      "load_ul": 90.0,
+      "syringe_ml": 1
+    },
+    {
+      "port": "elution_buffer_in",
+      "reagent": "collection_buffer",
+      "volume_ul": 100.0,
+      "steps": [
+        7
+      ],
+      "first_step": 7,
+      "load_ul": 120.0,
+      "syringe_ml": 1
+    }
+  ],
+  "equipment": [
+    "syringe pump with 1 independent line",
+    "magnet under the chip",
+    "tubing for every used port, plugs for capped ports, waste and collection tubes"
+  ],
+  "twin_run": {
+    "ok": true,
+    "path": "autochip/examples/live/prompt_unconstrained/runs/chip4_bead_binding_wash_elution.twin_run.json",
+    "events": 7,
+    "in_repo": true,
+    "chip_spec": "autochip/examples/live/prompt_unconstrained/chips/chip4_bead_binding_wash_elution.json"
+  },
+  "protocol": "runs/chip4_bead_binding_wash_elution.protocol.json",
+  "chip_spec": "chips/chip4_bead_binding_wash_elution.json",
+  "checks": [
+    {
+      "severity": "info",
+      "message": "the operator's planner (operator/planner.py) accepts this protocol: 7 events in runs/chip4_bead_binding_wash_elution.twin_run.json, chip stored as autochip/examples/live/prompt_unconstrained/chips/chip4_bead_binding_wash_elution.json"
+    }
+  ]
+}

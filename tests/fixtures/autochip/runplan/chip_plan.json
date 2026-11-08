@@ -1,0 +1,215 @@
+{
+  "kind": "chip_plan",
+  "id": "generic_capsule_demo_plan",
+  "name": "Generic capsule demo: two chips",
+  "protocol_id": "generic_capsule_demo",
+  "constraints_id": "unconstrained",
+  "rationale": "Cell prep at 37 C and encapsulation with oil are split so the oil never reaches the culture chamber.",
+  "chips": [
+    {
+      "id": "chip_a",
+      "name": "Cell prep",
+      "purpose": "Grow, rinse, detach and quench the cells.",
+      "steps": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "why_separate": "37 C culture; no oil.",
+      "temp_c": 37,
+      "equipment": [
+        "heater"
+      ],
+      "modules": [
+        {
+          "id": "culture_1",
+          "part": "culture_chamber",
+          "part_source": "library",
+          "steps": [
+            1,
+            2,
+            3
+          ],
+          "inlets": [
+            "medium",
+            "wash_buffer",
+            "dissociation_enzyme"
+          ],
+          "does": "Grow and detach the cells.",
+          "holds": "cells"
+        },
+        {
+          "id": "quench_mix",
+          "part": "serpentine_channel",
+          "part_source": "library",
+          "steps": [
+            4
+          ],
+          "inlets": [
+            "quench_medium"
+          ],
+          "does": "Mix quench medium into the cell stream.",
+          "holds": "cells"
+        }
+      ],
+      "inputs": [
+        {
+          "name": "cells",
+          "from": "external",
+          "carries": "cells"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "cells",
+          "to": "chip_b.cells",
+          "carries": "cells"
+        }
+      ]
+    },
+    {
+      "id": "chip_b",
+      "name": "Capsules",
+      "purpose": "Make capsules, cure, wash and lyse in them.",
+      "steps": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        13
+      ],
+      "why_separate": "Oil phase and cold gelation.",
+      "temp_c": null,
+      "equipment": [
+        "cold_plate",
+        "led_405nm"
+      ],
+      "modules": [
+        {
+          "id": "encapsulate",
+          "part": "cross_junction",
+          "part_source": "library",
+          "steps": [
+            7
+          ],
+          "inlets": [
+            "shell_polymer",
+            "oil"
+          ],
+          "does": "Flow-focus droplets.",
+          "holds": "droplets"
+        },
+        {
+          "id": "gelation",
+          "part": "serpentine_channel",
+          "part_source": "library",
+          "steps": [
+            8
+          ],
+          "does": "Cold delay line.",
+          "holds": "droplets"
+        },
+        {
+          "id": "capsule_trap",
+          "part": "culture_chamber",
+          "part_source": "library",
+          "steps": [
+            9,
+            10,
+            11,
+            13
+          ],
+          "inlets": [
+            "emulsion_breaker",
+            "wash_buffer",
+            "lysis_buffer"
+          ],
+          "outlets": [
+            "waste"
+          ],
+          "mesh_pore_um": 25,
+          "does": "Hold capsules on a mesh for oil removal, curing, washes and lysis.",
+          "holds": "capsules"
+        }
+      ],
+      "inputs": [
+        {
+          "name": "cells",
+          "from": "chip_a.cells",
+          "carries": "cells"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "capsules",
+          "to": "external",
+          "carries": "capsules"
+        }
+      ]
+    }
+  ],
+  "handoffs": [
+    {
+      "from_chip": "chip_a",
+      "from_output": "cells",
+      "to_chip": "chip_b",
+      "to_input": "cells",
+      "carries": "cells",
+      "method": "off_chip_step",
+      "via_steps": [
+        5,
+        6
+      ]
+    }
+  ],
+  "off_chip": [
+    {
+      "steps": [
+        5,
+        6
+      ],
+      "why": "Pellet wash and count at the bench.",
+      "equipment": [
+        "centrifuge",
+        "microscope"
+      ]
+    },
+    {
+      "steps": [
+        14
+      ],
+      "why": "Plate reader read-out.",
+      "equipment": [
+        "plate_reader"
+      ]
+    }
+  ],
+  "missing_parts": [
+    {
+      "steps": [
+        12
+      ],
+      "need": "pillar filter, ~100 um gap",
+      "why": "No filter block in the library.",
+      "workaround": "Pass the capsules through a 100 um cell strainer at the bench."
+    }
+  ],
+  "coverage": {
+    "1": "chip_a.culture_1",
+    "2": "chip_a.culture_1",
+    "3": "chip_a.culture_1",
+    "4": "chip_a.quench_mix",
+    "5": "off_chip",
+    "6": "off_chip",
+    "7": "chip_b.encapsulate",
+    "8": "chip_b.gelation",
+    "9": "chip_b.capsule_trap",
+    "10": "chip_b.capsule_trap",
+    "11": "chip_b.capsule_trap",
+    "12": "missing",
+    "13": "chip_b.capsule_trap",
+    "14": "off_chip"
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "id": "chip2_encapsulation_emulsion_break_capsule_wash_curing",
+  "name": "Encapsulation, emulsion break, capsule wash and curing chip",
+  "description": "Merges cells into core solution, makes single-cell shell/core droplets in fluorinated oil, then breaks the emulsion, washes, cures and washes the capsules in a trap. Parametric parts: modules core_join, core_mix, encap_junction, capsule_trap use the nearest library block as a stand-in (real part and sizing in autochip_part / params). build_chip.py builds the stand-ins at library size; the exact chip needs the autochip layout stage.",
+  "source": "autochip chip plan ipsc_triculture_single_cell_capsule_rnaseq_unconstrained (protocol ipsc_triculture_single_cell_capsule_rnaseq, constraints unconstrained)",
+  "placeholder": true,
+  "needs_autochip_layout": true,
+  "temp_c": null,
+  "equipment": [
+    "syringe_pump",
+    "led_405nm"
+  ],
+  "modules": [
+    {
+      "id": "core_join",
+      "part": "t_junction",
+      "steps": [
+        9
+      ],
+      "does": "Core solution joins the cell stream just before the junction.",
+      "inlets": [
+        "core_solution"
+      ],
+      "autochip_part": "merge",
+      "params": {
+        "shape": "t"
+      }
+    },
+    {
+      "id": "core_mix",
+      "part": "serpentine_channel",
+      "steps": [
+        9
+      ],
+      "does": "Mixes cells into the core solution so the centre stream is uniform.",
+      "autochip_part": "mixer",
+      "params": {
+        "length_mm": 30,
+        "residence_s": null,
+        "flow_ul_min": 10,
+        "width_mm": 0.1,
+        "viscous": false
+      }
+    },
+    {
+      "id": "encap_junction",
+      "part": "cross_junction",
+      "steps": [
+        9
+      ],
+      "does": "Flow-focusing junction: cell/core stream in the centre, shell polymer and fluorinated oil on the sides, forming ~70 um single-cell droplets.",
+      "inlets": [
+        "shell_polymer",
+        "fluorinated_oil"
+      ],
+      "autochip_part": "droplet_junction",
+      "params": {
+        "nozzle_um": 50
+      }
+    },
+    {
+      "id": "capsule_trap",
+      "part": "culture_chamber",
+      "steps": [
+        10,
+        11,
+        12,
+        13
+      ],
+      "does": "Holds the droplets on a 10 um mesh (below 0.4 x capsule diameter) while the emulsion breaker removes the oil, then washes, 405 nm curing and washes again. The emulsion breaker keeps its own line. The wash buffer line is reused for both washes.",
+      "inlets": [
+        "emulsion_breaker",
+        "wash_buffer"
+      ],
+      "outlets": [
+        "capsule_trap_waste"
+      ],
+      "mesh_pore_um": 10,
+      "autochip_part": "trap_chamber",
+      "params": {
+        "volume_ul": 50,
+        "depth_mm": 0.5,
+        "retention": "mesh",
+        "gap_um": 10
+      }
+    }
+  ],
+  "off_chip": [],
+  "missing_parts": [],
+  "steps_text": {
+    "9": "Wrap single cells in droplets of shell polymer around an aqueous core, formed in fluorinated oil at a chip junction.",
+    "10": "Break the emulsion with an emulsion-breaking agent and remove the oil phase.",
+    "11": "Wash the capsules to remove leftover oil.",
+    "12": "Cure the capsule shells with light.",
+    "13": "Wash the cured capsules."
+  }
+}

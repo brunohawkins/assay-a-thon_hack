@@ -1,0 +1,266 @@
+{
+  "id": "chip_a",
+  "name": "Cell prep",
+  "placeholder": true,
+  "units": "mm",
+  "footprint": {
+    "x": 40,
+    "y": 24
+  },
+  "layers": [
+    {
+      "id": "base",
+      "material": "acrylic",
+      "thickness_mm": 1.0
+    },
+    {
+      "id": "fluidic",
+      "material": "acrylic",
+      "thickness_mm": 0.2
+    },
+    {
+      "id": "lid",
+      "material": "acrylic",
+      "thickness_mm": 0.3
+    }
+  ],
+  "chambers": [
+    {
+      "id": "culture_1",
+      "type": "culture",
+      "center": [
+        11,
+        10,
+        1.1
+      ],
+      "size": [
+        8,
+        8,
+        0.2
+      ],
+      "volume_ul": 12.8
+    },
+    {
+      "id": "quench_mix",
+      "type": "mixer",
+      "center": [
+        26,
+        10,
+        1.1
+      ],
+      "size": [
+        8,
+        4,
+        0.1
+      ],
+      "volume_ul": 3.2,
+      "mixer": {
+        "kind": "serpentine",
+        "channel_width_mm": 0.4,
+        "turns": 6
+      }
+    }
+  ],
+  "channels": [
+    {
+      "id": "ch_in",
+      "from": "inlet_1",
+      "to": "culture_1",
+      "width_mm": 0.4,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          3,
+          10
+        ],
+        [
+          7,
+          10
+        ]
+      ],
+      "carries": "cells"
+    },
+    {
+      "id": "ch_cult_mix",
+      "from": "culture_1",
+      "to": "quench_mix",
+      "width_mm": 0.4,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          15,
+          10
+        ],
+        [
+          22,
+          10
+        ]
+      ],
+      "carries": "cells"
+    },
+    {
+      "id": "ch_mix_out",
+      "from": "quench_mix",
+      "to": "outlet_1",
+      "width_mm": 0.4,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          30,
+          10
+        ],
+        [
+          37,
+          10
+        ]
+      ],
+      "carries": "cells"
+    },
+    {
+      "id": "ch_medium",
+      "from": "medium_in",
+      "to": "culture_1",
+      "width_mm": 0.3,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          7,
+          20
+        ],
+        [
+          7,
+          14
+        ],
+        [
+          9,
+          14
+        ]
+      ],
+      "carries": "liquid"
+    },
+    {
+      "id": "ch_wash",
+      "from": "wash_buffer_in",
+      "to": "culture_1",
+      "width_mm": 0.3,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          11,
+          20
+        ],
+        [
+          11,
+          14
+        ]
+      ],
+      "carries": "liquid"
+    },
+    {
+      "id": "ch_enzyme",
+      "from": "dissociation_enzyme_in",
+      "to": "culture_1",
+      "width_mm": 0.3,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          15,
+          20
+        ],
+        [
+          15,
+          16
+        ],
+        [
+          13,
+          14
+        ]
+      ],
+      "carries": "liquid"
+    },
+    {
+      "id": "ch_quench",
+      "from": "quench_medium_in",
+      "to": "quench_mix",
+      "width_mm": 0.3,
+      "depth_mm": 0.1,
+      "path": [
+        [
+          22,
+          20
+        ],
+        [
+          22,
+          14
+        ],
+        [
+          24,
+          12
+        ]
+      ],
+      "carries": "liquid"
+    }
+  ],
+  "ports": [
+    {
+      "id": "inlet_1",
+      "type": "inlet",
+      "position": [
+        3,
+        10,
+        1.5
+      ],
+      "role": "load"
+    },
+    {
+      "id": "medium_in",
+      "type": "inlet",
+      "position": [
+        7,
+        20,
+        1.5
+      ],
+      "role": "medium"
+    },
+    {
+      "id": "wash_buffer_in",
+      "type": "inlet",
+      "position": [
+        11,
+        20,
+        1.5
+      ],
+      "role": "reagent"
+    },
+    {
+      "id": "dissociation_enzyme_in",
+      "type": "inlet",
+      "position": [
+        15,
+        20,
+        1.5
+      ],
+      "role": "reagent"
+    },
+    {
+      "id": "quench_medium_in",
+      "type": "inlet",
+      "position": [
+        22,
+        20,
+        1.5
+      ],
+      "role": "reagent"
+    },
+    {
+      "id": "outlet_1",
+      "type": "outlet",
+      "position": [
+        37,
+        10,
+        1.5
+      ],
+      "role": "transfer"
+    }
+  ]
+}

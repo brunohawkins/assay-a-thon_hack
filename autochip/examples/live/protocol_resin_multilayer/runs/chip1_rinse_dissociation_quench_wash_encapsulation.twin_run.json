@@ -1,0 +1,147 @@
+{
+  "protocol_id": "spc_capsule_workflow_chip1_rinse_dissociation_quench_wash_encapsulation",
+  "protocol_name": "Semi-permeable capsule (SPC) workflow: Cell rinse, dissociation, quench, wash and encapsulation chip",
+  "chip_id": "chip1_rinse_dissociation_quench_wash_encapsulation",
+  "chip_spec": "autochip/examples/live/protocol_resin_multilayer/chips/chip1_rinse_dissociation_quench_wash_encapsulation.json",
+  "operator": "planner",
+  "created_at": "2026-11-08T09:36:02Z",
+  "placeholder": true,
+  "total_duration_s": 15207.6,
+  "events": [
+    {
+      "t_s": 0.0,
+      "duration_s": 900.0,
+      "command": "load",
+      "args": {
+        "target": "culture_1",
+        "volume_ul": 150.0
+      },
+      "narration": "IR step 2 (culture_1): load the cells from the bench: syringe on inlet_1 at 10 uL/min, VENT culture_1_waste_out. Every other port capped.",
+      "protocol_step": 1
+    },
+    {
+      "t_s": 900.0,
+      "duration_s": 1800.0,
+      "command": "exchange",
+      "args": {
+        "target": "culture_1",
+        "reagent": "wash_buffer",
+        "volume_ul": 300.0,
+        "washes": 1,
+        "flow_ul_min": 10.0,
+        "waste": "culture_1_waste_out"
+      },
+      "narration": "IR step 2 (culture_1): exchange to wash_buffer: FEED inlet_1 (wash_buffer) at 10 uL/min, VENT culture_1_waste_out, all else capped; 3 chamber volumes (300 uL) per wash; the bench protocol used 200 uL (default flow). Remove the medium and rinse the cells once with buffer.",
+      "protocol_step": 2
+    },
+    {
+      "t_s": 2700.0,
+      "duration_s": 900.0,
+      "command": "exchange",
+      "args": {
+        "target": "culture_1",
+        "reagent": "dissociation_enzyme",
+        "volume_ul": 150.0,
+        "washes": 1,
+        "flow_ul_min": 10.0,
+        "waste": "culture_1_waste_out"
+      },
+      "narration": "IR step 3 (culture_1): exchange to dissociation_enzyme: FEED inlet_1 (dissociation_enzyme) at 10 uL/min, VENT culture_1_waste_out, all else capped; 1.5 chamber volumes (150 uL) per wash; the bench protocol used 100 uL (default flow). Add dissociation enzyme and incubate to detach the cells.",
+      "protocol_step": 3
+    },
+    {
+      "t_s": 3600.0,
+      "duration_s": 300.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "culture_1",
+        "temp_c": 37.0,
+        "duration_s": 300.0
+      },
+      "narration": "IR step 3 (culture_1): incubate in place: all ports capped, hold 37 C for 5 min. Add dissociation enzyme and incubate to detach the cells.",
+      "protocol_step": 4
+    },
+    {
+      "t_s": 3900.0,
+      "duration_s": 2248.2,
+      "command": "mix",
+      "args": {
+        "target": "quench_join",
+        "reagent": "quench_medium",
+        "volume_ul": 749.4,
+        "flow_ul_min": 10.0
+      },
+      "narration": "IR step 4 (quench_join): mix: FEED inlet_1 (carrier_buffer) at 10 uL/min, quench_medium_in (quench_medium) at 10 uL/min, VENT cell_wash_waste_out, all else capped. Add quench medium and mix gently to stop the enzyme.",
+      "protocol_step": 5
+    },
+    {
+      "t_s": 6148.2,
+      "duration_s": 762.0,
+      "command": "exchange",
+      "args": {
+        "target": "cell_wash",
+        "reagent": "wash_buffer",
+        "volume_ul": 127.0,
+        "washes": 1,
+        "flow_ul_min": 10.0,
+        "waste": "cell_wash_waste_out"
+      },
+      "narration": "IR step 5 (cell_wash): exchange to wash_buffer: FEED wash_buffer_in (wash_buffer) at 10 uL/min, VENT cell_wash_waste_out, all else capped; 1.5 chamber volumes (127 uL) per wash (default flow). Centrifuge the cells and remove the supernatant.",
+      "protocol_step": 6
+    },
+    {
+      "t_s": 6910.2,
+      "duration_s": 300.0,
+      "command": "hold_temp",
+      "args": {
+        "target": "cell_wash",
+        "temp_c": 22.0,
+        "duration_s": 300.0
+      },
+      "narration": "IR step 5 (cell_wash): incubate in place: all ports capped, hold 22 C for 5 min. Centrifuge the cells and remove the supernatant.",
+      "protocol_step": 7
+    },
+    {
+      "t_s": 7210.2,
+      "duration_s": 3046.8,
+      "command": "exchange",
+      "args": {
+        "target": "cell_wash",
+        "reagent": "wash_buffer",
+        "volume_ul": 253.9,
+        "washes": 2,
+        "flow_ul_min": 10.0,
+        "waste": "cell_wash_waste_out"
+      },
+      "narration": "IR step 6 (cell_wash): exchange to wash_buffer: FEED wash_buffer_in (wash_buffer) at 10 uL/min, VENT cell_wash_waste_out, all else capped; 3 chamber volumes (253.9 uL) per wash; the bench protocol used 500 uL x 2 washes (default flow). Resuspend the pellet in wash buffer to wash the cells; repeat the wash once.",
+      "protocol_step": 8
+    },
+    {
+      "t_s": 10257.0,
+      "duration_s": 3150.6,
+      "command": "mix",
+      "args": {
+        "target": "core_join",
+        "reagent": "core_solution",
+        "volume_ul": 1050.2,
+        "flow_ul_min": 10.0
+      },
+      "narration": "IR step 9 (core_join): mix: FEED inlet_1 (carrier_buffer) at 10 uL/min, core_solution_in (core_solution) at 10 uL/min, VENT outlet_1, all else capped. Resuspend the cells in core solution at the loading density.",
+      "protocol_step": 9
+    },
+    {
+      "t_s": 13407.6,
+      "duration_s": 1800.0,
+      "command": "encapsulate",
+      "args": {
+        "target": "droplets_1",
+        "core_flow_ul_h": 120.0,
+        "shell_flow_ul_h": 120.0,
+        "oil_flow_ul_h": 600.0,
+        "capsules": 100000
+      },
+      "narration": "IR step 10 (droplets_1): encapsulate: FEED inlet_1 (core_solution) at 2 uL/min, shell_polymer_in (shell_polymer) at 2 uL/min, fluorinated_oil_in (fluorinated_oil) at 10 uL/min, VENT outlet_1, all else capped. Co-flow the cell/core solution with warm shell polymer solution and focus with fluorinated oil with surfactant at a flow-focusing junction to form droplets of about 70 um.",
+      "protocol_step": 10
+    }
+  ]
+}

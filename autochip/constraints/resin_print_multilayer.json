@@ -1,0 +1,71 @@
+{
+  "id": "resin_print_multilayer",
+  "name": "Resin print, multilayer (SLA/DLP)",
+  "description": "Desktop SLA/DLP printer, channels printed closed, several fluidic layers joined by vias.",
+  "fabrication": {
+    "method": "resin_print",
+    "machine": "Formlabs Form 3B",
+    "material": "clear resin",
+    "sealing": "printed_closed",
+    "multilayer": {
+      "allowed": true,
+      "max_fluidic_layers": 3,
+      "vias_allowed": true
+    },
+    "channel_crossings_allowed": true,
+    "on_chip_valves": {
+      "allowed": false
+    },
+    "depth": {
+      "max_mm": 2.0,
+      "single_depth": false
+    },
+    "min_feature": {
+      "open_channel_width_mm": 0.2,
+      "enclosed_channel_width_mm": 0.5,
+      "wall_mm": 0.4,
+      "gap_mm": 0.1
+    }
+  },
+  "envelope": {
+    "printable_area_mm": {
+      "x": 145,
+      "y": 145,
+      "z": 185
+    },
+    "max_chip_mm": {
+      "x": 75,
+      "y": 50
+    },
+    "edge_margin_mm": 2
+  },
+  "ports": {
+    "max_per_chip": 12,
+    "min_diameter_mm": 0.8,
+    "min_pitch_mm": 4,
+    "connector": "press_fit_tubing",
+    "placement": "top"
+  },
+  "parts": {
+    "source": "library_and_parametric",
+    "allow_scaling": true
+  },
+  "off_chip": {
+    "equipment": [
+      "syringe_pump",
+      "heater",
+      "cold_plate",
+      "led_405nm",
+      "microscope",
+      "thermocycler",
+      "magnet",
+      "pipette"
+    ],
+    "pump_channels": 6,
+    "manual_steps_allowed": true
+  },
+  "objectives": {
+    "prefer": "fewest_chips"
+  },
+  "notes": []
+}

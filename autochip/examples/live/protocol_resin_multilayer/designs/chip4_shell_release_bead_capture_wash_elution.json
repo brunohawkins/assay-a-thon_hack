@@ -1,0 +1,75 @@
+{
+  "id": "chip4_shell_release_bead_capture_wash_elution",
+  "name": "Shell release, bead capture, ethanol wash and elution chip",
+  "description": "Digests the capsule shells to release cDNA, then binds the library to magnetic beads, washes them with ethanol on the magnet and elutes in water. Parametric parts: modules release_trap, beads_1 use the nearest library block as a stand-in (real part and sizing in autochip_part / params). build_chip.py builds the stand-ins at library size; the exact chip needs the autochip layout stage.",
+  "source": "autochip chip plan spc_capsule_workflow_resin_print_multilayer (protocol spc_capsule_workflow, constraints resin_print_multilayer)",
+  "placeholder": true,
+  "needs_autochip_layout": true,
+  "temp_c": null,
+  "equipment": [
+    "magnet",
+    "syringe_pump"
+  ],
+  "modules": [
+    {
+      "id": "release_trap",
+      "part": "culture_chamber",
+      "steps": [
+        22
+      ],
+      "does": "Holds the capsules while the shell-digesting enzyme dissolves the shells and releases the cDNA, which leaves through the main line.",
+      "inlets": [
+        "shell_digesting_enzyme"
+      ],
+      "outlets": [
+        "release_trap_waste"
+      ],
+      "mesh_pore_um": 25,
+      "autochip_part": "trap_chamber",
+      "params": {
+        "volume_ul": 50,
+        "depth_mm": 0.5,
+        "retention": "mesh",
+        "gap_um": 25
+      }
+    },
+    {
+      "id": "beads_1",
+      "part": "culture_chamber",
+      "steps": [
+        23,
+        24,
+        25
+      ],
+      "does": "Beads bind the library, are held over the magnet during ethanol washes, and the library is then eluted in water.",
+      "inlets": [
+        "magnetic_beads",
+        "ethanol_wash",
+        "elution_buffer"
+      ],
+      "outlets": [
+        "beads_1_waste"
+      ],
+      "autochip_part": "magnetic_chamber",
+      "params": {
+        "volume_ul": 50,
+        "depth_mm": 0.5
+      }
+    }
+  ],
+  "off_chip": [
+    {
+      "steps": [
+        26
+      ],
+      "why": "Library concentration and size measurement is done on the bench; the lab has no fluorometer in its list, so it is a manual step on the eluted sample."
+    }
+  ],
+  "missing_parts": [],
+  "steps_text": {
+    "22": "Release the cDNA by digesting the capsule shells with a shell-digesting enzyme.",
+    "23": "Bind the library to magnetic beads.",
+    "24": "Wash the beads with ethanol wash solution on a magnet.",
+    "25": "Elute the library from the beads in water."
+  }
+}

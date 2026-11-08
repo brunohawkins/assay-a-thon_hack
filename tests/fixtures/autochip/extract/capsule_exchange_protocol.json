@@ -1,0 +1,56 @@
+{
+  "id": "capsule_exchange_demo",
+  "name": "Capsule exchange demo",
+  "source": "Generic, placeholder values",
+  "placeholder": true,
+  "steps": [
+    {
+      "step": 1,
+      "operation": "load",
+      "target": "trap",
+      "reagent": "capsule_suspension",
+      "volume_ul": 50,
+      "duration_s": 60,
+      "temp_c": null,
+      "washes": null,
+      "flow_ul_min": 10,
+      "note": "Load the capsules into the trap"
+    },
+    {
+      "step": 2,
+      "operation": "exchange",
+      "target": "trap",
+      "reagent": "lysis_buffer",
+      "volume_ul": 20,
+      "duration_s": 600,
+      "temp_c": 22,
+      "washes": 1,
+      "flow_ul_min": 5,
+      "note": "Exchange into lysis buffer and incubate"
+    },
+    {
+      "step": 3,
+      "operation": "exchange",
+      "target": "trap",
+      "reagent": "wash_buffer",
+      "volume_ul": 20,
+      "duration_s": 120,
+      "temp_c": null,
+      "washes": 3,
+      "flow_ul_min": 5,
+      "note": "Wash the capsules"
+    },
+    {
+      "step": 4,
+      "operation": "release",
+      "target": "trap",
+      "reagent": "release_buffer",
+      "volume_ul": 20,
+      "duration_s": 900,
+      "temp_c": 37,
+      "washes": null,
+      "flow_ul_min": null,
+      "note": "Release the contents from the capsules"
+    }
+  ]
+}

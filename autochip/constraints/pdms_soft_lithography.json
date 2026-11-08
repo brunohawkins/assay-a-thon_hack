@@ -1,0 +1,75 @@
+{
+  "id": "pdms_soft_lithography",
+  "name": "PDMS soft lithography with membrane valves",
+  "description": "Classic two-layer PDMS (Quake-style): one flow layer plus one pneumatic control layer for the membrane valves, bonded to a glass slide. Flow channels can't cross each other (only control lines pass over flow lines), so flow routing is planar.",
+  "fabrication": {
+    "method": "soft_lithography_pdms",
+    "material": "PDMS on glass",
+    "sealing": "plasma_bond",
+    "multilayer": {
+      "allowed": false,
+      "max_fluidic_layers": 1,
+      "vias_allowed": false
+    },
+    "channel_crossings_allowed": false,
+    "on_chip_valves": {
+      "allowed": true,
+      "type": "pneumatic_membrane"
+    },
+    "depth": {
+      "max_mm": 0.1,
+      "single_depth": false,
+      "allowed_mm": [
+        0.025,
+        0.05,
+        0.1
+      ]
+    },
+    "min_feature": {
+      "open_channel_width_mm": 0.01,
+      "enclosed_channel_width_mm": 0.01,
+      "wall_mm": 0.02,
+      "gap_mm": 0.005,
+      "max_aspect_ratio": 5
+    },
+    "thermal_zoning_allowed": true
+  },
+  "envelope": {
+    "printable_area_mm": {
+      "x": 100,
+      "y": 100
+    },
+    "max_chip_mm": {
+      "x": 75,
+      "y": 25
+    },
+    "edge_margin_mm": 2
+  },
+  "ports": {
+    "max_per_chip": 16,
+    "min_diameter_mm": 0.5,
+    "min_pitch_mm": 2,
+    "connector": "press_fit_tubing",
+    "placement": "top"
+  },
+  "parts": {
+    "source": "parametric_only"
+  },
+  "off_chip": {
+    "equipment": [
+      "pressure_controller",
+      "syringe_pump",
+      "incubator_37c",
+      "microscope",
+      "thermocycler",
+      "peltier_stage",
+      "led_405nm",
+      "pipette"
+    ],
+    "manual_steps_allowed": true
+  },
+  "objectives": {
+    "prefer": "most_on_chip"
+  },
+  "notes": []
+}

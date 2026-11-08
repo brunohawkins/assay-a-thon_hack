@@ -1,0 +1,78 @@
+{
+  "kind": "protocol_ir",
+  "id": "fixture_ir",
+  "name": "Fixture protocol for the layout tests",
+  "source": {
+    "kind": "prompt"
+  },
+  "placeholder": true,
+  "materials": [
+    {
+      "id": "capsules",
+      "kind": "capsules",
+      "size_um": 70
+    }
+  ],
+  "steps": [
+    {
+      "n": 1,
+      "text": "Dissociate cells with enzyme.",
+      "action": "dissociate",
+      "input_material": "cells",
+      "output_material": "cells",
+      "flow_ul_min": 5
+    },
+    {
+      "n": 2,
+      "text": "Quench.",
+      "action": "quench",
+      "input_material": "cells",
+      "output_material": "cells"
+    },
+    {
+      "n": 3,
+      "text": "Mix for 30 s.",
+      "action": "mix",
+      "input_material": "cells",
+      "output_material": "cells",
+      "duration_s": 30,
+      "flow_ul_min": 5
+    },
+    {
+      "n": 4,
+      "text": "Strain clumps.",
+      "action": "filter",
+      "input_material": "cells",
+      "output_material": "cells"
+    },
+    {
+      "n": 5,
+      "text": "Fix.",
+      "action": "add_reagent",
+      "input_material": "cells",
+      "output_material": "cells",
+      "volume_ul": 15
+    },
+    {
+      "n": 6,
+      "text": "Permeabilise.",
+      "action": "add_reagent",
+      "input_material": "cells",
+      "output_material": "cells"
+    },
+    {
+      "n": 7,
+      "text": "Stain.",
+      "action": "add_reagent",
+      "input_material": "cells",
+      "output_material": "cells"
+    },
+    {
+      "n": 8,
+      "text": "Wash and image.",
+      "action": "wash_cells",
+      "input_material": "cells",
+      "output_material": "cells"
+    }
+  ]
+}

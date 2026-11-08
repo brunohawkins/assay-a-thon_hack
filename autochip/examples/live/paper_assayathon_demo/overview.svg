@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 688" width="1240" height="688" font-family="Helvetica, Arial, sans-serif" role="img" aria-label="Single-cell processing inside semi-permeable capsules: chip pipeline">
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="24" y="30" font-size="15" font-weight="700" fill="#111827">Single-cell processing inside semi-permeable capsules: chip pipeline</text>
+<path d="M274,76 L336,76" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<path d="M588,76 L650,76" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<path d="M902,76 L964,76" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<path d="M1091.0,156 L1091.0,335.0 L149.0,335.0 L149.0,368" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<text x="620" y="297" font-size="10" text-anchor="middle" fill="#6b7280">droplets</text>
+<text x="620" y="309" font-size="10" text-anchor="middle" fill="#6b7280">(off chip</text>
+<text x="620" y="321" font-size="10" text-anchor="middle" fill="#6b7280">step)</text>
+<path d="M274,392 L336,392" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<path d="M588,392 L650,392" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<text x="620" y="372" font-size="10" text-anchor="middle" fill="#6b7280">capsules</text>
+<text x="620" y="384" font-size="10" text-anchor="middle" fill="#6b7280">(tubing)</text>
+<path d="M902,392 L964,392" stroke="#6b7280" stroke-width="1.6" fill="none" marker-end="url(#arr)"/>
+<rect x="24" y="54" width="250" height="246" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="34" y="74" font-size="13" font-weight="700" fill="#111827">Bench (off chip)</text>
+<text x="34" y="100" font-size="11" fill="#6b7280" xml:space="preserve">1. Culture adherent cells in a vessel</text>
+<text x="34" y="116" font-size="11" fill="#6b7280" xml:space="preserve">until confluent.</text>
+<text x="34" y="132" font-size="11" fill="#6b7280" xml:space="preserve">2. Remove the medium and rinse the</text>
+<text x="34" y="148" font-size="11" fill="#6b7280" xml:space="preserve">cells once with buffer.</text>
+<text x="34" y="164" font-size="11" fill="#6b7280" xml:space="preserve">3. Add dissociation enzyme and</text>
+<text x="34" y="180" font-size="11" fill="#6b7280" xml:space="preserve">incubate to detach the cells.</text>
+<text x="34" y="196" font-size="11" fill="#6b7280" xml:space="preserve">4. Add quench medium and mix gently to</text>
+<text x="34" y="212" font-size="11" fill="#6b7280" xml:space="preserve">stop the enzyme.</text>
+<text x="34" y="228" font-size="11" fill="#6b7280" xml:space="preserve">5. Centrifuge the cells and remove the</text>
+<text x="34" y="244" font-size="11" fill="#6b7280" xml:space="preserve">supernatant.</text>
+<text x="34" y="260" font-size="11" fill="#6b7280" xml:space="preserve">6. Resuspend the pellet in wash buffer</text>
+<text x="34" y="276" font-size="11" fill="#6b7280" xml:space="preserve">and wash again (two washes in total).</text>
+<rect x="338" y="54" width="250" height="134" rx="6" fill="#fff8eb" stroke="#b7791f" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="348" y="74" font-size="13" font-weight="700" fill="#111827">Missing part</text>
+<text x="348" y="100" font-size="11" fill="#6b7280" xml:space="preserve">7. Pass the suspension through a cell</text>
+<text x="348" y="116" font-size="11" fill="#6b7280" xml:space="preserve">strainer. [need: pillar filter with</text>
+<text x="348" y="132" font-size="11" fill="#6b7280" xml:space="preserve">about 30 um gap (0.75 x the</text>
+<text x="348" y="148" font-size="11" fill="#6b7280" xml:space="preserve">encapsulation nozzle) for cells</text>
+<text x="348" y="164" font-size="11" fill="#6b7280" xml:space="preserve">upstream of the junction]</text>
+<rect x="652" y="54" width="250" height="118" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="662" y="74" font-size="13" font-weight="700" fill="#111827">Bench (off chip)</text>
+<text x="662" y="100" font-size="11" fill="#6b7280" xml:space="preserve">8. Count the cells and check</text>
+<text x="662" y="116" font-size="11" fill="#6b7280" xml:space="preserve">viability.</text>
+<text x="662" y="132" font-size="11" fill="#6b7280" xml:space="preserve">9. Resuspend the cells in core</text>
+<text x="662" y="148" font-size="11" fill="#6b7280" xml:space="preserve">solution at the loading density.</text>
+<rect x="966" y="54" width="250" height="102" rx="6" fill="#f6f7f9" stroke="#4b5563" stroke-width="1.4"/>
+<path d="M967,84 L1215,84" stroke="#4b5563" stroke-width="0.8"/>
+<text x="976" y="74" font-size="13" font-weight="700" fill="#111827">chip1_encapsulation</text>
+<text x="976" y="100" font-size="11" fill="#111827" xml:space="preserve">Encapsulation chip</text>
+<text x="976" y="116" font-size="11" fill="#111827" xml:space="preserve">droplets_1: steps 10</text>
+<text x="976" y="132" font-size="11" fill="#6b7280" xml:space="preserve">   droplet_junction</text>
+<rect x="24" y="370" width="250" height="86" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="34" y="390" font-size="13" font-weight="700" fill="#111827">Bench (off chip)</text>
+<text x="34" y="416" font-size="11" fill="#6b7280" xml:space="preserve">11. Collect the emulsion and keep it</text>
+<text x="34" y="432" font-size="11" fill="#6b7280" xml:space="preserve">on ice so the shell gels.</text>
+<rect x="338" y="370" width="250" height="150" rx="6" fill="#f6f7f9" stroke="#4b5563" stroke-width="1.4"/>
+<path d="M339,400 L587,400" stroke="#4b5563" stroke-width="0.8"/>
+<text x="348" y="390" font-size="13" font-weight="700" fill="#111827">chip2_emulsion_break_curing_wash_f</text>
+<text x="348" y="416" font-size="11" fill="#111827" xml:space="preserve">Emulsion break, curing, wash and</text>
+<text x="348" y="432" font-size="11" fill="#111827" xml:space="preserve">capsule filter chip</text>
+<text x="348" y="448" font-size="11" fill="#111827" xml:space="preserve">capsule_trap: steps 12, 13, 14</text>
+<text x="348" y="464" font-size="11" fill="#6b7280" xml:space="preserve">   trap_chamber</text>
+<text x="348" y="480" font-size="11" fill="#111827" xml:space="preserve">aggregate_filter: steps 15</text>
+<text x="348" y="496" font-size="11" fill="#6b7280" xml:space="preserve">   pillar_filter</text>
+<rect x="652" y="370" width="250" height="118" rx="6" fill="#f6f7f9" stroke="#4b5563" stroke-width="1.4"/>
+<path d="M653,400 L901,400" stroke="#4b5563" stroke-width="0.8"/>
+<text x="662" y="390" font-size="13" font-weight="700" fill="#111827">chip3_lysis_wash_rt</text>
+<text x="662" y="416" font-size="11" fill="#111827" xml:space="preserve">Lysis, wash and reverse transcription</text>
+<text x="662" y="432" font-size="11" fill="#111827" xml:space="preserve">chip</text>
+<text x="662" y="448" font-size="11" fill="#111827" xml:space="preserve">lysis_rt_trap: steps 16, 17, 18, 19</text>
+<text x="662" y="464" font-size="11" fill="#6b7280" xml:space="preserve">   trap_chamber</text>
+<rect x="966" y="370" width="250" height="294" rx="10" fill="#ffffff" stroke="#9ca3af" stroke-width="1.4" stroke-dasharray="5 4"/>
+<text x="976" y="390" font-size="13" font-weight="700" fill="#111827">Bench (off chip)</text>
+<text x="976" y="416" font-size="11" fill="#6b7280" xml:space="preserve">20. Split the capsules into four equal</text>
+<text x="976" y="432" font-size="11" fill="#6b7280" xml:space="preserve">portions.</text>
+<text x="976" y="448" font-size="11" fill="#6b7280" xml:space="preserve">21. Run index PCR on each portion with</text>
+<text x="976" y="464" font-size="11" fill="#6b7280" xml:space="preserve">a different index primer mix.</text>
+<text x="976" y="480" font-size="11" fill="#6b7280" xml:space="preserve">22. Release the cDNA by digesting the</text>
+<text x="976" y="496" font-size="11" fill="#6b7280" xml:space="preserve">capsule shells with shell-digesting</text>
+<text x="976" y="512" font-size="11" fill="#6b7280" xml:space="preserve">enzyme.</text>
+<text x="976" y="528" font-size="11" fill="#6b7280" xml:space="preserve">23. Bind the library to magnetic</text>
+<text x="976" y="544" font-size="11" fill="#6b7280" xml:space="preserve">beads.</text>
+<text x="976" y="560" font-size="11" fill="#6b7280" xml:space="preserve">24. Wash the beads with ethanol wash</text>
+<text x="976" y="576" font-size="11" fill="#6b7280" xml:space="preserve">solution on a magnet.</text>
+<text x="976" y="592" font-size="11" fill="#6b7280" xml:space="preserve">25. Elute the library from the beads</text>
+<text x="976" y="608" font-size="11" fill="#6b7280" xml:space="preserve">in water.</text>
+<text x="976" y="624" font-size="11" fill="#6b7280" xml:space="preserve">26. Measure library concentration and</text>
+<text x="976" y="640" font-size="11" fill="#6b7280" xml:space="preserve">fragment size.</text>
+</svg>

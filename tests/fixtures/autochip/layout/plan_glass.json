@@ -1,0 +1,75 @@
+{
+  "kind": "chip_plan",
+  "id": "glass_pcr",
+  "name": "Parametric parts in laser-etched glass",
+  "protocol_id": "fixture_ir",
+  "constraints_id": "glass_laser_3d_etch",
+  "chips": [
+    {
+      "id": "lysis_chip",
+      "name": "Lysis and clean-up",
+      "purpose": "Lyse capsules, mix in beads and hold them for clean-up.",
+      "steps": [
+        1,
+        2,
+        3
+      ],
+      "temp_c": 65,
+      "modules": [
+        {
+          "id": "lyse",
+          "part": "chamber",
+          "part_source": "parametric",
+          "params": {
+            "volume_ul": 5
+          },
+          "steps": [
+            1
+          ],
+          "inlets": [
+            "lysis_buffer"
+          ],
+          "does": "Lysis at 65 C.",
+          "holds": "lysate"
+        },
+        {
+          "id": "bead_mix",
+          "part": "merge",
+          "part_source": "parametric",
+          "steps": [
+            2
+          ],
+          "inlets": [
+            "beads"
+          ],
+          "does": "Adds beads to the lysate.",
+          "holds": "beads"
+        },
+        {
+          "id": "bind",
+          "part": "delay_line",
+          "part_source": "parametric",
+          "params": {
+            "residence_s": 120
+          },
+          "steps": [
+            3
+          ],
+          "outlets": [
+            "waste"
+          ],
+          "does": "Two minutes for the nucleic acid to bind the beads.",
+          "holds": "beads"
+        }
+      ]
+    }
+  ],
+  "handoffs": [],
+  "off_chip": [],
+  "missing_parts": [],
+  "coverage": {
+    "1": "lysis_chip.lyse",
+    "2": "lysis_chip.bead_mix",
+    "3": "lysis_chip.bind"
+  }
+}
