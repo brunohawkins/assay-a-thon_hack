@@ -27,6 +27,7 @@ export const SOURCES = {
   portHoleMm: 'contracts/blocks.json fabrication_floors.min_port_mm',
   envelopeX: 'contracts/blocks.json envelope.max_x_mm',
   envelopeY: 'contracts/blocks.json envelope.max_y_mm',
+  weirCrestUm: 'contracts/blocks.json retention.weir_geometry.crest_thickness_um',
   benchFlowUlMin: 'contracts/parameters.json dye_demo.bench_flow_ul_min',
 };
 
@@ -70,6 +71,9 @@ export async function loadContracts(root) {
     portHoleMm: number(blocks, ['fabrication_floors', 'min_port_mm'], 'contracts/blocks.json'),
     envelopeX: number(blocks, ['envelope', 'max_x_mm'], 'contracts/blocks.json'),
     envelopeY: number(blocks, ['envelope', 'max_y_mm'], 'contracts/blocks.json'),
+    // A weir's in-plane crest thickness when a chip does not give its own (operator/network.py
+    // _weir_crest_default_um reads the same entry).
+    weirCrestUm: number(blocks, ['retention', 'weir_geometry', 'crest_thickness_um'], 'contracts/blocks.json'),
   };
   const missing = [];
   for (const [name, { value, from }] of Object.entries(UNCONTRACTED)) {

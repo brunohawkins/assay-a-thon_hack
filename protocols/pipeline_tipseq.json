@@ -4,7 +4,7 @@
   "variant": "tipseq",
   "name": "TIP-seq (chromatin DNA): culture -> permeabilise + tagment (bench) -> capsules -> barcoding in oil -> release -> index PCR",
   "placeholder": true,
-  "description": "An alternative to the chosen assay, kept for comparison. TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + single-copy barcoding chip (read-only); its own encapsulator (stage A) is retired, so its capsules come from spc_demo_v1, the only encapsulation geometry that can be printed. Release (module5_v1) comes BEFORE index PCR (module4_v1), as TIP-seq does; module5_v1's design note says either order works. Only stage A of sctip_spc_v1 is retired (spc_demo_v1 replaces it); stages B and C are the barcoding in oil this variant runs, and the same stage CapSeq calls 4b (protocols/pipeline_status.md). Steps 17-19 of its protocol - the gap-fill and the overnight linear amplification - are the chromatin tail, so they DO run here and are skipped on the RNA path.",
+  "description": "An alternative to MJ's plan, kept for comparison. TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + single-copy barcoding chip (read-only); its own encapsulator (stage A) is retired, so its capsules come from spc_demo_v1, the only encapsulation geometry that can be printed. Release (module5_v1) comes BEFORE index PCR (module4_v1), as TIP-seq does; module5_v1's design note says either order works. Only stage A of sctip_spc_v1 is retired (spc_demo_v1 replaces it); stages B and C are the barcoding in oil this variant runs, and they are the same stage CapSeq calls 4b (protocols/pipeline_status.md). Steps 17-19 of its protocol - the gap-fill and the overnight linear amplification - are the chromatin tail, so they DO run here and are skipped on the RNA path.",
   "modules": [
     {
       "module": "module1",
@@ -19,7 +19,7 @@
         "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
         "source": "contracts/blocks.json (fabrication_floors)"
       },
-      "built_for_demo": false,
+      "built_for_demo": true,
       "note": "Rescaled from 140 x 75 mm. Its own dissociation (steps 175-178) duplicates cell_prep_v1 and is still in the protocol; the back-flush, pooling and release (179-182) are still the only way cells leave. The dye-demo doc (cad/module1_dye_demo.md) predates the rescale."
     },
     {
@@ -48,7 +48,7 @@
         "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
         "source": "contracts/blocks.json (fabrication_floors)"
       },
-      "built_for_demo": false,
+      "built_for_demo": true,
       "note": "Capsules for the barcoding chip: sctip_spc_v1's own encapsulator (stage A) is retired."
     },
     {
@@ -81,7 +81,7 @@
         "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
         "source": "protocols/module5_design.md, section 1"
       },
-      "built_for_demo": false,
+      "built_for_demo": true,
       "note": "Release first: in TIP-seq the DNA leaves the capsules before index PCR."
     },
     {
@@ -97,7 +97,7 @@
         "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
         "source": "protocols/module5_design.md, section 1"
       },
-      "built_for_demo": false,
+      "built_for_demo": true,
       "note": "Index PCR after release, as TIP-seq does."
     }
   ],
@@ -234,7 +234,8 @@
     {
       "id": "module6_bulk_omics",
       "name": "Module 6: bulk metabolome + proteome arm (branches off culture, before encapsulation)",
-      "note": "NOT a roadmap stub: chip/module6_v1.json and protocols/module6_v1.json both exist. It is filed here because the pipeline format expresses one chain and this is a branch. Metabolome AND proteome from ONE single-phase acidified polar-organic extraction of ADHERENT cells, in place on the chamber floor: fraction 1 (metabolome) out of the lane outlet, then the precipitated protein film resolubilised at ambient and collected as fraction 2 (proteome) out of the SAME outlet. Chlorinated and partition solvents are excluded; the chip is a cyclic-olefin copolymer, so coupon tests belong on that polymer and not on PMMA. REQUIRES A SUB-AMBIENT STAGE: -20 C soak for 5 min and a 4 C rinse and flood, one thermal zone over all three lanes, so no lane can be cold while another is alive and the protocol is ordered by phase. The rig has no sub-ambient source today; the degraded fallback is a 4 C soak, which is off the published method and makes the yield and the metabolome/proteome split unvalidated. Yield about 9,600 cells per lane, which supports untargeted coverage of roughly 100-160 metabolites if the extract stays at or below about 10 uL."
+      "note": "NOT a roadmap stub: chip/module6_v1.json and protocols/module6_v1.json both exist. It is filed here because the pipeline format expresses one chain and this is a branch. Metabolome AND proteome from ONE single-phase acidified polar-organic extraction of ADHERENT cells, in place on the chamber floor: fraction 1 (metabolome) out of the lane outlet, then the precipitated protein film resolubilised at ambient and collected as fraction 2 (proteome) out of the SAME outlet. Chlorinated and partition solvents are excluded; the chip is a cyclic-olefin copolymer, so coupon tests belong on that polymer and not on PMMA. REQUIRES A SUB-AMBIENT STAGE: -20 C soak for 5 min and a 4 C rinse and flood, one thermal zone over all three lanes, so no lane can be cold while another is alive and the protocol is ordered by phase. The rig has no sub-ambient source today; the degraded fallback is a 4 C soak, which is off the published method and makes the yield and the metabolome/proteome split unvalidated. Yield about 9,600 cells per lane, which supports untargeted coverage of roughly 100-160 metabolites if the extract stays at or below about 10 uL.",
+      "built_for_demo": true
     },
     {
       "id": "library_out",

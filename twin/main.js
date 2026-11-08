@@ -15,7 +15,7 @@ import { createLibraryView, LIB_CHIPS } from './library_modules.js';
 import { createPresenter } from './presenter.js';
 import { applyBlocks } from './blocks.js';
 import { createBench } from './bench.js';
-import { overviewHtml, chipCardHtml, homeStagesHtml } from './sidebar.js';
+import { overviewHtml, chipCardHtml, homeStagesHtml, printedChips } from './sidebar.js';
 
 const ROOT = '../'; // serve the repo root: python -m http.server, then open /twin/
 // twin/?present: the presenter view (twin/presenter.js), also what `python tools/demo.py` opens.
@@ -127,7 +127,7 @@ const lib = createLibraryView({ panel: document.getElementById('lib-panel') });
 const sideContext = document.getElementById('side-context');
 const bench = createBench({
   el: sideContext, m1, root: ROOT, getChip: () => chip,
-  nameOf: (id) => shortStage(statusData?.byChip.get(id)?.stage ?? id),
+  nameOf: (id) => `${shortStage(statusData?.byChip.get(id)?.stage ?? id)}${printedChips(pipelineData?.pipe).has(id) ? ' (printed)' : ''}`,
   order: () => (pipelineData?.entries ?? []).map((e) => e.spec?.id).filter(Boolean),
   onPick: (id, { open = false } = {}) => {
     if (!open) { showModule('bench', id); return; }
@@ -537,7 +537,7 @@ async function module3Run(entry) {
     t += dur;
   }
   events.push({ command: 'release', args: { target: 'main_trap', reagent: 'wash_buffer' }, t_s: t, duration_s: 60, protocol_step: events.length + 1,
-    narration: 'Hand-off: the resuspended capsules leave through to_split_tree for the single-cell barcoding stage (4b), then Module 4. The port keeps its name from the dropped split-and-pool design; there is no split tree.' });
+    narration: 'Hand-off: the resuspended capsules leave through to_split_tree, on to barcoding (stage 4b), where each capsule gets its own clonal barcode in its own oil droplet, and then to Module 4, which splits them into four sublibraries. RT in this trap added no barcode; stage 4b is what makes the data single-cell, and the lane barcode from Module 1 and Module 4\'s index are demultiplexing on top. The port keeps its name from the dropped split-and-pool design; there is no split tree.' });
   return { protocol_id: entry.protocol_id, protocol_name: entry.protocol_name, chip_id: entry.chip_id, chip_spec: entry.chip_spec,
     operator: 'planner', placeholder: true, synthetic: true, total_duration_s: t + 60, events };
 }
@@ -570,6 +570,7 @@ function renderChipCard() {
     spec: chipSpec, entry: k >= 0 ? entries[k] : null, md: statusData?.byChip.get(chipSpec.id) ?? null,
     stage: k >= 0 ? { k, n: entries.length, variant } : null, retired: Boolean(statusData?.retired.has(chipSpec.id)),
     plan: bench.planFor(chipSpec.id), cad: cadSummary,
+    printed: pipelineData?.pipe ? printedChips(pipelineData.pipe).has(chipSpec.id) : null,
   });
 }
 

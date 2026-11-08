@@ -437,7 +437,7 @@
         "CapSeq"
       ],
       "assumption": false,
-      "note": "Lysis, wash, hairpin ligation, protease, PCR mix, etc."
+      "note": "Lysis, wash, protease, PCR mix, etc."
     },
     "sublibraries.count": {
       "value": 4,

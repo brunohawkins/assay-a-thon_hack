@@ -6,13 +6,9 @@
 MJ maintains the chain of chips (which chip does which job, the ports, the build blocks). The two
 assays are derived from it:
 
-  protocols/pipeline_capseq.json  CapSeq, RNA: MJ's chain as it stands. His chain now carries a REAL
-      single-cell barcoding stage between the capsule trap (module3) and the sublibrary split
-      (module4) - one clonal barcode per capsule, generated in its own oil droplet (stage 4b in
-      protocols/pipeline_status.md) - so nothing is injected. Only if a base ever arrives WITHOUT a
-      barcoding stage does this fall back to the old split-and-pool + hairpin PLACEHOLDERS, which is
-      how the dropped plate-based scheme used to be represented.
-  protocols/pipeline_tipseq.json  TIP-seq, chromatin DNA: culture -> permeabilise + tagment (a bench
+  protocols/pipeline_capseq.json  CapSeq, RNA: MJ's chain as it is, copied unchanged. Nothing is
+      injected and nothing is removed.
+  protocols/pipeline_tipseq.json  TIP-seq, chromatin DNA, an ALTERNATIVE to MJ's plan: culture -> permeabilise + tagment (a bench
       PLACEHOLDER) -> encapsulation (spc_demo_v1) -> barcoding in oil (sctip_spc_v1) -> release
       (module5) -> index PCR (module4), release before PCR as TIP-seq does. Module entries are
       copied from MJ's chain; sctip_spc_v1 is used read-only.
@@ -20,12 +16,28 @@ assays are derived from it:
 When MJ edits protocols/pipeline_mvp.json directly, tools/validate.py reports that it no longer
 matches its variant: run this with --base protocols/pipeline_mvp.json, then choose_assay.py.
 Standard library + jsonschema.
+
+BARCODING, because this script has twice been the place the answer went wrong. There is NO
+split-and-pool and NO hairpin ligation, and this script will not put either back as a placeholder.
+But only PLATE-based split-and-pool was dropped (fcc6ef2); per-CELL barcoding was not. Each capsule
+is re-injected into its own oil droplet, where one random barcode from a pool of 16 bases (4^16,
+about 4.3e9) is clonally amplified IN THAT DROPLET and overlap-extended onto that capsule's cDNA
+(AmpliDrop, doi:10.1101/2024.08.13.607508, applied to semipermeable capsules). The emulsion is the
+containment, and one capsule holds one cell, so the data IS single-cell. That is stage 4b
+(protocols/sctip_spc_v1.json), and it sits between Module 3 (RT) and Module 4 (index PCR) because
+overlap extension needs a template already in the capsule. Hairpin ligation only ever closed the
+split-and-pool construct; overlap extension has no ligation step. The lane label from Module 1 and
+Module 4's four sublibrary indices are DEMULTIPLEXING metadata, not the resolution of the data.
+protocols/pipeline_status.md is the source of truth for all of this and says the same thing.
+So capseq() RAISES both ways: on a base that still carries the dropped placeholders, and on a base
+that has lost the real stage 4b.
 """
 
 from __future__ import annotations
 
 import argparse
 import copy
+import re
 import sys
 from pathlib import Path
 
@@ -37,109 +49,87 @@ import schema_io  # noqa: E402
 
 DRILL = "drilled_0_8mm_5mm_pitch"
 
+# The chips going on the print bed for the demo. Frozen list, set HERE and not by hand, so a
+# rebuild cannot quietly clear the flags. module6_v1 is reached as the roadmap branch
+# module6_bulk_omics rather than as a module of the chain, so its flag sits on that roadmap entry
+# (contracts/schemas/pipeline.schema.json allows built_for_demo there).
+PRINTED_FOR_DEMO = {"module1_v1", "spc_demo_v1", "module3_v1_translated", "module4_v1", "module5_v1", "module6_v1"}
+PRINTED_ROADMAP = {"module6_bulk_omics"}
+# Prefixes this script and tools/choose_assay.py put on a name. Stripped before a new one is added,
+# or a rebuild whose base is the previous output stacks them: "CapSeq (RNA): CapSeq (RNA): ...".
+NAME_PREFIX = re.compile(r"^(?:(?:MVP pipeline \(\w+\)|CapSeq \(RNA\)): )+")
+
 
 def unknown(a: str, b: str, why: str) -> dict:
     return {"from": a, "to": b, "status": "unknown", "warning": why}
 
 
-def core_name(name: str) -> str:
-    """The chain's own name, without the prefixes earlier rebuilds and choose_assay.py put on it
-    ("MVP pipeline (capseq): ", "CapSeq (RNA): "), so a rebuild never stacks them."""
-    while True:
-        head, sep, rest = name.partition(": ")
-        if sep and (head.startswith("MVP pipeline") or head in ("CapSeq (RNA)", "TIP-seq (chromatin DNA)")):
-            name = rest
-        else:
-            return name
+def flag_printed(pipeline: dict) -> dict:
+    """Set built_for_demo on every module and on a printed roadmap branch, from PRINTED_FOR_DEMO."""
+    for m in pipeline["modules"]:
+        m["built_for_demo"] = bool(m.get("chip")) and Path(m["chip"]).stem in PRINTED_FOR_DEMO
+    for r in pipeline.get("roadmap", []):
+        if r["id"] in PRINTED_ROADMAP:
+            r["built_for_demo"] = True
+    return pipeline
 
 
 def real_barcoding(base: dict) -> dict | None:
-    """MJ's chain's own barcoding stage, if it has one with a chip behind it."""
+    """The chain's own barcoding stage, if it is a real one: a 'barcoding' module with a chip."""
     for m in base["modules"]:
         if m["module"] == "barcoding" and m.get("status") not in (None, "missing") and m.get("chip"):
             return m
     return None
 
 
+class BarcodingStageError(ValueError):
+    """The base chain's barcoding is wrong: a dropped placeholder, or no real stage 4b at all."""
+
+
 def capseq(base: dict) -> dict:
-    if real_barcoding(base) is not None:
-        return capseq_as_is(base)
-    return capseq_with_placeholders(base)
+    """MJ's chain as it is, copied unchanged.
 
-
-def capseq_as_is(base: dict) -> dict:
-    """MJ's chain already barcodes per cell: copy it, add the variant fields, inject nothing."""
+    Refuses a base whose barcoding is wrong in either direction, because both have happened:
+    the dropped plate-based placeholders being regenerated, and the real stage 4b being lost.
+    """
+    placeholders = [m["module"] for m in base["modules"]
+                    if m["module"] == "hairpin" or (m["module"] == "barcoding" and not m.get("chip"))]
+    if placeholders:
+        raise BarcodingStageError(
+            f"this base still has the dropped split-and-pool placeholder stage(s) {', '.join(placeholders)}. Plate-based "
+            "split-and-pool barcoding and its hairpin ligation were dropped (fcc6ef2) and are NOT regenerated. What replaced "
+            "them is a real per-cell stage with a chip spec and a protocol: see the error below for what it is.")
+    if real_barcoding(base) is None:
+        raise BarcodingStageError(
+            "the base chain has no real barcoding stage (a module 'barcoding' with a chip). CapSeq needs stage 4b "
+            "(protocols/sctip_spc_v1.json) between module3 (RT) and module4 (index PCR): each capsule is re-injected into its "
+            "own oil droplet, where one 16-base random barcode (4^16, about 4.3e9) is clonally amplified and overlap-extended "
+            "onto that capsule's cDNA (AmpliDrop, doi:10.1101/2024.08.13.607508). THAT is what makes the data single-cell. "
+            "Only PLATE-based split-and-pool was dropped, and its hairpin ligation with it; they will not be regenerated as "
+            "placeholders. The lane label and the four sublibrary indices are demultiplexing, not resolution. Restore the "
+            "barcoding stage in the base chain (protocols/pipeline_status.md stage 4b, protocols/sctip_spc_design.md).")
     out = copy.deepcopy(base)
     out.pop("same_as", None)
-    out.update(id="pipeline_capseq", variant="capseq",
-               name="CapSeq (RNA): " + core_name(base["name"]))
+    out.update(id="pipeline_capseq", variant="capseq", name="CapSeq (RNA): " + NAME_PREFIX.sub("", base["name"]))
     bc = real_barcoding(out)
-    out["description"] = (base.get("description", "") + " CAPSEQ VARIANT: this is MJ's chain unchanged. The barcoding stage "
-        f"between the capsule trap and the sublibrary split is REAL ({bc.get('chip')}, {bc.get('protocol')}): one clonal "
-        "barcode per capsule, generated in that capsule's own oil droplet, so the data is single-cell and not lane-level. The "
-        "chemistry is ours; the droplet handling it needs is below the 200 um in-plane floor and runs on bought hardware, which "
-        "is why the stage has a design and a protocol but no printable chip of ours (protocols/pipeline_status.md, stage 4b). "
-        "The old plate-based split-and-pool rounds and their hairpin ligation stay dropped (fcc6ef2); they are NOT what makes "
-        "this assay single-cell.").strip()
-    return out
-
-
-def capseq_with_placeholders(base: dict) -> dict:
-    out = copy.deepcopy(base)
-    out.pop("same_as", None)
-    out.update(id="pipeline_capseq", variant="capseq",
-               name="CapSeq (RNA): " + core_name(base["name"]) + " (+ barcoding and hairpin placeholders)")
-    out["description"] = (base.get("description", "") + " CAPSEQ VARIANT: split-and-pool barcoding (BC2, BC3) and the hairpin "
-        "ligation with its pooled wash sit between the capsule trap and the sublibrary split as PLACEHOLDERS (no chip): MJ dropped "
-        "them in fcc6ef2, so the cells keep only their per-lane barcode and the data is lane-level; they come back only if the team "
-        "wants single-cell resolution (protocols/pipeline_status.md).").strip()
-    mods = [m for m in out["modules"] if m["module"] not in ("barcoding", "hairpin")]
-    i = next(k for k, m in enumerate(mods) if m["module"] == "module3")
-    mods[i + 1:i + 1] = [
-        {"module": "barcoding", "name": "Barcoding: split and pool (BC2, BC3)", "status": "missing",
-         "status_note": "placeholder · dropped by MJ for now", "owner": "TBC", "build": {"method": "TBC", "connector": "TBC"},
-         "built_for_demo": False,
-         "note": "Placeholder. MJ dropped split-and-pool barcoding (fcc6ef2): the cells keep only the per-lane barcode they get in "
-                 "Module 1, so the data is lane-level, not single-cell. This stage comes back only if the team decides single-cell "
-                 "resolution is needed (open question in protocols/pipeline_status.md)."},
-        {"module": "hairpin", "name": "Hairpin ligation + pooled wash", "status": "missing",
-         "status_note": "placeholder · dropped with the barcoding", "owner": "TBC", "build": {"method": "TBC", "connector": "TBC"},
-         "built_for_demo": False,
-         "note": "Placeholder: the hairpin ligation after the last barcode round and the wash of the pooled capsules. Dropped together "
-                 "with split-and-pool barcoding (fcc6ef2)."},
-    ]
-    out["modules"] = mods
-    nxt = mods[i + 3]["module"]  # what followed module3 in MJ's chain
-    hands = []
-    for h in out["handoffs"]:
-        if h["from"].get("module") in ("barcoding", "hairpin") or h["to"].get("module") in ("barcoding", "hairpin"):
-            continue  # an earlier placeholder chain
-        if h["from"].get("module") == "module3" and h["to"].get("module") == nxt:
-            to_end = {k: v for k, v in h["to"].items()}
-            hands.append({"id": "module3_to_barcoding", "carries": h["carries"], "from": copy.deepcopy(h["from"]),
-                          "to": {"module": "barcoding", "port": "TBC"},
-                          "connector": unknown(DRILL, "TBC", "Barcoding is a placeholder: no chip, so no port style yet."),
-                          "note": "Washed capsules (after RT in the trap) into the split tree."})
-            hands.append({"id": "barcoding_to_hairpin", "carries": "capsules", "from": {"module": "barcoding", "port": "TBC"},
-                          "to": {"module": "hairpin", "port": "TBC"}, "connector": unknown("TBC", "TBC", "Both are placeholders."),
-                          "note": "Pooled capsules after the last barcode round."})
-            hands.append({"id": f"hairpin_to_{nxt}", "carries": h["carries"], "from": {"module": "hairpin", "port": "TBC"},
-                          "to": to_end, "connector": unknown("TBC", DRILL, "The hairpin step is a placeholder; Module 4 takes 0.8 mm "
-                          "drilled ports. The rotary valve sits between them, so this is tubing either way."),
-                          "note": h.get("note", "")})
-            continue
-        hands.append(copy.deepcopy(h))
-    out["handoffs"] = hands
+    out["description"] = (base.get("description", "").split(" CAPSEQ VARIANT:", 1)[0]
+        + " CAPSEQ VARIANT: MJ's chain as it is, copied unchanged. Barcoding IS a stage of its own, between the capsule trap and "
+        f"the sublibrary split ({bc.get('chip')}, {bc.get('protocol')}): one clonal barcode per capsule, generated in that "
+        "capsule's own oil droplet and overlap-extended onto its cDNA, so the data is single-cell and not lane-level. The lane "
+        "barcode from Module 1 and Module 4's sublibrary index are demultiplexing metadata on top of it. The chemistry is ours; "
+        "the droplet handling it needs is below the 200 um in-plane floor and runs on bought hardware, which is why the stage "
+        "has a design and a protocol but no printable chip of ours. Plate-based split-and-pool and its hairpin ligation stay "
+        "dropped (fcc6ef2) and are not what makes this assay single-cell (protocols/pipeline_status.md).").strip()
     return out
 
 
 def m4_outlet(base: dict) -> dict:
     """Which port the indexed sublibraries leave Module 4 through.
 
-    Read from the chip, because it changed: Module 4 had no product outlet at all and the
-    indexed library was sealed in the chip, which this hand-off recorded as a flat TBC. The
-    chain's own module4 -> module5 hand-off now names the real one, so take it from there
-    rather than keeping a second, staler copy of the same fact here.
+    Read from the chain, because it changed: Module 4 had no product outlet at all and the indexed
+    library was sealed in the chip, which this hand-off recorded as a flat TBC. The chain's own
+    module4 -> module5 hand-off now names the real one, so take it from there rather than keeping a
+    second, staler copy of the same fact here.
     """
     for h in base.get("handoffs", []):
         if h["from"].get("module") == "module4" and h["from"].get("port"):
@@ -161,11 +151,11 @@ def tipseq(base: dict) -> dict:
         "kind": "pipeline", "id": "pipeline_tipseq", "variant": "tipseq",
         "name": "TIP-seq (chromatin DNA): culture -> permeabilise + tagment (bench) -> capsules -> barcoding in oil -> release -> index PCR",
         "placeholder": True,
-        "description": ("An alternative to the chosen assay, kept for comparison. TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + "
+        "description": ("An alternative to MJ's plan, kept for comparison. TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + "
             "single-copy barcoding chip (read-only); its own encapsulator (stage A) is retired, so its capsules come from spc_demo_v1, "
             "the only encapsulation geometry that can be printed. Release (module5_v1) comes BEFORE index PCR (module4_v1), as TIP-seq "
             "does; module5_v1's design note says either order works. Only stage A of sctip_spc_v1 is retired (spc_demo_v1 replaces it); "
-            "stages B and C are the barcoding in oil this variant runs, and the same stage CapSeq calls 4b "
+            "stages B and C are the barcoding in oil this variant runs, and they are the same stage CapSeq calls 4b "
             "(protocols/pipeline_status.md). Steps 17-19 of its protocol - the gap-fill and the overnight linear amplification - are the "
             "chromatin tail, so they DO run here and are skipped on the RNA path."),
         "modules": [
@@ -217,8 +207,13 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     import validate  # noqa: E402  (after sys.path is set)
     base = schema_io.load_json(args.base)
+    try:
+        variants = (flag_printed(capseq(base)), flag_printed(tipseq(base)))
+    except BarcodingStageError as e:
+        print(f"ERROR {args.base}: {e}", file=sys.stderr)
+        return 1
     bad = 0
-    for data in (capseq(base), tipseq(base)):
+    for data in variants:
         report = validate.Report()
         validate.check_pipeline(data["id"], data, report)
         for e in report.errors:

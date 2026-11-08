@@ -376,14 +376,18 @@ export function createUI(actions) {
       const drawn = (r.loaded?.length ?? 0) + (r.blocks?.length ?? 0);
       el.cad.hidden = false;
       el.cad.title = detail;
-      const quiet = !eng();   // the clean view says it in the chip card instead of a toast
+      // A clean load is an engineering detail and stays behind the Engineering switch; a problem
+      // is not, so the badge drops `eng-only` and shows in every view (MJ). Toasts stay in
+      // engineering: the clean view also says it in the chip card.
+      const quiet = !eng();
       if (bad.length) {
         el.cad.textContent = r.mismatched?.length ? `CAD problem: ${r.mismatched.length} part(s) at the wrong coordinates` : 'CAD: none for this chip';
-        el.cad.className = 'badge eng-only warn';
+        el.cad.className = 'badge warn';
         if (!quiet) this.toast(bad[0]);
       } else if (!drawn) {
         el.cad.textContent = 'CAD: none, boxes from the spec';
-        el.cad.className = 'badge eng-only sim-only';
+        el.cad.className = 'badge warn';
+        if (!quiet) this.toast(`No part of ${r.chipId} is drawn from CAD: every shape on screen is a box from the spec.`);
       } else {
         el.cad.textContent = `CAD: ${drawn}/${total} parts`;
         el.cad.className = `badge eng-only ${drawn === total ? 'printed' : 'sim-only'}`;
@@ -415,7 +419,7 @@ export function createUI(actions) {
       if (stale) {
         el.cad.hidden = false;
         el.cad.textContent = 'Display model stale';
-        el.cad.className = 'badge eng-only warn';
+        el.cad.className = 'badge warn';
         el.cad.title = btn.title;
         if (eng()) this.toast(`Display model for ${chipId} was built for a ${fx} × ${fy} mm chip, not today's ${spec.footprint.x} × ${spec.footprint.y} mm.`);
       }

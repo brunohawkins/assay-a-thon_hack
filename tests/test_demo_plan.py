@@ -290,11 +290,30 @@ class Document(unittest.TestCase):
     def test_the_readme_links_the_demo_doc(self):
         self.assertIn("docs/demo.md", (ROOT / "README.md").read_text())
 
-    def test_nothing_recommends_flipping_built_for_demo(self):
-        """Only the owner knows what is on the print bed."""
-        pipeline = json.loads((ROOT / "protocols" / "pipeline_mvp.json").read_text())
-        self.assertTrue(all(m["built_for_demo"] is False for m in pipeline["modules"]))
-        self.assertIn("built_for_demo", (ROOT / "docs" / "demo.md").read_text())
+    def test_built_for_demo_matches_the_confirmed_printed_list(self):
+        """Six chips are printed (confirmed by the project lead). The list lives ONCE, in
+        tools/build_assay_variants.py PRINTED_FOR_DEMO, which sets the flags; every pipeline
+        file must agree with it, and docs/demo.md must state it rather than recommend."""
+        import build_assay_variants as bav
+        printed = set(bav.PRINTED_FOR_DEMO)
+        self.assertEqual(len(printed), 6)
+        self.assertEqual(dp.printed_chips(), sorted(printed))
+        for path in sorted((ROOT / "protocols").glob("pipeline*.json")):
+            pipeline = json.loads(path.read_text())
+            for m in pipeline["modules"]:
+                with self.subTest(pipeline=path.name, module=m.get("module")):
+                    expect = bool(m.get("chip")) and Path(m["chip"]).stem in printed
+                    self.assertIs(m["built_for_demo"], expect)
+            for r in pipeline.get("roadmap", []):
+                if r["id"] in bav.PRINTED_ROADMAP:
+                    self.assertIs(r.get("built_for_demo"), True, msg=f"{path.name} {r['id']}")
+        doc = (ROOT / "docs" / "demo.md").read_text()
+        self.assertIn("## The printed chips", doc)
+        self.assertNotIn("Which chips to print", doc)
+        section = doc.split("## The printed chips", 1)[1]
+        for cid in printed:
+            self.assertIn(f"| `{cid}` |", section, msg=f"{cid} has no procedure row")
+        self.assertIn("built_for_demo", doc)
 
 
 class Determinism(unittest.TestCase):

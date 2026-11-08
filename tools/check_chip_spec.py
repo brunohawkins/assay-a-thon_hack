@@ -43,7 +43,12 @@ Errors (exit code 1):
     or by a quarter of the hole's own area when the hole is smaller than 2 x 2 mm (a 0.8 mm
     bore holds 0.64 mm2 in all, so 1 mm2 can't be met; a quarter is what 1 mm2 is of the
     2 mm holes the rule was written for). The cut area is the chip's exported DXF
-    (cad/exports/<chip>/<chip>.dxf, CHANNELS and CHAMBERS) when there is one, else the spec.
+    (cad/exports/<chip>/<chip>.dxf, CHANNELS, CHAMBERS and PADS) when there is one, else the
+    spec. A channel clipped at the bore's own edge opens 0 mm2 to it, so a port either sits
+    over a chamber or declares a `pad` (chip schema) that the bore opens onto.
+  - port pad: a declared pad must cover its bore, be wider than the channels that end on it,
+    have at least one, and clear every feature it is not connected to (chambers, other ports,
+    other channels) by fabrication_floors.min_wall_mm
 Warnings (do not fail CI, so only judgement calls live here):
   - fabricated feature smaller than the fabrication minimum in cad/fabrication.json
     (fabrication limits never block the design; while they're TODO, one summary warning).
@@ -387,6 +392,7 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
     if blocks:
         check_blocks(chip, blocks, f)
     check_port_overlap(chip, f, blocks)
+    check_port_pads(chip, f, blocks)
     return f
 
 
@@ -399,18 +405,27 @@ def _dxf_outlines(chip_id: str) -> tuple[list[list[tuple[float, float]]], str] |
         if not path.is_file():
             continue
         tokens = path.read_text(errors="replace").split("\n")
-        starts, cur, layer = [], None, None
+        starts, pad_lines, cur, layer = [], [], None, None
         for code, val in zip(tokens[0::2], tokens[1::2]):
             code, val = code.strip(), val.strip()
             if code == "0":
                 if cur is not None and layer in ("CHANNELS", "CHAMBERS") and "10" in cur and "20" in cur:
                     starts.append((cur["10"], cur["20"]))
+                elif cur is not None and layer == "PADS" and all(k in cur for k in ("10", "20", "11", "21")):
+                    pad_lines.append(((cur["10"], cur["20"]), (cur["11"], cur["21"])))
                 cur, layer = ({} if val == "LINE" else None), None
             elif cur is not None and code == "8":
                 layer = val
-            elif cur is not None and code in ("10", "20"):
+            elif cur is not None and code in ("10", "20", "11", "21"):
                 cur[code] = float(val)
         polys = [starts[i:i + 4] for i in range(0, len(starts) - 3, 4)]
+        # Port pads (layer PADS): each is one closed loop of LINEs, any number of sides.
+        loop: list = []
+        for a, b in pad_lines:
+            loop.append(a)
+            if math.dist(b, loop[0]) < 1e-6:
+                polys.append(loop)
+                loop = []
         return polys, path.relative_to(ROOT).as_posix()
     return None, None
 
@@ -429,6 +444,8 @@ def _spec_outlines(chip: dict) -> list[list[tuple[float, float]]]:
             n = math.hypot(dx, dy) or 1.0
             px, py = -dy / n * ch["width_mm"] / 2, dx / n * ch["width_mm"] / 2
             polys.append([(a[0] + px, a[1] + py), (b[0] + px, b[1] + py), (b[0] - px, b[1] - py), (a[0] - px, a[1] - py)])
+    if figures is not None:
+        polys += [pad for p in chip.get("ports", []) if (pad := figures.pad_polygon(p))]
     return polys
 
 
@@ -480,6 +497,75 @@ def check_port_overlap(chip: dict, f: "Findings", blocks: dict | None = None) ->
             f.error(msg + ": run the channel across the hole or add a port pad under it")
         else:
             f.ok.append(msg)
+
+
+def check_port_pads(chip: dict, f: "Findings", blocks: dict | None = None) -> None:
+    """Every port pad (the optional `pad` in the chip schema) must:
+      - cover the bore: the bore's square (width_um, else min_port_mm) inside the pad, so the
+        hole opens onto the pad and nowhere else;
+      - be wider than each channel that runs into it, or the channel cannot end on it;
+      - clear every feature it is NOT connected to - every chamber, every other port's pad
+        or bore, every channel that does not end at this port - by min_wall_mm, the thinnest
+        wall the process can stand up. A pad is cut in the fluidic layer, so touching any of
+        those is a short circuit, and coming closer than min_wall_mm is a wall we cannot make.
+    Geometry from cad/make_train_cad.py (the same polygons and centrelines it cuts)."""
+    if figures is None:
+        return
+    mtc = figures.make_train_cad
+    if blocks is None:
+        try:
+            blocks = json.loads((ROOT / "contracts" / "blocks.json").read_text())
+        except (OSError, ValueError):
+            blocks = {}
+    floors = blocks.get("fabrication_floors") or {}
+    wall = floors.get("min_wall_mm")
+    floor = floors.get("min_port_mm", 2.0)
+    ports = chip.get("ports", [])
+    try:
+        runs = mtc.centrelines(chip)
+    except Exception:
+        runs = []
+    for p in ports:
+        pad = mtc.pad_polygon(p)
+        if not pad:
+            continue
+        x, y = p["position"][0], p["position"][1]
+        side = (p.get("width_um") or floor * 1000) / 1000
+        bore = mtc.rect_polygon(x, y, side, side)
+        if not all(mtc.inside_convex(c, pad, 1e-9) for c in bore):
+            f.error(f"port pad: '{p['id']}' {p['pad'].get('shape')} pad of {p['pad']['size_mm']:g} mm does not "
+                    f"cover its {side:g} mm bore: part of the hole would land on solid plastic")
+        apothem = min(abs((b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0])) / math.dist(a, b)
+                      for a, b in mtc.polygon_lines(pad))
+        mine = [(ch, pts) for ch, pts in runs if p["id"] in (ch["from"], ch["to"])]
+        for ch, _ in mine:
+            if ch["width_mm"] / 2 >= apothem - 1e-9:
+                f.error(f"port pad: channel '{ch['id']}' is {ch['width_mm']:g} mm wide, as wide as the "
+                        f"'{p['id']}' pad ({2 * apothem:g} mm across): it cannot end on the pad")
+        if not mine:
+            f.error(f"port pad: '{p['id']}' has a pad but no channel runs into it")
+        others = [(f"chamber '{c['id']}'", mtc.rect_polygon(c["center"][0], c["center"][1], c["size"][0], c["size"][1]))
+                  for c in chip.get("chambers", [])]
+        others += [(f"port '{q['id']}'", mtc.pad_polygon(q) or mtc.rect_polygon(
+                        q["position"][0], q["position"][1],
+                        (q.get("width_um") or floor * 1000) / 1000, (q.get("width_um") or floor * 1000) / 1000))
+                   for q in ports if q is not p]
+        others += [(f"channel '{ch['id']}'", r) for ch, pts in runs if p["id"] not in (ch["from"], ch["to"])
+                   for r in mtc.segment_rects(pts, ch["width_mm"])]
+        worst: dict[str, float] = {}
+        for label, poly in others:
+            worst[label] = min(worst.get(label, math.inf), mtc.polygon_distance(pad, poly))
+        for label, gap in worst.items():
+            if gap <= 1e-9:
+                f.error(f"port pad: '{p['id']}' pad touches {label}, which it is not connected to: a short "
+                        f"circuit in the one fluidic layer")
+            elif _num(wall) and gap < wall - 1e-9:
+                f.error(f"port pad: '{p['id']}' pad is {gap:.2f} mm from {label}, under the {wall:g} mm "
+                        f"minimum wall")
+        if not any(e.startswith(f"port pad: '{p['id']}'") for e in f.errors):
+            nearest = min(worst.items(), key=lambda kv: kv[1]) if worst else None
+            f.ok.append(f"port pad: '{p['id']}' covers its {side:g} mm bore"
+                        + (f", nearest unconnected feature {nearest[0]} at {nearest[1]:.2f} mm" if nearest else ""))
 
 
 def _num(v) -> bool:
@@ -641,11 +727,12 @@ def channel_segments(chip: dict) -> dict[str, list]:
     if figures is None:
         return out
     try:
-        drawn = figures.segments_of(chip)
+        drawn = figures.runs_of(chip)
     except Exception:       # a spec too incomplete to draw (e.g. no layers): paths only
         return out
-    for ch, p0, p1, _groove in drawn:
-        out.setdefault(ch["id"], [(tuple(p0), tuple(p1))])
+    # The cut centreline, path or not: the same one the DXF, the drawing and the network use.
+    for ch, pts, _groove in drawn:
+        out[ch["id"]] = [(tuple(a), tuple(b)) for a, b in zip(pts, pts[1:])]
     return out
 
 

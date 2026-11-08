@@ -154,10 +154,34 @@ export function channelGeometry(chip, dxfRects = null) {
 
 // ------------------------------------------------------------------ physics
 
+// f in R = 12 mu L / (w h^3 f), w the longer and h the shorter side: the exact series for a
+// rectangular duct, as operator/flow_calc.py duct_shape_factor (MJ: the old 1 - 0.63 h/w was 14%
+// high on a square duct). 50 odd terms converge far past double precision.
+export function ductShapeFactor(widthMm, depthMm, terms = 50) {
+  const w = Math.max(widthMm, depthMm);
+  const h = Math.min(widthMm, depthMm);
+  let total = 0;
+  for (let n = 1; n < 2 * terms; n += 2) total += Math.tanh((n * Math.PI * w) / (2 * h)) / n ** 5;
+  return 1 - ((192 * h) / (Math.PI ** 5 * w)) * total;
+}
+
 export function rectResistance(lengthMm, widthMm, depthMm, mu = mu37c()) {
   const w = Math.max(widthMm, depthMm) / 1000;
   const h = Math.min(widthMm, depthMm) / 1000;
-  return (12 * mu * (lengthMm / 1000)) / (w * h ** 3 * (1 - (0.63 * h) / w));
+  return (12 * mu * (lengthMm / 1000)) / (w * h ** 3 * ductShapeFactor(widthMm, depthMm));
+}
+
+// A weir crest: a slit gap_um high, as wide as the chamber wall it spans, crest_um long along the
+// flow. R = 12 mu L / (W g^3), operator/flow_calc.py slit_resistance_pa_s_m3. Flow goes as gap^3.
+export function slitResistance(widthMm, gapUm, crestUm, mu = mu37c()) {
+  return (12 * mu * (crestUm / 1e6)) / ((widthMm / 1000) * (gapUm / 1e6) ** 3);
+}
+
+// (gap_um, crest_um) of a chamber's retention weir, or null: operator/network.py weir_crest().
+export function weirCrest(chamber) {
+  const ret = chamber?.retention ?? {};
+  if (ret.type !== 'weir' || !ret.opening_um) return null;
+  return [Number(ret.opening_um), Number(ret.crest_thickness_um || contracts().weirCrestUm)];
 }
 
 export function shear(flowUlMin, widthMm, depthMm, mu = mu37c()) {
@@ -187,14 +211,26 @@ export class Network {
     this.chambers = Object.fromEntries(chip.chambers.map((c) => [c.id, c]));
     this.nodes = [...chip.chambers.map((c) => c.id), ...(chip.ports ?? []).map((p) => p.id)];
     this.culture = chip.chambers.filter((c) => !['pool', 'junction', 'split', 'inlet', 'outlet'].includes(c.type)).map((c) => c.id);
+    // Each channel, the slab of chamber it crosses to the centre, and (MJ, operator/network.py)
+    // a weir crest wherever it enters a chamber with a retention weir: leaving the crests out made
+    // module1_v1's pressures 57% low and split interaction medium 50/50 where the CFD gives 72/28.
     this.edges = chip.channels.map((ch) => {
       const g = this.geometry[ch.id];
       let R = rectResistance(g.length_mm, g.width_mm, g.depth_mm, mu);
+      const crests = [];
       for (const [end, pt] of [[ch.from, g.a], [ch.to, g.b]]) {
         const c = this.chambers[end];
-        if (c) { const [leg, w] = chamberLeg(c, pt); R += rectResistance(leg, w, c.size[2], mu); }
+        if (!c) continue;
+        const [leg, w] = chamberLeg(c, pt);
+        R += rectResistance(leg, w, c.size[2], mu);
+        const weir = weirCrest(c);
+        if (weir) {
+          const r = slitResistance(w, weir[0], weir[1], mu);
+          R += r;
+          crests.push({ chamber: end, width_mm: w, gap_um: weir[0], length_um: weir[1], R: r });
+        }
       }
-      return { id: ch.id, from: ch.from, to: ch.to, R, ...g };
+      return { id: ch.id, from: ch.from, to: ch.to, R, weir_crests: crests, ...g };
     });
   }
 

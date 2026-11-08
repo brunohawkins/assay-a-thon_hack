@@ -152,10 +152,12 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     // attaching, so they are already in place here). The chamber STLs are drawn over the
     // liquid, so keep them nearly clear and unlit: that is what makes the dye colours read true.
     // Module 1's chambers are Flowmatter blocks (twin/blocks.js), so dim those as well as any STL.
+    // No loadStls() here: main.js loaded this chip's own CAD folder before attaching (MJ).
     for (const ch of c.spec.chambers) {
       const part = c.parts.get(ch.id);
       for (const m of [part?.block?.mesh, part?.stl]) if (m) { m.material.opacity = 0.05; m.material.emissiveIntensity = 0; }
     }
+    for (const pid of PORTS) { const part = c.parts.get(pid); if (part) part.portState = null; } // colour the port STLs on the next draw
     buildOverlays();
     attached = true;
     panel.hidden = false;

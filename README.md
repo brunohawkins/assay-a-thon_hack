@@ -108,7 +108,12 @@ The twin's header has four views and two switches:
   `spc_demo_v1`) -> Module 3 (load, lysis, wash, RT) -> **single-cell barcoding** (stage 4b: a real
   stage, our chemistry on bought droplet hardware, so its chip spec is a demo layout, not a part
   of ours) -> Module 4 (sublibrary split + index PCR) -> Module 5 (release + cleanup) -> SPRI and
-  QC (off-chip) -> library out, with Module 6 (bulk omics) as a branch off culture. Play follows
+  QC (off-chip) -> library out, with Module 6 (bulk omics) as a branch off culture. Barcoding is
+  a real stage, and the one that makes this a single-cell assay, but it is **our chemistry on
+  bought hardware**: its droplet features are below the 200 µm in-plane floor, so it has a chip
+  spec and a protocol and no printable chip of ours, and both the scene and the sidebar label it
+  that way (MJ; see `AGENTS.md`). Chips printed for the demo (`built_for_demo`) are marked as
+  such; their geometry is frozen. Play follows
   the sample port to port (cells, then capsules, then library). The sidebar lists every stage with
   its status from `protocols/pipeline_status.md` ("Designed" means a spec and a protocol exist,
   not that anything was printed or run), the off-chip steps and branches, and a switch between

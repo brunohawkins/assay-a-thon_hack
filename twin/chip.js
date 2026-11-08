@@ -31,6 +31,10 @@ const ROLE_COLORS = {
 const FEATURE_COLORS = { gas_window: 0x218bff, heat_zone: 0xe16f24, cold_zone: 0x0969da, curing_window: 0x8250df, optical_window: 0xbf3989 };
 
 // Draw order for see-through parts (lower draws first).
+// No VALVE_COLORS: on-chip valves were removed from the design (they need a second layer, and
+// tools/check_chip_spec.py errors on one), so nothing draws a valve; a spec that still declares
+// valves is listed in this.undrawn and said out loud rather than drawn (MJ).
+
 // A channel at rest (twin/player.js puts it back to this after a pulse).
 export const CHANNEL = { color: 0x6fa8dc, emissive: 0x0969da, emissiveIntensity: 0.12, opacity: 0.6 };
 export const ORDER = { capsule: 2, fluid: 3, channel: 4, chamber: 5, glow: 6, layer: 10, edges: 11 };

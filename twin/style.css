@@ -175,6 +175,7 @@ select, input[type="number"], input[type="text"] {
 .badge.sim-real { color: var(--ok); background: var(--ok-soft); border-color: #8ddb8c; }
 .badge.sim-real::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
 .badge.sim-unknown { color: var(--text-2); border-style: dashed; }
+.badge.sim-unknown::before { content: ""; width: 6px; height: 6px; border-radius: 50%; border: 1.5px dashed var(--text-3); }
 .badge.warn { color: var(--warn); border-color: #eac54f; }
 .badge[data-kind="llm"] { color: var(--accent-text); border-color: #80ccff; }
 .badge.printed, .badge.st-final { color: var(--ok); border-color: #8ddb8c; }
@@ -903,7 +904,8 @@ body:not(.eng) .control { display: none !important; }
   .controls { right: 0; gap: 10px; padding: 0 12px; }
   .side-section { padding: 12px 16px; }
   #details { display: none; }
-  .header-tools .badges .badge:not(.sim), #present-link { display: none; }
+  /* Narrow screens drop the badges, except the hardware one in whichever of its three states (MJ). */
+  .header-tools .badges .badge:not(.sim):not(.sim-real):not(.sim-unknown), #present-link { display: none; }
   .control, .m1-panel { display: none !important; }
   .scalebar { bottom: auto; top: calc(var(--panels-top) + 4px); left: 16px; }
   .tabs > button[aria-pressed="true"]::after, .nav-menu.current .nav-trigger::after { display: none; }

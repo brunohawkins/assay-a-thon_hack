@@ -47,7 +47,20 @@ export function stageSummary(e, spec) {
   return calm([head, extra].filter(Boolean).join(' '));
 }
 
+// The chips printed for the demo: built_for_demo on a pipeline module, or on a roadmap entry
+// (the Module 6 branch), whose chip is named in its note. These are frozen (AGENTS.md).
+export function printedChips(pipe) {
+  const out = new Set();
+  for (const m of pipe?.modules ?? []) if (m.built_for_demo && m.chip) out.add(m.chip.split('/').pop().replace(/\.json$/, ''));
+  for (const r of pipe?.roadmap ?? []) {
+    const id = r.built_for_demo ? /chip\/([\w-]+)\.json/.exec(r.note ?? '')?.[1] : null;
+    if (id) out.add(id);
+  }
+  return out;
+}
+
 export function overviewHtml({ variants, current, chosen, slots, pipe, status, plans = null }) {
+  const printed = printedChips(pipe);
   const items = [];
   const branched = branches(pipe);
   slots.forEach((s, k) => {
@@ -61,7 +74,8 @@ export function overviewHtml({ variants, current, chosen, slots, pipe, status, p
       const st = status?.byChip.get(s.chip.spec.id);
       const open = e.view ? ` data-open="${esc(e.view)}" data-file="${esc(e.file ?? '')}" tabindex="0" role="button"` : '';
       const v = statusView(st?.badge ?? e.status, st?.detail ?? '');
-      const tags = [notPrintable(e) ? 'bought hardware · our chemistry' : '', plans?.has(s.chip.spec.id) ? 'dye demo' : ''].filter(Boolean);
+      const tags = [notPrintable(e) ? 'bought hardware · our chemistry' : '', printed.has(s.chip.spec.id) ? 'printed for the demo' : '',
+        plans?.has(s.chip.spec.id) ? 'dye demo' : ''].filter(Boolean);
       const detail = v.text !== v.word ? v.text.slice(v.word.length + 3) : '';
       items.push(`<li data-slot="${k}"${open} title="${esc(st?.stage ?? e.name)}"><span class="n">${k + 1}</span><span class="name">${esc(shortStage(st?.stage ?? e.name))}</span>
         ${statusHtml(st?.badge ?? e.status)}<span class="sub">${detail ? `${esc(detail)}<br>` : ''}<code>${esc(s.chip.spec.id)}</code>${tags.map((t) => ` · ${esc(t)}`).join('')}</span></li>`);
@@ -70,7 +84,7 @@ export function overviewHtml({ variants, current, chosen, slots, pipe, status, p
         ${statusHtml(e.status === 'bench' ? 'BENCH' : 'NEXT')}<span class="sub">${esc(firstSentence(e.status_note ?? e.note ?? ''))}</span></li>`);
     }
     for (const b of branched.filter((x) => x.from === e.module)) {
-      items.push(`<li class="offchip branch"><span class="n">⑂</span><span class="name">Branch: ${esc(tidy(b.name))}</span></li>`);
+      items.push(`<li class="offchip branch"><span class="n">⑂</span><span class="name">Branch: ${esc(tidy(b.name))}${b.built_for_demo ? ' · printed for the demo' : ''}</span></li>`);
     }
     for (const o of offChipAfter(slots, k, status)) {
       const hole = /HOLE/i.test(o.status) ? ' (no protocol yet)' : '';
@@ -104,7 +118,7 @@ export function homeStagesHtml({ slots, status }) {
 }
 
 // One chip: its stage name, status, what it does (from the pipeline file), and its dye demo.
-export function chipCardHtml({ spec, entry = null, md = null, stage = null, retired = false, plan = null, cad = null }) {
+export function chipCardHtml({ spec, entry = null, md = null, stage = null, retired = false, plan = null, cad = null, printed = null }) {
   const m = spec.module;
   const title = md?.stage ?? entry?.name ?? spec.name ?? spec.id;
   const badge = retired ? 'RETIRED' : md?.badge ?? entry?.status ?? (m?.status === 'superseded' ? 'SUPERSEDED' : m?.status === 'draft' ? 'DRAFT' : null);
@@ -116,6 +130,7 @@ export function chipCardHtml({ spec, entry = null, md = null, stage = null, reti
   rows.push(['Size', `${spec.footprint.x} × ${spec.footprint.y} mm`]);
   rows.push(['Parts', `${n(spec.chambers)} chambers · ${n(spec.ports)} ports`]);
   if (entry && notPrintable(entry)) rows.push(['Hardware', 'Bought kit, our chemistry: the chip spec is a demo layout']);
+  if (printed !== null) rows.push(['Printed', printed ? 'Yes, for the demo; its geometry is frozen' : 'No, twin only']);
   rows.push(['Dye demo', plan ? `Feed <code>${esc(plan.feed)}</code>, vent <code>${esc(plan.vent)}</code>, ${plan.flow_ul_min} µL/min` : 'None for this chip']);
   if (cad) rows.push(['CAD', esc(cad)]);
   const superseded = m?.status === 'superseded' || retired

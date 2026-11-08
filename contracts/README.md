@@ -346,12 +346,18 @@ which outlet feeds which inlet; `ports` lists several inlets at once (Module 4's
 hand-off between two modules carries a `connector` block (`match`, `mismatch`, or `unknown`
 when either side is TBC, with a `warning`: where the demo needs an adapter).
 
-**Two assays.** `pipeline_capseq.json` is the chosen one: CapSeq, RNA, MJ's chain as it is,
-including its single-cell barcoding stage between the capsule trap and the sublibrary split (stage
-4b: one clonal barcode per capsule, made in its own oil droplet, on bought droplet hardware).
-`pipeline_tipseq.json` is an alternative kept for comparison (TIP-seq, chromatin DNA: a bench
-permeabilise + tagment placeholder, barcoding in oil on `sctip_spc_v1`, release before index PCR).
-Both are built from MJ's chain by `tools/build_assay_variants.py --base <MJ's pipeline file>`.
+**Two assays.** `pipeline_capseq.json` is the plan: CapSeq, RNA, MJ's chain as it is — culture,
+cell prep, encapsulation, lysis and RT in Module 3's trap, **per-cell barcoding in oil** (stage 4b,
+`sctip_spc_v1`: each capsule goes into its own oil droplet, where one clonal 16-base barcode is
+amplified and overlap-extended onto that capsule's cDNA), index PCR, release. Plate-based
+split-and-pool was dropped (fcc6ef2) and its hairpin ligation with it, so there is **no
+split-and-pool and no hairpin ligation** — but per-cell barcoding was not dropped, and stage 4b is
+what makes the data single-cell; the lane barcode from Module 1 and Module 4's sublibrary index are
+demultiplexing on top. `tools/build_assay_variants.py` refuses a base chain that has the dropped
+placeholders back, and refuses one that has lost stage 4b. `pipeline_tipseq.json` is an alternative
+kept for comparison (TIP-seq, chromatin DNA: a bench permeabilise + tagment placeholder,
+`sctip_spc_v1` stages B and C, release before index PCR). Both are
+built from MJ's chain by `tools/build_assay_variants.py --base <MJ's pipeline file>`.
 `pipeline_mvp.json` is a copy of the chosen one (`"same_as"`, `"variant"`):
 
 ```
