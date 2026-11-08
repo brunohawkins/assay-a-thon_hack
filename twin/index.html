@@ -79,9 +79,9 @@
 
   <main id="home" class="home-panel" aria-labelledby="home-title" hidden>
     <p class="eyebrow">Assay-a-thon 2026 · Capsule Processor</p>
-    <h1 id="home-title">A single-cell assay, run on a line of small chips</h1>
-    <p class="home-lead">Describe the protocol, and get the chips to run it on, an operator that runs it safely,
-      and a digital twin that shows every step at real scale.</p>
+    <h1 id="home-title">Cellular Perturb-seq on a chip</h1>
+    <p class="home-lead">Grow different cell types side by side, let them change each other or keep them apart, and read
+      every cell out by single-cell sequencing. Perturb-seq perturbs genes; this perturbs a cell's neighbours.</p>
     <div class="home-actions">
       <button type="button" class="primary" data-goto="pipeline">See the pipeline</button>
       <button type="button" data-goto="bench">Bench demo</button>
@@ -90,39 +90,59 @@
     <ol id="home-stages" class="home-stages" aria-label="The pipeline, stage by stage"></ol>
 
     <section>
-      <h2>The problem</h2>
-      <p>A single-cell assay is a long chain of liquid handling. Cells are grown, lifted off, wrapped in capsules,
-        lysed, reverse-transcribed, split, amplified and cleaned up. At the bench nearly every one of those steps is a
-        manual transfer from tube to tube, and each one costs skilled time and adds variation.</p>
-      <p>Microfluidic chips could run the chain, but each chip is drawn by hand for one protocol, and a chip left
-        running needs someone watching that the liquid goes where it should.</p>
+      <h2>The idea</h2>
+      <p>Going from genotype to phenotype is the familiar direction: change a gene, see what the cell does. We want the
+        other kind of experiment as well: change what a cell lives with (its neighbours, the medium they share, when they
+        meet) and measure what that does to every cell.</p>
+      <p>Today that means co-cultures in wells: a million cells and millilitres of reagent per condition, mixed populations
+        that are hard to take apart afterwards, and only a few conditions at a time.</p>
     </section>
 
     <section>
-      <h2>Our approach</h2>
-      <p>Treat the protocol and the chip as files that every tool reads. Cells travel in hydrogel capsules that stay put
-        on mesh floors while liquids are swapped around them, so one chip can take the cells through several steps
-        without losing them.</p>
+      <h2>What the platform does</h2>
       <ul class="home-list">
-        <li><b>Design.</b> A written protocol becomes a chip, assembled from library parts that are known to fabricate.</li>
-        <li><b>Run.</b> An AI operator proposes each action. The chip's own flow model simulates it, and fixed safety
-          rules approve or refuse it before anything moves.</li>
-        <li><b>See.</b> The digital twin draws every chip from the same files, at real scale, and plays each run step by step.</li>
+        <li><b>Perturbs with cells, not genes.</b> Each cell type grows in its own chamber. The flow decides whether they
+          stay apart or one's medium reaches the others, and when.</li>
+        <li><b>Tests differentiation protocols and growth factors.</b> Every chamber can have its own medium and schedule,
+          side by side on one chip.</li>
+        <li><b>Reads out every cell.</b> On chip: harvest, encapsulate, lyse and reverse-transcribe, then give each capsule
+          its own barcode. One capsule holds one cell.</li>
+        <li><b>Knows where each cell came from.</b> The cells of each chamber carry a lane label from Module 1, and the
+          three cell types also separate by their transcriptomes.</li>
+        <li><b>Runs many conditions at once.</b> The labels let conditions share one library and be told apart afterwards.</li>
       </ul>
+    </section>
+
+    <section>
+      <h2>Why small is the point</h2>
+      <p>A condition does not need a million cells. A few thousand cells talking to a few thousand cells is enough, in
+        microlitre volumes where their signals stay concentrated, and with a fraction of the reagent.</p>
+      <dl class="home-figures">
+        <div><dt>~20,000</dt><dd>cells read in one 10x Genomics well</dd></div>
+        <div><dt>~2,000</dt><dd>cells per condition is enough</dd></div>
+        <div><dt>10</dt><dd>conditions per well</dd></div>
+        <div><dt>80</dt><dd>conditions per eight-well run</dd></div>
+      </dl>
+      <p class="meta">Today one Module 1 holds three conditions, so 24 per eight-well run. The aim is ten or more chambers
+        per chip and many chips in parallel. Mentor figures, used as targets; nothing here has been run yet.</p>
+    </section>
+
+    <section>
+      <h2>The use case, and beyond</h2>
+      <p>The first use case is the neural trio: neurons, microglia and astrocytes differentiated from iPSCs, and how each
+        changes the others. Nothing ties the chip to these three. Any cell types that grow this way could be paired.</p>
     </section>
 
     <section>
       <h2>What we built this weekend, and why</h2>
       <dl class="home-built">
-        <dt>Shared file formats</dt>
-        <dd>For protocols, chips, runs and the pipeline. Six people could build in parallel against placeholders, and every tool reads the same files.</dd>
         <dt>Seven stages, culture to clean-up</dt>
         <dd>Six chips of our own, each 30 × 20 mm and 0.3 mm deep with one fluidic layer (the envelope both resin printing and
           hot embossing can make), and a single-cell barcoding stage that runs our chemistry on a bought droplet kit.</dd>
+        <dt>Shared file formats</dt>
+        <dd>For protocols, chips, runs and the pipeline. Six people could build in parallel against placeholders, and every tool reads the same files.</dd>
         <dt>Prompt to chip</dt>
         <dd>A typed description becomes a chip spec built from Flowmatter library parts, and our checker tests it against the fabrication rules.</dd>
-        <dt>CAD for every part</dt>
-        <dd>STL files named by chamber, so the printer and the twin use the same geometry.</dd>
         <dt>The operator and its closed loop</dt>
         <dd>It plans, checks and corrects a run. With no hardware this weekend, it runs against a virtual chip with injected faults such as a clog.</dd>
         <dt>This digital twin</dt>
@@ -145,10 +165,20 @@
           decide. Asked to do something that would mix the cultures, it refuses and says why.</li>
         <li><b>One description drives every tool.</b> The protocol and the chip spec feed the CAD, the operator and the twin,
           so the picture cannot drift away from the design.</li>
-        <li><b>Designs made of parts that print.</b> Generated chips are assembled from blocks that fit the 30 × 20 mm,
-          0.3 mm deep envelope, and every design is checked against it.</li>
         <li><b>The model and the bench on one clock.</b> The twin predicts when the dye reaches each chamber; the bench demo
           records when it actually does.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Where it goes next</h2>
+      <ul class="home-list">
+        <li><b>Scale out.</b> More chambers per culture chip, and more chips running in parallel.</li>
+        <li><b>Connect cultures on demand.</b> Grow each culture on its own chip and link them only when they should meet.
+          Membrane valves (a thin flexible membrane between two channels, opened and closed by pressure) would make that one
+          self-contained system with no tubing.</li>
+        <li><b>Contact, not just medium.</b> Microchannels too narrow for cells but wide enough for axons and the long
+          processes of microglia and astrocytes, for co-culture by cell-to-cell contact.</li>
       </ul>
     </section>
 
@@ -162,6 +192,8 @@
           features are below the in-plane floor. Every demo-scale chip has a dye-demo procedure.</li>
         <li>It is a single-cell assay: the per-capsule barcode resolves cells. The lane label from Module 1 and the four
           sublibrary indices from Module 4 only help sort the data.</li>
+        <li>The flow is kept gentle so it does not shear the cells. The full-scale Module 1 design sizes its perfusion by the
+          cells' oxygen demand and still stays far below the shear limit for adherent cells.</li>
         <li>A bulk metabolome and proteome arm (Module 6) branches off culture. It needs a sub-ambient stage the rig does not
           have yet.</li>
         <li>Capsule retention cannot be printed in-plane at this size: it uses a bought mesh insert, or a shallow weir under the lid.</li>
@@ -169,7 +201,8 @@
     </section>
 
     <footer class="home-team">
-      <p><b>Team.</b> Protocols: MJ and Kilian. Chip design: Yuvraj and Szonja. CAD: Ayrton. Operator, twin and integration: Bruno.</p>
+      <p><b>Team.</b> Protocols: MJ and Kilian. Chip design: Yuvraj and Szonja. CAD: Ayrton. Operator, twin and integration: Bruno.
+        With thanks to the Assay-a-thon mentors for the framing.</p>
     </footer>
   </main>
 
