@@ -3,8 +3,8 @@
     python protocols/build_library_out.py           # write the protocol
     python protocols/build_library_out.py --report  # fill order, thermal profile, dead volumes, shear
 
-Steps 15 to 17 of the library prep, across TWO chips. The input is the pooled, hairpin-ligated
-capsule suspension handed over from step 14. The output is a sequencing-ready library.
+Steps 15 to 17 of the library prep, across TWO chips. The input is the pooled, barcoded
+capsule suspension handed over from stage 4b (per-cell barcoding in oil, protocols/sctip_spc_v1.json). The output is a sequencing-ready library.
 
   15. SUBLIBRARY SPLIT + INDEX PCR, chip/module4_v1.json. Four chambers sub_1..sub_4 are filled
       one at a time by an off-chip 4-position rotary valve, in an INTERLEAVED PALINDROMIC order

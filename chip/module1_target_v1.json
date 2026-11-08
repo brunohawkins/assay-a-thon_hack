@@ -53,7 +53,7 @@
       "center": [
         121.0,
         25.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -71,7 +71,7 @@
       "center": [
         121.0,
         28.9,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -89,7 +89,7 @@
       "center": [
         121.0,
         52.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -107,7 +107,7 @@
       "center": [
         121.0,
         55.9,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -125,7 +125,7 @@
       "center": [
         121.0,
         79.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -143,7 +143,7 @@
       "center": [
         121.0,
         82.9,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -161,7 +161,7 @@
       "center": [
         16.875,
         3.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -179,7 +179,7 @@
       "center": [
         16.875,
         25.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -197,7 +197,7 @@
       "center": [
         35.025,
         3.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -215,7 +215,7 @@
       "center": [
         35.025,
         25.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -233,7 +233,7 @@
       "center": [
         53.175,
         3.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -251,7 +251,7 @@
       "center": [
         53.175,
         25.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -269,7 +269,7 @@
       "center": [
         71.325,
         3.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -287,7 +287,7 @@
       "center": [
         71.325,
         25.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -305,7 +305,7 @@
       "center": [
         89.475,
         3.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -323,7 +323,7 @@
       "center": [
         89.475,
         25.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -341,7 +341,7 @@
       "center": [
         107.625,
         3.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -359,7 +359,7 @@
       "center": [
         107.625,
         25.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -377,7 +377,7 @@
       "center": [
         35.025,
         28.9,
-        0.15
+        3.15
       ],
       "size": [
         1.0,
@@ -395,7 +395,7 @@
       "center": [
         16.875,
         14.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -413,7 +413,7 @@
       "center": [
         35.025,
         14.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -431,7 +431,7 @@
       "center": [
         53.175,
         14.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -449,7 +449,7 @@
       "center": [
         71.325,
         14.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -467,7 +467,7 @@
       "center": [
         89.475,
         14.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -485,7 +485,7 @@
       "center": [
         107.625,
         14.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -503,7 +503,7 @@
       "center": [
         16.875,
         30.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -521,7 +521,7 @@
       "center": [
         16.875,
         52.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -539,7 +539,7 @@
       "center": [
         35.025,
         30.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -557,7 +557,7 @@
       "center": [
         35.025,
         52.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -575,7 +575,7 @@
       "center": [
         53.175,
         30.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -593,7 +593,7 @@
       "center": [
         53.175,
         52.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -611,7 +611,7 @@
       "center": [
         71.325,
         30.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -629,7 +629,7 @@
       "center": [
         71.325,
         52.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -647,7 +647,7 @@
       "center": [
         89.475,
         30.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -665,7 +665,7 @@
       "center": [
         89.475,
         52.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -683,7 +683,7 @@
       "center": [
         107.625,
         30.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -701,7 +701,7 @@
       "center": [
         107.625,
         52.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -719,7 +719,7 @@
       "center": [
         35.025,
         55.9,
-        0.15
+        3.15
       ],
       "size": [
         1.0,
@@ -737,7 +737,7 @@
       "center": [
         16.875,
         41.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -755,7 +755,7 @@
       "center": [
         35.025,
         41.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -773,7 +773,7 @@
       "center": [
         53.175,
         41.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -791,7 +791,7 @@
       "center": [
         71.325,
         41.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -809,7 +809,7 @@
       "center": [
         89.475,
         41.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -827,7 +827,7 @@
       "center": [
         107.625,
         41.5,
-        0.15
+        3.15
       ],
       "size": [
         15.75,
@@ -845,7 +845,7 @@
       "center": [
         16.875,
         57.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -863,7 +863,7 @@
       "center": [
         16.875,
         79.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -881,7 +881,7 @@
       "center": [
         35.025,
         57.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -899,7 +899,7 @@
       "center": [
         35.025,
         79.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -917,7 +917,7 @@
       "center": [
         53.175,
         57.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -935,7 +935,7 @@
       "center": [
         53.175,
         79.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -953,7 +953,7 @@
       "center": [
         71.325,
         57.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -971,7 +971,7 @@
       "center": [
         71.325,
         79.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -989,7 +989,7 @@
       "center": [
         89.475,
         57.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -1007,7 +1007,7 @@
       "center": [
         89.475,
         79.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -1025,7 +1025,7 @@
       "center": [
         107.625,
         57.75,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -1043,7 +1043,7 @@
       "center": [
         107.625,
         79.25,
-        0.15
+        3.15
       ],
       "size": [
         1.5,
@@ -1061,7 +1061,7 @@
       "center": [
         35.025,
         82.9,
-        0.15
+        3.15
       ],
       "size": [
         1.0,
@@ -1079,7 +1079,7 @@
       "center": [
         16.875,
         68.5,
-        0.15
+        3.15
       ],
       "size": [
         11.0,
@@ -1097,7 +1097,7 @@
       "center": [
         35.025,
         68.5,
-        0.15
+        3.15
       ],
       "size": [
         11.0,
@@ -1115,7 +1115,7 @@
       "center": [
         53.175,
         68.5,
-        0.15
+        3.15
       ],
       "size": [
         11.0,
@@ -1133,7 +1133,7 @@
       "center": [
         71.325,
         68.5,
-        0.15
+        3.15
       ],
       "size": [
         11.0,
@@ -1151,7 +1151,7 @@
       "center": [
         89.475,
         68.5,
-        0.15
+        3.15
       ],
       "size": [
         11.0,
@@ -1169,7 +1169,7 @@
       "center": [
         107.625,
         68.5,
-        0.15
+        3.15
       ],
       "size": [
         11.0,
@@ -2100,10 +2100,15 @@
       "position": [
         4.0,
         3.75,
-        3.3
+        6.3
       ],
       "role": "medium",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Group-1 feed (fields 1-2). During culture it perfuses them from the lane's own vented reservoir, in proportion to their area. At the endpoint the SAME line delivers the rinse and then the cold solvent quench, which is why group 1 needs no extra port: the group has its own hydraulic path, so the quench cannot reach the harvest fields."
     },
     {
@@ -2112,10 +2117,15 @@
       "position": [
         4.0,
         25.25,
-        3.3
+        6.3
       ],
       "role": "harvest",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Group-1 outlet: its effluent during culture (so it doubles as a second supernatant tap) and the metabolome + proteome EXTRACT at the endpoint. At the left end of the collection spine, so quench flow runs away from fields 3-6."
     },
     {
@@ -2124,10 +2134,15 @@
       "position": [
         118.0,
         3.75,
-        3.3
+        6.3
       ],
       "role": "medium",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Group-2 feed (fields 3-6), from the same reservoir and the same pump as group 1, split off-chip with matched line lengths. Same medium, same age, same gas: that is what makes all six fields ONE sample population."
     },
     {
@@ -2136,10 +2151,15 @@
       "position": [
         60.0,
         27.3,
-        3.3
+        6.3
       ],
       "role": "waste",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "SUPERNATANT SAMPLING. A dedicated tap on the group-2 collection spine for repeated conditioned-medium draws (secretome / exometabolome), the arm the multi-omic design says answers the interaction question and that the demo chip has no port for at all. Drawing here pulls the lane's own effluent, so a draw does not break isolation; it is separate from the recirculation return so the sterile loop is never opened to sample it."
     },
     {
@@ -2148,10 +2168,15 @@
       "position": [
         100.0,
         27.3,
-        3.3
+        6.3
       ],
       "role": "waste",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Recirculation return: group 2's effluent back to this lane's vented gas-exchange reservoir (stages[]). The return is what makes the lane a CLOSED LOOP during differentiation, so the shared bus is capped and dead and the lanes are hydraulically separate - a stronger isolation than the demo's balanced flows."
     },
     {
@@ -2160,10 +2185,15 @@
       "position": [
         4.0,
         30.75,
-        3.3
+        6.3
       ],
       "role": "medium",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Group-1 feed (fields 1-2). During culture it perfuses them from the lane's own vented reservoir, in proportion to their area. At the endpoint the SAME line delivers the rinse and then the cold solvent quench, which is why group 1 needs no extra port: the group has its own hydraulic path, so the quench cannot reach the harvest fields."
     },
     {
@@ -2172,10 +2202,15 @@
       "position": [
         4.0,
         52.25,
-        3.3
+        6.3
       ],
       "role": "harvest",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Group-1 outlet: its effluent during culture (so it doubles as a second supernatant tap) and the metabolome + proteome EXTRACT at the endpoint. At the left end of the collection spine, so quench flow runs away from fields 3-6."
     },
     {
@@ -2184,10 +2219,15 @@
       "position": [
         118.0,
         30.75,
-        3.3
+        6.3
       ],
       "role": "medium",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Group-2 feed (fields 3-6), from the same reservoir and the same pump as group 1, split off-chip with matched line lengths. Same medium, same age, same gas: that is what makes all six fields ONE sample population."
     },
     {
@@ -2196,10 +2236,15 @@
       "position": [
         60.0,
         54.3,
-        3.3
+        6.3
       ],
       "role": "waste",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "SUPERNATANT SAMPLING. A dedicated tap on the group-2 collection spine for repeated conditioned-medium draws (secretome / exometabolome), the arm the multi-omic design says answers the interaction question and that the demo chip has no port for at all. Drawing here pulls the lane's own effluent, so a draw does not break isolation; it is separate from the recirculation return so the sterile loop is never opened to sample it."
     },
     {
@@ -2208,10 +2253,15 @@
       "position": [
         100.0,
         54.3,
-        3.3
+        6.3
       ],
       "role": "waste",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Recirculation return: group 2's effluent back to this lane's vented gas-exchange reservoir (stages[]). The return is what makes the lane a CLOSED LOOP during differentiation, so the shared bus is capped and dead and the lanes are hydraulically separate - a stronger isolation than the demo's balanced flows."
     },
     {
@@ -2220,10 +2270,15 @@
       "position": [
         4.0,
         57.75,
-        3.3
+        6.3
       ],
       "role": "medium",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Group-1 feed (fields 1-2). During culture it perfuses them from the lane's own vented reservoir, in proportion to their area. At the endpoint the SAME line delivers the rinse and then the cold solvent quench, which is why group 1 needs no extra port: the group has its own hydraulic path, so the quench cannot reach the harvest fields."
     },
     {
@@ -2232,10 +2287,15 @@
       "position": [
         4.0,
         79.25,
-        3.3
+        6.3
       ],
       "role": "harvest",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Group-1 outlet: its effluent during culture (so it doubles as a second supernatant tap) and the metabolome + proteome EXTRACT at the endpoint. At the left end of the collection spine, so quench flow runs away from fields 3-6."
     },
     {
@@ -2244,10 +2304,15 @@
       "position": [
         118.0,
         57.75,
-        3.3
+        6.3
       ],
       "role": "medium",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Group-2 feed (fields 3-6), from the same reservoir and the same pump as group 1, split off-chip with matched line lengths. Same medium, same age, same gas: that is what makes all six fields ONE sample population."
     },
     {
@@ -2256,10 +2321,15 @@
       "position": [
         60.0,
         81.3,
-        3.3
+        6.3
       ],
       "role": "waste",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "SUPERNATANT SAMPLING. A dedicated tap on the group-2 collection spine for repeated conditioned-medium draws (secretome / exometabolome), the arm the multi-omic design says answers the interaction question and that the demo chip has no port for at all. Drawing here pulls the lane's own effluent, so a draw does not break isolation; it is separate from the recirculation return so the sterile loop is never opened to sample it."
     },
     {
@@ -2268,10 +2338,15 @@
       "position": [
         100.0,
         81.3,
-        3.3
+        6.3
       ],
       "role": "waste",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "Recirculation return: group 2's effluent back to this lane's vented gas-exchange reservoir (stages[]). The return is what makes the lane a CLOSED LOOP during differentiation, so the shared bus is capped and dead and the lanes are hydraulically separate - a stronger isolation than the demo's balanced flows."
     },
     {
@@ -2280,10 +2355,15 @@
       "position": [
         124.5,
         25.25,
-        3.3
+        6.3
       ],
       "role": "harvest",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "The bus drain: vented when the three lanes are deliberately connected (harvest and pooling), CAPPED for all 80 days of differentiation. Only a capped port is a true block, so this one cap is what holds the three lanes apart."
     },
     {
@@ -2292,10 +2372,15 @@
       "position": [
         124.5,
         82.9,
-        3.3
+        6.3
       ],
       "role": "reagent",
       "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
       "note": "VEHICLE CONTROL inlet, straight into the bus. The interaction arm pushes a donor lane's conditioned medium across the bus into the other two; this port pushes the same medium, from an identical vented reservoir that never held cells, along exactly the same route at the same flow for the same time. Without it a recipient's response is confounded by the medium itself, which is what the audit found in the demo protocol. One port's state is the only difference between the two arms."
     }
   ],
@@ -2388,7 +2473,7 @@
       "center": [
         62.25,
         41.5,
-        3.3
+        4.8
       ],
       "size": [
         106.5,

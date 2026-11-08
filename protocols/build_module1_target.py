@@ -70,6 +70,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "operator"))
+import flow_calc  # noqa: E402  the one duct-resistance implementation
 CHIP_OUT = ROOT / "chip" / "module1_target_v1.json"
 PROTO_OUT = ROOT / "protocols" / "module1_target_v1.json"
 CONTRACT = ROOT / "contracts" / "parameters.json"
@@ -109,6 +111,7 @@ MATURATION_DENSITY = (9_000.0, 90_000.0)      # sparse-to-dense published matura
 # --- cad/make_figures.py and tests/test_design_rules.py -------------------------------
 FOOT_X, FOOT_Y = 127.76, 85.48     # ANSI/SLAS 1-2004, from blocks.json target_envelope
 DEPTH = 0.3                        # the ONE etch depth: chambers and channels alike
+BASE_MM, LID_MM = 3.0, 3.0         # the stack: base sheet, fluidic layer, lid (layers[] below)
 FIELD_L = 14.0                     # field length ALONG the flow, the same in every lane
 FIELD_W = {"n": 15.75, "g": 15.75, "a": 11.0}
 FIELD_X0 = 9.0
@@ -132,7 +135,17 @@ FEED_RISER_W = 0.2                 # the restrictor: at the min_open_channel flo
 FEED_RISER_FOLDED = 30.0           # folded length (serpentine_channel) in the riser band
 DRAIN_RISER_W = 0.8
 SPINE_LINK_W = 1.0
-PORT_BORE_UM = 800.0               # fabrication_floors.min_port_mm
+FLOORS = json.loads(BLOCKS.read_text())["fabrication_floors"]
+PORT_BORE_UM = FLOORS["min_port_mm"] * 1000.0
+# PORT PAD (chip schema port.pad). The bore is drilled through the lid; the pad is the cut
+# feature in the fluidic layer under it that the port's channels run into. Without it each
+# channel stops at the edge of the bore's own square and the 0.8 mm hole opens onto 0 mm2 of
+# channel. The pad is the bore plus a rim of min_open_channel_mm on every side: the rim is the
+# narrowest open feature the process can cut, so the pad covers the bore with a printable
+# margin for drill registration. 0.8 + 2 x 0.2 = 1.2 mm square. It must still clear every
+# unconnected feature by min_wall_mm (tools/check_chip_spec.py checks it), which is what caps
+# it: a supernatant tap sits 1.1 mm from the corridor link above it.
+PAD_MM = round(FLOORS["min_port_mm"] + 2 * FLOORS["min_open_channel_mm"], 3)
 
 SOURCE = (
     "Neural lane: Shi Y, Kirwan P, Livesey FJ. Nature Protocols 2012;7:1836, "
@@ -276,11 +289,11 @@ def sealed_reserve_min(lane: str, cells_per_cm2: float) -> float:
 
 
 def rect_resistance(length_mm: float, width_mm: float, depth_mm: float = DEPTH) -> float:
-    """Hydraulic resistance of a rectangular duct, Pa s / m3: R = 12 mu L / (a b^3 (1 - 0.63 b/a)),
-    a and b the long and short sides. Used for the ratio that decides flow distribution, so the
-    "the restrictor dominates" claim is derived rather than asserted."""
-    a, b = max(width_mm, depth_mm) * 1e-3, min(width_mm, depth_mm) * 1e-3
-    return 12.0 * MU * (length_mm * 1e-3) / (a * b ** 3 * (1.0 - 0.63 * b / a))
+    """Hydraulic resistance of a rectangular duct, Pa s / m3: operator/flow_calc.py's exact
+    series, R = 12 mu L / (a b^3 f). Used for the ratio that decides flow distribution, so the
+    "the restrictor dominates" claim is derived rather than asserted. This was a local copy of
+    the 1 - 0.63 b/a shortcut, which is 14% off on a square duct."""
+    return flow_calc.rect_channel_resistance_pa_s_m3(length_mm, width_mm, depth_mm, MU)
 
 
 def restrictor_dominance() -> tuple[float, float, float]:
@@ -323,7 +336,7 @@ FIELD_TO_FIELD_MM = 2 * TO_BUS_MM + (BAND_H + CORRIDOR)
 def chamber(cid: str, ctype: str, block: str, cx: float, cy: float, sx: float, sy: float,
             note: str) -> dict:
     return {"id": cid, "type": ctype, "block": block,
-            "center": [round(cx, 3), round(cy, 3), round(DEPTH / 2, 3)],
+            "center": [round(cx, 3), round(cy, 3), round(BASE_MM + DEPTH / 2, 3)],
             "size": [round(sx, 3), round(sy, 3), DEPTH],
             "mesh_pore_um": None,
             "volume_ul": round(sx * sy * DEPTH, 3),
@@ -336,8 +349,13 @@ def channel(cid: str, src: str, dst: str, width: float, block: str, carries: str
 
 
 def port(pid: str, ptype: str, x: float, y: float, role: str, note: str) -> dict:
-    return {"id": pid, "type": ptype, "position": [round(x, 3), round(y, 3), round(DEPTH + 3.0, 3)],
-            "role": role, "width_um": PORT_BORE_UM, "note": note}
+    return {"id": pid, "type": ptype, "position": [round(x, 3), round(y, 3), round(BASE_MM + DEPTH + LID_MM, 3)],
+            "role": role, "width_um": PORT_BORE_UM,
+            "pad": {"shape": "square", "size_mm": PAD_MM,
+                    "note": f"{PAD_MM:g} mm square cut in the fluidic layer under the {PORT_BORE_UM:g} um bore: "
+                            f"the bore plus a {FLOORS['min_open_channel_mm']:g} mm rim (min_open_channel_mm) "
+                            f"on every side. The port's channels end on it, so the bore opens onto liquid."},
+            "note": note}
 
 
 def build_chip() -> dict:
@@ -580,12 +598,12 @@ def build_chip() -> dict:
                       "note": "ANSI/SLAS 1-2004 microplate footprint, so plate handlers, readers, imagers, "
                               "liquid handlers and incubator shelves all take it (blocks.json _why_sbs)."},
         "layers": [
-            {"id": "base", "material": "coc", "thickness_mm": 3.0,
+            {"id": "base", "material": "coc", "thickness_mm": BASE_MM,
              "note": "Stock sheet, bonded under the fluidic layer."},
             {"id": "fluidic", "material": "coc", "thickness_mm": DEPTH,
              "note": "THE one fluidic layer and THE one etch depth: every chamber and channel on this chip "
                      "is 0.3 mm deep, hot-embossed from a resin-printed tool."},
-            {"id": "lid", "material": "coc", "thickness_mm": 3.0,
+            {"id": "lid", "material": "coc", "thickness_mm": LID_MM,
              "note": "Sealing lid, ports drilled through. It is what seals the sub-0.5 mm channels: they "
                      "are printed OPEN and closed by this layer, which is the route blocks.json's "
                      "min_enclosed_printed_channel_mm assumes. Optically clear for the imaging gate."},
@@ -598,7 +616,7 @@ def build_chip() -> dict:
         "features": [{
             "id": "optical_window", "type": "optical_window",
             "center": [round((FIELD_X0 + field_centre_x(N_FIELDS - 1) + FIELD_W["n"] / 2) / 2, 3),
-                       round((band_y0(0) + band_y0(2) + BAND_H) / 2, 3), round(DEPTH + 3.0, 3)],
+                       round((band_y0(0) + band_y0(2) + BAND_H) / 2, 3), round(BASE_MM + DEPTH + LID_MM / 2, 3)],
             "size": [round(field_centre_x(N_FIELDS - 1) + FIELD_W["n"] / 2 - FIELD_X0, 3),
                      round(band_y0(2) + BAND_H - band_y0(0), 3), 3.0],
             "covers": lane_fields,
@@ -1061,7 +1079,7 @@ def report() -> None:
               f"settling limit.")
     r_res, r_span, ratio = restrictor_dominance()
     q_field = group_flow_ul_min("n", 2) / len(GROUPS[2])
-    print(f"  Flow distribution: R = 12 mu L / (a b^3 (1 - 0.63 b/a)) gives the {FEED_RISER_W * 1000:g} x "
+    print(f"  Flow distribution: R = 12 mu L / (a b^3 f), f the exact duct series, gives the {FEED_RISER_W * 1000:g} x "
           f"{DEPTH * 1000:g} um, {FEED_RISER_FOLDED:g} mm restrictor {r_res:.3g} Pa s/m3 against "
           f"{r_span:.3g} for one {FIELD_PITCH - SPINE_H:.1f} mm span of spine: a ratio of {ratio:.0f}.")
     print(f"  The worst-case path difference across {len(GROUPS[2])} fields is "

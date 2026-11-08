@@ -182,10 +182,15 @@ def chamber_resistance(chip_g: dict, chamber_id: str, channel_ids: list[str]) ->
         length = chamber["volume_ul"] / (width * depth)
         return flow_calc.channel_resistance(length, width, depth, MU)
     total = 0.0
+    weir = network.weir_crest(chamber)
     for cid in channel_ids:
         entry = chip_g["edges"][cid]["ends"][chamber_id]
         leg, width = _chamber_leg(chamber, entry)
         total += flow_calc.channel_resistance(leg, width, depth, MU)
+        if weir:
+            # Every opening of a weir chamber crosses a crest, as in operator/network.py.
+            total += flow_calc.to_kpa_per_ul_min(
+                flow_calc.slit_resistance_pa_s_m3(width, weir[0], weir[1] / 1000, MU))
     return total
 
 
@@ -540,51 +545,18 @@ def plans() -> list[dict]:
     return [plan(c) for c in demo_chips()]
 
 
-# --- recommendation -------------------------------------------------------------------
+# --- the printed chips ----------------------------------------------------------------
 
 
-def pipeline_chips() -> set[str]:
-    """Chip ids the MVP pipeline actually uses, so a spare spec is not mistaken for a module."""
-    path = ROOT / "protocols" / "pipeline_mvp.json"
-    if not path.exists():
-        return set()
-    out = set()
-    for module in json.loads(path.read_text()).get("modules", []):
-        spec = module.get("chip")
-        if spec and (ROOT / spec).exists():
-            out.add(json.loads((ROOT / spec).read_text())["id"])
-    return out
+def printed_chips() -> list[str]:
+    """The chips printed for the demo, sorted: tools/build_assay_variants.py PRINTED_FOR_DEMO.
 
-
-def verdict(p: dict, in_pipeline: set[str]) -> tuple[str, str]:
-    """(print / skip, why) for one chip. A recommendation only: nobody here flips
-    built_for_demo in protocols/pipeline_mvp.json - only the owner knows what is on the
-    print bed."""
-    if not p["watch"]:
-        return "skip", "nothing on its route fills inside the window, so there is nothing to film"
-    if p["placeholder"] and p["chip_id"] not in in_pipeline:
-        return "skip", "placeholder spec, and no pipeline module uses it"
-    n = len(p["watch"])
-    times = " and ".join(f"{w['fill_s']:.0f} s" for w in p["watch"])
-    bits = [f"{n} chamber fills in {times}" if n == 1 else f"{n} chambers fill in {times}"]
-    bits.append("an MVP pipeline module" if p["chip_id"] in in_pipeline else "not a pipeline module")
-    if p["alternatives"]:
-        vents = ", ".join("`" + a["vent"] + "`" for a in p["alternatives"][:2])
-        bits.append(f"and moving the vent to {vents} reroutes the dye, which is the design's actual claim")
-    return "print", "; ".join(bits)
-
-
-def rank_key(p: dict, in_pipeline: set[str]) -> tuple:
-    """Print order. In this order: it films at all; it is a module the pipeline uses; more
-    filmable chambers; it can show routing by port (a second vent that reaches a new
-    chamber), which is the one claim these valve-free chips actually make; more visible
-    liquid; then the id, so the order never depends on dict order."""
-    return (verdict(p, in_pipeline)[0] != "print",
-            p["chip_id"] not in in_pipeline,
-            -len(p["watch"]),
-            -len(p["alternatives"]),
-            -sum(w["volume_ul"] for w in p["watch"]),
-            p["chip_id"])
+    That decision is made (confirmed by the project lead) and those chips are frozen
+    (AGENTS.md), so this file states it rather than recommending anything. Read from the
+    builder, which is what sets built_for_demo in the pipeline files, so the list exists once.
+    """
+    import build_assay_variants  # noqa: PLC0415  tools/, already on sys.path for the CLI
+    return sorted(build_assay_variants.PRINTED_FOR_DEMO)
 
 
 # --- output ---------------------------------------------------------------------------
@@ -742,26 +714,30 @@ def risks_section() -> str:
 """
 
 
-def recommendation(ps: list[dict]) -> str:
-    in_pipeline = pipeline_chips()
-    lines = ["## Which chips to print", "",
-             "A recommendation only. `built_for_demo` in `protocols/pipeline_mvp.json` is left",
-             "untouched: only the owner knows what is actually on the print bed. Order is",
-             "films-at-all, then pipeline module, then filmable chambers, then whether moving",
-             "the vent reroutes the dye.", "",
-             "| chip | verdict | why |", "|---|---|---|"]
-    ranked = sorted(ps, key=lambda p: rank_key(p, in_pipeline))
-    for p in ranked:
-        v, why = verdict(p, in_pipeline)
-        lines.append(f"| `{p['chip_id']}` | {v} | {why} |")
-    picks = [p for p in ranked if verdict(p, in_pipeline)[0] == "print"][:3]
-    names = ", ".join(f"`{p['chip_id']}`" for p in picks)
-    lines += ["", f"**If only a few can be printed, print {names}**, two of each. Between them they show the three "
-                  "things a dye test can honestly show: a chamber filling in a readable time, liquid arriving in a "
-                  "second chamber in the right order, and the route changing when you move the plug to a different "
-                  "port - which on a valve-free chip is the whole design claim. Everything else on the list is a "
-                  "single chamber filling, which the first chip already demonstrates.", ""]
-    return "\n".join(lines)
+def printed_section(ps: list[dict]) -> str:
+    """Which chips are on the print bed, and the procedure for each. A statement, not advice."""
+    by_id = {p["chip_id"]: p for p in ps}
+    printed = printed_chips()
+    lines = ["## The printed chips", "",
+             f"{len(printed)} chips are printed for the demo, confirmed by the project lead: "
+             + ", ".join(f"`{c}`" for c in printed) + ". `built_for_demo` in the pipeline files is set "
+             "from that list by `tools/build_assay_variants.py` (`PRINTED_FOR_DEMO`). They are FROZEN: "
+             "`cad/make_train_cad.py` refuses to rewrite their exports, and a change means a new versioned "
+             "spec. Each one's procedure, in full in its section above:", "",
+             "| chip | feed | flow | vent | plug | readable fills |", "|---|---|---:|---|---|---|"]
+    for cid in printed:
+        p = by_id.get(cid)
+        if p is None or p["flow_ul_min"] is None:
+            lines.append(f"| `{cid}` | - | - | - | - | no one-pump route{': ' + p['note'] if p else ''} |")
+            continue
+        fills = ", ".join(f"`{w['id']}` {_secs(w['fill_s'])} s" for w in p["watch"]) or "none"
+        lines.append(f"| `{cid}` | `{p['feed']}` | {p['flow_ul_min']:g} uL/min | `{p['vent']}` | "
+                     f"{_ports(p['plug'])} | {fills} |")
+    others = sorted(set(by_id) - set(printed))
+    if others:
+        lines += ["", "Not printed, so their sections above are for reference only: "
+                  + ", ".join(f"`{c}`" for c in others) + "."]
+    return "\n".join(lines + [""])
 
 
 def diffusion_section() -> str:
@@ -800,7 +776,7 @@ def render_doc(ps: list[dict]) -> str:
               PRESSURE_NOTE.format(limit=PRESSURE_LIMIT_KPA, worst_chip=f"`{worst['chip_id']}`",
                                    worst=round(worst["pressure_kpa"], 3),
                                    worst_pct=_percent(worst["pressure_kpa"], PRESSURE_LIMIT_KPA)),
-              NOT_PROVEN, risks_section(), recommendation(ps)]
+              NOT_PROVEN, risks_section(), printed_section(ps)]
     return "\n".join(parts).rstrip() + "\n"
 
 
