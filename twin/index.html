@@ -105,8 +105,8 @@
           stay apart or one's medium reaches the others, and when.</li>
         <li><b>Tests differentiation protocols and growth factors.</b> Every chamber can have its own medium and schedule,
           side by side on one chip.</li>
-        <li><b>Reads out every cell.</b> On chip: harvest, encapsulate, lyse and reverse-transcribe, then give each capsule
-          its own barcode. One capsule holds one cell.</li>
+        <li><b>Reads out every cell.</b> Our chips harvest, encapsulate, lyse and reverse-transcribe; then each capsule gets
+          its own barcode in a bought droplet stage running our chemistry. One capsule holds one cell.</li>
         <li><b>Knows where each cell came from.</b> Before harvest, the cells of each chamber pick up that chamber's own
           label in Module 1, and the three cell types also separate by their transcriptomes.</li>
         <li><b>Runs many conditions at once.</b> The labels let conditions share one library and be told apart afterwards.</li>
@@ -138,8 +138,10 @@
       <h2>What we built this weekend, and why</h2>
       <dl class="home-built">
         <dt>Seven stages, culture to clean-up</dt>
-        <dd>Six chips of our own, each 30 × 20 mm and 0.3 mm deep with one fluidic layer (the envelope both resin printing and
-          hot embossing can make), and a single-cell barcoding stage that runs our chemistry on a bought droplet kit.</dd>
+        <dd>Five chips printed for the demo (Modules 1 to 5), a cell-prep chip designed but not printed, and a single-cell
+          barcoding stage that runs our chemistry on a bought droplet kit; plus Module 6, a printed bulk-omics branch. Each
+          chip is 30 × 20 mm and 0.3 mm deep with one fluidic layer, the envelope both resin printing and hot embossing can
+          make.</dd>
         <dt>Shared file formats</dt>
         <dd>For protocols, chips, runs and the pipeline. Six people could build in parallel against placeholders, and every tool reads the same files.</dd>
         <dt>Prompt to chip</dt>
@@ -193,8 +195,10 @@
           features are below the in-plane floor. Every demo-scale chip has a dye-demo procedure.</li>
         <li>It is a single-cell assay: the per-capsule barcode resolves cells. The lane label from Module 1 and the four
           sublibrary indices from Module 4 only help sort the data.</li>
-        <li>The flow is kept gentle so it does not shear the cells. The full-scale Module 1 design sizes its perfusion by the
-          cells' oxygen demand and still stays far below the shear limit for adherent cells.</li>
+        <li>Feeding is the open problem at demo scale: the demo Module 1 schedule gives too little medium and caps the
+          chambers for a day, about seven times longer than the oxygen in a sealed chamber lasts. The full-scale Module 1
+          design perfuses continuously, sized by the cells' oxygen demand, with gas exchange in a vented reservoir per
+          lane, and still stays far below the shear limit for adherent cells.</li>
         <li>A bulk metabolome and proteome arm (Module 6) branches off culture. It needs a sub-ambient stage the rig does not
           have yet.</li>
         <li>Capsule retention cannot be printed in-plane at this size: it uses a bought mesh insert, or a shallow weir under the lid.</li>
