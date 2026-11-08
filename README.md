@@ -120,8 +120,12 @@ The twin's header has four views and two switches:
   its status from `protocols/pipeline_status.md` ("Designed" means a spec and a protocol exist,
   not that anything was printed or run), the off-chip steps and branches, and a switch between
   **CapSeq** RNA (the chosen assay) and **TIP-seq** chromatin DNA (an alternative kept for
-  comparison; `tools/choose_assay.py` sets which one is chosen). Every word about a stage comes
-  from the pipeline file, the chip spec or the status file. Click a stage or a chip to open it.
+  comparison; `tools/choose_assay.py` sets which one is chosen). Each stage shows how long its
+  protocol takes as the twin runs it (simulated, not measured), with the line's total, and the
+  off-chip steps between chips (from the status file's OFF-CHIP rows, such as breaking the
+  emulsion between Module 2 and Module 3) are steps of their own, marked where no protocol is
+  written yet. Every word about a stage comes from the pipeline file, the chip spec or the
+  status file. Click a stage or a chip to open it.
 - **Bench demo**: the twin beside the one-pump food-dye run (`#view=bench`, or
   `python tools/demo.py --bench`). Pick a chip: the sidebar gives its feed, vent, plugs and pump
   rate, the order the dye reaches each part with its predicted times, what to try next, and what
@@ -132,7 +136,10 @@ The twin's header has four views and two switches:
 - **Chips**: each chip's own view, playing its protocol, with a card from the pipeline file:
   its stage, status, note and caveat, its dye demo and where its CAD came from. Chambers whose
   spec names a Flowmatter block are drawn from Yuvraj's block STLs (`cad/library/`); each chip
-  loads CAD only from its own export folder. Modules 4 and 5 add a design-note panel.
+  loads CAD only from its own export folder. Modules 4 and 5 add a design-note panel. Ports are
+  coloured by direction (blue in, red out, grey plugged) and Module 1's chambers are labelled by
+  cell type. A **3D / 2D** switch (remembered per browser; `#camera=2d` in a link) shows chips,
+  the bench demo and the pipeline as a top-down plan.
 - **Present** opens the presenter view. **Engineering** (remembered per browser) adds the run
   picker, Module 1's flow panel (every port, the solver, the operator's decisions), chip sizing
   and generator parameters, the CAD report, **Real scale / Display model** (the printed show
