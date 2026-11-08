@@ -8,8 +8,9 @@ export function createScene(container) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setClearColor(0x000000, 0); // the page's CSS gradient shows through
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  // Neutral tone mapping keeps the dye colours true (ACES pushes yellow towards white).
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = 1.0;
   container.appendChild(renderer.domElement);
 
   // HTML labels (part ids, temperatures) drawn over the canvas.
@@ -21,7 +22,7 @@ export function createScene(container) {
   const pmrem = new THREE.PMREMGenerator(renderer);
   const room = new RoomEnvironment();
   scene.environment = pmrem.fromScene(room, 0.04).texture;
-  scene.environmentIntensity = 0.55;
+  scene.environmentIntensity = 0.4;
   room.dispose();
   pmrem.dispose();
 
@@ -33,14 +34,15 @@ export function createScene(container) {
   controls.maxDistance = 260;
   controls.maxPolarAngle = Math.PI * 0.49;
 
-  // Soft lighting: sky/ground fill, a key light and a cool rim light.
-  scene.add(new THREE.HemisphereLight(0xcfe3ff, 0x0a0d14, 0.9));
-  const key = new THREE.DirectionalLight(0xffffff, 2.2);
+  // Even daylight on a bench: a bright sky/ground fill, a key light and a soft fill opposite.
+  // Kept moderate: brighter, the tone mapping bleaches the dye colours towards white.
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xc9d1d9, 0.95));
+  const key = new THREE.DirectionalLight(0xffffff, 1.3);
   key.position.set(40, 80, 50);
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0x7aa2ff, 1.4);
-  rim.position.set(-60, 30, -60);
-  scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.45);
+  fill.position.set(-60, 30, -60);
+  scene.add(fill);
 
   scene.add(makeFloor());
 
@@ -58,8 +60,8 @@ export function createScene(container) {
     const top = box('.topbar')?.bottom ?? 0;
     const panel = box('.narration');
     const controlsBox = box('.controls') ?? box('.pr-caption'); // the presenter's caption sits where the controls were
-    // Any visible left-hand panel (the control-loop panel, Module 1 v1's flow panel).
-    const left = [...document.querySelectorAll('.control, .pr-card')].map((e) => e.getBoundingClientRect()).find((r) => r.width > 0);
+    // Any visible left-hand panel (the control-loop panel, Module 1 v1's flow panel, the home page).
+    const left = [...document.querySelectorAll('.control, .pr-card, .home-panel')].map((e) => e.getBoundingClientRect()).find((r) => r.width > 0);
     let leftEdge = 0;
     if (left && left.width > 0 && left.left < w / 2) leftEdge = left.right;
     let right = w;
@@ -90,7 +92,7 @@ export function createScene(container) {
     const h = container.clientHeight || window.innerHeight;
     const { fullH, freeW, freeH } = applyViewOffset(w, h);
     const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-    const dir = new THREE.Vector3(-0.06, 0.6, 0.86).normalize();
+    const dir = new THREE.Vector3(...(footprint.dir ?? [-0.06, 0.6, 0.86])).normalize();
     const halfX = (footprint.x / 2) * 1.12;
     // Apparent height: the tilted footprint plus room above it for capsules arriving.
     const halfV = ((footprint.y * dir.y + 0.88 * footprint.y * Math.hypot(dir.x, dir.z)) / 2) * 1.1;
@@ -186,7 +188,7 @@ export function createScene(container) {
   };
 }
 
-// A dark floor with a faint grid and a soft pool of light under the chip.
+// A pale bench: a soft contact shadow under the chip and a faint grid, like a cutting mat.
 function makeFloor() {
   const group = new THREE.Group();
   const size = 512;
@@ -194,26 +196,47 @@ function makeFloor() {
   canvas.width = canvas.height = size;
   const g = canvas.getContext('2d');
   const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  grad.addColorStop(0, 'rgba(90,150,255,0.22)');
-  grad.addColorStop(0.45, 'rgba(60,110,220,0.07)');
-  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  grad.addColorStop(0, 'rgba(31,35,40,0.10)');
+  grad.addColorStop(0.35, 'rgba(31,35,40,0.04)');
+  grad.addColorStop(1, 'rgba(31,35,40,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, size, size);
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  const glow = new THREE.Mesh(
-    new THREE.PlaneGeometry(220, 220),
+  const shadow = new THREE.Mesh(
+    new THREE.PlaneGeometry(120, 120),
     new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }),
   );
-  glow.rotation.x = -Math.PI / 2;
-  glow.position.y = -0.4;
-  group.add(glow);
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = -0.4;
+  group.add(shadow);
 
-  const grid = new THREE.GridHelper(200, 40, 0x223355, 0x152036);
-  grid.material.transparent = true;
-  grid.material.opacity = 0.35;
-  grid.material.depthWrite = false;
+  const grid = makeGrid();
   grid.position.y = -0.45;
   group.add(grid);
   return group;
+}
+
+// 5 mm lines, every 10 mm a little stronger, fading out from ~100 mm so there is no hard edge.
+function makeGrid() {
+  const half = 240;
+  const pos = [];
+  const col = [];
+  const c = new THREE.Color(0x8c959f);
+  const fade = (x, z) => {
+    const t = Math.min(1, Math.max(0, (Math.hypot(x, z) - 100) / 120));
+    return 1 - t * t * (3 - 2 * t);
+  };
+  const add = (x, z, a) => { pos.push(x, 0, z); col.push(c.r, c.g, c.b, a * fade(x, z)); };
+  for (let i = -half; i <= half; i += 5) {
+    const a = i % 10 === 0 ? 0.34 : 0.17;
+    for (let j = -half; j < half; j += 5) {
+      add(j, i, a); add(j + 5, i, a);   // along x
+      add(i, j, a); add(i, j + 5, a);   // along z
+    }
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geom.setAttribute('color', new THREE.Float32BufferAttribute(col, 4));
+  return new THREE.LineSegments(geom, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
 }

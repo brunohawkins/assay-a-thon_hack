@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Capsule Processor Twin</title>
+  <title>Capsule Processor · Digital twin</title>
   <link rel="stylesheet" href="style.css">
   <script type="importmap">
     {
@@ -22,48 +22,147 @@
       <span class="logo" aria-hidden="true"></span>
       <div>
         <h1>Capsule Processor</h1>
-        <p>digital twin</p>
+        <p>Digital twin</p>
       </div>
     </div>
-    <nav id="module-tabs" class="views tabs" aria-label="View">
-      <button data-module="pipeline" aria-pressed="false" title="Every chip of the pipeline in 3D, real scale, with the sample moving chip to chip">Pipeline</button>
-      <button data-module="m1v1" aria-pressed="false" title="Module 1 v1: culture (30 x 20 mm). Flow twin.">1 Culture</button>
-      <button data-module="cp" aria-pressed="false" title="Cell prep (cell_prep_v1)">Cell prep</button>
-      <button data-module="enc" aria-pressed="false" title="Encapsulation (spc_demo_v1)">2 Encapsulation</button>
-      <button data-module="m3v1" aria-pressed="false" title="Module 3: load, lysis, wash and reverse transcription (module3_v1_translated)">3 Lysis + RT</button>
-      <button data-module="m4" aria-pressed="false" title="Module 4: sublibrary split + index PCR (MJ)">4 Index PCR</button>
-      <button data-module="m5" aria-pressed="false" title="Module 5: release + cleanup (MJ)">5 Release</button>
-      <button data-module="old" aria-pressed="false" title="Superseded drafts and the duplicates protocols/pipeline_status.md retires, kept for reference">Old drafts</button>
-      <button data-module="other" aria-pressed="false" title="Earlier placeholder runs">Other</button>
+    <nav id="module-tabs" class="views tabs" aria-label="Views">
+      <button data-module="home" aria-pressed="false" title="What the project is, what was built and what is new">Home</button>
+      <button data-module="pipeline" aria-pressed="false" title="Every chip of the pipeline, at real scale">Pipeline</button>
+      <button data-module="bench" aria-pressed="false" title="Module 1 in real time, next to the food-dye demo on the bench">Bench demo</button>
+      <div class="nav-menu" id="chips-menu">
+        <button class="nav-trigger" type="button" aria-haspopup="true" aria-expanded="false">Chips<span class="caret" aria-hidden="true"></span></button>
+        <div class="menu" role="menu" hidden>
+          <button data-module="m1v1" role="menuitem" aria-pressed="false"><span>Culture</span><small>module1_v1</small></button>
+          <button data-module="cp" role="menuitem" aria-pressed="false"><span>Cell prep</span><small>cell_prep_v1</small></button>
+          <button data-module="enc" role="menuitem" aria-pressed="false"><span>Encapsulation</span><small>spc_demo_v1</small></button>
+          <button data-module="m3v1" role="menuitem" aria-pressed="false"><span>Lysis, wash and RT</span><small>module3_v1_translated</small></button>
+          <button data-module="m4" role="menuitem" aria-pressed="false"><span>Sublibrary split and index PCR</span><small>module4_v1</small></button>
+          <button data-module="m5" role="menuitem" aria-pressed="false"><span>Release and cleanup</span><small>module5_v1</small></button>
+          <div class="menu-sep eng-only" role="separator"></div>
+          <button data-module="old" class="eng-only" role="menuitem" aria-pressed="false"><span>Old drafts</span><small>superseded and retired</small></button>
+          <button data-module="other" class="eng-only" role="menuitem" aria-pressed="false"><span>Other runs</span><small>placeholders and experiments</small></button>
+        </div>
+      </div>
     </nav>
-    <label class="picker">
-      <span>Run</span>
-      <select id="run-select"></select>
-    </label>
-    <div class="views" role="group" aria-label="View">
-      <button data-view="real" aria-pressed="true" title="The chip at its real, working dimensions">Real scale</button>
-      <button data-view="display" aria-pressed="false" disabled>Display model</button>
-    </div>
-    <div id="loop-toggle" class="views loop" role="group" aria-label="Loop" hidden>
-      <button data-loop="open" aria-pressed="false">Open loop</button>
-      <button data-loop="closed" aria-pressed="false">Closed loop</button>
-    </div>
-    <div class="badges">
-      <span class="badge sim" title="No physical pump, valves or sensors: closed-loop runs use a virtual chip">SIMULATED HARDWARE</span>
-      <span id="operator-badge" class="badge">planner</span>
-      <span id="print-badge" class="badge printed" hidden>Printed</span>
-      <span id="draft-badge" class="badge draft" hidden>Draft design</span>
-      <span id="placeholder-badge" class="badge warn" hidden>placeholder data</span>
+    <div class="header-tools">
+      <label class="picker eng-only">
+        <span>Run</span>
+        <select id="run-select"></select>
+      </label>
+      <div class="views segmented eng-only" role="group" aria-label="View">
+        <button data-view="real" aria-pressed="true" title="The chip at its real, working dimensions">Real scale</button>
+        <button data-view="display" aria-pressed="false" disabled>Display model</button>
+      </div>
+      <div id="loop-toggle" class="views segmented loop eng-only" role="group" aria-label="Loop" hidden>
+        <button data-loop="open" aria-pressed="false">Open loop</button>
+        <button data-loop="closed" aria-pressed="false">Closed loop</button>
+      </div>
+      <div class="badges">
+        <span class="badge sim" title="Nothing on this screen is live hardware: flows and timings come from the chip's network model.">Simulation</span>
+        <span id="operator-badge" class="badge eng-only">planner</span>
+        <span id="print-badge" class="badge printed eng-only" hidden>Printed</span>
+        <span id="draft-badge" class="badge draft eng-only" hidden>Draft design</span>
+        <span id="placeholder-badge" class="badge warn eng-only" hidden>placeholder data</span>
+      </div>
+      <a class="button-link" id="present-link" href="?present" title="Guided sequence for a projector">Present</a>
+      <label class="switch" title="Run picker, solver tables, control loop, sizing and old drafts">
+        <input type="checkbox" id="eng-toggle"><span class="track" aria-hidden="true"></span><span>Engineering</span>
+      </label>
     </div>
   </header>
+
+  <main id="home" class="home-panel" aria-labelledby="home-title" hidden>
+    <p class="eyebrow">Assay-a-thon 2026 · Capsule Processor</p>
+    <h1 id="home-title">A single-cell assay, run on a line of small chips</h1>
+    <p class="home-lead">Describe the protocol, and get the chips to run it on, an operator that runs it safely,
+      and a digital twin that shows every step at real scale.</p>
+    <div class="home-actions">
+      <button type="button" class="primary" data-goto="pipeline">See the pipeline</button>
+      <button type="button" data-goto="bench">Bench demo</button>
+      <a class="button-link" href="?present">Present</a>
+    </div>
+    <ol id="home-stages" class="home-stages" aria-label="The pipeline, stage by stage"></ol>
+
+    <section>
+      <h2>The problem</h2>
+      <p>A single-cell assay is a long chain of liquid handling. Cells are grown, lifted off, wrapped in capsules,
+        lysed, reverse-transcribed, split, amplified and cleaned up. At the bench nearly every one of those steps is a
+        manual transfer from tube to tube, and each one costs skilled time and adds variation.</p>
+      <p>Microfluidic chips could run the chain, but each chip is drawn by hand for one protocol, and a chip left
+        running needs someone watching that the liquid goes where it should.</p>
+    </section>
+
+    <section>
+      <h2>Our approach</h2>
+      <p>Treat the protocol and the chip as files that every tool reads. Cells travel in hydrogel capsules that stay put
+        on mesh floors while liquids are swapped around them, so one chip can take the cells through several steps
+        without losing them.</p>
+      <ul class="home-list">
+        <li><b>Design.</b> A written protocol becomes a chip, assembled from library parts that are known to fabricate.</li>
+        <li><b>Run.</b> An AI operator proposes each action. The chip's own flow model simulates it, and fixed safety
+          rules approve or refuse it before anything moves.</li>
+        <li><b>See.</b> The digital twin draws every chip from the same files, at real scale, and plays each run step by step.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What we built this weekend, and why</h2>
+      <dl class="home-built">
+        <dt>Shared file formats</dt>
+        <dd>For protocols, chips, runs and the pipeline. Six people could build in parallel against placeholders, and every tool reads the same files.</dd>
+        <dt>Six chips, culture to clean-up</dt>
+        <dd>Each 30 × 20 mm and 0.3 mm deep, one fluidic layer: the envelope both resin printing and hot embossing can make.</dd>
+        <dt>Prompt to chip</dt>
+        <dd>A typed description becomes a chip spec built from Flowmatter library parts, and our checker tests it against the fabrication rules.</dd>
+        <dt>CAD for every part</dt>
+        <dd>STL files named by chamber, so the printer and the twin use the same geometry.</dd>
+        <dt>The operator and its closed loop</dt>
+        <dd>It plans, checks and corrects a run. With no hardware this weekend, it runs against a virtual chip with injected faults such as a clog.</dd>
+        <dt>This digital twin</dt>
+        <dd>One picture of the whole line for the team and for this demo: every chip, the sample moving through, and a bench view that runs beside the real chip.</dd>
+        <dt>Module 1, made for a food-dye run</dt>
+        <dd>To test the flow model on a real chip: if the dye arrives when the twin says it will, the model has earned some trust.</dd>
+      </dl>
+    </section>
+
+    <section>
+      <h2>What is new</h2>
+      <ul class="home-list">
+        <li><b>Routing by flow, not valves.</b> Module 1 grows neurons, glia and astrocytes in three chambers that meet at one
+          junction. Which ports are fed, open or plugged decides whether the cultures stay apart or share medium.</li>
+        <li><b>The AI does not get the last word.</b> The operator suggests, the flow model predicts, and deterministic rules
+          decide. Asked to do something that would mix the cultures, it refuses and says why.</li>
+        <li><b>One description drives every tool.</b> The protocol and the chip spec feed the CAD, the operator and the twin,
+          so the picture cannot drift away from the design.</li>
+        <li><b>Designs made of parts that print.</b> Generated chips are assembled from blocks that fit the 30 × 20 mm,
+          0.3 mm deep envelope, and every design is checked against it.</li>
+        <li><b>The model and the bench on one clock.</b> The twin predicts when the dye reaches each chamber; the bench demo
+          records when it actually does.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Where it stands</h2>
+      <ul class="home-list plain">
+        <li>Everything on screen is a simulation. There are no pumps, cameras or wet-lab data this weekend, and the
+          closed loop runs on a virtual chip.</li>
+        <li>All six chips have a spec and a protocol. Module 1 is being made for the food-dye run; the others exist in the twin.</li>
+        <li>Split-and-pool barcoding is a placeholder for now, so the current line gives data per lane, not per cell.
+          Whether to add it back is an open question.</li>
+        <li>Capsule retention cannot be printed at this size: it needs a bought mesh insert or sedimentation.</li>
+      </ul>
+    </section>
+
+    <footer class="home-team">
+      <p><b>Team.</b> Protocols: MJ and Kilian. Chip design: Yuvraj and Szonja. CAD: Ayrton. Operator, twin and integration: Bruno.</p>
+    </footer>
+  </main>
 
   <div id="alert-banner" class="alert-banner" role="alert" hidden></div>
   <div id="day-counter" class="day-counter" aria-live="polite" hidden></div>
   <div id="stopwatch" class="stopwatch" aria-live="off" hidden></div>
   <aside id="m1-panel" class="panel control m1-panel" aria-label="Module 1 v1 flow" hidden></aside>
-  <aside id="lib-panel" class="panel control m1-panel lib-panel" aria-label="Module 4 or 5: design-note steps" hidden></aside>
   <div id="m1-tooltip" class="m1-tooltip" role="tooltip" hidden></div>
-  <section id="pipeline" class="pipeline" aria-label="Pipeline view" hidden></section>
   <div id="nozzle-inset" class="panel nozzle-inset" hidden>
     <h3>Nozzle close-up</h3>
     <canvas width="720" height="300" aria-label="Co-flow at the Y-junction, droplets pinching off at the nozzle, a ring forming in each droplet"></canvas>
@@ -103,39 +202,46 @@
     </section>
   </aside>
 
-  <aside class="panel narration" aria-live="polite">
-    <div class="step-row">
-      <span id="step-label">Loading…</span>
-      <span id="command-chip" class="command-chip" hidden></span>
-    </div>
-    <p id="narration">Loading the run…</p>
-    <dl id="details"></dl>
-    <p id="run-meta" class="meta"></p>
-    <details id="params" class="sizing params" open hidden>
-      <summary>Parameters</summary>
-      <p id="params-meta" class="meta"></p>
-      <dl id="params-body"></dl>
-    </details>
-    <details id="sizing" class="sizing" open hidden>
-      <summary>Chip sizing</summary>
-      <dl id="sizing-body"></dl>
-    </details>
+  <aside class="panel narration sidebar" aria-live="polite">
+    <section id="pipeline" class="side-section pipeline" aria-label="Pipeline" hidden></section>
+    <div id="side-context"></div>
+    <section id="lib-panel" class="side-section lib-panel" aria-label="Module 4 or 5: design-note steps" hidden></section>
+    <section class="side-section side-step">
+      <div class="step-row">
+        <span id="step-label">Loading…</span>
+        <span id="command-chip" class="command-chip" hidden></span>
+      </div>
+      <p id="narration">Loading the run…</p>
+      <dl id="details"></dl>
+      <p id="run-meta" class="meta"></p>
+    </section>
+    <section class="side-section eng-only side-eng">
+      <details id="params" class="sizing params" open hidden>
+        <summary>Parameters</summary>
+        <p id="params-meta" class="meta"></p>
+        <dl id="params-body"></dl>
+      </details>
+      <details id="sizing" class="sizing" open hidden>
+        <summary>Chip sizing</summary>
+        <dl id="sizing-body"></dl>
+      </details>
+    </section>
   </aside>
 
   <div id="scalebar" class="scalebar" aria-label="Scale bar"><div class="bar"></div><div class="text"></div></div>
 
-  <footer class="controls panel">
+  <footer class="controls">
     <div class="buttons">
       <button id="play" class="primary" aria-pressed="false" title="Play / pause (Space)">
         <span class="icon" aria-hidden="true"></span><span class="label">Play</span>
       </button>
-      <button id="step" title="Play the next command, then pause (→)">Step</button>
-      <div class="speed" role="group" aria-label="Speed">
-        <button data-speed="1" aria-pressed="true" title="1x (key 1)">1x</button>
-        <button data-speed="5" aria-pressed="false" title="5x (key 2)">5x</button>
-        <button data-speed="20" aria-pressed="false" title="20x (key 3)">20x</button>
+      <button id="step" title="Play the next step, then pause (→)">Step</button>
+      <div class="speed segmented" role="group" aria-label="Speed">
+        <button data-speed="1" aria-pressed="true" title="1x (key 1)">1×</button>
+        <button data-speed="5" aria-pressed="false" title="5x (key 2)">5×</button>
+        <button data-speed="20" aria-pressed="false" title="20x (key 3)">20×</button>
       </div>
-      <button id="labels-toggle" aria-pressed="true" title="Show part ids (L)">IDs</button>
+      <button id="labels-toggle" class="eng-only" aria-pressed="true" title="Show part ids (L)">IDs</button>
     </div>
     <div id="timeline" title="Click to jump">
       <div id="playhead"></div>

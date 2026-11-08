@@ -20,8 +20,8 @@ const PORTS = ['p_in', 'p_g_in', 'p_a_in', 'p_mid', 'p_g_out', 'p_a_out'];
 const INLET_OF = { n_cx: 'p_in', g_cx: 'p_g_in', a_cx: 'p_a_in' };
 // Physical demo colours: n = red, g = yellow, a = blue. A port feeds its chamber's colour.
 const DYE_RGB = [[0.94, 0.27, 0.27], [0.98, 0.8, 0.08], [0.23, 0.51, 0.96]];
-const DYE_OF_PORT = { p_in: 0, p_g_in: 1, p_g_out: 1, p_a_in: 2, p_a_out: 2 };
-const DYE_NAMES = ['red', 'yellow', 'blue'];
+export const DYE_OF_PORT = { p_in: 0, p_g_in: 1, p_g_out: 1, p_a_in: 2, p_a_out: 2 };
+export const DYE_NAMES = ['red', 'yellow', 'blue'];
 const CELLS = 14;                      // cells per channel in the advection grid
 const D_MM2_S = (8.8 ** 2) / (2 * 12 * 3600); // mm^2/s from the design doc's 8.8 mm in 12 h
 let PROTOCOL_FEED = 2.4;               // uL/min; prepare() derives it from the chip (operator/network.py DEFAULT_FEED_UL_MIN)
@@ -45,6 +45,7 @@ function dyeColor(c, out = new THREE.Color()) {
   return out.setRGB(Math.max(0, r), Math.max(0, g), Math.max(0, b), THREE.SRGBColorSpace);
 }
 const amount = (c) => Math.min(1, c[0] + c[1] + c[2]);
+const CLEAR_MEDIUM = new THREE.Color(0x9fb4d1);   // no dye: the medium, a pale blue-grey
 
 // Protocol step -> mode and port states (build_module1.py: one lane fed at a time in growth).
 export function stepMode(ev) {
@@ -74,6 +75,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
   let sim = null;          // advection grid
   let speed = 100;
   let demo = false;
+  let benchMode = false;   // twin/bench.js drives the clock and shows its own timer
   let follow = true;       // follow the protocol while it plays
   let stopwatch = { running: false, t: 0 };
   let simT = 0;
@@ -139,13 +141,19 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       l.element.remove();
       return false;
     });
-    // The chamber STLs are drawn over the liquid; keep them nearly clear so the dye colours read true.
+    // The chamber shapes (Flowmatter blocks, or exported STLs) are drawn over the liquid: keep them
+    // nearly clear, with their outline, so the dye colours read true.
+    const clearShapes = () => {
+      for (const ch of c.spec.chambers) {
+        const part = c.parts.get(ch.id);
+        for (const m of [part?.block?.mesh, part?.stl]) if (m) { m.material.opacity = 0.05; m.material.emissiveIntensity = 0; }
+      }
+    };
+    clearShapes();
     chip.loadStls(`${root}cad/exports/${CHIP_ID}/`).then(() => {
       if (chip !== c) return;
-      for (const ch of c.spec.chambers) {
-        const stl = c.parts.get(ch.id)?.stl;
-        if (stl) { stl.material.opacity = 0.07; stl.material.emissiveIntensity = 0; }
-      }
+      clearShapes();
+      for (const pid of PORTS) { const part = c.parts.get(pid); if (part) part.portState = null; } // recolour the port STLs
     });
     buildOverlays();
     attached = true;
@@ -221,7 +229,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     // Flow arrows: one cone per channel at its middle, above the lid.
     const coneGeom = new THREE.ConeGeometry(0.9 * k, 2.4 * k, 18).rotateZ(-Math.PI / 2); // points along +x
     objs.arrows = net.edges.map((e) => {
-      const mesh = new THREE.Mesh(coneGeom, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x5eead4, emissiveIntensity: 0.5, transparent: true, opacity: 0.9 }));
+      const mesh = new THREE.Mesh(coneGeom, new THREE.MeshStandardMaterial({ color: 0x57606a, roughness: 0.5, transparent: true, opacity: 0.92 }));
       mesh.position.set((e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2, top + 0.9 * k);
       mesh.renderOrder = 8;
       group.add(mesh);
@@ -245,10 +253,10 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     const boxPos = new THREE.Vector3(pm[0], -16 * k, top + 1 * k);
     const tubeCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(pm[0], pm[1], top), new THREE.Vector3(pm[0], pm[1], top + 5 * k),
       new THREE.Vector3(pm[0] + 3 * k, 4 * k, top + 5 * k), boxPos.clone().setY(boxPos.y + 6 * k)]);
-    const tubeMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, emissive: 0x334155, emissiveIntensity: 0.4, transparent: true, opacity: 0.7 });
+    const tubeMat = new THREE.MeshStandardMaterial({ color: 0x8c959f, emissive: 0x000000, emissiveIntensity: 0.4, transparent: true, opacity: 0.6 });
     const tube = new THREE.Mesh(new THREE.TubeGeometry(tubeCurve, 80, Math.max(0.45 * k, PORT_HOLE_MM / 2), 10, false), tubeMat);
     group.add(tube);
-    const boxMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, emissive: 0x2dd4bf, emissiveIntensity: 0.12, transparent: true, opacity: 0.75 });
+    const boxMat = new THREE.MeshStandardMaterial({ color: 0xd8dee4, emissive: 0x1b9e8f, emissiveIntensity: 0.05, transparent: true, opacity: 0.85 });
     const box = new THREE.Mesh(new THREE.BoxGeometry(26 * k, 10 * k, 4 * k), boxMat);
     box.position.copy(boxPos);
     group.add(box);
@@ -457,7 +465,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     if (stopwatch.running) stopwatch.t += dt * (demo ? 1 : speed);
     draw();
     if (flagged) pulseFlagged(dt);
-    overlays.setStopwatch?.(demo ? { t: stopwatch.t, running: stopwatch.running } : null);
+    overlays.setStopwatch?.(demo && !benchMode ? { t: stopwatch.t, running: stopwatch.running } : null);
   }
 
   function advance(simDt) {
@@ -522,7 +530,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
         arrow.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), dir);
         arrow.scale.setScalar(0.45 + 0.55 * Math.min(1, Math.log10(1 + qa) / Math.log10(1 + 60)));
         const mid = sim.cells[k][Math.floor(CELLS / 2)];
-        arrow.material.color.copy(dyeColor(mid, col).lerp(new THREE.Color(0xffffff), 1 - amount(mid)));
+        arrow.material.color.copy(dyeColor(mid, col).lerp(new THREE.Color(0x57606a), 1 - amount(mid)));
       }
     });
     objs.cells.instanceColor.needsUpdate = true;
@@ -533,25 +541,36 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       const a = amount(conc);
       part.fluid.visible = true;
       part.fluid.scale.z = Math.max(part.size.z * 0.96, 0.0001);
-      dyeColor(conc, part.fluidMaterial.color).lerp(new THREE.Color(0x9fb4d1), 1 - a);
-      part.fluidMaterial.emissive.copy(part.fluidMaterial.color);
-      // A low glow keeps the dye saturated: brighter, the tone mapping washes yellow out to white.
-      part.fluidMaterial.emissiveIntensity = 0.18;
-      part.fluidMaterial.opacity = 0.3 + 0.62 * a;
+      // The dye shows its own colour, unlit, like the channels: lit, it bleaches towards white.
+      dyeColor(conc, part.fluidMaterial.emissive).lerp(CLEAR_MEDIUM, 1 - a);
+      part.fluidMaterial.color.setRGB(0, 0, 0);
+      part.fluidMaterial.emissiveIntensity = 0.95;
+      part.fluidMaterial.envMapIntensity = 0;
+      part.fluidMaterial.opacity = 0.35 + 0.6 * a;
     }
-    // port icons
+    // port icons, and each port coloured by what is on it: its dye when fed, grey when open, dark when plugged
     for (const pid of PORTS) {
       const el = objs.portIcons[pid].element;
       const st = state.states[pid];
       const html = `${ICONS[st]}<span>${pid} · ${st}${st === 'FEED' ? ` ${state.flows[pid]} µL/min` : ''}</span>`;
       if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; el.className = `port-icon ${st.toLowerCase()}`; }
+      const part = chip.parts.get(pid);
+      const key = st === 'FEED' ? `F${DYE_OF_PORT[pid]}` : st;
+      if (part?.ringMaterial && part.portState !== key) {
+        part.portState = key;
+        const k = DYE_OF_PORT[pid];
+        if (st === 'FEED' && k !== undefined) col.setRGB(...DYE_RGB[k], THREE.SRGBColorSpace);
+        else col.setHex(st === 'VENT' ? 0x8c959f : 0x424a53);
+        for (const m of [part.ringMaterial, part.box.material, part.stl?.material]) if (m) { m.color.copy(col); m.emissive?.copy(col); }
+        part.stl?.children[0]?.material.color.copy(col);   // its outline (chip.js outlineOf)
+      }
     }
     // Module 2 box: lit while flow leaves p_mid
     const out = sol.ports.p_mid?.into_chip_ul_min ?? 0;
     const pm = sim.node.p_mid.c;
     objs.m2.tubeMat.emissive.copy(dyeColor(pm, col));
-    objs.m2.tubeMat.emissiveIntensity = out < -1e-6 ? 0.9 : 0.2;
-    objs.m2.boxMat.emissiveIntensity = out < -1e-6 ? 0.35 : 0.12;
+    objs.m2.tubeMat.emissiveIntensity = out < -1e-6 ? 0.7 * amount(pm) : 0;
+    objs.m2.boxMat.emissiveIntensity = out < -1e-6 ? 0.25 : 0.05;
     // diffusion disc while nothing flows
     const still = !Object.values(sol.channels).some((c) => c.flow_ul_min);
     objs.disc.visible = still && idleT > 60;
@@ -712,6 +731,18 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     // presenter view (twin/presenter.js)
     reset() { if (net) { sim = newSim(); simT = 0; idleT = 0; } },   // clear medium everywhere: dye starts at the feeds
     setSpeed(x) { speed = x; demo = false; renderPanel(); },
+    // twin/bench.js: dye only (shear warns, no block), the protocol is not followed, and the bench
+    // view advances the simulation itself (advance()) so it stays in step with its own timer.
+    setBench(on) {
+      benchMode = on;
+      demo = on;
+      follow = !on;
+      speed = on ? 0 : 100;
+      stopwatch = { running: false, t: 0 };
+      renderPanel();
+    },
+    get benchMode() { return benchMode; },
+    apply: (next, source = 'bench') => apply(next, source),
     flag: setFlag,
     check: (mode, states, flows) => safetyCheck(net, mode, states, flows, { cells: true }),
     get decisions() { return decisions; },

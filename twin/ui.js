@@ -1,20 +1,22 @@
 // Protocol picker, play/pause/step, speed, narration panel and timeline.
 import { reagentCss, tempCss, LIBRARY_COLOR, formatDuration } from './player.js';
+import { statusView } from './status.js';
 
+// Mid-tone colours: they read on the light timeline (twin/style.css).
 const COMMAND_COLORS = {
-  load: '#7dd3fc',
-  split: '#a78bfa',
-  pool: '#60a5fa',
+  load: '#218bff',
+  split: '#8250df',
+  pool: '#0969da',
   release: LIBRARY_COLOR,
-  valve: '#f87171',
-  collect: '#fde68a',
+  valve: '#cf222e',
+  collect: '#bf8700',
   harvest: LIBRARY_COLOR,
-  encapsulate: '#2dd4bf',
-  cure: '#a78bfa',
-  transfer: '#fda4af',
-  count: '#f0abfc',
-  pl_m1: '#c4b5fd', pl_m1_out: '#fda4af', pl_m1b: '#86efac', pl_m1b_out: '#fda4af',
-  pl_m2: '#2dd4bf', pl_m2_out: '#5eead4', pl_m3: '#7dd3fc', pl_roadmap: '#64748b',
+  encapsulate: '#1b9e8f',
+  cure: '#8250df',
+  transfer: '#e5534b',
+  count: '#a475f9',
+  module: '#0969da',
+  'hand-off': '#8c959f',
 };
 const MODULE_NAMES = { pipeline: 'Pipeline', m1: 'Module 1 · Culture', m1b: 'Module 1b · Cell prep', m2: 'Module 2 · Encapsulation', m3: 'Module 3 · Capsule wash', other: 'Other runs' };
 
@@ -30,7 +32,7 @@ export function commandColor(ev) {
   if (ev.command === 'exchange' || ev.command === 'mix') return reagentCss(ev.args.reagent);
   if (ev.command === 'culture') return reagentCss(ev.args.reagents?.[0]);
   if (ev.command === 'hold_temp') return tempCss(ev.args.temp_c);
-  return COMMAND_COLORS[ev.command] ?? '#9ca3af';
+  return COMMAND_COLORS[ev.command] ?? '#8c959f';
 }
 
 const $ = (id) => document.getElementById(id);
@@ -81,6 +83,31 @@ export function createUI(actions) {
   el.tabs.forEach((b) => b.addEventListener('click', () => {
     if (b.getAttribute('aria-pressed') !== 'true') actions.onModule?.(b.dataset.module);
   }));
+
+  // The Chips menu in the header.
+  const menu = $('chips-menu');
+  const trigger = menu.querySelector('.nav-trigger');
+  const list = menu.querySelector('.menu');
+  const items = () => [...list.querySelectorAll('button')].filter((b) => b.offsetParent !== null);
+  function openMenu(on) {
+    list.hidden = !on;
+    menu.classList.toggle('open', on);
+    trigger.setAttribute('aria-expanded', String(on));
+    if (on) (items().find((b) => b.getAttribute('aria-pressed') === 'true') ?? items()[0])?.focus();
+  }
+  trigger.addEventListener('click', (e) => { e.stopPropagation(); openMenu(list.hidden); });
+  list.addEventListener('click', (e) => { if (e.target.closest('button')) openMenu(false); });
+  document.addEventListener('pointerdown', (e) => { if (!list.hidden && !menu.contains(e.target)) openMenu(false); });
+  menu.addEventListener('keydown', (e) => {
+    if (list.hidden) return;
+    const all = items();
+    const i = all.indexOf(document.activeElement);
+    if (e.key === 'Escape') { e.preventDefault(); openMenu(false); trigger.focus(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); all[(i + 1) % all.length]?.focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); all[(i - 1 + all.length) % all.length]?.focus(); }
+    else return;
+    e.stopPropagation();
+  });
   el.views.forEach((b) => b.addEventListener('click', () => {
     if (b.disabled || b.getAttribute('aria-pressed') === 'true') return;
     actions.onView(b.dataset.view);
@@ -90,7 +117,8 @@ export function createUI(actions) {
     actions.onSeek(((e.clientX - r.left) / r.width) * total);
   });
   window.addEventListener('keydown', (e) => {
-    if (e.target instanceof HTMLSelectElement || e.metaKey || e.ctrlKey) return;
+    // Typing in a field (the bench demo's pump rate) or using a menu is not a shortcut.
+    if (e.target.closest?.('input, select, textarea, [contenteditable], .menu') || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.code === 'Space') { e.preventDefault(); actions.onPlayPause(); }
     else if (e.code === 'ArrowRight') { e.preventDefault(); actions.onStep(); }
     else if (e.key === '1') setSpeed(1);
@@ -182,6 +210,10 @@ export function createUI(actions) {
     setTab(module) {
       el.tabs.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.module === module)));
       document.body.dataset.module = module;
+      // The Chips menu names the chip on screen.
+      const item = list.querySelector(`[data-module="${module}"]`);
+      menu.classList.toggle('current', Boolean(item));
+      trigger.firstChild.textContent = item ? item.querySelector('span').textContent : 'Chips';
     },
 
     // Badges and the parameters panel from the chip spec's module and generator blocks.
@@ -189,37 +221,33 @@ export function createUI(actions) {
     // md: this chip's row in protocols/pipeline_status.md (twin/status.js), which wins for the badge.
     setChipInfo(spec, info = null, md = null) {
       const m = spec?.module;
-      const STATUS = { final: 'FINAL', draft: 'DRAFT', translated: 'TRANSLATED', missing: 'MISSING' };
-      const MD_CLASS = { BUILT: 'st-final', 'RT ONLY': 'st-translated', 'DUPLICATE-RETIRE': 'superseded', 'OFF-CHIP': 'st-draft' };
       if (md) {
-        el.printBadge.hidden = false;
-        el.printBadge.textContent = info?.built_for_demo ? 'Built for the dye demo' : 'Twin only';
-        el.printBadge.className = `badge ${info?.built_for_demo ? 'printed' : 'sim-only'}`;
+        const v = statusView(md.badge, md.detail);
+        el.printBadge.hidden = true;
         el.draftBadge.hidden = false;
-        el.draftBadge.textContent = `${md.badge}${md.detail ? ` · ${md.detail}` : ''}`;
-        el.draftBadge.className = `badge ${MD_CLASS[md.badge] ?? 'st-draft'}`;
+        el.draftBadge.textContent = v.text;
+        el.draftBadge.className = `badge eng-only ${v.cls}`;
         el.draftBadge.title = `protocols/pipeline_status.md: ${md.stage}: ${md.status}`;
       } else if (info) {
-        el.printBadge.hidden = false;
-        el.printBadge.textContent = info.built_for_demo ? 'Built for Sunday’s dye demo' : 'Twin only';
-        el.printBadge.className = `badge ${info.built_for_demo ? 'printed' : 'sim-only'}`;
+        const v = statusView(info.status, info.statusNote ?? '');
+        el.printBadge.hidden = true;
         el.draftBadge.hidden = false;
-        el.draftBadge.textContent = `${STATUS[info.status] ?? info.status}${info.statusNote ? ` · ${info.statusNote}` : ''}`;
-        el.draftBadge.className = `badge st-${info.status}`;
+        el.draftBadge.textContent = v.text;
+        el.draftBadge.className = `badge eng-only ${v.cls}`;
       } else if (m?.status === 'superseded') {
         el.printBadge.hidden = true;
         el.draftBadge.hidden = false;
         el.draftBadge.textContent = 'Superseded · reference only';
-        el.draftBadge.className = 'badge superseded';
+        el.draftBadge.className = 'badge eng-only superseded';
         el.draftBadge.title = m.note ?? `Replaced by ${m.superseded_by}`;
       } else {
         el.printBadge.hidden = !m;
         el.draftBadge.hidden = m?.status !== 'draft';
         el.draftBadge.textContent = 'Draft design';
-        el.draftBadge.className = 'badge draft';
+        el.draftBadge.className = 'badge eng-only draft';
         if (m) {
           el.printBadge.textContent = m.printed === false ? 'Designed · simulated · not printed this weekend' : 'Printed';
-          el.printBadge.className = `badge ${m.printed === false ? 'sim-only' : 'printed'}`;
+          el.printBadge.className = `badge eng-only ${m.printed === false ? 'sim-only' : 'printed'}`;
         }
       }
       const gen = spec?.generator;

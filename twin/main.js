@@ -13,12 +13,20 @@ import { createModule1View, CHIP_ID as M1V1 } from './module1.js';
 import { createLibraryView, LIB_CHIPS } from './library_modules.js';
 import { createPresenter } from './presenter.js';
 import { applyBlocks } from './blocks.js';
+import { createBench } from './bench.js';
+import { overviewHtml, chipCardHtml, homeStagesHtml } from './sidebar.js';
 
 const ROOT = '../'; // serve the repo root: python -m http.server, then open /twin/
 // twin/?present: the presenter view (twin/presenter.js), also what `python tools/demo.py` opens.
 const PRESENT = new URLSearchParams(location.search).has('present');
 if (PRESENT) document.body.classList.add('presenter');
 const setUrl = (hash) => { if (!PRESENT) history.replaceState(null, '', hash); }; // the presenter keeps its own #step=N
+// Engineering mode adds the run picker, solver tables, control loop, sizing panel and old drafts.
+// Off by default so the demo view stays clean; remembered per browser. Never on in the presenter.
+const ENG_KEY = 'twin-engineering';
+let eng = false;
+if (!PRESENT) { try { eng = localStorage.getItem(ENG_KEY) === '1'; } catch { eng = false; } }
+document.body.classList.toggle('eng', eng);
 
 const ctx = createScene(document.getElementById('viewport'));
 let chip = null;
@@ -29,7 +37,7 @@ let busy = false;
 let view = 'real';
 let displayManifest = null;
 let displayGroup = null;
-let module = null;          // 'pipeline' | 'm1v1' | 'cp' | 'enc' | 'm3v1' | 'm4' | 'm5' | 'old' (or m1, m1b, m2, m3) | 'other'
+let module = null;          // 'home' | 'pipeline' | 'bench' | 'm1v1' | 'cp' | 'enc' | 'm3v1' | 'm4' | 'm5' | 'old' (or m1, m1b, m2, m3) | 'other'
 let statusData = null;      // protocols/pipeline_status.md (twin/status.js)
 let pipelineLoaded = false;
 let cultureRun = false;
@@ -72,7 +80,8 @@ const PROMPT_ENTRY = {
   protocol_name: "Prompt to chip: cell prep and encapsulation (Yuvraj's library parts, cached)", operator: 'planner',
 };
 
-const inPipeline = () => module === 'pipeline';
+// The home page shows the pipeline scene beside its text.
+const inPipeline = () => module === 'pipeline' || module === 'home';
 const active = () => (inPipeline() ? pipeline : player);
 
 const ui = createUI({
@@ -95,16 +104,35 @@ const overlays = createOverlays();
 const m1 = createModule1View({ ctx, ui, overlays, root: ROOT, operatorKinds: PRESENT ? ['scripted'] : ['llm', 'scripted'] });
 m1.setHandlers({ onManual: () => player.setPlaying(false) });
 const lib = createLibraryView({ panel: document.getElementById('lib-panel') });
+// The sidebar's context block: the chip card, or the bench demo's controls.
+const sideContext = document.getElementById('side-context');
+const bench = createBench({ el: sideContext, m1, onOpenChip: () => showModule('m1v1') });
+sideContext.addEventListener('click', (e) => { if (e.target.closest('[data-open-bench]')) showModule('bench'); });
 
-// Side panels start just below the topbar, however many rows it wraps to, so the
-// SIMULATED HARDWARE badge is never hidden behind a panel.
+// The sidebar and panels start just below the header, however many rows it wraps to.
 const topbar = document.querySelector('.topbar');
 function placePanels() {
-  const bottom = topbar.getBoundingClientRect().bottom;
-  document.documentElement.style.setProperty('--panels-top', `${Math.max(84, Math.ceil(bottom + 12))}px`);
+  document.documentElement.style.setProperty('--header-bottom', `${Math.ceil(topbar.getBoundingClientRect().bottom)}px`);
 }
 new ResizeObserver(placePanels).observe(topbar);
 placePanels();
+
+const engToggle = document.getElementById('eng-toggle');
+engToggle.checked = eng;
+engToggle.addEventListener('change', () => setEng(engToggle.checked));
+function setEng(on) {
+  eng = on;
+  engToggle.checked = on;
+  document.body.classList.toggle('eng', on);
+  try { localStorage.setItem(ENG_KEY, on ? '1' : '0'); } catch { /* private window */ }
+  if (!on && (module === 'old' || module === 'other')) { showModule('pipeline'); return; }
+  reframe();
+}
+// Fit the view to the free screen area again (a panel appeared or went away).
+function reframe() {
+  if (inPipeline()) pipeline.frame();
+  else if (chip && view === 'real') ctx.frameChip(chip.footprint);
+}
 
 const player = new Player(ctx, {
   onEvent: (i, ev) => { if (!inPipeline()) { ui.setEvent(i, ev); m1.onEvent(i, ev, player.playing); lib.onEvent(i); } },
@@ -112,7 +140,7 @@ const player = new Player(ctx, {
     if (inPipeline()) return;
     ui.setTick(info);
     control.update(info.protocolT);
-    overlays.setDay(cultureRun ? info.protocolT : null, player.run?.total_duration_s ?? 0);
+    overlays.setDay(cultureRun && module !== 'bench' ? info.protocolT : null, player.run?.total_duration_s ?? 0);
     m1.onTick(info, player.playing);
     lib.update(); // runs right after the player draws the frame
   },
@@ -122,11 +150,30 @@ const player = new Player(ctx, {
 
 const pipeline = createPipeline3D(document.getElementById('pipeline'), ctx, {
   onOpenModule: (m, file) => showModule(m, file),
-  onPhase: (i, ev) => ui.setEvent(i, ev),
+  onPhase: (i, ev) => { ui.setEvent(i, ev); markStage(i); },
   onTick: (info) => ui.setTick(info),
-  onPlayState: (on) => ui.setPlaying(on),
+  onPlayState: (on) => { ui.setPlaying(on); if (!on && module === 'home') loopHome(); },
+});
+// On the home page the pipeline plays on a loop, with a pause between runs.
+let homeTimer = null;
+function loopHome() {
+  clearTimeout(homeTimer);
+  homeTimer = setTimeout(() => { if (module === 'home' && !pipeline.playing) pipeline.setPlaying(true); }, 2500);
+}
+const homeEl = document.getElementById('home');
+const homeStages = document.getElementById('home-stages');
+homeEl.addEventListener('click', (e) => {
+  const go = e.target.closest('[data-goto]');
+  if (go) { showModule(go.dataset.goto); return; }
+  const li = e.target.closest('li[data-open]');
+  if (li) showModule(li.dataset.open, li.dataset.file || null);
+});
+homeEl.addEventListener('keydown', (e) => {
+  const li = e.target.closest?.('li[data-open]');
+  if (li && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); li.click(); }
 });
 ctx.onFrame((dt) => pipeline.update(dt));
+ctx.onFrame(() => bench.update());   // before Module 1 draws, so the dye is on time
 ctx.onFrame((dt) => { if (!inPipeline()) m1.update(dt, player.playing); });
 
 ctx.attachScaleBar(document.getElementById('scalebar'));
@@ -139,7 +186,9 @@ window.__twin = {
   overlays,
   m1,
   lib,
+  bench,
   get pipelineData() { return pipelineData; },
+  setEng: (on) => setEng(on),
   showModule: (m, file) => showModule(m, file),
   get chip() { return chip; },
   get view() { return view; },
@@ -225,10 +274,14 @@ function runsFor(m) {
 
 // Pipeline view or one module's view.
 async function showModule(m, file = null) {
-  const wasPipeline = module === 'pipeline';
+  const was = module;
+  const wasPipeline = was === 'pipeline' || was === 'home';
   module = m;
   ui.setTab(tabOf(m));
-  if (m === 'pipeline') {
+  homeEl.hidden = m !== 'home';
+  if (was === 'bench' && m !== 'bench') bench.detach();
+  if (m === 'pipeline' || m === 'home') {
+    sideContext.replaceChildren();
     player.setPlaying(false);
     overlays.setDay(null);
     overlays.setNozzle(null);
@@ -240,13 +293,39 @@ async function showModule(m, file = null) {
     ui.setRun(pipeline.runLike(), pipeline.timeline());
     ui.setSizing(null);
     pipeline.refresh();
+    if (m === 'home') {
+      homeStages.innerHTML = homeStagesHtml({ slots: pipeline.slots, status: statusData });
+      if (!pipeline.playing) pipeline.setPlaying(true);
+      setUrl(location.pathname + location.search);
+    } else {
+      if (was === 'home') pipeline.setPlaying(false);
+      setUrl('#view=pipeline');
+    }
     ui.setPlaying(pipeline.playing);
-    setUrl('#view=pipeline');
     return;
   }
   pipeline.hide();
   if (chip) chip.group.visible = view !== 'display';
   if (displayGroup) displayGroup.visible = view === 'display';
+  if (m === 'bench') {
+    // Module 1 in real time beside the physical food-dye run (twin/bench.js).
+    const list = runsFor('m1v1');
+    if (!list.length) return;
+    const pick = list.find(PREFERRED.m1v1) ?? list[0];
+    ui.setRuns(list, pick.file);
+    player.setPlaying(false);
+    while (busy) await new Promise((r) => setTimeout(r, 30));
+    if (module !== 'bench') return;
+    await selectRun(pick.file);
+    if (module !== 'bench') return;
+    player.setPlaying(false);
+    overlays.setDay(null);
+    await setView('real');
+    bench.attach();
+    ctx.frameChip(chip.footprint);
+    setUrl('#view=bench');
+    return;
+  }
   const list = runsFor(m);
   if (!list.length) return;
   const pick = (file && list.find((r) => r.file === file)) ?? list.find(PREFERRED[m] ?? (() => true)) ?? list[0];
@@ -314,17 +393,26 @@ async function ensurePipeline() {
   pipelineLoaded = true;
 }
 
-// Above the scene: the CapSeq / TIP-seq toggle and what the scene shows.
+// The sidebar on the overview: the CapSeq / TIP-seq switch and every stage in order.
 const pipelineBar = document.getElementById('pipeline');
 function renderPipelineBar() {
   const current = pipelineData?.pipe?.variant ?? chosenVariant;
-  pipelineBar.innerHTML = `
-    <div class="p3-toggle" role="group" aria-label="Assay">${VARIANTS.map((v) => `<button type="button" data-variant="${v.variant}"
-      aria-pressed="${v.variant === current}">${v.label}${v.variant === chosenVariant ? ' <small>chosen</small>' : ''}</button>`).join('')}</div>
-    <p class="p3-legend">Chips at real scale (30 × 20 mm), 1/16 inch tubes; dots not to scale. Statuses: protocols/pipeline_status.md.
-      <span class="badge st-missing">NEXT</span> not on a chip yet · <span class="badge st-draft">BENCH</span> bench step</p>`;
+  pipelineBar.innerHTML = overviewHtml({ variants: VARIANTS, current, chosen: chosenVariant, slots: pipeline.slots,
+    pipe: pipelineData?.pipe, status: statusData });
+  markStage(pipeline.currentIndex);
 }
+// The stage the pipeline is playing stands out in the list.
+function markStage(i) {
+  const s = pipeline.phaseSlot(i);
+  pipelineBar.querySelectorAll('.stages li[data-slot]').forEach((li) => li.classList.toggle('now', Boolean(s) && Number(li.dataset.slot) === s.k));
+}
+pipelineBar.addEventListener('keydown', (e) => {
+  const li = e.target.closest?.('li[data-open]');
+  if (li && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); li.click(); }
+});
 pipelineBar.addEventListener('click', async (e) => {
+  const li = e.target.closest('li[data-open]');
+  if (li) { showModule(li.dataset.open, li.dataset.file || null); return; }
   const b = e.target.closest('[data-variant]');
   if (!b) return;
   const v = VARIANTS.find((x) => x.variant === b.dataset.variant);
@@ -381,6 +469,18 @@ async function module3Run(entry) {
     operator: 'planner', placeholder: true, synthetic: true, total_duration_s: t + 60, events };
 }
 
+// The sidebar on a chip view: what the chip is, its status and what it does.
+function renderChipCard() {
+  if (!chip || !chipSpec || module === 'bench' || module === 'pipeline') return;
+  const entries = pipelineData?.entries ?? [];
+  const k = entries.findIndex((e) => e.spec?.id === chipSpec.id);
+  const variant = VARIANTS.find((v) => v.variant === pipelineData?.pipe?.variant)?.label ?? '';
+  sideContext.innerHTML = chipCardHtml({
+    spec: chipSpec, entry: k >= 0 ? entries[k] : null, md: statusData?.byChip.get(chipSpec.id) ?? null,
+    stage: k >= 0 ? { k, n: entries.length, variant } : null, retired: Boolean(statusData?.retired.has(chipSpec.id)),
+  });
+}
+
 let pendingFile = null;
 
 async function selectRun(file) {
@@ -408,6 +508,7 @@ async function selectRun(file) {
     // and Szonja's chips, whose own design notes size them).
     ui.setSizing(chip.spec.module && !run.synthetic ? run.sizing ?? null : null);
     player.refresh(); // re-send the current event now the timeline exists
+    renderChipCard();
     setUrl(`#run=${encodeURIComponent(entry.file)}`);
   } finally {
     busy = false;
@@ -445,8 +546,12 @@ async function start() {
     const params = new URLSearchParams(location.hash.slice(1));
     const wanted = decodeURIComponent(params.get('run') ?? '');
     const entry = runs.find((r) => r.file === wanted);
+    const tab = entry ? tabOf(moduleOf(entry) ?? 'other') : null;
+    if (entry && (tab === 'old' || tab === 'other') && !eng) setEng(true); // a link to an old run is an engineer's
     if (entry) await showModule(moduleOf(entry) ?? 'other', entry.file);
-    else await showModule('pipeline');
+    else if (params.get('view') === 'bench') await showModule('bench');
+    else if (params.get('view') === 'pipeline') await showModule('pipeline');
+    else await showModule('home');
     window.__twin.ready = true;
   } catch (err) {
     console.warn(err);

@@ -7,9 +7,9 @@
 //
 // Capsules are instanced meshes, so a real-scale chip can show all 10,000 of them.
 import * as THREE from 'three';
-import { ORDER, VALVE_COLORS } from './chip.js';
+import { ORDER, VALVE_COLORS, CHANNEL } from './chip.js';
 
-export const LIBRARY_COLOR = '#ff5fd2';
+export const LIBRARY_COLOR = '#bf3989';
 const CARRIER = 'carrier';
 
 // ------------------------------------------------------------------ colours
@@ -24,8 +24,8 @@ function hashHue(name) {
 }
 
 // Fixed colours for things people recognise; everything else gets a hashed hue.
-const NAMED = { oil: '#fbbf24', photoinitiator: '#a78bfa', dextran_buffer: '#fda4af', quench_medium: '#86efac' };
-const FATE = { neuron: '#a78bfa', astrocyte: '#34d399', microglia: '#f59e0b' };
+const NAMED = { oil: '#d4a72c', photoinitiator: '#8250df', dextran_buffer: '#f08a7e', quench_medium: '#4ac26b' };
+const FATE = { neuron: '#8250df', astrocyte: '#2da44e', microglia: '#d4a72c' };
 export function fateCss(chamberId) {
   const key = Object.keys(FATE).find((k) => chamberId.includes(k));
   return key ? FATE[key] : reagentCss(chamberId);
@@ -568,9 +568,9 @@ export class Player {
       }
     }
     for (const ch of this.chip.channels) {
-      ch.material.emissive.setHex(0x3b82f6);
-      ch.material.emissiveIntensity = 0.35;
-      ch.material.opacity = 0.5;
+      ch.material.emissive.setHex(CHANNEL.emissive);
+      ch.material.emissiveIntensity = CHANNEL.emissiveIntensity;
+      ch.material.opacity = CHANNEL.opacity;
     }
     for (const b of this.blobs) b.visible = false;
 
@@ -608,9 +608,9 @@ export class Player {
       }
     }
     for (const st of this.chip.stages.values()) {
-      st.material.emissive.setHex(state.emulsion ? 0xfbbf24 : 0x3b82f6);
-      st.material.emissiveIntensity = state.emulsion ? 0.6 : 0.3;
-      st.blockMat.emissiveIntensity = 0.15;
+      st.material.emissive.setHex(state.emulsion ? 0xbf8700 : CHANNEL.emissive);
+      st.material.emissiveIntensity = state.emulsion ? 0.45 : CHANNEL.emissiveIntensity;
+      st.blockMat.emissiveIntensity = 0.08;
     }
     for (const f of this.chip.features.values()) {
       f.material.color.setHex(f.color);
@@ -632,8 +632,8 @@ export class Player {
   #pulseChannels(channels, color, strength) {
     for (const ch of channels) {
       ch.material.emissive.copy(color);
-      ch.material.emissiveIntensity = 0.35 + 1.4 * strength;
-      ch.material.opacity = 0.5 + 0.4 * strength;
+      ch.material.emissiveIntensity = CHANNEL.emissiveIntensity + 1.1 * strength;
+      ch.material.opacity = CHANNEL.opacity + 0.35 * strength;
     }
   }
 
