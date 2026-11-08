@@ -4,7 +4,7 @@
   "variant": "tipseq",
   "name": "TIP-seq (chromatin DNA): culture -> permeabilise + tagment (bench) -> capsules -> barcoding in oil -> release -> index PCR",
   "placeholder": true,
-  "description": "TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + single-copy barcoding chip (read-only); its own encapsulator (stage A) is retired, so its capsules come from spc_demo_v1, the only encapsulation geometry that can be printed. Release (module5_v1) comes BEFORE index PCR (module4_v1), as TIP-seq does; module5_v1's design note says either order works. protocols/pipeline_status.md lists sctip_spc_v1 as retired in the CapSeq plan; it is used here because this variant needs its barcoding in oil.",
+  "description": "An alternative to MJ's plan, kept for comparison. TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + single-copy barcoding chip (read-only); its own encapsulator (stage A) is retired, so its capsules come from spc_demo_v1, the only encapsulation geometry that can be printed. Release (module5_v1) comes BEFORE index PCR (module4_v1), as TIP-seq does; module5_v1's design note says either order works. protocols/pipeline_status.md lists sctip_spc_v1 as retired in the CapSeq plan; it is used here because this variant needs its barcoding in oil.",
   "modules": [
     {
       "module": "module1",

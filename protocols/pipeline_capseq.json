@@ -1,9 +1,9 @@
 {
   "kind": "pipeline",
   "id": "pipeline_capseq",
-  "name": "CapSeq (RNA): culture -> cell prep -> encapsulation -> load, lysis, wash, reverse transcription (one trap) -> sublibrary PCR -> release and cleanup -> SPRI and QC (off-chip) (+ barcoding and hairpin placeholders)",
+  "name": "CapSeq (RNA): culture -> cell prep -> encapsulation -> load, lysis, wash, reverse transcription (one trap) -> sublibrary PCR -> release and cleanup -> SPRI and QC (off-chip)",
   "placeholder": true,
-  "description": "One winner per job, all on the 30 x 20 mm, 0.3 mm deep, single-layer envelope (resin print + hot emboss, blocks from contracts/blocks.json). Culture: module1_v1. Cell prep: cell_prep_v1. Encapsulation: spc_demo_v1 (0.2 mm orifice, so capsules of about 260 um, not 135 um; curing off-chip). Load, lysis, wash, reverse transcription: module3_v1_translated, steps 1-9 of protocols/module3_v1.json. Split-and-pool barcoding is dropped and there is no separate barcoding or RT module: RT is one isothermal hold (42 C, plain poly(dT)) inside module3's capsule trap, so module3 hands capsules straight to Module 4. Module 4 and Module 5 are built. SPRI size selection and QC (Qubit, TapeStation, qPCR) are off-chip and have no protocol yet. Retired, kept for reference only: cad/m1_culture_spec.json, cad/m1b_cellprep_spec.json, cad/m3_wash_spec.json (all marked superseded in their module block), cad/m2_encapsulation_spec.json (cannot make capsules at this scale; still marked draft, not superseded), stage A of chip/sctip_spc_v1.json, and dissociation inside module1 (steps 175-178 of protocols/module1_v1.json duplicate cell_prep_v1). Not in the chain: chip/ipsc_to_mgl_chip_v1.json is a separate experiment. Retention features cannot be printed at this floor, so capsule retention needs a bought mesh insert or sedimentation. One TBC remains: Module 4 has no capsule outlet port, so the Module 4 side of module4_to_module5 cannot be named. Map and open joins: protocols/pipeline_status.md. CAPSEQ VARIANT: split-and-pool barcoding (BC2, BC3) and the hairpin ligation with its pooled wash sit between the capsule trap and the sublibrary split as PLACEHOLDERS (no chip): MJ dropped them in fcc6ef2, so the cells keep only their per-lane barcode and the data is lane-level; they come back only if the team wants single-cell resolution (protocols/pipeline_status.md).",
+  "description": "One winner per job, all on the 30 x 20 mm, 0.3 mm deep, single-layer envelope (resin print + hot emboss, blocks from contracts/blocks.json). Culture: module1_v1. Cell prep: cell_prep_v1. Encapsulation: spc_demo_v1 (0.2 mm orifice, so capsules of about 260 um, not 135 um; curing off-chip). Load, lysis, wash, reverse transcription: module3_v1_translated, steps 1-9 of protocols/module3_v1.json. Split-and-pool barcoding is dropped and there is no separate barcoding or RT module: RT is one isothermal hold (42 C, plain poly(dT)) inside module3's capsule trap, so module3 hands capsules straight to Module 4. Module 4 and Module 5 are built. SPRI size selection and QC (Qubit, TapeStation, qPCR) are off-chip and have no protocol yet. Retired, kept for reference only: cad/m1_culture_spec.json, cad/m1b_cellprep_spec.json, cad/m3_wash_spec.json (all marked superseded in their module block), cad/m2_encapsulation_spec.json (cannot make capsules at this scale; still marked draft, not superseded), stage A of chip/sctip_spc_v1.json, and dissociation inside module1 (steps 175-178 of protocols/module1_v1.json duplicate cell_prep_v1). Not in the chain: chip/ipsc_to_mgl_chip_v1.json is a separate experiment. Retention features cannot be printed at this floor, so capsule retention needs a bought mesh insert or sedimentation. One TBC remains: Module 4 has no capsule outlet port, so the Module 4 side of module4_to_module5 cannot be named. Map and open joins: protocols/pipeline_status.md. CAPSEQ VARIANT: MJ's chain as it is. Barcoding is not a stage of its own (fcc6ef2): the cells carry a per-lane barcode from Module 1, reverse transcription in Module 3's capsule trap adds none, and Module 4's index PCR adds the sublibrary index, so the data is lane-level, not single-cell (protocols/pipeline_status.md).",
   "modules": [
     {
       "module": "module1",
@@ -69,32 +69,6 @@
       },
       "built_for_demo": false,
       "note": "The one capsule trap, and the one place RT runs (steps 5-7: RT mix, 42 C hold, wash; no barcode or UMI added, cells already carry a per-lane barcode). Wins over m2_trap_1 and m3_wash_v1 (retired). Her file is the source of truth. Built for 70 um capsules and a 650,000 count; encapsulation makes about 260 um capsules."
-    },
-    {
-      "module": "barcoding",
-      "name": "Barcoding: split and pool (BC2, BC3)",
-      "status": "missing",
-      "status_note": "placeholder · dropped by MJ for now",
-      "owner": "TBC",
-      "build": {
-        "method": "TBC",
-        "connector": "TBC"
-      },
-      "built_for_demo": false,
-      "note": "Placeholder. MJ dropped split-and-pool barcoding (fcc6ef2): the cells keep only the per-lane barcode they get in Module 1, so the data is lane-level, not single-cell. This stage comes back only if the team decides single-cell resolution is needed (open question in protocols/pipeline_status.md)."
-    },
-    {
-      "module": "hairpin",
-      "name": "Hairpin ligation + pooled wash",
-      "status": "missing",
-      "status_note": "placeholder · dropped with the barcoding",
-      "owner": "TBC",
-      "build": {
-        "method": "TBC",
-        "connector": "TBC"
-      },
-      "built_for_demo": false,
-      "note": "Placeholder: the hairpin ligation after the last barcode round and the wash of the pooled capsules. Dropped together with split-and-pool barcoding (fcc6ef2)."
     },
     {
       "module": "module4",
@@ -189,49 +163,12 @@
       "note": "Capsules are collected and cured off-chip in a tube, then loaded through Module 3's pre-filter into main_trap. Undocumented: breaking the emulsion and washing off the oil. Size does not match: about 260 um capsules against a 70 um design and a 100 um pre-filter gap."
     },
     {
-      "id": "module3_to_barcoding",
+      "id": "module3_to_module4",
       "carries": "capsules",
+      "after_step": 9,
       "from": {
         "module": "module3",
         "port": "to_split_tree"
-      },
-      "to": {
-        "module": "barcoding",
-        "port": "TBC"
-      },
-      "connector": {
-        "from": "drilled_0_8mm_5mm_pitch",
-        "to": "TBC",
-        "status": "unknown",
-        "warning": "Barcoding is a placeholder: no chip, so no port style yet."
-      },
-      "note": "Washed capsules (after RT in the trap) into the split tree."
-    },
-    {
-      "id": "barcoding_to_hairpin",
-      "carries": "capsules",
-      "from": {
-        "module": "barcoding",
-        "port": "TBC"
-      },
-      "to": {
-        "module": "hairpin",
-        "port": "TBC"
-      },
-      "connector": {
-        "from": "TBC",
-        "to": "TBC",
-        "status": "unknown",
-        "warning": "Both are placeholders."
-      },
-      "note": "Pooled capsules after the last barcode round."
-    },
-    {
-      "id": "hairpin_to_module4",
-      "carries": "capsules",
-      "from": {
-        "module": "hairpin",
-        "port": "TBC"
       },
       "to": {
         "module": "module4",
@@ -244,10 +181,9 @@
         "note": "Through an off-chip rotary valve, one chamber at a time, in the order A B C D D C B A, twice."
       },
       "connector": {
-        "from": "TBC",
+        "from": "drilled_0_8mm_5mm_pitch",
         "to": "drilled_0_8mm_5mm_pitch",
-        "status": "unknown",
-        "warning": "The hairpin step is a placeholder; Module 4 takes 0.8 mm drilled ports. The rotary valve sits between them, so this is tubing either way."
+        "status": "match"
       },
       "note": "RT already ran inside Module 3's trap, so the RT-treated, resuspended bed leaves in one counted suspension (76.9 uL after step 9). Module 4 draws only 16 x 0.6 uL = 9.6 uL of it, so a concentration step is undocumented. The tubing and valve are not on either chip."
     },

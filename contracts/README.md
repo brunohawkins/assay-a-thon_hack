@@ -286,10 +286,12 @@ which outlet feeds which inlet; `ports` lists several inlets at once (Module 4's
 hand-off between two modules carries a `connector` block (`match`, `mismatch`, or `unknown`
 when either side is TBC, with a `warning`: where the demo needs an adapter).
 
-**Two assays.** `pipeline_capseq.json` (CapSeq, RNA: MJ's chain plus the barcoding and hairpin
-placeholders he dropped) and `pipeline_tipseq.json` (TIP-seq, chromatin DNA: a bench
-permeabilise + tagment placeholder, `sctip_spc_v1`, release before index PCR). Both are built
-from MJ's chain by `tools/build_assay_variants.py --base <his pipeline file>`.
+**Two assays.** `pipeline_capseq.json` is the plan: CapSeq, RNA, MJ's chain as it is. Barcoding
+is not a stage of its own (fcc6ef2): the cells carry a per-lane barcode from Module 1, reverse
+transcription in Module 3's capsule trap adds none, and Module 4's index PCR adds the sublibrary
+index. `pipeline_tipseq.json` is an alternative kept for comparison (TIP-seq, chromatin DNA: a bench
+permeabilise + tagment placeholder, the retired `sctip_spc_v1`, release before index PCR). Both are
+built from MJ's chain by `tools/build_assay_variants.py --base <MJ's pipeline file>`.
 `pipeline_mvp.json` is a copy of the chosen one (`"same_as"`, `"variant"`):
 
 ```

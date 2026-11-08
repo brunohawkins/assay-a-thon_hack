@@ -6,11 +6,10 @@
 MJ maintains the chain of chips (which chip does which job, the ports, the build blocks). The two
 assays are derived from it:
 
-  protocols/pipeline_capseq.json  CapSeq, RNA: MJ's chain, plus two PLACEHOLDER stages between the
-      capsule trap (module3) and the sublibrary split (module4): split-and-pool barcoding (BC2, BC3)
-      and the hairpin ligation with its pooled wash. MJ dropped both (fcc6ef2); they come back only
-      if the team wants single-cell resolution (protocols/pipeline_status.md).
-  protocols/pipeline_tipseq.json  TIP-seq, chromatin DNA: culture -> permeabilise + tagment (a bench
+  protocols/pipeline_capseq.json  CapSeq, RNA: MJ's chain as it is. Barcoding is not a stage of its
+      own (MJ, fcc6ef2): the cells carry a per-lane barcode from Module 1, reverse transcription in
+      Module 3's capsule trap adds none, and Module 4's index PCR adds the sublibrary index.
+  protocols/pipeline_tipseq.json  TIP-seq, chromatin DNA, an ALTERNATIVE to MJ's plan: culture -> permeabilise + tagment (a bench
       PLACEHOLDER) -> encapsulation (spc_demo_v1) -> barcoding in oil (sctip_spc_v1) -> release
       (module5) -> index PCR (module4), release before PCR as TIP-seq does. Module entries are
       copied from MJ's chain; sctip_spc_v1 is used read-only.
@@ -41,51 +40,19 @@ def unknown(a: str, b: str, why: str) -> dict:
 
 
 def capseq(base: dict) -> dict:
+    """MJ's chain as it is. Barcoding is not a stage of its own (MJ, fcc6ef2): the cells carry a
+    per-lane barcode from Module 1, reverse transcription in Module 3's trap adds none, and Module
+    4's index PCR adds the sublibrary index."""
+    if any(m["module"] in ("barcoding", "hairpin") for m in base["modules"]):
+        raise SystemExit("this base still has the old barcoding / hairpin placeholder stages; build from MJ's chain: "
+                         "git show origin/mj/ipsc-to-mgl-end-to-end:protocols/pipeline_mvp.json > mj.json, then --base mj.json")
     out = copy.deepcopy(base)
     out.pop("same_as", None)
-    out.update(id="pipeline_capseq", variant="capseq",
-               name="CapSeq (RNA): " + base["name"].split(": ", 1)[-1] + " (+ barcoding and hairpin placeholders)")
-    out["description"] = (base.get("description", "") + " CAPSEQ VARIANT: split-and-pool barcoding (BC2, BC3) and the hairpin "
-        "ligation with its pooled wash sit between the capsule trap and the sublibrary split as PLACEHOLDERS (no chip): MJ dropped "
-        "them in fcc6ef2, so the cells keep only their per-lane barcode and the data is lane-level; they come back only if the team "
-        "wants single-cell resolution (protocols/pipeline_status.md).").strip()
-    mods = [m for m in out["modules"] if m["module"] not in ("barcoding", "hairpin")]
-    i = next(k for k, m in enumerate(mods) if m["module"] == "module3")
-    mods[i + 1:i + 1] = [
-        {"module": "barcoding", "name": "Barcoding: split and pool (BC2, BC3)", "status": "missing",
-         "status_note": "placeholder · dropped by MJ for now", "owner": "TBC", "build": {"method": "TBC", "connector": "TBC"},
-         "built_for_demo": False,
-         "note": "Placeholder. MJ dropped split-and-pool barcoding (fcc6ef2): the cells keep only the per-lane barcode they get in "
-                 "Module 1, so the data is lane-level, not single-cell. This stage comes back only if the team decides single-cell "
-                 "resolution is needed (open question in protocols/pipeline_status.md)."},
-        {"module": "hairpin", "name": "Hairpin ligation + pooled wash", "status": "missing",
-         "status_note": "placeholder · dropped with the barcoding", "owner": "TBC", "build": {"method": "TBC", "connector": "TBC"},
-         "built_for_demo": False,
-         "note": "Placeholder: the hairpin ligation after the last barcode round and the wash of the pooled capsules. Dropped together "
-                 "with split-and-pool barcoding (fcc6ef2)."},
-    ]
-    out["modules"] = mods
-    nxt = mods[i + 3]["module"]  # what followed module3 in MJ's chain
-    hands = []
-    for h in out["handoffs"]:
-        if h["from"].get("module") in ("barcoding", "hairpin") or h["to"].get("module") in ("barcoding", "hairpin"):
-            continue  # an earlier placeholder chain
-        if h["from"].get("module") == "module3" and h["to"].get("module") == nxt:
-            to_end = {k: v for k, v in h["to"].items()}
-            hands.append({"id": "module3_to_barcoding", "carries": h["carries"], "from": copy.deepcopy(h["from"]),
-                          "to": {"module": "barcoding", "port": "TBC"},
-                          "connector": unknown(DRILL, "TBC", "Barcoding is a placeholder: no chip, so no port style yet."),
-                          "note": "Washed capsules (after RT in the trap) into the split tree."})
-            hands.append({"id": "barcoding_to_hairpin", "carries": "capsules", "from": {"module": "barcoding", "port": "TBC"},
-                          "to": {"module": "hairpin", "port": "TBC"}, "connector": unknown("TBC", "TBC", "Both are placeholders."),
-                          "note": "Pooled capsules after the last barcode round."})
-            hands.append({"id": f"hairpin_to_{nxt}", "carries": h["carries"], "from": {"module": "hairpin", "port": "TBC"},
-                          "to": to_end, "connector": unknown("TBC", DRILL, "The hairpin step is a placeholder; Module 4 takes 0.8 mm "
-                          "drilled ports. The rotary valve sits between them, so this is tubing either way."),
-                          "note": h.get("note", "")})
-            continue
-        hands.append(copy.deepcopy(h))
-    out["handoffs"] = hands
+    out.update(id="pipeline_capseq", variant="capseq", name="CapSeq (RNA): " + base["name"].split(": ", 1)[-1])
+    out["description"] = (base.get("description", "") + " CAPSEQ VARIANT: MJ's chain as it is. Barcoding is not a stage of its "
+        "own (fcc6ef2): the cells carry a per-lane barcode from Module 1, reverse transcription in Module 3's capsule trap adds "
+        "none, and Module 4's index PCR adds the sublibrary index, so the data is lane-level, not single-cell "
+        "(protocols/pipeline_status.md).").strip()
     return out
 
 
@@ -102,7 +69,7 @@ def tipseq(base: dict) -> dict:
         "kind": "pipeline", "id": "pipeline_tipseq", "variant": "tipseq",
         "name": "TIP-seq (chromatin DNA): culture -> permeabilise + tagment (bench) -> capsules -> barcoding in oil -> release -> index PCR",
         "placeholder": True,
-        "description": ("TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + "
+        "description": ("An alternative to MJ's plan, kept for comparison. TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + "
             "single-copy barcoding chip (read-only); its own encapsulator (stage A) is retired, so its capsules come from spc_demo_v1, "
             "the only encapsulation geometry that can be printed. Release (module5_v1) comes BEFORE index PCR (module4_v1), as TIP-seq "
             "does; module5_v1's design note says either order works. protocols/pipeline_status.md lists sctip_spc_v1 as retired in the "

@@ -37,12 +37,21 @@ class Variants(unittest.TestCase):
         self.assertEqual(errors(CAP), [])
         self.assertEqual(errors(TIP), [])
 
-    def test_capseq_chain_with_its_two_placeholders(self):
+    def test_capseq_is_mjs_chain_with_no_barcoding_stage(self):
+        # MJ, fcc6ef2: the cells carry a per-lane barcode from Module 1, RT in Module 3's trap adds
+        # none, Module 4's index PCR adds the sublibrary index. No barcoding or hairpin stage.
         self.assertEqual(chips(CAP), ["chip/module1_v1.json", "chip/cell_prep_v1.json", "chip/spc_demo_v1.json",
-                                      "chip/module3_v1_translated.json", "(missing)", "(missing)",
-                                      "chip/module4_v1.json", "chip/module5_v1.json"])
-        ghosts = [m["name"] for m in CAP["modules"] if m["status"] == "missing"]
-        self.assertEqual(ghosts, ["Barcoding: split and pool (BC2, BC3)", "Hairpin ligation + pooled wash"])
+                                      "chip/module3_v1_translated.json", "chip/module4_v1.json", "chip/module5_v1.json"])
+        self.assertFalse([m for m in CAP["modules"] if m["status"] in ("missing", "bench")])
+        straight = [(h["from"].get("module"), h["to"].get("module")) for h in CAP["handoffs"]]
+        self.assertIn(("module3", "module4"), straight)
+
+    def test_capseq_refuses_a_base_with_the_old_placeholders(self):
+        import build_assay_variants
+        old = copy.deepcopy(CAP)
+        old["modules"].insert(4, {"module": "barcoding", "name": "Barcoding", "status": "missing"})
+        with self.assertRaises(SystemExit):
+            build_assay_variants.capseq(old)
 
     def test_tipseq_releases_before_index_pcr(self):
         self.assertEqual(chips(TIP), ["chip/module1_v1.json", "(bench)", "chip/spc_demo_v1.json", "chip/sctip_spc_v1.json",
