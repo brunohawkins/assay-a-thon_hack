@@ -146,17 +146,17 @@
    },
    "pressure_pa": {
     "p_mid": 0.0,
-    "n_cx": 1.334824,
-    "g_cx": 1.619279,
-    "a_cx": 1.619279,
-    "j_mid": 0.669199,
-    "p_in": 2.557169,
-    "p_g_in": 2.471641,
-    "p_a_in": 2.471604,
-    "p_g_out": 1.619279,
-    "p_a_out": 1.619279
+    "n_cx": 1.318814,
+    "g_cx": 2.774629,
+    "a_cx": 2.774629,
+    "j_mid": 0.661189,
+    "p_in": 2.526162,
+    "p_g_in": 5.574582,
+    "p_a_in": 5.574545,
+    "p_g_out": 2.774629,
+    "p_a_out": 2.774629
    },
-   "max_pressure_mbar": 0.025572,
+   "max_pressure_mbar": 0.055746,
    "routing": {
     "inflow_mix": {
      "n_cx": {
@@ -169,9 +169,9 @@
       "p_a_in": 1.0
      },
      "j_mid": {
-      "g_cx": 0.333333,
       "a_cx": 0.333333,
-      "n_cx": 0.333333
+      "n_cx": 0.333333,
+      "g_cx": 0.333333
      },
      "p_in": {
       "p_in": 1.0
@@ -183,9 +183,9 @@
       "p_a_in": 1.0
      },
      "p_mid": {
-      "g_cx": 0.333333,
       "a_cx": 0.333333,
-      "n_cx": 0.333333
+      "n_cx": 0.333333,
+      "g_cx": 0.333333
      }
     },
     "foreign_medium": {}
@@ -337,16 +337,16 @@
    "pressure_pa": {
     "p_g_out": 0.0,
     "p_a_out": 0.0,
-    "n_cx": 1.608394,
-    "g_cx": 0.46773,
-    "a_cx": 0.46773,
-    "j_mid": 0.94277,
-    "p_in": 2.83074,
-    "p_g_in": 0.46773,
-    "p_a_in": 0.46773,
-    "p_mid": 0.94277
+    "n_cx": 3.155354,
+    "g_cx": 1.441008,
+    "a_cx": 1.441008,
+    "j_mid": 2.497728,
+    "p_in": 4.362701,
+    "p_g_in": 1.441008,
+    "p_a_in": 1.441008,
+    "p_mid": 2.497728
    },
-   "max_pressure_mbar": 0.028307,
+   "max_pressure_mbar": 0.043627,
    "routing": {
     "inflow_mix": {
      "n_cx": {
@@ -387,7 +387,7 @@
     "p_in": {
      "state": "VENT",
      "set_ul_min": 0.0,
-     "into_chip_ul_min": -1.19573
+     "into_chip_ul_min": -1.742475
     },
     "p_g_in": {
      "state": "FEED",
@@ -412,17 +412,17 @@
     "p_a_out": {
      "state": "VENT",
      "set_ul_min": 0.0,
-     "into_chip_ul_min": -1.19727
+     "into_chip_ul_min": -0.650525
     }
    },
    "channels": {
     "ch_in_n": {
-     "flow_ul_min": -1.19573,
+     "flow_ul_min": -1.742475,
      "direction": "n_cx -> p_in",
-     "shear_dyn_cm2": 0.053144,
+     "shear_dyn_cm2": 0.077443,
      "length_mm": 4.397,
      "volume_ul": 0.2638,
-     "velocity_mm_s": 0.33215,
+     "velocity_mm_s": 0.48402,
      "geometry": "DXF"
     },
     "ch_gin_g": {
@@ -444,12 +444,12 @@
      "geometry": "DXF"
     },
     "ch_n_j": {
-     "flow_ul_min": -1.19573,
+     "flow_ul_min": -1.742475,
      "direction": "j_mid -> n_cx",
-     "shear_dyn_cm2": 0.053144,
+     "shear_dyn_cm2": 0.077443,
      "length_mm": 2.346,
      "volume_ul": 0.1407,
-     "velocity_mm_s": 0.33215,
+     "velocity_mm_s": 0.48402,
      "geometry": "DXF"
     },
     "ch_g_j": {
@@ -462,12 +462,12 @@
      "geometry": "DXF"
     },
     "ch_a_j": {
-     "flow_ul_min": -1.19727,
+     "flow_ul_min": -0.650525,
      "direction": "j_mid -> a_cx",
-     "shear_dyn_cm2": 0.053216,
+     "shear_dyn_cm2": 0.028914,
      "length_mm": 3.409,
      "volume_ul": 0.2045,
-     "velocity_mm_s": 0.3326,
+     "velocity_mm_s": 0.18071,
      "geometry": "DXF"
     },
     "ch_j_mid": {
@@ -489,19 +489,19 @@
      "geometry": "DXF"
     },
     "ch_a_out": {
-     "flow_ul_min": 1.19727,
+     "flow_ul_min": 0.650525,
      "direction": "a_cx -> p_a_out",
-     "shear_dyn_cm2": 0.053212,
+     "shear_dyn_cm2": 0.028912,
      "length_mm": 3.354,
      "volume_ul": 0.2013,
-     "velocity_mm_s": 0.33258,
+     "velocity_mm_s": 0.1807,
      "geometry": "DXF"
     }
    },
    "chambers": {
     "n_cx": {
-     "throughput_ul_min": 1.19573,
-     "shear_dyn_cm2": 0.004246,
+     "throughput_ul_min": 1.742475,
+     "shear_dyn_cm2": 0.006188,
      "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
@@ -512,8 +512,8 @@
      "volume_ul": 3.132
     },
     "a_cx": {
-     "throughput_ul_min": 1.19727,
-     "shear_dyn_cm2": 0.004252,
+     "throughput_ul_min": 0.650525,
+     "shear_dyn_cm2": 0.00231,
      "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
@@ -527,16 +527,16 @@
    "pressure_pa": {
     "p_in": 0.0,
     "p_a_out": 0.0,
-    "n_cx": 0.610779,
-    "g_cx": 1.893456,
-    "a_cx": 0.468032,
-    "j_mid": 0.943377,
-    "p_g_in": 2.745819,
-    "p_a_in": 0.468032,
-    "p_mid": 0.943377,
-    "p_g_out": 1.893456
+    "n_cx": 0.879136,
+    "g_cx": 3.47143,
+    "a_cx": 0.783461,
+    "j_mid": 1.35799,
+    "p_g_in": 6.271383,
+    "p_a_in": 0.783461,
+    "p_mid": 1.35799,
+    "p_g_out": 3.47143
    },
-   "max_pressure_mbar": 0.027458,
+   "max_pressure_mbar": 0.062714,
    "routing": {
     "inflow_mix": {
      "n_cx": {
@@ -577,7 +577,7 @@
     "p_in": {
      "state": "VENT",
      "set_ul_min": 0.0,
-     "into_chip_ul_min": -1.19573
+     "into_chip_ul_min": -1.742475
     },
     "p_g_in": {
      "state": "CAP",
@@ -597,7 +597,7 @@
     "p_g_out": {
      "state": "VENT",
      "set_ul_min": 0.0,
-     "into_chip_ul_min": -1.19727
+     "into_chip_ul_min": -0.650525
     },
     "p_a_out": {
      "state": "CAP",
@@ -607,12 +607,12 @@
    },
    "channels": {
     "ch_in_n": {
-     "flow_ul_min": -1.19573,
+     "flow_ul_min": -1.742475,
      "direction": "n_cx -> p_in",
-     "shear_dyn_cm2": 0.053144,
+     "shear_dyn_cm2": 0.077443,
      "length_mm": 4.397,
      "volume_ul": 0.2638,
-     "velocity_mm_s": 0.33215,
+     "velocity_mm_s": 0.48402,
      "geometry": "DXF"
     },
     "ch_gin_g": {
@@ -634,21 +634,21 @@
      "geometry": "DXF"
     },
     "ch_n_j": {
-     "flow_ul_min": -1.19573,
+     "flow_ul_min": -1.742475,
      "direction": "j_mid -> n_cx",
-     "shear_dyn_cm2": 0.053144,
+     "shear_dyn_cm2": 0.077443,
      "length_mm": 2.346,
      "volume_ul": 0.1407,
-     "velocity_mm_s": 0.33215,
+     "velocity_mm_s": 0.48402,
      "geometry": "DXF"
     },
     "ch_g_j": {
-     "flow_ul_min": -1.19727,
+     "flow_ul_min": -0.650525,
      "direction": "j_mid -> g_cx",
-     "shear_dyn_cm2": 0.053216,
+     "shear_dyn_cm2": 0.028914,
      "length_mm": 3.409,
      "volume_ul": 0.2045,
-     "velocity_mm_s": 0.3326,
+     "velocity_mm_s": 0.18071,
      "geometry": "DXF"
     },
     "ch_a_j": {
@@ -670,12 +670,12 @@
      "geometry": "DXF"
     },
     "ch_g_out": {
-     "flow_ul_min": 1.19727,
+     "flow_ul_min": 0.650525,
      "direction": "g_cx -> p_g_out",
-     "shear_dyn_cm2": 0.053212,
+     "shear_dyn_cm2": 0.028912,
      "length_mm": 3.354,
      "volume_ul": 0.2013,
-     "velocity_mm_s": 0.33258,
+     "velocity_mm_s": 0.1807,
      "geometry": "DXF"
     },
     "ch_a_out": {
@@ -690,14 +690,14 @@
    },
    "chambers": {
     "n_cx": {
-     "throughput_ul_min": 1.19573,
-     "shear_dyn_cm2": 0.004246,
+     "throughput_ul_min": 1.742475,
+     "shear_dyn_cm2": 0.006188,
      "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
     "g_cx": {
-     "throughput_ul_min": 1.19727,
-     "shear_dyn_cm2": 0.004252,
+     "throughput_ul_min": 0.650525,
+     "shear_dyn_cm2": 0.00231,
      "width_across_flow_mm": 2.503,
      "volume_ul": 3.132
     },
@@ -717,16 +717,16 @@
    "pressure_pa": {
     "p_in": 0.0,
     "p_g_out": 0.0,
-    "n_cx": 0.610779,
-    "g_cx": 0.468032,
-    "a_cx": 1.893456,
-    "j_mid": 0.943377,
-    "p_g_in": 0.468032,
-    "p_a_in": 2.745781,
-    "p_mid": 0.943377,
-    "p_a_out": 1.893456
+    "n_cx": 0.879136,
+    "g_cx": 0.783461,
+    "a_cx": 3.47143,
+    "j_mid": 1.35799,
+    "p_g_in": 0.783461,
+    "p_a_in": 6.271346,
+    "p_mid": 1.35799,
+    "p_a_out": 3.47143
    },
-   "max_pressure_mbar": 0.027458,
+   "max_pressure_mbar": 0.062713,
    "routing": {
     "inflow_mix": {
      "n_cx": {
@@ -906,17 +906,17 @@
    },
    "pressure_pa": {
     "p_mid": 0.0,
-    "n_cx": 0.888691,
-    "g_cx": 0.223066,
-    "a_cx": 0.223066,
-    "j_mid": 0.223066,
-    "p_in": 2.111036,
-    "p_g_in": 0.223066,
-    "p_a_in": 0.223066,
-    "p_g_out": 0.223066,
-    "p_a_out": 0.223066
+    "n_cx": 0.878021,
+    "g_cx": 0.220396,
+    "a_cx": 0.220396,
+    "j_mid": 0.220396,
+    "p_in": 2.085369,
+    "p_g_in": 0.220396,
+    "p_a_in": 0.220396,
+    "p_g_out": 0.220396,
+    "p_a_out": 0.220396
    },
-   "max_pressure_mbar": 0.02111,
+   "max_pressure_mbar": 0.020854,
    "routing": {
     "inflow_mix": {
      "n_cx": {
@@ -1081,16 +1081,16 @@
    "pressure_pa": {
     "p_g_out": 0.0,
     "p_a_out": 0.0,
-    "n_cx": 1.608394,
-    "g_cx": 0.46773,
-    "a_cx": 0.46773,
-    "j_mid": 0.94277,
-    "p_in": 2.83074,
-    "p_g_in": 0.46773,
-    "p_a_in": 0.46773,
-    "p_mid": 0.94277
+    "n_cx": 3.155354,
+    "g_cx": 1.441008,
+    "a_cx": 1.441008,
+    "j_mid": 2.497728,
+    "p_in": 4.362701,
+    "p_g_in": 1.441008,
+    "p_a_in": 1.441008,
+    "p_mid": 2.497728
    },
-   "max_pressure_mbar": 0.028307,
+   "max_pressure_mbar": 0.043627,
    "routing": {
     "inflow_mix": {
      "n_cx": {
@@ -1270,17 +1270,17 @@
    },
    "pressure_pa": {
     "p_mid": 0.0,
-    "n_cx": 1.334824,
-    "g_cx": 1.619279,
-    "a_cx": 1.619279,
-    "j_mid": 0.669199,
-    "p_in": 2.557169,
-    "p_g_in": 1.619279,
-    "p_a_in": 1.619279,
-    "p_g_out": 2.554739,
-    "p_a_out": 2.554739
+    "n_cx": 1.318814,
+    "g_cx": 2.774629,
+    "a_cx": 2.774629,
+    "j_mid": 0.661189,
+    "p_in": 2.526162,
+    "p_g_in": 2.774629,
+    "p_a_in": 2.774629,
+    "p_g_out": 5.656645,
+    "p_a_out": 5.656645
    },
-   "max_pressure_mbar": 0.025572,
+   "max_pressure_mbar": 0.056566,
    "routing": {
     "inflow_mix": {
      "n_cx": {
@@ -1293,16 +1293,16 @@
       "p_a_out": 1.0
      },
      "j_mid": {
-      "g_cx": 0.333333,
       "a_cx": 0.333333,
+      "g_cx": 0.333333,
       "n_cx": 0.333333
      },
      "p_in": {
       "p_in": 1.0
      },
      "p_mid": {
-      "g_cx": 0.333333,
       "a_cx": 0.333333,
+      "g_cx": 0.333333,
       "n_cx": 0.333333
      },
      "p_g_out": {
