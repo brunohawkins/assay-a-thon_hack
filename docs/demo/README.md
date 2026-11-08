@@ -2,7 +2,7 @@
 
 ```
 python tools/demo.py              # serves the repo and opens http://localhost:8000/twin/?present
-python tools/demo.py --step 4     # start at step 4
+python tools/demo.py --step 4     # start at step 4 (Module 1, separate growth)
 python tools/demo.py --twin       # the normal twin instead, opening on its home page (below)
 python tools/demo.py --bench      # the bench demo, beside the food-dye run (below)
 ```
@@ -21,32 +21,38 @@ not used here). `tools/record_presenter.py` refuses any request outside the repo
 recording is also the offline check.
 
 **What is real.** Everything on screen is the digital twin: simulated hardware, flows from the
-chip's network model, labelled "Simulation" on every step. Module 1 is the chip being made for
-the food-dye demo — a resin-printed tool, hot-embossed, not laser-cut from sheet
-(`cad/fabrication.json`); the other modules exist in the twin only. The single-cell barcoding
-stage between Modules 3 and 4 is our chemistry on **bought** droplet hardware: its features are
-below the 200 µm in-plane floor, so there is no printable chip of ours for it.
+chip's network model, labelled "Simulation" on every step. Six chips are being printed for the
+food-dye demo: Modules 1 to 6, Module 2 being the encapsulation chip (`spc_demo_v1`), each a
+resin-printed tool, hot-embossed, not laser-cut from sheet (`cad/fabrication.json`); their
+geometry is frozen. Cell prep is not printed. The single-cell barcoding stage between Modules 3
+and 4 is our chemistry on **bought** droplet hardware: its features are below the 200 µm in-plane
+floor, so there is no printable chip of ours for it. The scale figures in the last step are
+targets (a mentor's estimate), not results: nothing has been run.
 
 ## The steps
 
 | # | Step | What the audience sees |
 |---|---|---|
-| 1 | From a prompt to a chip | A typed prompt, then: Flowmatter parts → chip spec → our checker passes it; the chip appears with its real part shapes. A cached result of Yuvraj's tool (`prompt_to_chip/`), so it runs offline. ![](step_1_prompt.jpg) |
-| 2 | The whole pipeline, at real scale | The 3D scene: every chip (30 × 20 mm) in a snake, tubes between them, the sample moving chip to chip, from the culture chip to the library out. ![](step_2_pipeline.jpg) |
-| 3 | Module 1: separate growth | Red, yellow and blue dye (neurons, glia, astrocytes) fill their own chambers and leave through p_mid. ![](step_3_grow.jpg) |
-| 4 | Module 1: interaction | Only the neuron inlet is fed: red crosses the junction into the other two chambers. ![](step_4_interact.jpg) |
-| 5 | Unsafe request refused | “Cap p_mid and vent p_g_out” is typed; the operator answers in one sentence from the live safety check (the glia chamber would get 33% neuron and 33% astrocyte medium); blocked, ports unchanged. ![](step_5_refuse.jpg) |
-| 6 | Harvest, and on down the line | All three chambers flush out through p_mid; then, in the pipeline scene, the cells move on to cell prep and encapsulation. ![](step_6_harvest.jpg) |
-| 7 | Module 4 | Rotary-valve fill A B C D D C B A, then thermocycling on all four chambers. ![](step_7_m4.jpg) |
-| 8 | Module 5 | Collagenase release at 37 °C, magnetic bead capture, one sublibrary per pass. ![](step_8_m5.jpg) |
+| 1 | Cellular Perturb-seq on a chip | The idea in three beats on a card at the left (grow neurons, microglia and astrocytes side by side; perturb a cell's neighbours, not its genes; read every cell by single-cell sequencing), with Module 1 behind it going from separate growth to the neuron chamber's medium reaching the other two. ![](step_1_idea.jpg) |
+| 2 | From a prompt to a chip | A typed prompt, then: Flowmatter parts → chip spec → our checker passes it; the chip appears with its real part shapes. A cached result of Yuvraj's tool (`prompt_to_chip/`), so it runs offline. ![](step_2_prompt.jpg) |
+| 3 | The whole pipeline, at real scale | The 3D scene: every chip (30 × 20 mm) in a snake, tubes between them, the sample moving chip to chip, from the culture chip to the library out. ![](step_3_pipeline.jpg) |
+| 4 | Module 1: separate growth | Red, yellow and blue dye (neurons, glia, astrocytes) fill their own chambers and leave through p_mid. ![](step_4_grow.jpg) |
+| 5 | Module 1: interaction | Only the neuron inlet is fed: red crosses the junction into the other two chambers. ![](step_5_interact.jpg) |
+| 6 | Unsafe request refused | “Cap p_mid and vent p_g_out” is typed; the operator answers in one sentence from the live safety check (the glia chamber would get 33% neuron and 33% astrocyte medium); blocked, ports unchanged. ![](step_6_refuse.jpg) |
+| 7 | Harvest, and on down the line | Each chamber's cells pick up that chamber's own label; all three chambers flush out through p_mid; then, in the pipeline scene, the cells move on to cell prep and encapsulation. ![](step_7_harvest.jpg) |
+| 8 | Module 4 | Rotary-valve fill A B C D D C B A, then thermocycling on all four chambers. ![](step_8_m4.jpg) |
+| 9 | Module 5 | Collagenase release at 37 °C, magnetic bead capture, one sublibrary per pass. ![](step_9_m5.jpg) |
+| 10 | Scale: many conditions, few cells | A card over the whole line playing: a condition needs a few thousand cells, not a million. One single-cell run reads about 20,000 cells (one well of a 10x Genomics chip, the usual benchmark; our pipeline makes its own library, so this is only the yardstick). Today one Module 1 has three chambers: 3 conditions per run, 24 in eight runs. At about 2,000 cells per condition: 10 per run, 80 in eight. Next: ten or more chambers per chip, more chips in parallel, membrane valves to connect cultures on demand. ![](step_10_scale.jpg) |
 
-Each step is a big title and one short caption at the bottom; no side panels.
+Each step is a big title and one short caption at the bottom. The first and last steps add a
+card on the left, and the chip or the pipeline is fitted beside it; no other panels.
 
 ## Home page
 
-The twin (`--twin`, or http://localhost:8000/twin/) opens on a one-page overview of the project:
-the problem, our approach, what we built this weekend and why, what is new, and where it stands,
-beside the pipeline playing on a loop. From there: **See the pipeline**, **Bench demo**, **Present**.
+The twin (`--twin`, or http://localhost:8000/twin/) opens on a one-page overview of the project,
+beside the pipeline playing on a loop: the idea (cellular Perturb-seq), what the platform does, why
+small is the point (the scale figures), the use case and beyond, what we built this weekend and why,
+what is new, where it goes next, and where it stands. From there: **See the pipeline**, **Bench demo**, **Present**.
 
 ![](home.jpg)
 
@@ -78,7 +84,7 @@ talks to the pump. After changing a chip: `python tools/demo_plan.py --write` an
 
 ## Backup video
 
-[presenter_backup.webm](presenter_backup.webm): the full sequence at 1920×1080, about 90 s.
+[presenter_backup.webm](presenter_backup.webm): the full sequence at 1920×1080, about two minutes.
 Re-record after changing the twin:
 
 ```
