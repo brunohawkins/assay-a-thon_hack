@@ -44,9 +44,10 @@ Each step is a big title and one short caption at the bottom; no side panels.
 
 ## Home page
 
-The twin (`--twin`, or http://localhost:8000/twin/) opens on a one-page overview of the project:
-the problem, our approach, what we built this weekend and why, what is new, and where it stands,
-beside the pipeline playing on a loop. From there: **See the pipeline**, **Bench demo**, **Present**.
+The twin (`--twin`, or http://localhost:8000/twin/) opens on a one-page overview of the project,
+framed as cellular Perturb-seq on a chip: the idea, what the platform does, why small is the point
+(the scale figures), the use case, what we built this weekend and why, what is new, where it goes
+next and where it stands, beside the pipeline playing on a loop. From there: **See the pipeline**, **Bench demo**, **Present**.
 
 ![](home.jpg)
 

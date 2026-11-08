@@ -99,8 +99,10 @@ python -m http.server 8000          # 3. serve the repo root...
 
 The twin's header has four views and two switches:
 
-- **Home** (where it opens): the project on one page (the problem, our approach, what we built
-  this weekend and why, what is new, and where it stands) beside the pipeline playing on a loop.
+- **Home** (where it opens): the project on one page, framed as cellular Perturb-seq on a chip
+  (the idea, what the platform does, why small is the point, the use case, what we built this
+  weekend and why, what is new, where it goes next and where it stands) beside the pipeline
+  playing on a loop.
   ![](docs/demo/home.jpg)
 - **Pipeline**: every chip of the pipeline at real scale (30 × 20 mm each) in a two-row snake,
   with 1/16 inch tubes between the hand-off ports. The stages, in order, come from
