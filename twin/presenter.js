@@ -26,7 +26,7 @@ const SCALE = { cellsPerRun: 20000, cellsPerCondition: 2000, runs: 8 };
 const WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
 const word = (n) => WORDS[n] ?? String(n);
 const fmt = (n) => Math.round(n).toLocaleString('en-GB');
-const NAMES = { n_cx: 'neuron', g_cx: 'glia', a_cx: 'astrocyte' };
+const NAMES = { n_cx: 'neuron', g_cx: 'microglia', a_cx: 'astrocyte' };
 const CHIP_OF = { m1v1: 'module1_v1', m4: 'module4_v1', m5: 'module5_v1', prompt: 'capsule_prep_v1' };
 const PROMPT = 'Turn steps 1–15 of the cell prep and encapsulation table into a chip, built from Flowmatter library parts.';
 const STATE_WORD = { CAP: 'capped', VENT: 'open', FEED: 'fed' };
@@ -34,7 +34,7 @@ const STATE_WORD = { CAP: 'capped', VENT: 'open', FEED: 'fed' };
 // The refusal step's request: the scripted operator's blocked decision (runs/module1_v1/operator_scripted.json):
 // during separate growth, cap p_mid and vent p_g_out instead.
 const unsafe = () => ({
-  ask: 'Cap p_mid and vent p_g_out, to flush the glia chamber faster.',
+  ask: 'Close the middle outlet and open the microglia outlet, to flush that chamber faster.',
   mode: 'grow',
   states: { p_in: 'FEED', p_g_in: 'FEED', p_a_in: 'FEED', p_mid: 'CAP', p_g_out: 'VENT', p_a_out: 'CAP' },
   flows: { p_in: FLOW, p_g_in: FLOW, p_a_in: FLOW },
@@ -54,7 +54,7 @@ export function refusalSentence(request, verdict) {
 }
 
 // The opening card: the idea in three beats. The swatches are Module 1's own dye colours, so the
-// card matches the chambers behind it (red neurons, yellow glia, blue astrocytes).
+// card matches the chambers behind it (red neurons, yellow microglia, blue astrocytes).
 export function ideaCard(dyeCss = () => 'currentColor') {
   const sw = (k) => `<i class="pr-swatch" style="background:${dyeCss(k)}"></i>`;
   return `<ol class="pr-beats">
@@ -96,7 +96,6 @@ function makeSteps(api) {
     m1.setSpeed(speed);
     api.frame();
   }
-  const stepRange = (xs) => (xs.length > 1 && xs.at(-1) - xs[0] === xs.length - 1 ? `${xs[0]}–${xs.at(-1)}` : xs.join(', '));
   const typeOut = async (s, text) => {
     for (let i = 1; i <= text.length; i += 2) { s.caption(`“${text.slice(0, i)}”`); await s.wait(22); }
     s.caption(`“${text}”`);
@@ -128,8 +127,8 @@ function makeSteps(api) {
         player.setPlaying(false);
         await typeOut(s, PROMPT);
         await s.wait(700);
-        const verdict = check.passes ? `our checker passes it (${check.errors.length} errors)` : `our checker finds ${check.errors.length + check.schema_errors.length} errors`;
-        s.caption(`${design.modules.length} Flowmatter parts (steps ${stepRange(design.modules.flatMap((m) => m.steps).sort((a, b) => a - b).filter((x, i, a) => a.indexOf(x) === i))}) → chip spec → ${verdict}. Cached run of Yuvraj’s tool.`);
+        const verdict = check.passes ? 'our checker passes it' : `our checker finds ${check.errors.length + check.schema_errors.length} errors`;
+        s.caption(`${design.modules.length} Flowmatter parts → a chip spec → ${verdict}. A cached run of Yuvraj’s tool.`);
         await s.wait(500);
         api.chip.group.visible = true;
         api.frame();
@@ -157,13 +156,13 @@ function makeSteps(api) {
     {
       id: 'grow', seconds: 10,
       title: 'Module 1 · separate growth',
-      caption: 'Each lineage gets its own medium (red neurons, yellow glia, blue astrocytes); all of it leaves through p_mid.',
+      caption: 'Each cell type gets its own medium: red for neurons, yellow for microglia, blue for astrocytes. All of it leaves by the middle outlet, so nothing crosses over.',
       async enter(s) { await module1(s, 'grow', { speed: 20 }); },
     },
     {
       id: 'interact', seconds: 10,
       title: 'Module 1 · interaction',
-      caption: 'Same chip, no valves: only the neuron inlet is fed, and its red medium flows into the other two chambers.',
+      caption: 'Same chip, no valves: feed only the neurons, and their red medium flows on into the microglia and astrocyte chambers.',
       async enter(s) { await module1(s, 'int_n', { from: 'grow', speed: 30 }); },
     },
     {
@@ -188,7 +187,7 @@ function makeSteps(api) {
     {
       id: 'harvest', seconds: 14,
       title: 'Harvest, and on down the line',
-      caption: 'Before harvest, the cells of each chamber pick up that chamber’s own label. Then all three flush out through p_mid, on to cell prep.',
+      caption: 'Before harvest, the cells of each chamber pick up that chamber’s own label. Then all three flush out by the middle outlet, on to cell prep.',
       async enter(s) {
         await module1(s, 'collect', { from: 'grow', speed: 20 });
         await s.wait(5500);
@@ -202,7 +201,7 @@ function makeSteps(api) {
     {
       id: 'm4', seconds: 12,
       title: 'Module 4 · split four ways, index PCR',
-      caption: 'A rotary valve fills the four chambers A B C D D C B A; then the whole chip is thermocycled.',
+      caption: 'The capsules are split between four chambers, each with its own index; then the whole chip is thermocycled.',
       async enter(s) {
         await s.show('m4');
         const tl = player.timeline();
@@ -217,7 +216,7 @@ function makeSteps(api) {
     {
       id: 'm5', seconds: 9,
       title: 'Module 5 · release and clean-up',
-      caption: 'Collagenase frees the DNA at 37 °C; magnetic beads catch it; one sublibrary per pass.',
+      caption: 'The capsules are dissolved to free the DNA, and magnetic beads catch and clean it, one sublibrary at a time.',
       async enter(s) {
         await s.show('m5');
         const tl = player.timeline();

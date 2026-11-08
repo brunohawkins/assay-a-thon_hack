@@ -1,6 +1,7 @@
 """Record the presenter sequence as a backup video, plus a screenshot of each step.
 
     python tools/record_presenter.py                  # -> docs/demo/presenter_backup.webm + docs/demo/step_N_<id>.jpg
+                                                      #    (+ docs/demo/presenter_demo.mp4 when ffmpeg is installed)
     python tools/record_presenter.py --no-video       # screenshots only
     python tools/record_presenter.py --size 1280x720  # another resolution (default 1920x1080)
 
@@ -15,7 +16,9 @@ Chromium picks. The video is Playwright's own real-time recording (VP8 .webm), p
 step's `seconds` in twin/presenter.js; the screenshot is taken part-way through each step.
 If ffmpeg is on the PATH, the video is then trimmed to start at step 1 (no loading screen) and
 re-encoded as constant-quality VP9, which makes it several times smaller at the same sharpness
-(--raw keeps Playwright's file as it is).
+(--raw keeps Playwright's file as it is), and also written as an H.264 .mp4 for slides (Keynote,
+PowerPoint and Google Slides play it; most of them do not play .webm). The Back / Next buttons are
+hidden while recording; the step dots still show progress.
 Exits 1 if the page logged an error or asked for anything outside the repo.
 """
 
@@ -102,6 +105,7 @@ def main(argv: list[str] | None = None) -> int:
         page.goto(f"{BASE}/twin/?present")
         page.wait_for_function("window.__presenter && window.__presenter.ready && !window.__presenter.busy", timeout=90000)
         steps = page.evaluate("() => window.__presenter.steps")
+        page.evaluate("() => document.body.classList.add('recording')")  # no buttons in the video
         head = time.monotonic() - t_video  # loading screen at the start of the recording
         for old in args.out.glob("step_*.jpg"):
             old.unlink()
@@ -136,6 +140,16 @@ def main(argv: list[str] | None = None) -> int:
                 if subprocess.run(cmd).returncode != 0:
                     print("ffmpeg failed; keeping the raw recording", file=sys.stderr)
                     shutil.move(raw, dest)
+                else:
+                    # The same cut as H.264 in an .mp4, which slide software plays.
+                    mp4 = args.out / "presenter_demo.mp4"
+                    cmd = [ffmpeg, "-v", "error", "-y", "-ss", f"{max(0.0, head - 0.3):.2f}", "-i", str(raw), "-an",
+                           "-c:v", "libx264", "-crf", "20", "-preset", "slow", "-pix_fmt", "yuv420p",
+                           "-movflags", "+faststart", str(mp4)]
+                    if subprocess.run(cmd).returncode == 0:
+                        print(f"video for slides: {mp4.relative_to(ROOT)} ({mp4.stat().st_size / 1e6:.1f} MB)")
+                    else:
+                        print("ffmpeg could not write the .mp4; the .webm is fine", file=sys.stderr)
             else:
                 shutil.move(raw, dest)
             print(f"video: {dest.relative_to(ROOT)} ({total:.0f} s of steps, {dest.stat().st_size / 1e6:.1f} MB, {w}x{h})")

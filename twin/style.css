@@ -972,6 +972,8 @@ body.presenter.pr-idle, body.presenter.pr-idle * { cursor: none !important; }
 .pr-dots li { width: 10px; height: 10px; border-radius: 50%; background: #d0d7de; cursor: pointer; }
 .pr-dots li.done { background: #8c959f; }
 .pr-dots li.now { background: var(--accent); }
+/* tools/record_presenter.py tags the page: a video has no one to press the buttons, the dots show progress */
+body.recording .pr-back, body.recording .pr-next { display: none; }
 .pr-loading { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; font-size: 28px; color: var(--text-2); background: var(--bg-top); }
 
 /* Readable from the back of the room. */
@@ -1059,6 +1061,14 @@ body[data-module="home"] .view-tools, body.presenter .view-tools { display: none
 
 
 /* ---- Presenter: opening and closing steps ---- */
+/* Only what the story needs: no ids, status dots, repeated badges or unused ports. Colour means
+   what is inside (Module 1's three media); the words In / Out say which way liquid moves. */
+body.presenter .part-label:not(.cell-label), body.presenter .temp-label, body.presenter .port-icon.cap,
+body.presenter .cell-label .id, body.presenter #hardware-badge, body.presenter .p3-label .sdot,
+body.presenter .p3-hole, body.presenter .p3-sub { display: none; }
+body.presenter .port-icon.feed, body.presenter .port-icon.vent { color: var(--text); border-color: var(--border); font: 600 15px var(--font); padding: 3px 10px; }
+.cell-label .swatch { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; box-shadow: inset 0 0 0 1px rgba(31, 35, 40, 0.2); }
+body.presenter .cell-label .swatch { width: 12px; height: 12px; }
 /* The card the opening and closing steps put on the left (presenter.js); scene.js fits the chip
    or the pipeline into the space beside it. Sizes follow the viewport's height as well as its width,
    so the card fits above the caption on a 1280 x 720 projector without scrolling. */

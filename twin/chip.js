@@ -298,7 +298,9 @@ export class Chip {
   }
 
   #buildPort(p) {
-    const color = PORT_FLOW[portDirection(p)] ?? 0x6e7781;   // control lines and unknowns: grey
+    // The presenter shows ports neutral: there, colour is kept for what is inside the chip.
+    const color = document.body.classList.contains('presenter') ? PORT_FLOW.plugged
+      : PORT_FLOW[portDirection(p)] ?? 0x6e7781;   // control lines and unknowns: grey
     const [x, y, pz] = p.position;
     const r = (p.width_um ? p.width_um / 2000 : 1.1) * (p.type === 'control' ? 0.7 : 1);
     const bottom = pz < this.top / 2;

@@ -14,7 +14,7 @@ const LETTER = { sub_1: 'A', sub_2: 'B', sub_3: 'C', sub_4: 'D' };
 const STAGES = {
   m4: [['fill', 'Fill: rotary valve, 16 pulses, ABCD DCBA'], ['primer', 'Index primer, one per chamber'],
     ['mix', 'PCR mix'], ['cycle', 'Thermocycle: whole chip']],
-  m5: [['in', 'Sublibrary in (in_lib)'], ['beads', 'Beads in, magnet ON'], ['release', 'Collagenase release, 37 °C'],
+  m5: [['in', 'Sublibrary in (in_lib)'], ['beads', 'Beads in, magnet ON'], ['release', 'Capsule release'],
     ['dilute', 'Dilute, then capture on the beads'], ['wash', 'Wash on the pellet'], ['elute', 'Elute'], ['out', 'Library out (out_lib)']],
 };
 const TITLE = { m4: 'Module 4 · sublibrary split + index PCR', m5: 'Module 5 · release + cleanup' };

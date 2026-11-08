@@ -283,7 +283,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
         const j = joinAfter(slots, k - 1, status);
         const steps = (j?.steps ?? []).map((o) => lowerFirst(o.stage)).join('; ');
         const t = lineTime(slots);
-        html = `<b>Library out</b><span class="p3-id">off-chip, in tubes${steps ? `: ${esc(steps)}` : ''}</span>`
+        html = `<b>Library out</b><span class="p3-id p3-sub">off-chip, in tubes${steps ? `: ${esc(steps)}` : ''}</span>`
           + `${t ? `<span class="p3-id p3-time">${esc(formatDuration(t.total))} from cells to library</span>` : ''}`;
       } else {
         const e = s.entry;
@@ -295,7 +295,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
         const sub = s.kind === 'ghost' ? v.word.toLowerCase() : notPrintable(e) ? 'bought hardware · our chemistry' : '';
         const time = e.duration_s != null ? `<span class="p3-time">${esc(formatDuration(e.duration_s))}</span>` : '';
         html = `<span class="p3-head">${dot}<span class="p3-num">${k + 1}</span><b>${esc(name)}</b></span>`
-          + `${time || sub ? `<span class="p3-id">${time}${time && sub ? ' · ' : ''}${esc(sub)}</span>` : ''}`;
+          + `${time || sub ? `<span class="p3-id">${time}${sub ? `<span class="p3-sub">${time ? ' · ' : ''}${esc(sub)}</span>` : ''}</span>` : ''}`;
       }
       const obj = label(html, s.kind);
       const front = s.y === 0 && slots.some((o) => o.y > 0);

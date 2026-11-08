@@ -35,6 +35,12 @@ const CHAMBER_INFO = { n_cx: 'neuron chamber', g_cx: 'glia (microglia) chamber',
 // The cells each culture chamber grows, as labelled on the chip (chip/module1_v1.json: n_cx
 // neurons, g_cx glia, a_cx astrocytes; j_mid is a junction, not a culture chamber).
 const CHAMBER_CELLS = { n_cx: 'Neurons', g_cx: 'Microglia', a_cx: 'Astrocytes' };
+// Each culture chamber's own medium colour (the dye of its inlet, DYE_OF_PORT).
+const CHAMBER_DYE = { n_cx: DYE_OF_PORT.p_in, g_cx: DYE_OF_PORT.p_g_in, a_cx: DYE_OF_PORT.p_a_in };
+// The presenter (and its video) shows only what the story needs: colour means which medium,
+// the words In / Out say which way it moves, and nothing carries an id.
+const presenting = () => document.body.classList.contains('presenter');
+const PRESENT_OUT = 0x57606a;   // an outlet in the presenter: neutral, so red and blue mean only media
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -158,6 +164,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     const j = c.parts.get('j_mid');
     const jl = c.labels.find((l) => l.element.textContent === 'j_mid');
     if (j && jl) { jl.center.set(0.5, 0); jl.position.set(j.center.x, j.center.y - j.size.y / 2 - 0.35 * c.u, c.top + 0.3 * c.u); }
+    jl?.element.classList.add('junction-label');
     // STLs are loaded by main.js, from the folder this chip OWNS (it awaits loadChipCad before
     // attaching, so they are already in place here). The chamber STLs are drawn over the
     // liquid, so keep them nearly clear and unlit: that is what makes the dye colours read true.
@@ -268,7 +275,8 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       const below = jc && c.center[1] < jc[1] - 0.5;
       const el = document.createElement('div');
       el.className = 'part-label cell-label';
-      el.innerHTML = `${esc(CHAMBER_CELLS[c.id])}<span class="id">${esc(c.id)}</span>`;
+      const sw = `rgb(${DYE_RGB[CHAMBER_DYE[c.id]].map((v) => Math.round(v * 255)).join(', ')})`;
+      el.innerHTML = `<i class="swatch" style="background:${sw}"></i>${esc(CHAMBER_CELLS[c.id])}<span class="id">${esc(c.id)}</span>`;
       const obj = new CSS2DObject(el);
       obj.center.set(0.5, below ? 0 : 1);
       obj.position.set(c.center[0], c.center[1] + (below ? -1 : 1) * (c.size[1] / 2 + 0.35 * chip.u), top + 0.3 * k);
@@ -296,6 +304,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     labObj.position.copy(boxPos).setY(boxPos.y - 6 * k);
     group.add(labObj);
     objs.m2 = { tubeMat, boxMat };
+    if (presenting()) { tube.visible = false; box.visible = false; labObj.visible = false; }
 
     // Diffusion disc around j_mid (shown while every port is capped).
     const j = net.chip.chambers.find((c) => c.id === 'j_mid');
@@ -554,7 +563,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       const ch = sol.channels[e.id];
       const arrow = objs.arrows[k];
       const qa = Math.abs(ch.flow_ul_min);
-      arrow.visible = qa > 1e-6;
+      arrow.visible = qa > 1e-6 && !presenting();
       if (arrow.visible) {
         const dir = new THREE.Vector3(e.b[0] - e.a[0], e.b[1] - e.a[1], 0).normalize().multiplyScalar(ch.flow_ul_min > 0 ? 1 : -1);
         arrow.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), dir);
@@ -586,12 +595,19 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       const k = DYE_OF_PORT[pid];
       const dye = st === 'FEED' && k !== undefined
         ? `<i class="dye" title="${DYE_NAMES[k]} dye" style="background:rgb(${DYE_RGB[k].map((v) => Math.round(v * 255)).join(', ')})"></i>` : '';
-      const html = `${ICONS[st]}<span>${pid} · ${STATE_WORD[st]}${st === 'FEED' ? ` at ${state.flows[pid]} µL/min` : ''}</span>${dye}`;
+      const pres = presenting();
+      // The presenter: just In or Out on the ports in use (a plugged port has no label), no ids.
+      const html = pres ? (st === 'CAP' ? '' : `<span>${st === 'FEED' ? 'In' : 'Out'}</span>`)
+        : `${ICONS[st]}<span>${pid} · ${STATE_WORD[st]}${st === 'FEED' ? ` at ${state.flows[pid]} µL/min` : ''}</span>${dye}`;
       if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; el.className = `port-icon ${st.toLowerCase()}`; }
       const part = chip.parts.get(pid);
-      if (part?.ringMaterial && part.portState !== st) {
-        part.portState = st;
-        col.setHex(st === 'FEED' ? PORT_FLOW.in : st === 'VENT' ? PORT_FLOW.out : PORT_FLOW.plugged);
+      const key = `${st}${pres ? ' presenter' : ''}`;
+      if (part?.ringMaterial && part.portState !== key) {
+        part.portState = key;
+        // In the presenter an inlet takes the colour of the medium it carries and an outlet is
+        // neutral, so the three colours on screen mean only the three media.
+        if (pres && st === 'FEED' && k !== undefined) dyeColor(k === 0 ? [1, 0, 0] : k === 1 ? [0, 1, 0] : [0, 0, 1], col);
+        else col.setHex(st === 'FEED' ? PORT_FLOW.in : st === 'VENT' ? (pres ? PRESENT_OUT : PORT_FLOW.out) : PORT_FLOW.plugged);
         for (const m of [part.ringMaterial, part.box.material, part.stl?.material]) if (m) { m.color.copy(col); m.emissive?.copy(col); }
         part.stl?.children[0]?.material.color.copy(col);   // its outline (chip.js outlineOf)
       }

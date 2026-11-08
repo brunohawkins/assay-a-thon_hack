@@ -31,17 +31,21 @@ targets (a mentor's estimate), not results: nothing has been run.
 
 ## The steps
 
+The presenter shows only what the story needs: colour means which medium (red neurons, yellow
+microglia, blue astrocytes), **In** and **Out** mark the ports in use, and nothing carries an id.
+The normal twin keeps every id, rate and status.
+
 | # | Step | What the audience sees |
 |---|---|---|
 | 1 | Cellular Perturb-seq on a chip | The idea in three beats on a card at the left (grow neurons, microglia and astrocytes side by side; perturb a cell's neighbours, not its genes; read every cell by single-cell sequencing), with Module 1 behind it going from separate growth to the neuron chamber's medium reaching the other two. ![](step_1_idea.jpg) |
 | 2 | From a prompt to a chip | A typed prompt, then: Flowmatter parts → chip spec → our checker passes it; the chip appears with its real part shapes. A cached result of Yuvraj's tool (`prompt_to_chip/`), so it runs offline. ![](step_2_prompt.jpg) |
 | 3 | The whole pipeline, at real scale | The 3D scene: every chip (30 × 20 mm) in a snake, tubes between them, the sample moving chip to chip, from the culture chip to the library out. ![](step_3_pipeline.jpg) |
-| 4 | Module 1: separate growth | Red, yellow and blue dye (neurons, glia, astrocytes) fill their own chambers and leave through p_mid. ![](step_4_grow.jpg) |
-| 5 | Module 1: interaction | Only the neuron inlet is fed: red crosses the junction into the other two chambers. ![](step_5_interact.jpg) |
-| 6 | Unsafe request refused | “Cap p_mid and vent p_g_out” is typed; the operator answers in one sentence from the live safety check (the glia chamber would get 33% neuron and 33% astrocyte medium); blocked, ports unchanged. ![](step_6_refuse.jpg) |
-| 7 | Harvest, and on down the line | Each chamber's cells pick up that chamber's own label; all three chambers flush out through p_mid; then, in the pipeline scene, the cells move on to cell prep and encapsulation. ![](step_7_harvest.jpg) |
-| 8 | Module 4 | Rotary-valve fill A B C D D C B A, then thermocycling on all four chambers. ![](step_8_m4.jpg) |
-| 9 | Module 5 | Collagenase release at 37 °C, magnetic bead capture, one sublibrary per pass. ![](step_9_m5.jpg) |
+| 4 | Module 1: separate growth | Red, yellow and blue medium (neurons, microglia, astrocytes) fill their own chambers and leave by the middle outlet. ![](step_4_grow.jpg) |
+| 5 | Module 1: interaction | Only the neurons are fed: red crosses the junction into the microglia and astrocyte chambers. ![](step_5_interact.jpg) |
+| 6 | Unsafe request refused | “Close the middle outlet and open the microglia outlet” is typed; the operator answers in one sentence from the live safety check (the microglia chamber would get 33% neuron and 33% astrocyte medium); blocked, ports unchanged. ![](step_6_refuse.jpg) |
+| 7 | Harvest, and on down the line | Each chamber's cells pick up that chamber's own label; all three chambers flush out by the middle outlet; then, in the pipeline scene, the cells move on to cell prep and encapsulation. ![](step_7_harvest.jpg) |
+| 8 | Module 4 | The capsules are split between four chambers, each with its own index, then the whole chip is thermocycled. ![](step_8_m4.jpg) |
+| 9 | Module 5 | The capsules are dissolved to free the DNA; magnetic beads catch and clean it, one sublibrary at a time. ![](step_9_m5.jpg) |
 | 10 | Scale: many conditions, few cells | A card over the whole line playing: a condition needs a few thousand cells, not a million. One single-cell run reads about 20,000 cells (one well of a 10x Genomics chip, the usual benchmark; our pipeline makes its own library, so this is only the yardstick). Today one Module 1 has three chambers: 3 conditions per run, 24 in eight runs. At about 2,000 cells per condition: 10 per run, 80 in eight. Next: ten or more chambers per chip, more chips in parallel, membrane valves to connect cultures on demand. ![](step_10_scale.jpg) |
 
 Each step is a big title and one short caption at the bottom. The first and last steps add a
@@ -85,6 +89,8 @@ talks to the pump. After changing a chip: `python tools/demo_plan.py --write` an
 ## Backup video
 
 [presenter_backup.webm](presenter_backup.webm): the full sequence at 1920×1080, about two minutes.
+[presenter_demo.mp4](presenter_demo.mp4) is the same video as H.264, for slides (Keynote, PowerPoint
+and Google Slides play it).
 Re-record after changing the twin:
 
 ```
