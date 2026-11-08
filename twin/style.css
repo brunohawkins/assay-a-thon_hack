@@ -981,3 +981,12 @@ body.presenter .p3-label { font-size: 16px; max-width: 290px; padding: 8px 12px;
 body.presenter .p3-label b { font-size: 17px; }
 body.presenter .p3-label .p3-id, body.presenter .p3-label .p3-extra, body.presenter .p3-label .status { font-size: 14px; }
 body.presenter .p3-label.p3-tube { font-size: 14px; }
+
+/* ---- Module 1 view: chamber labels, port colours, plan (2D) view ---- */
+
+
+/* ---- Pipeline: time periods and off-chip hand-offs ---- */
+
+
+/* ---- Presenter: opening and closing steps ---- */
+
