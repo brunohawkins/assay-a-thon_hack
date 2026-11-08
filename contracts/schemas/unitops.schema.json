@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://capsule-processor.local/schemas/unitops.schema.json",
+  "title": "Unit operations (assay2chip stages S2 and S3)",
+  "description": "The assay rewritten as canonical unit operations (S2), each with the on-chip decision attached (S3). Written to assay2chip/work/<id>/unitops.json; S3 adds `placement` to every op and rewrites the same file. Lab wording is gone by here: every op is something a chip either can or cannot do, and `placement.why` says which and why. Shape defined in assay2chip/README.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "ops", "unresolved"],
+  "properties": {
+    "id": { "$ref": "#/$defs/snake_id", "description": "The run id, same as the work directory name and as assay.json." },
+    "source": { "$ref": "#/$defs/source", "description": "Carried forward from assay.json so this file can be traced to a document on its own." },
+    "placeholder": { "type": "boolean", "description": "true while this file holds made-up ops rather than real ones." },
+    "llm": { "$ref": "#/$defs/llm" },
+    "extraction": { "$ref": "#/$defs/audit", "description": "Carried forward from assay.json, so this file still says which extractor produced the steps underneath it." },
+    "audit": { "$ref": "#/$defs/audit", "description": "S2/S3's own provenance: how steps were mapped onto ops, and on what grounds each placement was decided." },
+    "ops": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Canonical operations in process order, numbered from 1. One op is one thing that happens in one place.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["op", "from_steps", "kind", "placement"],
+        "properties": {
+          "op": { "type": "integer", "minimum": 1, "description": "1, 2, 3 ... in process order. partition.json refers to ops by this number." },
+          "from_steps": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 1 },
+            "description": "The assay.json step numbers this op covers. Empty only for an op the pipeline added itself (then say so in `note`), because every op should trace back to the source."
+          },
+          "kind": {
+            "enum": ["load", "merge", "mix", "incubate", "culture", "wash", "separate", "lyse", "thermocycle", "split", "pool", "transfer", "collect", "image", "encapsulate", "cure"],
+            "description": "The canonical operation. load = a one-shot fill of a chamber (merge is a reagent joining a FLOWING stream). culture = long and FED, the only kind that can carry adherent-cell shear. transfer = moving material from one place to another, which S4 turns into a handoff when it crosses chips. If nothing here fits, that is a `missing_part` placement, not a new kind."
+          },
+          "confidence": {
+            "type": "number", "minimum": 0, "maximum": 1,
+            "description": "How sure this op is, carried forward from the assay steps it came from. Never higher than the least confident of `from_steps`: aggregating steps must not upgrade certainty."
+          },
+          "load": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["basis", "source"],
+            "description": "What the place this op happens in must HOLD. This - not the paper's tube volume - is what S6 sizes a part from. See assay2chip/README.md, 'Bench volumes do not transfer'.",
+            "properties": {
+              "basis": {
+                "enum": ["adherent_area", "packed_volume", "suspension_volume", "flow_through", "none"],
+                "description": "adherent_area: cells attached to the floor -> floor area = cells / surface_density. packed_volume: capsules or beads sitting in a bed -> packed volume from count, diameter and the contract packing fraction. suspension_volume: cells or reagent held in suspension at a stated density -> volume = cells / suspension density. flow_through: nothing is held; the part only has to carry a stream (a mixer, a junction, a delay line) and is sized from flow and residence time. none: no load."
+              },
+              "cells": { "type": ["number", "null"], "minimum": 0, "description": "How many cells (or capsules or beads) the place holds. null when the paper never says - then raise an `unresolved` question and size from a flagged contract default." },
+              "surface_density_per_mm2": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "For adherent_area: cells per mm2 of floor, from the paper's seeding density." },
+              "area_mm2": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "For adherent_area: the floor area the cells need." },
+              "packed_volume_ul": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "For packed_volume: the bed volume." },
+              "suspension_density_per_ul": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "For suspension_volume: cells (or particles) per uL." },
+              "residence_s": { "type": ["number", "null"], "minimum": 0, "description": "For flow_through: how long the stream must spend in the part (an incubation in flow, a mixing length)." },
+              "source": { "enum": ["paper", "derived", "contract_default"], "description": "paper: stated in the source. derived: computed from stated numbers (say how in `note`). contract_default: the paper never said - a flagged default from contracts/parameters.json, with an `unresolved` question. Never silent." },
+              "note": { "type": "string" }
+            }
+          },
+          "ratio": {
+            "type": "object",
+            "additionalProperties": false,
+            "description": "For a reagent ADDED to a sample (lysis, enzyme, master mix, label): the ratio the paper implies, so the final concentration on chip matches the paper whatever the chamber volume turns out to be. A wash or rinse has no ratio - it becomes a sweep of `-ln(1 - exchange.target_fraction)` chamber volumes.",
+            "properties": {
+              "reagent_to_sample": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "Reagent volume / sample volume, from the paper. null when it cannot be worked out - raise an `unresolved` question." },
+              "paper_reagent_ul": { "type": ["number", "null"], "minimum": 0 },
+              "paper_sample_ul": { "type": ["number", "null"], "minimum": 0 },
+              "note": { "type": "string" }
+            }
+          },
+          "fluid": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["volume_ul", "viscosity_class"],
+            "description": "What is flowing. volume_ul is explicitly null when unknown rather than omitted, so a gap cannot hide.",
+            "properties": {
+              "volume_ul": { "type": ["number", "null"], "minimum": 0, "description": "The PAPER'S volume in microlitres, kept for traceability ONLY. It describes a tube, not the chip, and must NEVER size a part: S6 sizes from `load`, S8 sets protocol volumes from the built chamber and `ratio` (assay2chip/README.md, 'Bench volumes do not transfer'). null when the source never said - record it in `unresolved`." },
+              "viscosity_class": {
+                "enum": ["aqueous", "viscous", "organic", "oil"],
+                "description": "Which fluid model applies. The numeric viscosity is NOT stored here: take it from contracts/parameters.json through assay2chip/lib/contracts.py (fluid.viscosity_37c_pa_s at 37 C, fluid.viscosity_pa_s only for the 20 C dye demo)."
+              },
+              "note": { "type": "string" }
+            }
+          },
+          "particles": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind"],
+            "description": "What is being carried, which sets channel widths, retention and settling.",
+            "properties": {
+              "kind": { "enum": ["none", "cells", "capsules", "beads"] },
+              "diameter_um": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "Particle diameter. Required when kind is not none: unswollen diameter, from the source or from contracts (capsule.diameter_um), never invented." },
+              "swollen_diameter_um": { "type": ["number", "null"], "exclusiveMinimum": 0, "description": "After swelling, when it matters (capsule.diameter_um x capsule.swell_factor)." },
+              "count": { "type": ["integer", "null"], "minimum": 0 },
+              "note": { "type": "string" }
+            },
+            "if": { "properties": { "kind": { "not": { "const": "none" } } }, "required": ["kind"] },
+            "then": { "required": ["diameter_um"] }
+          },
+          "duration_s": { "type": ["number", "null"], "minimum": 0, "description": "Seconds. null when unknown." },
+          "temp_c": { "type": ["number", "null"], "description": "Degrees Celsius. null when unknown. Incompatible temperatures are a reason to cut the assay across chips (S4)." },
+          "shear_class": {
+            "enum": ["adherent_cells", "capsules", "prelysis_rinse", "none"],
+            "description": "Which shear ceiling applies, and nothing else picks it: adherent_cells -> shear.culture_ceiling_dyn_cm2 (0.01); prelysis_rinse -> shear.prelysis_rinse_ceiling_dyn_cm2 (0.3); capsules -> no shear ceiling at all, bounded by capsule.escape_pressure_kpa x control.pressure_margin instead; none -> unbounded. Read the numbers through assay2chip/lib/contracts.shear_ceiling_for()."
+          },
+          "placement": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["where", "why"],
+            "description": "The on-chip decision (S3). `why` is required on every op: no silent on-chip or off-chip choices.",
+            "properties": {
+              "where": {
+                "enum": ["pending", "on_chip", "off_chip", "missing_part"],
+                "description": "pending: S2 has not decided and S3 has not run yet - an explicit 'no decision', so it can never be mistaken for one. S3 MUST replace every pending, and S4 onwards MUST refuse a file that still holds one. on_chip: a block does it. off_chip: it happens on the bench or in an instrument. missing_part: it should be on chip but no block can do it."
+              },
+              "part": { "type": "string", "description": "A block id from contracts/blocks.json (basic or advanced, never excluded) - the same vocabulary as every chip spec's `block` field. Required when where is on_chip. S6 sizes it from physics through assay2chip/parts/." },
+              "catalogue_part": { "type": "string", "description": "Optional: the chip/components/catalogue.json (Flowmatter) part whose shape this block corresponds to, for display. Reference only - those parts are 1 mm deep and are never placed as-is." },
+              "why": { "type": "string", "minLength": 1, "description": "REQUIRED, always, one sentence: why this op sits where it does. An off-chip decision with no reason is the thing this field exists to stop." },
+              "need": { "type": "string", "description": "What part would be required. Required when where is missing_part." },
+              "blocks": { "type": "array", "items": { "type": "string" }, "description": "contracts/blocks.json block ids the part is built from, when known." },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1, "description": "How sure the placement is." },
+              "note": { "type": "string" }
+            },
+            "allOf": [
+              { "if": { "properties": { "where": { "const": "on_chip" } }, "required": ["where"] }, "then": { "required": ["part"] } },
+              { "if": { "properties": { "where": { "const": "missing_part" } }, "required": ["where"] }, "then": { "required": ["need"] } }
+            ]
+          },
+          "note": { "type": "string" },
+          "audit": { "$ref": "#/$defs/audit", "description": "How this op was arrived at: which steps were merged and why, what the numbers were derived from, which contract keys were read." }
+        }
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "description": "REQUIRED, may be empty. Carried forward from assay.json and added to: every value this stage needed and the source never gave. A contract default used in place of a missing number is recorded here with `assumed_from`.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question"],
+        "properties": {
+          "step": { "type": ["integer", "null"], "minimum": 1 },
+          "op": { "type": ["integer", "null"], "minimum": 1 },
+          "field": { "type": "string" },
+          "question": { "type": "string", "minLength": 1 },
+          "assumed": { "description": "The value used instead, if any." },
+          "assumed_from": { "type": "string", "description": "The contract key it came from, e.g. capsule.diameter_um. Never a bare literal." },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "note": { "type": "string" }
+  },
+  "$defs": {
+    "snake_id": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" },
+    "audit": {
+      "type": "object",
+      "description": "A deliberately OPEN object for the writing stage's working: every other field here is closed, but provenance must never be blocked by a schema. Nothing downstream may depend on its shape."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "ref"],
+      "properties": {
+        "kind": { "enum": ["pdf", "md", "txt", "doi", "url"] },
+        "ref": { "type": "string", "minLength": 1 },
+        "sha256": { "type": ["string", "null"], "pattern": "^([0-9a-f]{64})?$" },
+        "retrieved_at": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "llm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "description": "Which language-model mode produced this file (assay2chip/lib/llm.py fills it in).",
+      "properties": {
+        "mode": { "enum": ["real", "stub", "none"], "description": "stub means the deterministic offline fallback ran: treat every number as made up." },
+        "model": { "type": ["string", "null"] },
+        "calls": { "type": "integer", "minimum": 0 },
+        "tasks": { "type": "array", "items": { "type": "string" } },
+        "prompt_sha256": { "type": ["string", "null"], "pattern": "^([0-9a-f]{64})?$" },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

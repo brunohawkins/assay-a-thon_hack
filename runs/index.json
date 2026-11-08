@@ -456,6 +456,24 @@
       "status": null,
       "variant": null,
       "module": null
+    },
+    {
+      "file": "module3_v1_translated__module3_v1_translated.json",
+      "protocol_id": "module3_v1_translated",
+      "protocol_name": "load, lyse, wash, incubate, collect on module3_v1_translated",
+      "chip_id": "module3_v1_translated",
+      "chip_spec": "chip/module3_v1_translated.json",
+      "operator": "planner",
+      "events": 9,
+      "total_duration_s": 8516.0,
+      "placeholder": true,
+      "simulated_hardware": false,
+      "scenario": null,
+      "loop": null,
+      "faults": [],
+      "status": null,
+      "variant": null,
+      "module": null
     }
   ]
 }

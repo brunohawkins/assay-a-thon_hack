@@ -1,0 +1,33 @@
+{
+  "id": "module3_dev",
+  "note": "HAND-MADE DEVELOPMENT FIXTURE for S5 and S8, not S4 output. It puts every op of module3_v1_translated_unitops.json on the one chip this pair of stages is developed against, chip/module3_v1_translated.json, so the grouping and the protocol can be checked against a chip that already exists and is already built. A real partition.json comes from S4 and usually has several chips and the hand-offs between them.",
+  "placeholder": true,
+  "llm": {
+    "mode": "none",
+    "model": null,
+    "calls": 0,
+    "tasks": [],
+    "prompt_sha256": null,
+    "note": "Written by hand as an S5/S8 development fixture."
+  },
+  "chips": [
+    {
+      "chip_id": "module3_v1_translated",
+      "ops": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      "scale": "demo",
+      "reason": "Every op happens to the same capsules in the same trap, at temperatures one thermal zone covers, so nothing forces a cut.",
+      "ports": 6,
+      "temp_range_c": [22, 42],
+      "note": "The chip is an existing hand-made one, so S6 and S7 have nothing to do here; S5 and S8 are the stages under test."
+    }
+  ],
+  "handoffs": [],
+  "cuts": [],
+  "unresolved": [
+    {
+      "chip_id": "module3_v1_translated",
+      "field": "handoffs",
+      "question": "What carries the capsules on from this chip is the next module's business, and this fixture stops here."
+    }
+  ]
+}

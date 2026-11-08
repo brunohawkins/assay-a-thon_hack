@@ -1,1 +1,5 @@
 jsonschema>=4.18
+numpy>=1.24
+# S0 ingest: PDF text extraction. Pure Python, no system libraries; optional at runtime
+# (assay2chip/stages/s0_ingest.py falls back to a flagged zlib extractor without it).
+pypdf>=4.0,<7

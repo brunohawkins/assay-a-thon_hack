@@ -35,6 +35,22 @@ class ParamError(ValueError):
     """Parameters that break the generator's schema or its design rules."""
 
 
+def parameter(key: str) -> float:
+    """One numeric value from contracts/parameters.json, by its dotted key.
+
+    Use this instead of writing a literal. A hard-coded constant that happens to match a
+    contract value goes stale silently, and several did: every generator carried its own
+    `MU_PA_S = 0.8e-3`, which was the right physics with no provenance, so nothing tied it
+    to the contract or caught it when the contract disagreed.
+
+    For viscosity: `fluid.viscosity_37c_pa_s` is the 37 C medium value and is what a chip
+    calculation wants. `fluid.viscosity_pa_s` is water at 20 C and belongs to the
+    room-temperature dye demo only - using it for culture makes flows ~20% conservative.
+    """
+    params = json.loads((ROOT / "contracts" / "parameters.json").read_text(encoding="utf-8"))
+    return float(params["parameters"][key]["value"])
+
+
 def schema_for(name: str) -> dict:
     return json.loads((SCHEMA_DIR / f"{name}.schema.json").read_text(encoding="utf-8"))
 

@@ -1,0 +1,187 @@
+{
+  "id": "module3_dev",
+  "note": "HAND-MADE DEVELOPMENT FIXTURE for S8, not S2 output. The built chips this stage is for do not exist yet, so S8 is developed against an existing repo chip: chip/module3_v1_translated.json (load capsules, lyse, wash, reverse transcription, wash, release). The ops are written the way S2 would write them from a published capsule workflow - volumes and durations are round placeholders, every reagent name is absent by design (unitops.json has no reagent-name field, so S8 names reagents from its own closed generic vocabulary), and the off_chip and missing_part ops are here so S5's accounting and S8's gap recording are both exercised. Nothing here comes from any lab's records.",
+  "source": {
+    "kind": "doi",
+    "ref": "10.1126/science.ady7227",
+    "sha256": null,
+    "note": "Published capsule workflow; the chip geometry, volumes and flows are ours."
+  },
+  "placeholder": true,
+  "llm": {
+    "mode": "none",
+    "model": null,
+    "calls": 0,
+    "tasks": [],
+    "prompt_sha256": null,
+    "note": "Written by hand as an S8 development fixture."
+  },
+  "ops": [
+    {
+      "op": 1,
+      "from_steps": [1],
+      "kind": "load",
+      "fluid": {"volume_ul": 40, "viscosity_class": "aqueous"},
+      "particles": {"kind": "capsules", "diameter_um": 70, "swollen_diameter_um": 98, "count": 140000},
+      "duration_s": null,
+      "temp_c": null,
+      "shear_class": "capsules",
+      "placement": {
+        "where": "on_chip",
+        "part": "culture_chamber",
+        "why": "The capsules settle in one chamber on a retention feature and every later op happens to them there.",
+        "blocks": ["trap_chamber"],
+        "confidence": 0.9
+      },
+      "note": "Deliberately asks for more than the demo-scale trap holds, so the load clamp is exercised."
+    },
+    {
+      "op": 2,
+      "from_steps": [2, 3],
+      "kind": "lyse",
+      "fluid": {"volume_ul": null, "viscosity_class": "aqueous"},
+      "particles": {"kind": "capsules", "diameter_um": 70},
+      "duration_s": 600,
+      "temp_c": 22,
+      "shear_class": "capsules",
+      "placement": {
+        "where": "on_chip",
+        "part": "culture_chamber",
+        "why": "Done to the capsules where they sit, so it needs no part of its own.",
+        "confidence": 0.8
+      },
+      "note": "The source states a dwell but no delivered volume, so the volume has to come from the chamber."
+    },
+    {
+      "op": 3,
+      "from_steps": [4],
+      "kind": "wash",
+      "fluid": {"volume_ul": 150, "viscosity_class": "aqueous"},
+      "particles": {"kind": "capsules", "diameter_um": 70},
+      "duration_s": null,
+      "temp_c": null,
+      "shear_class": "capsules",
+      "placement": {
+        "where": "on_chip",
+        "part": "culture_chamber",
+        "why": "A chamber flush through the retention feature replaces the bench spin.",
+        "confidence": 0.9
+      },
+      "note": "Carryover would inhibit the next step, so this one has to clear the chamber."
+    },
+    {
+      "op": 4,
+      "from_steps": [5],
+      "kind": "load",
+      "ratio": {
+        "reagent_to_sample": 1.0,
+        "paper_reagent_ul": 50,
+        "paper_sample_ul": 50,
+        "note": "The source adds an equal volume of mix. Here the capsules are held on the weir and the liquid around them is carrier, so S8 should sweep rather than match the ratio against carrier - this op is in the fixture to exercise that decision."
+      },
+      "fluid": {"volume_ul": 40, "viscosity_class": "aqueous"},
+      "particles": {"kind": "capsules", "diameter_um": 70},
+      "duration_s": null,
+      "temp_c": null,
+      "shear_class": "capsules",
+      "placement": {
+        "where": "on_chip",
+        "part": "culture_chamber",
+        "why": "The reaction mix is delivered to the capsules in place, through the shared reagent line.",
+        "confidence": 0.7
+      },
+      "note": "The source reads as one chamber volume of mix. The chamber is full of wash buffer at this point, which is the case the hand-written protocol gets wrong."
+    },
+    {
+      "op": 5,
+      "from_steps": [6],
+      "kind": "incubate",
+      "fluid": {"volume_ul": null, "viscosity_class": "aqueous"},
+      "particles": {"kind": "capsules", "diameter_um": 70},
+      "duration_s": 3600,
+      "temp_c": 42,
+      "shear_class": "capsules",
+      "placement": {
+        "where": "on_chip",
+        "part": "culture_chamber",
+        "why": "One isothermal hold, so it runs in the trap itself and needs no second chip.",
+        "confidence": 0.9
+      }
+    },
+    {
+      "op": 6,
+      "from_steps": [7],
+      "kind": "wash",
+      "fluid": {"volume_ul": 150, "viscosity_class": "aqueous"},
+      "particles": {"kind": "capsules", "diameter_um": 70},
+      "duration_s": null,
+      "temp_c": null,
+      "shear_class": "capsules",
+      "placement": {
+        "where": "on_chip",
+        "part": "culture_chamber",
+        "why": "Same chamber flush again, to take the reaction mix out before the capsules leave.",
+        "confidence": 0.9
+      }
+    },
+    {
+      "op": 7,
+      "from_steps": [8],
+      "kind": "collect",
+      "fluid": {"volume_ul": null, "viscosity_class": "aqueous"},
+      "particles": {"kind": "capsules", "diameter_um": 70, "count": 140000},
+      "duration_s": null,
+      "temp_c": null,
+      "shear_class": "capsules",
+      "placement": {
+        "where": "on_chip",
+        "part": "culture_chamber",
+        "why": "The capsules are the product here, so they leave the trap as one suspension through the capsule outlet.",
+        "confidence": 0.8
+      }
+    },
+    {
+      "op": 8,
+      "from_steps": [9],
+      "kind": "image",
+      "fluid": {"volume_ul": null, "viscosity_class": "aqueous"},
+      "particles": {"kind": "capsules", "diameter_um": 70},
+      "duration_s": 300,
+      "temp_c": null,
+      "shear_class": "none",
+      "placement": {
+        "where": "off_chip",
+        "why": "Counting the recovered capsules is a microscope job and this chip has no QC window.",
+        "confidence": 0.9
+      }
+    },
+    {
+      "op": 9,
+      "from_steps": [10],
+      "kind": "separate",
+      "fluid": {"volume_ul": null, "viscosity_class": "aqueous"},
+      "particles": {"kind": "capsules", "diameter_um": 70},
+      "duration_s": null,
+      "temp_c": null,
+      "shear_class": "capsules",
+      "placement": {
+        "where": "missing_part",
+        "need": "pillar filter at a 100 um gap, to take capsule aggregates out before the outlet",
+        "why": "A size-sorting separation is part geometry, and nothing printable at the 200 um in-plane floor does it.",
+        "confidence": 0.8
+      }
+    }
+  ],
+  "unresolved": [
+    {
+      "op": 2,
+      "field": "fluid.volume_ul",
+      "question": "The source gives a dwell time but never says how much lysis reagent is delivered."
+    },
+    {
+      "op": 5,
+      "field": "duration_s",
+      "question": "The hold time is a round placeholder to be fitted on the bench."
+    }
+  ]
+}
