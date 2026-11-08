@@ -8,11 +8,11 @@ const firstSentence = (s) => (String(s ?? '').match(/^.*?[.!?](\s|$)/)?.[0] ?? S
 
 // What each chip of the current pipeline does, in a sentence or two (from its spec and design note).
 export const CHIP_SUMMARY = {
-  module1_v1: 'Grows neurons, glia and astrocytes in three chambers that meet at one junction. The flow decides whether the cultures stay apart or share medium; harvest flushes all three out through p_mid.',
+  module1_v1: 'Grows neurons, glia and astrocytes in three chambers that meet at one junction. The flow decides whether the cultures stay apart or share medium. Each lineage gets its lane barcode here, the only barcode the cells carry; harvest flushes all three out through p_mid.',
   cell_prep_v1: 'Detaches the harvested cells, quenches the detachment and counts the cells before encapsulation.',
   spc_demo_v1: 'Makes the capsules: the cell stream and the shell stream meet oil at a nozzle and pinch off into droplets.',
   module3_v1_translated: 'Holds the capsules in a trap while liquids are exchanged around them: lysis, washes, reverse transcription, then release.',
-  module4_v1: 'Splits the capsules into four sublibraries; each gets its own index and is thermocycled in place.',
+  module4_v1: 'Splits the capsules into four sublibraries; each gets its own index by PCR, thermocycled in place.',
   module5_v1: 'Opens the capsules, captures the DNA on magnetic beads, then washes and elutes the finished library, one sublibrary at a time.',
   sctip_spc_v1: 'Packs the capsules, adds the amplification mix and a single-copy barcode, and drops one capsule per droplet for off-chip thermocycling.',
 };
@@ -58,13 +58,17 @@ export function overviewHtml({ variants, current, chosen, slots, pipe, status })
     }
   });
   return `
-    <h2 class="side-title">Assay</h2>
+    ${variants.length > 1 ? `<h2 class="side-title">Assay</h2>
     <div class="segmented" role="group" aria-label="Assay">${variants.map((v) => `<button type="button" data-variant="${v.variant}"
-      aria-pressed="${v.variant === current}">${esc(v.label)}${v.variant === chosen ? '<small>default</small>' : ''}</button>`).join('')}</div>
+      aria-pressed="${v.variant === current}">${esc(v.label)}<small>${v.variant === chosen ? 'the plan' : 'alternative'}</small></button>`).join('')}</div>` : ''}
+    ${current !== chosen ? `<p class="note">An alternative to the plan, kept for comparison. It uses <code>sctip_spc_v1</code>, which
+      protocols/pipeline_status.md retires, and a bench step with no chip.</p>` : ''}
     <p class="p3-legend">Every chip at real scale, 30 × 20 mm, joined by 1/16 inch tubing. Press Play to follow the sample down the line; click a stage to open its chip.</p>
     <ol class="stages">${items.join('')}</ol>
     <p class="meta">“Designed” means a chip spec and a protocol exist (protocols/pipeline_status.md), not that the chip is printed.
-      Module 1 is the one being made, for the food-dye demo; the others exist in the twin only.</p>`;
+      Module 1 is the one being made, for the food-dye demo; the others exist in the twin only.</p>
+    ${current === chosen ? `<p class="meta">Barcoding is not a stage of its own: each lineage carries a lane barcode from Module 1,
+      reverse transcription adds none, and Module 4 adds a sublibrary index.</p>` : ''}`;
 }
 
 // The home page's strip: every stage in order, short names and a status dot; chips open on click.

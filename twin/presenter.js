@@ -91,7 +91,8 @@ function makeSteps(api) {
       caption: '',
       async enter(s) {
         await s.show('pipeline');
-        s.caption(`${chipsIn()} chips, 30 × 20 mm each: cells go in, capsules in the middle, a library out. Dashed: not designed yet.`);
+        const ghosts = (pipeline.data?.entries ?? []).some((e) => !e.spec);
+        s.caption(`${chipsIn()} chips, 30 × 20 mm each: cells go in, capsules in the middle, a library out.${ghosts ? ' Dashed: not designed yet.' : ''}`);
         pipeline.setSpeed(1.6);
         pipeline.seek(0);
         pipeline.setPlaying(true);
