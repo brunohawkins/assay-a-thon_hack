@@ -23,11 +23,18 @@ const TYPE_COLORS = {
   cell_wash: 0x218bff,
   qc_window: 0xbf3989,
 };
-const PORT_COLORS = { inlet: 0x218bff, outlet: 0xbf3989, control: 0x6e7781 };
-const ROLE_COLORS = {
-  waste: 0xe16f24, backflush: 0x2da44e, release: 0xbf3989, load: 0x218bff, reagent: 0x218bff,
-  cells: 0xe5534b, medium: 0x1b9e8f, factor: 0xbf8700, harvest: 0xbf3989, control: 0x6e7781, oil: 0xbf8700, transfer: 0xbf3989,
-};
+// Ports, on every chip: blue where liquid goes in, red where it comes out, grey when plugged
+// (Module 1 and the bench demo colour a port by what it is doing at that moment). A port's
+// role (waste, load, release...) is in its label; the colour only says which way the liquid goes.
+export const PORT_FLOW = { in: 0x218bff, out: 0xcf222e, plugged: 0x8c959f };
+const IN_ROLES = new Set(['load', 'reagent', 'medium', 'oil', 'cells', 'factor', 'backflush']);
+const OUT_ROLES = new Set(['waste', 'release', 'harvest', 'transfer']);
+// 'in' | 'out' | null, from the spec: its type first (inlet / outlet), else what its role implies.
+function portDirection(p) {
+  if (p.type === 'inlet') return 'in';
+  if (p.type === 'outlet') return 'out';
+  return IN_ROLES.has(p.role) ? 'in' : OUT_ROLES.has(p.role) ? 'out' : null;
+}
 const FEATURE_COLORS = { gas_window: 0x218bff, heat_zone: 0xe16f24, cold_zone: 0x0969da, curing_window: 0x8250df, optical_window: 0xbf3989 };
 
 // Draw order for see-through parts (lower draws first).
@@ -291,7 +298,7 @@ export class Chip {
   }
 
   #buildPort(p) {
-    const color = ROLE_COLORS[p.role] ?? PORT_COLORS[p.type] ?? 0x9ca3af;
+    const color = PORT_FLOW[portDirection(p)] ?? 0x6e7781;   // control lines and unknowns: grey
     const [x, y, pz] = p.position;
     const r = (p.width_um ? p.width_um / 2000 : 1.1) * (p.type === 'control' ? 0.7 : 1);
     const bottom = pz < this.top / 2;

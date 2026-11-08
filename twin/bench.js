@@ -9,12 +9,11 @@
 // its flow model (twin/network.js, the same model as operator/network.py); every other chip
 // colours its parts along the predicted route. The twin never talks to the pump.
 import * as THREE from 'three';
-import { CHANNEL } from './chip.js';
+import { CHANNEL, PORT_FLOW } from './chip.js';
 import { calm } from './status.js';
 
 const M1 = 'module1_v1';
 const DYE = new THREE.Color().setRGB(0.94, 0.27, 0.27, THREE.SRGBColorSpace);   // Module 1's red, for every chip
-const DYE_CSS = 'rgb(240, 69, 69)';
 const FIRST_SHOW = 2 / 3;      // docs/demo.md: the fast centre of the stream shows about a third sooner
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -82,11 +81,15 @@ export function createBench({ el, m1, root, getChip, nameOf = (id) => id, order 
         }
         keep(part.fluidMaterial, ['color', 'emissive', 'emissiveIntensity', 'opacity', 'envMapIntensity']);
       } else if (part.ringMaterial) {
-        keep(part.ringMaterial, ['color', 'emissive']);
+        // Ports as on the bench: blue where the pump feeds in, red where it vents, grey where plugged.
         const st = portState(part.id);
-        const c = st === 'FEED' ? DYE : new THREE.Color(st === 'VENT' ? 0x8c959f : 0x424a53);
-        part.ringMaterial.color.copy(c);
-        part.ringMaterial.emissive.copy(c);
+        const c = new THREE.Color(st === 'FEED' ? PORT_FLOW.in : st === 'VENT' ? PORT_FLOW.out : PORT_FLOW.plugged);
+        for (const m of [part.ringMaterial, part.box.material, part.stl?.material, part.stl?.children[0]?.material]) {
+          if (!m) continue;
+          keep(m, m.emissive ? ['color', 'emissive'] : ['color']);
+          m.color.copy(c);
+          m.emissive?.copy(c);
+        }
       }
     }
     for (const ch of chip.channels) keep(ch.material, ['color', 'emissive', 'emissiveIntensity', 'opacity']);
@@ -204,7 +207,7 @@ export function createBench({ el, m1, root, getChip, nameOf = (id) => id, order 
       <section class="side-section">
         <h3>Set up</h3>
         <table class="ports">
-          <tr><td>Pump</td><td><span class="port-state feed"><i style="background:${DYE_CSS}"></i><span><code>${esc(p.feed)}</code> at ${p.flow_ul_min} µL/min</span></span></td></tr>
+          <tr><td>Pump</td><td><span class="port-state feed"><i></i><span><code>${esc(p.feed)}</code> at ${p.flow_ul_min} µL/min</span></span></td></tr>
           <tr><td>Vent</td><td><span class="port-state open"><i></i><span><code>${esc(p.vent)}</code> open to waste</span></span></td></tr>
           <tr><td>Plug</td><td><span class="port-state plug"><i></i><span>${plugs.length ? plugs.map((x) => `<code>${esc(x)}</code>`).join(', ') : 'nothing'}</span></span></td></tr>
         </table>

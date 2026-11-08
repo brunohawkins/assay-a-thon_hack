@@ -163,6 +163,27 @@ function setEng(on) {
   if (!on && (module === 'old' || module === 'other')) { showModule('pipeline'); return; }
   reframe();
 }
+// 2D (a plan from above, no orbiting) or 3D: only the camera changes, never the animation.
+// Remembered per browser; #camera=2d or #camera=3d in a link sets it. The home page and the
+// presenter always show the 3D view.
+const CAMERA_KEY = 'twin-camera';
+let planWanted = false;
+try { planWanted = localStorage.getItem(CAMERA_KEY) === 'plan'; } catch { planWanted = false; }
+const cameraParam = new URLSearchParams(location.hash.slice(1)).get('camera');
+if (cameraParam === '2d' || cameraParam === '3d') planWanted = cameraParam === '2d';
+const viewTools = document.getElementById('view-tools');
+function syncCamera() {
+  for (const b of viewTools.querySelectorAll('[data-camera]')) b.setAttribute('aria-pressed', String((b.dataset.camera === 'plan') === planWanted));
+  ctx.setPlan(planWanted && !PRESENT && module !== 'home');
+}
+viewTools.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-camera]');
+  if (!b) return;
+  planWanted = b.dataset.camera === 'plan';
+  try { localStorage.setItem(CAMERA_KEY, planWanted ? 'plan' : '3d'); } catch { /* private window */ }
+  syncCamera();
+});
+
 // Fit the view to the free screen area again (a panel appeared or went away).
 function reframe() {
   if (inPipeline()) pipeline.frame();
@@ -330,6 +351,7 @@ async function showModule(m, file = null) {
   const wasPipeline = was === 'pipeline' || was === 'home';
   module = m;
   ui.setTab(tabOf(m));
+  syncCamera();
   homeEl.hidden = m !== 'home';
   if (was === 'bench') { bench.detach(); player.refresh(); }
   if (m === 'pipeline' || m === 'home') {

@@ -4,6 +4,9 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
+const FOV_3D = 38;
+const FOV_PLAN = 5;    // degrees: near enough to a drawing that the chip's depth hardly shows
+
 export function createScene(container) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -26,13 +29,24 @@ export function createScene(container) {
   room.dispose();
   pmrem.dispose();
 
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.5, 1500);
+  const camera = new THREE.PerspectiveCamera(FOV_3D, 1, 0.5, 1500);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.minDistance = 25;
   controls.maxDistance = 260;
   controls.maxPolarAngle = Math.PI * 0.49;
+
+  // Plan (2D): the same scene and animations seen straight from above, through a long lens so it
+  // reads as a drawing. No orbiting: a drag pans, the wheel zooms.
+  let plan = false;
+  function applyPlanControls() {
+    controls.enableRotate = !plan;
+    controls.mouseButtons.LEFT = plan ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+    controls.touches.ONE = plan ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
+    camera.fov = plan ? FOV_PLAN : FOV_3D;
+    camera.updateProjectionMatrix();
+  }
 
   // Even daylight on a bench: a bright sky/ground fill, a key light and a soft fill opposite.
   // Kept moderate: brighter, the tone mapping bleaches the dye colours towards white.
@@ -44,7 +58,9 @@ export function createScene(container) {
   fill.position.set(-60, 30, -60);
   scene.add(fill);
 
-  scene.add(makeFloor());
+  const floor = makeFloor();
+  floor.traverse((o) => { o.userData.noFit = true; });   // the bench under the chip is not part of what is framed
+  scene.add(floor);
 
   const callbacks = [];
   const clock = new THREE.Clock();
@@ -92,6 +108,7 @@ export function createScene(container) {
     const h = container.clientHeight || window.innerHeight;
     const { fullH, freeW, freeH } = applyViewOffset(w, h);
     const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    if (plan) { fitPlan(t, fullH, freeW, freeH); return; }
     const dir = new THREE.Vector3(...(footprint.dir ?? [-0.06, 0.6, 0.86])).normalize();
     const halfX = (footprint.x / 2) * 1.12;
     // Apparent height: the tilted footprint plus room above it for capsules arriving.
@@ -106,6 +123,40 @@ export function createScene(container) {
     camera.updateProjectionMatrix();
     controls.target.set(0, footprint.targetY ?? footprint.y * 0.12, 0);
     camera.position.copy(dir.multiplyScalar(dist)).add(controls.target);
+    controls.update();
+  }
+
+  // Plan: fit what is actually on screen seen from above (the chip and anything drawn beside
+  // it, such as Module 1's next-module box, or the whole pipeline line), not just the footprint.
+  const _box = new THREE.Box3();
+  const _part = new THREE.Box3();
+  function visibleBounds() {
+    _box.makeEmpty();
+    scene.traverseVisible((o) => {
+      if (o.userData.noFit || !(o.isMesh || o.isLine || o.isPoints) || !o.geometry) return;
+      if (o.isInstancedMesh) { if (!o.count) return; o.computeBoundingBox(); _part.copy(o.boundingBox); }
+      else { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); _part.copy(o.geometry.boundingBox); }
+      if (!_part.isEmpty()) _box.union(_part.applyMatrix4(o.matrixWorld));
+    });
+    return _box;
+  }
+  function fitPlan(t, fullH, freeW, freeH) {
+    const b = visibleBounds();
+    const empty = b.isEmpty();
+    const cx = empty ? 0 : (b.min.x + b.max.x) / 2;
+    const cz = empty ? 0 : (b.min.z + b.max.z) / 2;
+    // Room around it for the labels drawn over the scene (the footprint if nothing is drawn yet).
+    const halfX = (empty ? footprint.x : b.max.x - b.min.x) / 2 * 1.14;
+    const halfV = (empty ? footprint.y : b.max.z - b.min.z) / 2 * 1.2;
+    const dist = Math.max((halfX * fullH) / (t * freeW), (halfV * fullH) / (t * freeH), 1);
+    controls.maxDistance = dist * 3;
+    controls.minDistance = dist * 0.02;
+    camera.near = Math.max(0.002, dist * 0.001);
+    camera.far = dist * 40;
+    camera.updateProjectionMatrix();
+    // Labels hang above their anchors: shift the view down a little to leave room on top.
+    controls.target.set(cx, 0, cz - halfV * 0.04);
+    camera.position.set(controls.target.x, dist, controls.target.z + dist * 1e-4);
     controls.update();
   }
 
@@ -171,6 +222,15 @@ export function createScene(container) {
       userMoved = false;
       fit();
     },
+    // Plan (2D, from above, no orbiting) or the 3D view. Refits whatever is framed.
+    setPlan(on) {
+      if (plan === Boolean(on)) return;
+      plan = Boolean(on);
+      applyPlanControls();
+      userMoved = false;
+      if (footprint) fit();
+    },
+    get plan() { return plan; },
     attachScaleBar(el) {
       bar.el = el;
       bar.line = el.querySelector('.bar');
