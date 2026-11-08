@@ -44,10 +44,20 @@ export function branches(pipe) {
   const mods = pipe?.modules ?? [];
   const last = mods.at(-1)?.module;
   const road = new Map((pipe?.roadmap ?? []).map((r) => [r.id, r]));
-  return (pipe?.handoffs ?? [])
+  const out = (pipe?.handoffs ?? [])
     .filter((h) => h.to?.roadmap && h.from?.module && h.from.module !== last && road.has(h.to.roadmap))
     .map((h) => ({ from: h.from.module, carries: h.carries, ...road.get(h.to.roadmap) }));
+  // A roadmap entry with a chip of its own is an arm of the line, not a step after its last chip,
+  // even where the pipeline file has no hand-off into it (then where it branches off is not known).
+  const seen = new Set(out.map((b) => b.id));
+  for (const r of road.values()) {
+    if (!seen.has(r.id) && CHIP_IN_NOTE.test(r.note ?? '')) out.push({ from: null, ...r });
+  }
+  return out;
 }
+
+const CHIP_IN_NOTE = /chip\/([\w-]+)\.json/;
+const branchHtml = (b) => `<li class="offchip branch"><span class="n">⑂</span><span class="name">Branch: ${esc(tidy(b.name))}${b.built_for_demo ? ' · printed for the demo' : ''}</span></li>`;
 
 // What follows the last chip: the roadmap without its branches.
 function endName(pipe, slots, status) {
@@ -71,7 +81,7 @@ export function printedChips(pipe) {
   const out = new Set();
   for (const m of pipe?.modules ?? []) if (m.built_for_demo && m.chip) out.add(m.chip.split('/').pop().replace(/\.json$/, ''));
   for (const r of pipe?.roadmap ?? []) {
-    const id = r.built_for_demo ? /chip\/([\w-]+)\.json/.exec(r.note ?? '')?.[1] : null;
+    const id = r.built_for_demo ? CHIP_IN_NOTE.exec(r.note ?? '')?.[1] : null;
     if (id) out.add(id);
   }
   return out;
@@ -105,9 +115,7 @@ export function overviewHtml({ variants, current, chosen, slots, pipe, status, p
       items.push(`<li class="ghost" data-slot="${k}"><span class="n">${k + 1}</span><span class="name">${esc(e.name)}</span>
         ${statusHtml(e.status === 'bench' ? 'BENCH' : 'NEXT')}<span class="sub">${esc(firstSentence(e.status_note ?? e.note ?? ''))}</span></li>`);
     }
-    for (const b of branched.filter((x) => x.from === e.module)) {
-      items.push(`<li class="offchip branch"><span class="n">⑂</span><span class="name">Branch: ${esc(tidy(b.name))}${b.built_for_demo ? ' · printed for the demo' : ''}</span></li>`);
-    }
+    for (const b of branched.filter((x) => x.from === e.module)) items.push(branchHtml(b));
     // The join to the next chip: off-chip steps, or what moves by tubing. The join into the end of
     // the line is told on the end row instead.
     const j = slots[k + 1]?.kind === 'end' ? null : joinAfter(slots, k, status);
@@ -118,6 +126,8 @@ export function overviewHtml({ variants, current, chosen, slots, pipe, status, p
         + `${j.lead ? `<span class="sub">${esc(j.lead)}</span>` : ''}</li>`);
     }
   });
+  // Arms whose branch point the pipeline file does not give: listed after the line.
+  for (const b of branched.filter((x) => x.from == null)) items.push(branchHtml(b));
   const total = lineTimeText(slots);
   const alt = current !== chosen ? pipe : null;
   return `
