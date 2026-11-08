@@ -8,7 +8,7 @@ import { createUI } from './ui.js';
 import { findDisplayModel, buildDisplayModel } from './display.js';
 import { createControlPanel } from './control.js';
 import { createPipeline3D } from './pipeline3d.js';
-import { loadStatus, shortStage } from './status.js';
+import { loadStatus, shortStage, skippedSteps, stageSeconds, reagentsIn } from './status.js';
 import { createOverlays } from './overlays.js';
 import { createModule1View, CHIP_ID as M1V1 } from './module1.js';
 import { createLibraryView, LIB_CHIPS } from './library_modules.js';
@@ -470,8 +470,21 @@ async function loadPipelineData(file = pipelineFile) {
     const view = spec ? moduleOf({ chip_id: spec.id, module: spec.module?.id }) : null;
     const list = spec ? runs.filter((r) => r.chip_id === spec.id) : [];
     const pick = list.find(PREFERRED[view] ?? (() => true)) ?? list[0];
+    // The stage's time on this line: its run's protocol time, less any steps the pipeline entry
+    // says it skips (stage 4b on CapSeq skips the chromatin variant's overnight tail).
+    const skip = skippedSteps(m);
+    let time = pick?.total_duration_s ?? null;
+    if (pick && skip.size) {
+      try { time = stageSeconds(await fetchJson(`runs/${pick.file}`), skip); } catch (err) { console.warn(err); time = null; }
+    }
+    // A stage the pipeline names for PCR: what its protocol feeds in, and where (the mentors asked
+    // where the PCR reagents come in). Generic reagent names only (twin/status.js reagentsIn).
+    let inputs = null;
+    if (/\bPCR\b/.test(m.name ?? '') && m.protocol) {
+      try { inputs = reagentsIn(await fetchJson(m.protocol)); } catch (err) { console.warn(err); }
+    }
     return { ...m, chipPath: path, status, statusNote: note, switched: path !== (m.chip ?? null), spec,
-      view: pick ? view : null, file: pick?.file ?? null, duration_s: pick?.total_duration_s ?? null };
+      view: pick ? view : null, file: pick?.file ?? null, duration_s: time, skipped: [...skip], inputs };
   }));
   const m1e = entries.find((e) => e.module === 'module1');
   pipelineData = { pipe, entries, status: statusData, file, days: Math.round((m1e?.duration_s ?? 0) / 86400) };
@@ -494,10 +507,13 @@ function renderPipelineBar() {
     pipe: pipelineData?.pipe, status: statusData, plans: bench.planned });
   markStage(pipeline.currentIndex);
 }
-// The stage the pipeline is playing stands out in the list.
+// The stage the pipeline is playing stands out in the list; during a hand-off, the join row
+// (or, for the last join, the end of the line).
 function markStage(i) {
   const s = pipeline.phaseSlot(i);
-  pipelineBar.querySelectorAll('.stages li[data-slot]').forEach((li) => li.classList.toggle('now', Boolean(s) && Number(li.dataset.slot) === s.k));
+  const join = s?.kind === 'handoff' && pipelineBar.querySelector(`.stages li[data-join="${s.k}"]`);
+  pipelineBar.querySelectorAll('.stages li[data-slot], .stages li[data-join]').forEach((li) => li.classList.toggle('now', Boolean(s)
+    && (join ? li === join : li.dataset.slot !== undefined && Number(li.dataset.slot) === s.k)));
 }
 pipelineBar.addEventListener('keydown', (e) => {
   const li = e.target.closest?.('li[data-open]');

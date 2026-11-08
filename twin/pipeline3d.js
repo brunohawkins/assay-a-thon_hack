@@ -7,7 +7,8 @@
 // Click a chip to open its own view. Same playback interface as the old card view.
 //
 // Every word in here comes from protocols/pipeline_mvp.json, the chip spec or
-// protocols/pipeline_status.md: there is no prose table in this file (MJ). A hand-written
+// protocols/pipeline_status.md, every time from the stage's run in runs/, and a PCR stage's inputs
+// from its protocol's generic reagent names: there is no prose table in this file (MJ). A hand-written
 // summary once told every viewer the pipeline had no single-cell step; it has one, between
 // Module 3 and Module 4, and it appears here because the pipeline file lists it. A stage whose
 // features are below the in-plane floor is OUR CHEMISTRY ON BOUGHT HARDWARE, not a chip of ours,
@@ -16,7 +17,8 @@ import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { Chip } from './chip.js';
 import { applyBlocks } from './blocks.js';
-import { statusView, shortStage, notPrintable, calm } from './status.js';
+import { statusView, shortStage, notPrintable, calm, sentences, joinAfter, lineTime } from './status.js';
+import { formatDuration } from './player.js';
 
 const SLOT_W = 30;
 const SLOT_H = 20;
@@ -36,13 +38,14 @@ const CAVEAT = /\b(not printable|bought|below the|under the|mismatch|unverified|
 export function caveat(e) {
   const text = `${e?.note ?? ''} ${e?.build?.method ?? ''}`;
   const head = firstSentence(e?.note ?? '');
-  const hit = (text.match(/[^.!?]+[.!?]/g) ?? []).map((s) => s.trim()).find((s) => s !== head && CAVEAT.test(s));
+  const hit = sentences(text).find((s) => s !== head && CAVEAT.test(s));
   return hit ?? '';
 }
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const ease = (x) => { x = clamp01(x); return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2; };
 const firstSentence = (s) => (String(s ?? '').match(/^.*?[.!?](\s|$)/)?.[0] ?? String(s ?? '')).trim();
+const lowerFirst = (s) => String(s ?? '').replace(/^./, (c) => c.toLowerCase());
 
 function label(html, cls) {
   const el = document.createElement('div');
@@ -255,12 +258,14 @@ export function createPipeline3D(root, ctx, handlers = {}) {
         world.add(mesh);
         objects.push(mesh);
       });
-      // Off-chip steps that happen in this tube (pipeline_status.md: OFF-CHIP rows after this chip).
-      // An end-of-line step (SPRI, QC) only labels the tube into the end, whatever the chip order.
-      const off = (status?.offChip ?? []).filter((o) => o.after && o.after === a.entry?.spec?.id && (o.before !== null || b.kind === 'end'));
-      if (off.length && b.kind !== 'end') {
-        const lab = label('off-chip step', 'p3-tube');
-        lab.element.title = off.map((o) => o.stage).join('; ');
+      // Off-chip steps that happen on this tube (pipeline_status.md: OFF-CHIP rows after this chip),
+      // named, with whether their protocol exists. The steps after the last chip (SPRI, QC) are on
+      // the end's own label instead.
+      const join = joinAfter(slots, k, status);
+      if (join?.steps.length && b.kind !== 'end') {
+        const lab = label(`<span class="p3-off">Off-chip:</span> ${esc(join.steps.map((o) => lowerFirst(o.stage)).join('; '))}`
+          + `${join.hole ? '<span class="p3-hole">protocol not written yet</span>' : ''}`, 'p3-tube');
+        lab.element.title = [join.lead, ...join.more].join(' ');
         lab.center.set(0.5, -0.9);
         lab.position.copy(curves[0].getPoint(0.5));
         world.add(lab);
@@ -275,7 +280,11 @@ export function createPipeline3D(root, ctx, handlers = {}) {
     slots.forEach((s, k) => {
       let html;
       if (s.kind === 'end') {
-        html = '<b>Library out</b><span class="p3-id">off-chip, in tubes</span>';
+        const j = joinAfter(slots, k - 1, status);
+        const steps = (j?.steps ?? []).map((o) => lowerFirst(o.stage)).join('; ');
+        const t = lineTime(slots);
+        html = `<b>Library out</b><span class="p3-id">off-chip, in tubes${steps ? `: ${esc(steps)}` : ''}</span>`
+          + `${t ? `<span class="p3-id p3-time">${esc(formatDuration(t.total))} from cells to library</span>` : ''}`;
       } else {
         const e = s.entry;
         const st = s.chip ? status?.byChip.get(s.chip.spec.id) : null;
@@ -284,7 +293,9 @@ export function createPipeline3D(root, ctx, handlers = {}) {
         const name = shortStage(st?.stage ?? e.name);
         const dot = `<i class="sdot ${v.cls}" title="${esc(v.text)}"></i>`;
         const sub = s.kind === 'ghost' ? v.word.toLowerCase() : notPrintable(e) ? 'bought hardware · our chemistry' : '';
-        html = `<span class="p3-head">${dot}<span class="p3-num">${k + 1}</span><b>${esc(name)}</b></span>${sub ? `<span class="p3-id">${esc(sub)}</span>` : ''}`;
+        const time = e.duration_s != null ? `<span class="p3-time">${esc(formatDuration(e.duration_s))}</span>` : '';
+        html = `<span class="p3-head">${dot}<span class="p3-num">${k + 1}</span><b>${esc(name)}</b></span>`
+          + `${time || sub ? `<span class="p3-id">${time}${time && sub ? ' · ' : ''}${esc(sub)}</span>` : ''}`;
       }
       const obj = label(html, s.kind);
       const front = s.y === 0 && slots.some((o) => o.y > 0);
@@ -313,18 +324,31 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       const st = s.chip ? data.status?.byChip.get(s.chip.spec.id) : null;
       const what = s.kind === 'ghost' ? `${e.name}: ${e.status === 'bench' ? 'a bench step' : 'not on a chip yet'}. ${firstSentence(e.note ?? e.status_note ?? '')}`
         : `${st?.stage ?? e.name} (${s.chip.spec.id}), ${statusView(st?.badge ?? e.status, st?.detail ?? '').text.toLowerCase()}`
-          + `${notPrintable(e) ? ', bought hardware · our chemistry' : ''}. ${calm(firstSentence(e.note ?? s.chip.spec.description ?? ''))}${caveat(e) ? ` ${calm(caveat(e))}` : ''}`;
-      phases.push({ id: `pl_${e.module}`, kind: 'module', k, play: s.kind === 'ghost' ? 2 : 3.2, proto: e.duration_s ?? 600,
+          + `${notPrintable(e) ? ', bought hardware · our chemistry' : ''}. ${calm(firstSentence(e.note ?? s.chip.spec.description ?? ''))}${caveat(e) ? ` ${calm(caveat(e))}` : ''}`
+          + `${e.inputs ? ` In, from ${e.protocol}: ${e.inputs.list.join(', ')}${e.inputs.ports ? `, through ${e.inputs.ports}` : ''}.` : ''}`;
+      // proto: the stage's protocol time on this line (twin/main.js); null where no run gives one.
+      phases.push({ id: `pl_${e.module}`, kind: 'module', k, play: s.kind === 'ghost' ? 2 : 3.2, proto: e.duration_s ?? null,
         narration: what, args: s.chip ? { chip: s.chip.spec.id, status: st?.status ?? e.status } : { status: 'next' } });
       const tb = tubes[k];
       if (!tb) return;
       const to = slots[k + 1];
       const h = tb.handoff;
-      const toName = to.kind === 'end' ? 'the off-chip steps' : to.chip ? to.chip.spec.id : to.entry?.name;
-      const off = (data.status?.offChip ?? []).filter((o) => o.after && o.after === s.chip?.spec.id && o.before !== null && to.kind !== 'end').map((o) => o.stage.toLowerCase());
-      phases.push({ id: `pl_${h?.id ?? `${e.module}_to_next`}`, kind: 'handoff', k, play: 2, proto: 120,
-        narration: `${(h?.carries ?? 'sample').replace(/^./, (c) => c.toUpperCase())} go from ${s.chip ? `${s.chip.spec.id} ${s.outPort ?? ''}` : e.name} to ${toName}${to.kind === 'chip' && to.inPort ? ` ${to.inPort}` : ''} through 1/16 inch tubing${off.length ? `; off-chip on the way: ${off.join(', ')}` : ''}.`,
-        args: { carries: h?.carries ?? 'cells', from: h?.from?.port ?? '', to: (h?.to?.ports ?? [h?.to?.port ?? h?.to?.roadmap ?? '']).join(', ') } });
+      // What moves, from which port to which, and what happens to it off-chip on the way, in the
+      // pipeline file's and pipeline_status.md's words (twin/status.js joinView). No time: neither
+      // file gives one for a hand-off, so none is shown.
+      const j = joinAfter(slots, k, data.status);
+      const carries = h?.carries ?? 'sample';
+      const one = carries === 'library';
+      const fromAt = s.chip ? `${s.chip.spec.id}${s.outPort ? ` at ${s.outPort}` : ''}` : e.name;
+      const toAt = to.kind === 'end' ? 'the off-chip steps' : to.chip ? `${to.chip.spec.id}${to.inPort ? ` at ${to.inPort}` : ''}` : to.entry?.name;
+      const off = j?.steps.length ? ` Off-chip on the way: ${j.steps.map((o) => lowerFirst(o.stage)).join('; ')}${j.hole ? ' (protocol not written yet)' : ''}.` : '';
+      const told = [j?.lead, ...(j?.more ?? [])].filter(Boolean).join(' ');
+      const toPorts = (h?.to?.ports ?? [h?.to?.port ?? h?.to?.roadmap ?? '']).join(', ');
+      phases.push({ id: `pl_${h?.id ?? `${e.module}_to_next`}`, kind: 'handoff', k, play: j?.steps.length ? 3.2 : 2, proto: null,
+        narration: `${one ? 'The library leaves' : `${carries.replace(/^./, (c) => c.toUpperCase())} leave`} ${fromAt} for ${toAt}, by 1/16 inch tubing.${off}${told ? ` ${told}` : ''}`,
+        args: { carries, from: h?.from?.port ?? '', to: toPorts,
+          source: `${s.chip ? s.chip.spec.id : e.name}${h?.from?.port ? ` · ${h.from.port}` : ''}`,
+          target: to.kind === 'end' ? 'off-chip, in tubes' : `${to.chip ? to.chip.spec.id : to.entry?.name}${toPorts ? ` · ${toPorts}` : ''}` } });
     });
     starts = [];
     let acc = 0;
@@ -333,7 +357,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       starts.push(acc);
       acc += ph.play;
       ph.event = { id: ph.id, command: ph.kind === 'module' ? 'module' : 'hand-off', narration: ph.narration, args: ph.args, duration_s: ph.proto, t_s: proto, protocol_step: i + 1 };
-      proto += ph.proto;
+      proto += ph.proto ?? 0;
     });
     total = acc || 1;
     t = Math.min(t, total);
@@ -378,7 +402,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       current = i;
       handlers.onPhase?.(i, ph.event);
     }
-    handlers.onTick?.({ t, total, protocolT: ph.event.t_s + p * ph.event.duration_s, index: i, progress: p });
+    handlers.onTick?.({ t, total, protocolT: ph.event.t_s + p * (ph.event.duration_s ?? 0), index: i, progress: p });
 
     // Labels and tubes: the working chip (or the tube in use) stands out; earlier ones are done.
     slots.forEach((s, k) => {
@@ -504,7 +528,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
     timeline() { return phases.map((ph, i) => ({ ev: ph.event, start: starts[i], duration: ph.play })); },
     runLike() {
       return { kind: 'pipeline', protocol_id: data?.pipe?.id ?? 'pipeline', chip_id: 'all modules', placeholder: true, operator: 'planner',
-        total_duration_s: phases.reduce((a, ph) => a + ph.proto, 0) };
+        total_duration_s: phases.reduce((a, ph) => a + (ph.proto ?? 0), 0) };
     },
     refresh() { current = -2; render(); },
   };
