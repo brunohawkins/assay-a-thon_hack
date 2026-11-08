@@ -14,7 +14,9 @@ run them for real is in [docs/hardware_roadmap.md](docs/hardware_roadmap.md).
 ## Sunday demo: one command
 
 ```
-python tools/demo.py        # serves the repo, opens http://localhost:8000/twin/?present
+python tools/demo.py          # serves the repo, opens http://localhost:8000/twin/?present
+python tools/demo.py --bench  # the bench demo: Module 1 in real time beside the food-dye run
+python tools/demo.py --twin   # the twin itself, opening on its home page
 ```
 
 The **presenter view**: a guided sequence with big Next / Back buttons (a clicker, the arrow
@@ -83,26 +85,37 @@ python -m http.server 8000          # 3. serve the repo root...
 # ...and open http://localhost:8000/twin/
 ```
 
-In the twin: pick a protocol, then Play/Pause (Space), Step (→), speed 1x/5x/20x
-(keys 1/2/3), click the timeline to jump, IDs (L) to toggle part labels, drag to orbit.
-Switching protocol replays on the same chip. `#run=<file>` in the URL opens a specific run.
-**Real scale / Display model** switches between the working chip (true sizes) and the
-printed show piece; the scale bar works in both. The **Chip
-sizing** panel shows what the sizing calculator says the chip needs next to what it has.
-The twin opens on the **pipeline view**, a 3D scene: every chip of the pipeline at real scale
-(30 × 20 mm each) in a two-row snake, with 1/16 inch tubes between the hand-off ports. As it
-plays, the sample moves port to port through each chip's channels and along the tubes (cells,
-then capsules, then library) and the chambers it passes light up. Statuses come from
-`protocols/pipeline_status.md`; a stage with no chip is a dashed ghost labelled **NEXT** (a bench
-step: **BENCH**); off-chip steps are labelled on their tubes. A toggle switches between the two
-assays (**CapSeq** RNA / **TIP-seq** chromatin DNA; `tools/choose_assay.py` sets the default).
-Click a chip for its own view (tabs along the top: Culture, Cell prep, Encapsulation, Lysis +
-RT, Index PCR, Release). Chambers whose spec names a Flowmatter block are drawn from Yuvraj's
-block STLs (`cad/library/`, from his paper-to-chip tool). Module 1 v1 is a flow twin (see below); Modules 4 and 5
-play MJ's protocols with a design-note panel. Superseded drafts and the duplicates the status
-file retires are under **Old drafts**. Generated chips' views show their animations and a
-**Parameters** panel with the generator values used.
-Closed-loop runs add the **control loop** panel (believed vs true state, prediction vs
+The twin's header has four views and two switches:
+
+- **Home** (where it opens): the project on one page (the problem, our approach, what we built
+  this weekend and why, what is new, and where it stands) beside the pipeline playing on a loop.
+  ![](docs/demo/home.jpg)
+- **Pipeline**: every chip of the pipeline at real scale (30 × 20 mm each) in a
+  two-row snake, with 1/16 inch tubes between the hand-off ports. Play follows the sample port
+  to port through each chip's channels and along the tubes (cells, then capsules, then library).
+  The sidebar lists every stage in order with its status from `protocols/pipeline_status.md`
+  ("Designed" means a spec and a protocol exist, not that the chip is printed), the off-chip
+  steps between stages, and the **CapSeq** RNA / **TIP-seq** chromatin DNA switch
+  (`tools/choose_assay.py` sets the default). A stage with no chip is a dashed outline. Click a
+  stage or a chip to open it.
+- **Bench demo**: Module 1 in real time beside the food-dye run on the bench (`#view=bench`, or
+  `python tools/demo.py --bench`). Pick the mode and the pump rate; the sidebar says what goes on
+  each port (which dye syringe, open, plugged). Start the timer with the pumps and the twin's dye
+  moves on the same clock. **Watch for** lists what should happen and when: a window from the dye
+  first showing there to plug-flow arrival, from the same network model as `operator/network.py`.
+  **Mark** records when you first see it on the bench and says whether it landed in the window.
+  ![](docs/demo/bench_demo.jpg)
+- **Chips**: each chip's own view, playing its protocol, with a card saying what the chip does.
+  Chambers whose spec names a Flowmatter block are drawn from Yuvraj's block STLs
+  (`cad/library/`, from his paper-to-chip tool). Modules 4 and 5 add a design-note panel.
+- **Present** opens the presenter view. **Engineering** (remembered per browser) adds the run
+  picker, Module 1's flow panel (every port, the solver, the operator's decisions), chip sizing
+  and generator parameters, **Real scale / Display model** (the printed show piece), part IDs,
+  and **Old drafts**: superseded drafts and the duplicates the status file retires.
+
+Playback: Play/Pause (Space), Step (→), speed 1x/5x/20x (keys 1/2/3), click the timeline to
+jump, drag to orbit. `#run=<file>` in the URL opens a specific run.
+Closed-loop runs add the **control loop** panel in engineering mode (believed vs true state, prediction vs
 measurement charts with model-update markers, the optimizer's choices, the event log
 with safety tags), an alert banner, and an **Open loop / Closed loop** toggle that
 replays the same protocol and faults the other way. How the closed loop works:
