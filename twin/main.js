@@ -363,6 +363,7 @@ async function showModule(m, file = null) {
     if (module !== 'bench') return;
     player.setPlaying(false);
     overlays.setDay(null);
+    if (!m1.attached) { ui.toast('Module 1 could not be loaded, so the bench demo is not available.'); return; }
     await setView('real');
     bench.attach();
     ctx.frameChip(chip.footprint);
@@ -404,7 +405,7 @@ const pipelineCache = new Map();
 // The assay variants the pipeline view can switch between (tools/choose_assay.py picks the default).
 const VARIANTS = [
   { variant: 'capseq', file: 'protocols/pipeline_capseq.json', label: 'CapSeq · RNA' },
-  { variant: 'tipseq', file: 'protocols/pipeline_tipseq.json', label: 'TIP-seq · chromatin DNA' },
+  { variant: 'tipseq', file: 'protocols/pipeline_tipseq.json', label: 'TIP-seq · DNA' },
 ];
 let pipelineFile = 'protocols/pipeline_mvp.json';
 let chosenVariant = null;   // the variant protocols/pipeline_mvp.json copies
@@ -413,10 +414,24 @@ let chosenVariant = null;   // the variant protocols/pipeline_mvp.json copies
 async function loadPipelineData(file = pipelineFile) {
   if (pipelineCache.has(file)) return (pipelineData = pipelineCache.get(file));
   const pipe = await fetchJson(file);
-  if (file === 'protocols/pipeline_mvp.json') chosenVariant = pipe.variant ?? null;
+  if (file === 'protocols/pipeline_mvp.json') {
+    chosenVariant = pipe.variant ?? null;
+    // Edited by hand (no "variant"): it is the plan as it stands, whatever the variant files say.
+    if (!chosenVariant) { VARIANTS[0] = { variant: 'mvp', file, label: 'CapSeq · RNA' }; chosenVariant = 'mvp'; }
+  }
   const entries = await Promise.all(pipe.modules.map(async (m) => {
-    const { path, status, note } = await pipelineChip(m);
-    const spec = path ? await fetchJson(path) : null;
+    const { path, status: listed, note: listedNote } = await pipelineChip(m);
+    let spec = null;
+    let status = listed;
+    let note = listedNote;
+    if (path) {
+      try { spec = await fetchJson(path); } catch (err) {          // the chip was removed: show the stage as missing
+        console.warn(err);
+        status = 'missing';
+        note = `chip spec not found: ${path}`;
+        m = { ...m, status_note: note };
+      }
+    }
     const view = spec ? moduleOf({ chip_id: spec.id, module: spec.module?.id }) : null;
     const list = spec ? runs.filter((r) => r.chip_id === spec.id) : [];
     const pick = list.find(PREFERRED[view] ?? (() => true)) ?? list[0];
@@ -472,8 +487,8 @@ pipelineBar.addEventListener('click', async (e) => {
 });
 
 // Szonja's workflow as a run: flows become load / exchange / back-flush; the no-flow steps
-// (settle, incubate) join the step before them. Ends with the hand-off out of to_split_tree,
-// which now feeds the BARCODING stage and not Module 4: plate-based split-and-pool is dropped,
+// (settle, incubate) join the step before them. Ends with the hand-off out of to_split_tree, which
+// feeds the BARCODING stage (4b) and not Module 4 directly: plate-based split-and-pool is dropped,
 // so there is no split tree and the port name is only a leftover of it.
 
 // The generated chip as a one-step run: medium into its first part, so the twin draws it live.
@@ -512,9 +527,27 @@ async function module3Run(entry) {
     t += dur;
   }
   events.push({ command: 'release', args: { target: 'main_trap', reagent: 'wash_buffer' }, t_s: t, duration_s: 60, protocol_step: events.length + 1,
-    narration: 'Hand-off: the resuspended capsules leave through to_split_tree, which now feeds Module 4 (sublibrary split + index PCR). The port keeps its name from the dropped split-and-pool design; there is no split tree.' });
+    narration: 'Hand-off: the resuspended capsules leave through to_split_tree, on to barcoding (stage 4b), where each capsule gets its own clonal barcode in its own oil droplet, and then to Module 4, which splits them into four sublibraries. RT in this trap added no barcode; stage 4b is what makes the data single-cell, and the lane barcode from Module 1 and Module 4\'s index are demultiplexing on top. The port keeps its name from the dropped split-and-pool design; there is no split tree.' });
   return { protocol_id: entry.protocol_id, protocol_name: entry.protocol_name, chip_id: entry.chip_id, chip_spec: entry.chip_spec,
     operator: 'planner', placeholder: true, synthetic: true, total_duration_s: t + 60, events };
+}
+
+// Only offer the assay variants whose files are still there (the plan is always offered).
+async function dropMissingVariants() {
+  const keep = [];
+  for (const v of VARIANTS) {
+    if (v.variant === chosenVariant) { keep.push(v); continue; }
+    try { await fetchJson(v.file); keep.push(v); } catch { console.warn(`${v.file} is gone: no ${v.label} option`); }
+  }
+  VARIANTS.splice(0, VARIANTS.length, ...keep);
+}
+
+// A chip with no runs left (removed, or not generated yet) drops out of the Chips menu.
+function hideEmptyChipViews() {
+  for (const b of document.querySelectorAll('#chips-menu .menu [data-module]')) {
+    const m = b.dataset.module;
+    if (m !== 'old' && m !== 'other') b.hidden = !runsFor(m).length;
+  }
 }
 
 // The sidebar on a chip view: what the chip is, its status and what it does.
@@ -558,6 +591,9 @@ async function selectRun(file) {
     player.refresh(); // re-send the current event now the timeline exists
     renderChipCard();
     setUrl(`#run=${encodeURIComponent(entry.file)}`);
+  } catch (err) {
+    console.warn(err);
+    ui.toast(`Could not open ${file}: ${err.message}`);
   } finally {
     busy = false;
     if (pendingFile) {
@@ -576,6 +612,8 @@ async function start() {
     runs.push(M3_ENTRY, PROMPT_ENTRY);
     statusData = await loadStatus(ROOT);
     try { await loadPipelineData(); } catch (err) { console.warn(err); } // badges only: module views work without it
+    await dropMissingVariants();
+    hideEmptyChipViews();
     if (PRESENT) {
       const presenter = createPresenter({
         showModule: (m, file) => showModule(m, file),

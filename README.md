@@ -115,8 +115,9 @@ The twin's header has four views and two switches:
   sidebar label it that way rather than letting it read as a chip we make.
   The sidebar lists every stage in order with its status from `protocols/pipeline_status.md`
   ("Designed" means a spec and a protocol exist, not that the chip is printed), the off-chip
-  steps between stages, and the **CapSeq** RNA / **TIP-seq** chromatin DNA switch
-  (`tools/choose_assay.py` sets the default). A stage with no chip is a dashed outline. Click a
+  steps between stages, and a switch between **CapSeq** RNA (the plan: MJ's six-chip chain, with
+  no barcoding stage of its own) and **TIP-seq** chromatin DNA (an alternative kept for comparison;
+  `tools/choose_assay.py` sets which one is the plan). A stage with no chip is a dashed outline. Click a
   stage or a chip to open it.
 - **Bench demo**: Module 1 in real time beside the food-dye run on the bench (`#view=bench`, or
   `python tools/demo.py --bench`). Pick the mode and the pump rate; the sidebar says what goes on

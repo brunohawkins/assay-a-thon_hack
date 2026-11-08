@@ -39,8 +39,7 @@ const TUBE_COLOR = 0x8c959f;
 // Short stage names for the labels in the scene; the sidebar lists the full ones.
 // Keyed by chip id, or by the pipeline's module id for a stage with no chip.
 export const SHORT = { module1_v1: 'Culture', cell_prep_v1: 'Cell prep', spc_demo_v1: 'Encapsulation', module3_v1_translated: 'Lysis, wash, RT',
-  module4_v1: 'Index PCR', module5_v1: 'Release, cleanup', sctip_spc_v1: 'Barcoding in oil',
-  barcoding: 'Barcoding', hairpin: 'Hairpin ligation', bench: 'Permeabilise, tagment' };
+  module4_v1: 'Index PCR', module5_v1: 'Release, cleanup', sctip_spc_v1: 'Barcoding in oil', bench: 'Permeabilise, tagment' };
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const ease = (x) => { x = clamp01(x); return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2; };

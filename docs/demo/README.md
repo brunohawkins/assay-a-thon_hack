@@ -32,7 +32,7 @@ below the 200 µm in-plane floor, so there is no printable chip of ours for it.
 | # | Step | What the audience sees |
 |---|---|---|
 | 1 | From a prompt to a chip | A typed prompt, then: Flowmatter parts → chip spec → our checker passes it; the chip appears with its real part shapes. A cached result of Yuvraj's tool (`prompt_to_chip/`), so it runs offline. ![](step_1_prompt.jpg) |
-| 2 | The whole pipeline, at real scale | The 3D scene: every chip (30 × 20 mm) in a snake, tubes between them, the sample moving chip to chip; dashed outlines, labelled “not designed yet”, for the barcoding and hairpin placeholders. ![](step_2_pipeline.jpg) |
+| 2 | The whole pipeline, at real scale | The 3D scene: every chip (30 × 20 mm) in a snake, tubes between them, the sample moving chip to chip, from the culture chip to the library out. ![](step_2_pipeline.jpg) |
 | 3 | Module 1: separate growth | Red, yellow and blue dye (neurons, glia, astrocytes) fill their own chambers and leave through p_mid. ![](step_3_grow.jpg) |
 | 4 | Module 1: interaction | Only the neuron inlet is fed: red crosses the junction into the other two chambers. ![](step_4_interact.jpg) |
 | 5 | Unsafe request refused | “Cap p_mid and vent p_g_out” is typed; the operator answers in one sentence from the live safety check (the glia chamber would get 33% neuron and 33% astrocyte medium); blocked, ports unchanged. ![](step_5_refuse.jpg) |
