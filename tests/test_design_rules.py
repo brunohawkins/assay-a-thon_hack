@@ -203,7 +203,7 @@ class PipelineIsShipped(unittest.TestCase):
     """
 
     def pipeline_chips(self):
-        (path, pipe), = schema_io.pipelines()
+        path, pipe = schema_io.chosen_pipeline()
         out = []
         for m in pipe["modules"]:
             chip_path = schema_io.pipeline_chip(m)[0]

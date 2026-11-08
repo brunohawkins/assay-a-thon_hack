@@ -4,7 +4,7 @@
   "chip_id": "placeholder_chip_v1",
   "chip_spec": "chip/placeholder_chip_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T23:21:54Z",
+  "created_at": "2026-11-08T09:51:03Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": null,

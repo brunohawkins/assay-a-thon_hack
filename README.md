@@ -23,6 +23,17 @@ retention needs a bought mesh insert or sedimentation. Stage map: [protocols/pip
 **virtual chip** and are labelled **SIMULATED HARDWARE** everywhere; what to buy to
 run them for real is in [docs/hardware_roadmap.md](docs/hardware_roadmap.md).
 
+## Sunday demo: one command
+
+```
+python tools/demo.py        # serves the repo, opens http://localhost:8000/twin/?present
+```
+
+The **presenter view**: a guided sequence with big Next / Back buttons (a clicker, the arrow
+keys or Space work too; F for full screen), fully offline. If the laptop misbehaves, play the
+backup video [docs/demo/presenter_backup.webm](docs/demo/presenter_backup.webm). Details and
+screenshots: [docs/demo/README.md](docs/demo/README.md).
+
 ## Pipeline
 
 ```
@@ -90,20 +101,27 @@ Switching protocol replays on the same chip. `#run=<file>` in the URL opens a sp
 **Real scale / Display model** switches between the working chip (true sizes) and the
 printed show piece; the scale bar works in both. The **Chip
 sizing** panel shows what the sizing calculator says the chip needs next to what it has.
-The twin opens on the **pipeline view**: every current module left to right (from
-`protocols/pipeline_mvp.json`): Module 1 v1 (culture) -> cell prep -> Module 2 (encapsulation, `spc_demo_v1`) ->
-Module 3 (load, lysis, wash, RT; translated from the project's geometry requirements sheet) -> barcoding (stage 4b: design + protocol, no printable chip - the droplet steps run on a bought kit) ->
-Module 4 (sublibrary split + index PCR) -> Module 5 (release + cleanup) -> SPRI and QC (off-chip) -> library out. Each card
-has a status badge (FINAL, DRAFT, TRANSLATED, MISSING), says whether it is **built for the
-dye demo** or **twin only**, and shows its hand-off ports (TBC where not named) with
-a ⚠ where the two chips' ports differ (the demo needs an adapter). Cells, capsules and library
-move between the cards; click a module for its own view (tabs along the top). Module 1 v1 is a
-flow twin (see below); Module 3 plays the sheet's workflow on the translated chip; Modules 4 and 5
-play MJ's protocols with a design-note panel (fill order ABCD DCBA and thermocycle on the whole
-chip; pass k of 4, magnet on/off). The superseded drafts (Module 1 brief, 1b, 3 wash) are under
-**Old drafts**. Generated chips' views show their animations (valves, a day counter while cells
-differentiate, Module 2's nozzle close-up with droplets forming core-shell capsules, the UV
-flash) and a **Parameters** panel with the generator values used.
+The twin opens on the **pipeline view**, a 3D scene: every chip of the pipeline at real scale
+(30 × 20 mm each) in a two-row snake, with 1/16 inch tubes between the hand-off ports. The
+stages, in order (from `protocols/pipeline_mvp.json`): Module 1 v1 (culture) -> cell prep ->
+Module 2 (encapsulation, `spc_demo_v1`) -> Module 3 (load, lysis, wash, RT; translated from the
+project's geometry requirements sheet) -> **single-cell barcoding** (a real stage: our chemistry
+on bought droplet hardware, so it carries a *simulated hardware* badge and has no printable
+chip of ours) -> Module 4 (sublibrary split + index PCR) -> Module 5 (release + cleanup) -> SPRI
+and QC (off-chip) -> library out. As it plays, the sample moves port to port through each chip's
+channels and along the tubes (cells, then capsules, then library) and the chambers it passes
+light up. Statuses come from `protocols/pipeline_status.md`; a stage with no chip is a dashed
+ghost labelled **NEXT** (a bench step: **BENCH**); off-chip steps are labelled on their tubes.
+Each chip says whether it is **built for the dye demo** or **twin only**, and a ⚠ marks a
+hand-off where the two chips' ports differ (the demo needs an adapter). A toggle switches
+between the two assays (**CapSeq** RNA / **TIP-seq** chromatin DNA; `tools/choose_assay.py` sets
+the default). Click a chip for its own view (tabs along the top: Culture, Cell prep,
+Encapsulation, Lysis + RT, Index PCR, Release). Chambers whose spec names a Flowmatter block are
+drawn from Yuvraj's block STLs (`cad/library/`, from his paper-to-chip tool). Module 1 v1 is a
+flow twin (see below); Module 3 plays the sheet's workflow on the translated chip; Modules 4 and
+5 play MJ's protocols with a design-note panel. Superseded drafts and the duplicates the status
+file retires are under **Old drafts**. Generated chips' views show their animations and a
+**Parameters** panel with the generator values used.
 Closed-loop runs add the **control loop** panel (believed vs true state, prediction vs
 measurement charts with model-update markers, the optimizer's choices, the event log
 with safety tags), an alert banner, and an **Open loop / Closed loop** toggle that

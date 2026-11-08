@@ -1,0 +1,250 @@
+{
+  "kind": "pipeline",
+  "id": "pipeline_tipseq",
+  "variant": "tipseq",
+  "name": "TIP-seq (chromatin DNA): culture -> permeabilise + tagment (bench) -> capsules -> barcoding in oil -> release -> index PCR",
+  "placeholder": true,
+  "description": "TIP-seq, chromatin DNA. The bench step (permeabilise + tagment) is a PLACEHOLDER. sctip_spc_v1 is MJ's capsule + single-copy barcoding chip (read-only); its own encapsulator (stage A) is retired, so its capsules come from spc_demo_v1, the only encapsulation geometry that can be printed. Release (module5_v1) comes BEFORE index PCR (module4_v1), as TIP-seq does; module5_v1's design note says either order works. Only stage A of sctip_spc_v1 is retired (spc_demo_v1 replaces it); stages B and C are the barcoding in oil this variant runs, and the same stage CapSeq calls 4b (protocols/pipeline_status.md). Steps 17-19 of its protocol - the gap-fill and the overnight linear amplification - are the chromatin tail, so they DO run here and are skipped on the RNA path.",
+  "modules": [
+    {
+      "module": "module1",
+      "name": "Module 1: culture (v1)",
+      "status": "final",
+      "owner": "MJ",
+      "chip": "chip/module1_v1.json",
+      "protocol": "protocols/module1_v1.json",
+      "build": {
+        "method": "resin print + hot emboss, 30 x 20 mm, 0.3 mm deep, one fluidic layer",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "contracts/blocks.json (fabrication_floors)"
+      },
+      "built_for_demo": false,
+      "note": "Rescaled from 140 x 75 mm. Its own dissociation (steps 175-178) duplicates cell_prep_v1 and is still in the protocol; the back-flush, pooling and release (179-182) are still the only way cells leave. The dye-demo doc (cad/module1_dye_demo.md) predates the rescale."
+    },
+    {
+      "module": "bench",
+      "name": "Permeabilise + tagment (bench)",
+      "status": "bench",
+      "status_note": "placeholder · bench step",
+      "owner": "TBC",
+      "build": {
+        "method": "bench, in tubes",
+        "connector": "TBC"
+      },
+      "built_for_demo": false,
+      "note": "Placeholder for TIP-seq's steps on the harvested cells before encapsulation: permeabilise, then tagment at the bench with a transposase (CONFIDENTIALITY.md: no enzyme names). No chip; the conditions come from the published method once MJ decides on the assay."
+    },
+    {
+      "module": "module2",
+      "name": "Module 2: encapsulation (spc_demo_v1)",
+      "status": "final",
+      "owner": "TBC",
+      "chip": "chip/spc_demo_v1.json",
+      "protocol": "protocols/spc_demo_v1.json",
+      "build": {
+        "method": "resin print + hot emboss, 30 x 20 mm, 0.15 mm deep, one fluidic layer; curing off-chip",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "contracts/blocks.json (fabrication_floors)"
+      },
+      "built_for_demo": false,
+      "note": "Capsules for the barcoding chip: sctip_spc_v1's own encapsulator (stage A) is retired."
+    },
+    {
+      "module": "sctip",
+      "name": "Barcoding in oil (sctip_spc_v1)",
+      "status": "draft",
+      "status_note": "MJ's sctip chip; stages B + C are also CapSeq's stage 4b",
+      "owner": "MJ",
+      "chip": "chip/sctip_spc_v1.json",
+      "protocol": "protocols/sctip_spc_v1.json",
+      "build": {
+        "method": "resin print + hot emboss, 30 x 20 mm, 0.15 mm deep, one fluidic layer; curing off-chip",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "contracts/blocks.json (fabrication_floors)"
+      },
+      "built_for_demo": false,
+      "note": "Packs the capsules, adds the amplification mix and single-copy barcode, drops one capsule per droplet for the off-chip thermocycler, breaks the emulsion and washes the capsules in its trap."
+    },
+    {
+      "module": "module5",
+      "name": "Module 5: release + cleanup",
+      "status": "final",
+      "owner": "MJ",
+      "chip": "chip/module5_v1.json",
+      "protocol": "protocols/module5_v1.json",
+      "build": {
+        "method": "hot-embossed COC (Tg >= 130 C), thermally bonded; 0.5 / 0.3 / 1.0 mm",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "protocols/module5_design.md, section 1"
+      },
+      "built_for_demo": false,
+      "note": "Release first: in TIP-seq the DNA leaves the capsules before index PCR."
+    },
+    {
+      "module": "module4",
+      "name": "Module 4: sublibrary split + index PCR",
+      "status": "final",
+      "owner": "MJ",
+      "chip": "chip/module4_v1.json",
+      "protocol": "protocols/module4_v1.json",
+      "build": {
+        "method": "hot-embossed COC (Tg >= 130 C), thermally bonded; 0.5 / 0.3 / 1.0 mm",
+        "connector": "drilled_0_8mm_5mm_pitch",
+        "ports": ">= 0.8 mm drilled holes at >= 5 mm pitch, <= 6 per chip",
+        "source": "protocols/module5_design.md, section 1"
+      },
+      "built_for_demo": false,
+      "note": "Index PCR after release, as TIP-seq does."
+    }
+  ],
+  "handoffs": [
+    {
+      "id": "module1_to_bench",
+      "carries": "cells",
+      "from": {
+        "module": "module1",
+        "port": "p_mid"
+      },
+      "to": {
+        "module": "bench",
+        "port": "TBC"
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "TBC",
+        "status": "unknown",
+        "warning": "Bench step: tubing into a tube, no chip port."
+      },
+      "note": "Harvested cells to the bench."
+    },
+    {
+      "id": "bench_to_encapsulation",
+      "carries": "cells",
+      "from": {
+        "module": "bench",
+        "port": "TBC"
+      },
+      "to": {
+        "module": "module2",
+        "port": "in_core"
+      },
+      "connector": {
+        "from": "TBC",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "unknown",
+        "warning": "From a tube into spc_demo_v1's 0.8 mm drilled core inlet."
+      },
+      "note": "Permeabilised, tagmented cells into the core stream."
+    },
+    {
+      "id": "encapsulation_to_sctip",
+      "carries": "capsules",
+      "from": {
+        "module": "module2",
+        "port": "out_caps"
+      },
+      "to": {
+        "module": "sctip",
+        "port": "in_load"
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "match"
+      },
+      "note": "Cured capsules (curing is off-chip), close-packed, through in_load's selector valve."
+    },
+    {
+      "id": "sctip_to_release",
+      "carries": "capsules",
+      "from": {
+        "module": "sctip",
+        "port": "out_waste",
+        "note": "The recovery line of its selector valve: the bed is back-flushed out."
+      },
+      "to": {
+        "module": "module5",
+        "port": "in_lib"
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "match"
+      },
+      "note": "Barcoded capsules to release."
+    },
+    {
+      "id": "release_to_index_pcr",
+      "carries": "library",
+      "from": {
+        "module": "module5",
+        "port": "out_lib"
+      },
+      "to": {
+        "module": "module4",
+        "ports": [
+          "in_s1",
+          "in_s2",
+          "in_s3",
+          "in_s4"
+        ]
+      },
+      "connector": {
+        "from": "drilled_0_8mm_5mm_pitch",
+        "to": "drilled_0_8mm_5mm_pitch",
+        "status": "match"
+      },
+      "note": "Released DNA split four ways for index PCR."
+    },
+    {
+      "id": "index_pcr_to_roadmap",
+      "carries": "library",
+      "from": {
+        "module": "module4",
+        "port": "out_sub",
+        "note": "Each of the four chambers taps east through a capillary-stop restrictor onto one shared collection spine, which leaves through out_sub. The spine stays dry through PCR because every tap is a capillary stop, and collection is air-driven one chamber at a time with p_vent capped, so the spine runs one way only. Worst-case carry-over between sublibrary indices is about 1.1% of a sublibrary, computed from the tap geometry."
+      },
+      "to": {
+        "roadmap": "spri_qc"
+      },
+      "note": "Indexed sublibraries on, off-chip."
+    },
+    {
+      "id": "spri_qc_to_library_out",
+      "carries": "library",
+      "from": {
+        "roadmap": "spri_qc"
+      },
+      "to": {
+        "roadmap": "library_out"
+      },
+      "note": "Off-chip. No protocol written."
+    }
+  ],
+  "roadmap": [
+    {
+      "id": "spri_qc",
+      "name": "SPRI size selection + QC (off-chip)",
+      "note": "Fluorometric quantification, fragment sizing and a quantitative amplification assay. Undocumented: no protocol exists."
+    },
+    {
+      "id": "module6_bulk_omics",
+      "name": "Module 6: bulk metabolome + proteome arm (branches off culture, before encapsulation)",
+      "note": "NOT a roadmap stub: chip/module6_v1.json and protocols/module6_v1.json both exist. It is filed here because the pipeline format expresses one chain and this is a branch. Metabolome AND proteome from ONE single-phase acidified polar-organic extraction of ADHERENT cells, in place on the chamber floor: fraction 1 (metabolome) out of the lane outlet, then the precipitated protein film resolubilised at ambient and collected as fraction 2 (proteome) out of the SAME outlet. Chlorinated and partition solvents are excluded; the chip is a cyclic-olefin copolymer, so coupon tests belong on that polymer and not on PMMA. REQUIRES A SUB-AMBIENT STAGE: -20 C soak for 5 min and a 4 C rinse and flood, one thermal zone over all three lanes, so no lane can be cold while another is alive and the protocol is ordered by phase. The rig has no sub-ambient source today; the degraded fallback is a 4 C soak, which is off the published method and makes the yield and the metabolome/proteome split unvalidated. Yield about 9,600 cells per lane, which supports untargeted coverage of roughly 100-160 metabolites if the extract stays at or below about 10 uL."
+    },
+    {
+      "id": "library_out",
+      "name": "Library out",
+      "note": "Finished, indexed library in a tube."
+    },
+    {
+      "id": "sequencing",
+      "name": "Sequencing",
+      "note": "Off-chip."
+    }
+  ]
+}

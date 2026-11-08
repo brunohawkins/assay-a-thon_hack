@@ -237,10 +237,20 @@ export function createUI(actions) {
 
     // Badges and the parameters panel from the chip spec's module and generator blocks.
     // info: this chip's entry in protocols/pipeline_mvp.json, if it is one of the current modules.
-    setChipInfo(spec, info = null) {
+    // md: this chip's row in protocols/pipeline_status.md (twin/status.js), which wins for the badge.
+    setChipInfo(spec, info = null, md = null) {
       const m = spec?.module;
       const STATUS = { final: 'FINAL', draft: 'DRAFT', translated: 'TRANSLATED', missing: 'MISSING' };
-      if (info) {
+      const MD_CLASS = { BUILT: 'st-final', 'RT ONLY': 'st-translated', 'DUPLICATE-RETIRE': 'superseded', 'OFF-CHIP': 'st-draft' };
+      if (md) {
+        el.printBadge.hidden = false;
+        el.printBadge.textContent = info?.built_for_demo ? 'Built for the dye demo' : 'Twin only';
+        el.printBadge.className = `badge ${info?.built_for_demo ? 'printed' : 'sim-only'}`;
+        el.draftBadge.hidden = false;
+        el.draftBadge.textContent = `${md.badge}${md.detail ? ` · ${md.detail}` : ''}`;
+        el.draftBadge.className = `badge ${MD_CLASS[md.badge] ?? 'st-draft'}`;
+        el.draftBadge.title = `protocols/pipeline_status.md: ${md.stage}: ${md.status}`;
+      } else if (info) {
         el.printBadge.hidden = false;
         el.printBadge.textContent = info.built_for_demo ? 'Built for Sunday’s dye demo' : 'Twin only';
         el.printBadge.className = `badge ${info.built_for_demo ? 'printed' : 'sim-only'}`;
@@ -306,23 +316,28 @@ export function createUI(actions) {
         r.missing?.length ? `no STL for ${r.missing.join(', ')} (box drawn from the spec instead)` : null,
         r.mismatched?.length ? `REFUSED, wrong coordinates for this chip (box drawn from the spec instead): ${r.mismatched.map((m) => `${m.id} at (${m.at.join(', ')}) not (${m.expected.join(', ')})`).join('; ')}` : null,
         r.failed?.length ? `could not be read: ${r.failed.join(', ')}${r.listed ? '' : ' (no directory listing: these may simply not exist)'}` : null,
+        r.blocks?.length ? `drawn from the Flowmatter block library instead of an export: ${r.blocks.join(', ')}` : null,
         r.unrelated?.length ? `${r.unrelated.join(', ')} in that folder belong to no part of this chip` : null,
         ...(r.undrawn ?? []),
         r.why ?? null,
       ].filter(Boolean).join('\n');
-      const total = (r.loaded?.length ?? 0) + (r.missing?.length ?? 0) + (r.mismatched?.length ?? 0) + (r.failed?.length ?? 0);
+      // Blocks count as drawn geometry, not as a miss: a part the spec names from the
+      // Flowmatter library is already on screen as that block's real shape.
+      const total = (r.loaded?.length ?? 0) + (r.missing?.length ?? 0) + (r.mismatched?.length ?? 0)
+        + (r.failed?.length ?? 0) + (r.blocks?.length ?? 0);
+      const drawn = (r.loaded?.length ?? 0) + (r.blocks?.length ?? 0);
       el.cad.hidden = false;
       el.cad.title = detail;
       if (bad.length) {
         el.cad.textContent = r.mismatched?.length ? `CAD problem: ${r.mismatched.length} part(s) at the wrong coordinates` : 'CAD: none for this chip';
         el.cad.className = 'badge warn';
         this.toast(bad[0]);
-      } else if (!r.loaded?.length) {
+      } else if (!drawn) {
         el.cad.textContent = 'CAD: none, boxes from the spec';
         el.cad.className = 'badge sim-only';
       } else {
-        el.cad.textContent = `CAD: ${r.loaded.length}/${total} parts`;
-        el.cad.className = r.loaded.length === total ? 'badge printed' : 'badge sim-only';
+        el.cad.textContent = `CAD: ${drawn}/${total} parts`;
+        el.cad.className = drawn === total ? 'badge printed' : 'badge sim-only';
       }
       if (r.undrawn?.length) this.toast(r.undrawn[0]);
     },

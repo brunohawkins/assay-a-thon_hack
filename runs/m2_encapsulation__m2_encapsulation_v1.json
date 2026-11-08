@@ -4,7 +4,7 @@
   "chip_id": "m2_encapsulation_v1",
   "chip_spec": "cad/m2_encapsulation_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T23:21:53Z",
+  "created_at": "2026-11-08T09:51:02Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": 10000,

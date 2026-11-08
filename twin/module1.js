@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import {
   Network, parseDxfChannels, MODES, DESIGN_MODES, modeStates, solverPorts, keyResult, safetyCheck, dyeTimes,
-  diffusionMm, shearCeiling,
+  diffusionMm, shearCeiling, defaultFeed,
 } from './network.js';
 import { contracts } from './contracts.js';
 
@@ -25,7 +25,10 @@ const DYE_OF_PORT = { p_in: 0, p_g_in: 1, p_g_out: 1, p_a_in: 2, p_a_out: 2 };
 const DYE_NAMES = ['red', 'yellow', 'blue'];
 const CELLS = 14;                      // cells per channel in the advection grid
 const D_MM2_S = (8.8 ** 2) / (2 * 12 * 3600); // mm^2/s from the design doc's 8.8 mm in 12 h
-const PROTOCOL_FEED = 11;              // uL/min (build_module1.py)
+// uL/min. NOT the old hard-coded 11 from build_module1.py, which went stale the moment the
+// chip was rescaled: prepare() derives it from THIS chip with network.js defaultFeed(), the
+// same rule as operator/network.py's DEFAULT_FEED_UL_MIN, off the contract shear ceiling.
+let PROTOCOL_FEED = 2.4;
 const SPEEDS = [1, 10, 100, 1000, 10000];
 const CHAMBER_INFO = { n_cx: 'neuron chamber', g_cx: 'glia (microglia) chamber', a_cx: 'astrocyte chamber', j_mid: 'junction (not a culture chamber)' };
 
@@ -64,7 +67,7 @@ export function stepMode(ev) {
   return { mode: 'grow', states, flows };
 }
 
-export function createModule1View({ ctx, ui, overlays, root }) {
+export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['llm', 'scripted'] }) {
   let chip = null;
   let net = null;
   let attached = false;
@@ -80,6 +83,8 @@ export function createModule1View({ ctx, ui, overlays, root }) {
   let idleT = 0;
   let decisions = [];
   let measured = {};
+  let flagged = null;      // presenter: { ids, t } parts pulsing red (a refused request)
+  let asbuilt = null;      // cad/exports/module1_v1/asbuilt.json, when the as-built CAD differs (tools/check_asbuilt.py)
   // Dye-demo syringe rate. contracts/ carries no parameter for it yet, so contracts.js hands
   // back the operator's value and lists it in `missing`; the panel names where it came from.
   const bench = Object.fromEntries(PORTS.map((p) => [p, contracts().benchFlowUlMin]));
@@ -99,7 +104,22 @@ export function createModule1View({ ctx, ui, overlays, root }) {
   // ---------------------------------------------------------------- loading
 
   async function prepare(spec) {
-    const res = await fetch(`${root}cad/exports/${CHIP_ID}/${CHIP_ID}.dxf`, { cache: 'no-store' });
+    // The port bore is not fetched or configured here: twin/contracts.js has already read it
+    // from contracts/blocks.json, the same file operator/network.py and the CAD generator read,
+    // and each Network carries it (net.portHoleMm / net.portHoleUl) with this chip's own lid.
+    PROTOCOL_FEED = defaultFeed(spec);
+    // What was printed wins: if tools/check_asbuilt.py found the as-built CAD differs from the spec,
+    // draw and solve on its normalised outline. The listing is read first, so no 404 when there is none.
+    asbuilt = null;
+    let dxfName = `${CHIP_ID}.dxf`;
+    try {
+      const listing = await (await fetch(`${root}cad/exports/${CHIP_ID}/`, { cache: 'no-store' })).text();
+      if (listing.includes('asbuilt.json')) {
+        asbuilt = await (await fetch(`${root}cad/exports/${CHIP_ID}/asbuilt.json`, { cache: 'no-store' })).json();
+        if (asbuilt?.dxf) dxfName = asbuilt.dxf;
+      }
+    } catch { asbuilt = null; }
+    const res = await fetch(`${root}cad/exports/${CHIP_ID}/${dxfName}`, { cache: 'no-store' });
     const rects = res.ok ? parseDxfChannels(await res.text()) : [];
     net = new Network(spec, rects);
     // Draw-only additions (the spec file itself is not changed): channel paths from the DXF,
@@ -126,7 +146,14 @@ export function createModule1View({ ctx, ui, overlays, root }) {
       l.element.remove();
       return false;
     });
-    buildOverlays(); // STLs are loaded by main.js, from the folder this chip owns
+    // STLs are loaded by main.js, from the folder this chip OWNS (it awaits loadChipCad before
+    // attaching, so they are already in place here). The chamber STLs are drawn over the
+    // liquid, so keep them nearly clear and unlit: that is what makes the dye colours read true.
+    for (const ch of c.spec.chambers) {
+      const stl = c.parts.get(ch.id)?.stl;
+      if (stl) { stl.material.opacity = 0.07; stl.material.emissiveIntensity = 0; }
+    }
+    buildOverlays();
     attached = true;
     panel.hidden = false;
     document.body.classList.add('has-m1');
@@ -139,6 +166,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
 
   function detach() {
     if (!attached) return;
+    setFlag(null);
     attached = false;
     panel.hidden = true;
     tooltip.hidden = true;
@@ -157,7 +185,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
   async function loadDecisions() {
     let listing = '';
     try { listing = await (await fetch(`${root}runs/module1_v1/`, { cache: 'no-store' })).text(); } catch { return; }
-    for (const kind of ['llm', 'scripted']) {
+    for (const kind of operatorKinds) {
       if (!listing.includes(`operator_${kind}.json`)) continue;
       try {
         const res = await fetch(`${root}runs/module1_v1/operator_${kind}.json`, { cache: 'no-store' });
@@ -172,6 +200,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
     group.clear();
     chip.group.add(group);
     const top = chip.top;
+    const k = Math.min(1, chip.footprint.x / 140); // overlays were drawn for the 140 mm board; scale with the chip
     const zc = chip.floorZ0 + 0.16;
     // Advection cells along every channel: one instance per cell, coloured by its dye.
     const nCh = net.edges.length;
@@ -196,10 +225,10 @@ export function createModule1View({ ctx, ui, overlays, root }) {
     group.add(objs.cells);
 
     // Flow arrows: one cone per channel at its middle, above the lid.
-    const coneGeom = new THREE.ConeGeometry(0.9, 2.4, 18).rotateZ(-Math.PI / 2); // points along +x
+    const coneGeom = new THREE.ConeGeometry(0.9 * k, 2.4 * k, 18).rotateZ(-Math.PI / 2); // points along +x
     objs.arrows = net.edges.map((e) => {
       const mesh = new THREE.Mesh(coneGeom, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x5eead4, emissiveIntensity: 0.5, transparent: true, opacity: 0.9 }));
-      mesh.position.set((e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2, top + 0.9);
+      mesh.position.set((e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2, top + 0.9 * k);
       mesh.renderOrder = 8;
       group.add(mesh);
       return mesh;
@@ -211,30 +240,30 @@ export function createModule1View({ ctx, ui, overlays, root }) {
       el.className = 'port-icon';
       const obj = new CSS2DObject(el);
       obj.center.set(0.5, 1.15);
-      obj.position.set(p.position[0], p.position[1], top + 1.2);
+      obj.position.set(p.position[0], p.position[1], top + 1.2 * k);
       group.add(obj);
       objs.portIcons[p.id] = obj;
     }
 
-    // Module 2 box: where harvest flow from p_mid goes.
+    // Next-module box: where harvest flow from p_mid goes (protocols/pipeline_mvp.json: cell prep).
     const pm = net.chip.ports.find((p) => p.id === 'p_mid').position;
     // Off the board, in front of it (the board's y = 0 edge faces the camera).
-    const boxPos = new THREE.Vector3(pm[0], -16, top + 1);
-    const tubeCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(pm[0], pm[1], top), new THREE.Vector3(pm[0], pm[1], top + 5),
-      new THREE.Vector3(pm[0] + 3, 4, top + 5), boxPos.clone().setY(boxPos.y + 6)]);
+    const boxPos = new THREE.Vector3(pm[0], -16 * k, top + 1 * k);
+    const tubeCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(pm[0], pm[1], top), new THREE.Vector3(pm[0], pm[1], top + 5 * k),
+      new THREE.Vector3(pm[0] + 3 * k, 4 * k, top + 5 * k), boxPos.clone().setY(boxPos.y + 6 * k)]);
     const tubeMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, emissive: 0x334155, emissiveIntensity: 0.4, transparent: true, opacity: 0.7 });
-    const tube = new THREE.Mesh(new THREE.TubeGeometry(tubeCurve, 80, 0.45, 10, false), tubeMat);
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(tubeCurve, 80, Math.max(0.45 * k, net.portHoleMm / 2), 10, false), tubeMat);
     group.add(tube);
     const boxMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, emissive: 0x2dd4bf, emissiveIntensity: 0.12, transparent: true, opacity: 0.75 });
-    const box = new THREE.Mesh(new THREE.BoxGeometry(26, 10, 4), boxMat);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(26 * k, 10 * k, 4 * k), boxMat);
     box.position.copy(boxPos);
     group.add(box);
     const lab = document.createElement('div');
     lab.className = 'part-label m2-box-label';
-    lab.textContent = 'Module 2 (encapsulation) – in progress by MJ';
+    lab.textContent = 'on to cell prep (cell_prep_v1)';
     const labObj = new CSS2DObject(lab);
     labObj.center.set(0.5, 0);
-    labObj.position.copy(boxPos).setY(boxPos.y - 6);
+    labObj.position.copy(boxPos).setY(boxPos.y - 6 * k);
     group.add(labObj);
     objs.m2 = { tubeMat, boxMat };
 
@@ -248,7 +277,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
     dl.className = 'part-label diffusion-label';
     objs.discLabel = new CSS2DObject(dl);
     objs.discLabel.center.set(0.5, 0);
-    objs.discLabel.position.set(j.center[0], j.center[1] - 5, top + 0.4);
+    objs.discLabel.position.set(j.center[0], j.center[1] - 5 * k, top + 0.4 * k);
     objs.discLabel.visible = false;
     group.add(objs.discLabel);
 
@@ -433,6 +462,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
     if (simDt > 0) advance(simDt);
     if (stopwatch.running) stopwatch.t += dt * (demo ? 1 : speed);
     draw();
+    if (flagged) pulseFlagged(dt);
     overlays.setStopwatch?.(demo ? { t: stopwatch.t, running: stopwatch.running } : null);
   }
 
@@ -443,6 +473,23 @@ export function createModule1View({ ctx, ui, overlays, root }) {
   }
 
   const following = (playing) => follow && playing;
+
+  // Presenter: parts named in a refused request pulse red until cleared.
+  function pulseFlagged(dt) {
+    flagged.t += dt;
+    const k = 0.5 + 0.5 * Math.sin(flagged.t * 5);
+    for (const id of flagged.ids) {
+      const part = chip?.parts.get(id);
+      if (!part?.glow) continue;
+      part.glow.visible = true;
+      part.glowMaterial.color.setRGB(0.97, 0.2, 0.2);
+      part.glowMaterial.opacity = 0.25 + 0.4 * k;
+    }
+  }
+  function setFlag(ids) {
+    for (const id of flagged?.ids ?? []) { const part = chip?.parts.get(id); if (part?.glow) part.glow.visible = false; }
+    flagged = ids?.length ? { ids, t: 0 } : null;
+  }
 
   // Protocol playback: the player says which step and how far into it.
   let lastEv = -1;
@@ -494,7 +541,9 @@ export function createModule1View({ ctx, ui, overlays, root }) {
       part.fluid.scale.z = Math.max(part.size.z * 0.96, 0.0001);
       dyeColor(conc, part.fluidMaterial.color).lerp(new THREE.Color(0x9fb4d1), 1 - a);
       part.fluidMaterial.emissive.copy(part.fluidMaterial.color);
-      part.fluidMaterial.opacity = 0.25 + 0.55 * a;
+      // A low glow keeps the dye saturated: brighter, the tone mapping washes yellow out to white.
+      part.fluidMaterial.emissiveIntensity = 0.18;
+      part.fluidMaterial.opacity = 0.3 + 0.62 * a;
     }
     // port icons
     for (const pid of PORTS) {
@@ -562,7 +611,7 @@ export function createModule1View({ ctx, ui, overlays, root }) {
         <div class="meta">${esc(d.summary)}</div>${[...(d.reasons ?? []).map((r) => `<div class="blk">✕ ${esc(r)}</div>`), ...(d.warnings ?? []).map((w) => `<div class="wrn">! ${esc(w)}</div>`)].join('')}</li>`).join('');
     panel.innerHTML = `
       <div class="cp-head"><h2>Module 1 v1 · flow</h2>
-        <p class="meta">MJ's chip (resin print + hot emboss) · real scale · channels from module1_v1.dxf · same model as operator/network.py (parity checked by hand, not by a test)</p>
+        <p class="meta">MJ's chip (resin print + hot emboss) · real scale · channels from ${asbuilt ? `the AS-BUILT file ${esc(asbuilt.source_dxf)} (${asbuilt.differences.length} differences from the spec)` : 'module1_v1.dxf'} · same model as operator/network.py (parity checked by hand, not by a test)</p>
         <p class="meta">µ = ${C.mu_pa_s} Pa s (fluid.viscosity_37c_pa_s: culture medium at 37 °C, not the ${C.muWater20cPaS} Pa s water-at-20 °C value) · shear ceiling ${ceiling} dyn/cm² · port bore ${net.portHoleMm} mm — all from contracts/</p>
         ${net.estimated.length ? `<p class="wrn">! no DXF rectangle matched ${esc(net.estimated.join(', '))}: those lengths are straight-line estimates, not cut geometry</p>` : ''}
         ${C.missing.map((m) => `<p class="wrn">! ${esc(m.wanted)} does not exist: ${esc(String(m.name))} = ${m.value} comes from ${esc(m.from)}</p>`).join('')}</div>
@@ -671,5 +720,14 @@ export function createModule1View({ ctx, ui, overlays, root }) {
     setMode: (m, flow = PROTOCOL_FEED) => { follow = false; setMode(m, flow); },
     snapSteady, advance: (s) => advance(s), setDemo(on) { demo = on; if (on) speed = 1; renderPanel(); },
     chamberColor: (id) => sim?.node[id]?.c.slice(),
+    // presenter view (twin/presenter.js)
+    reset() { if (net) { sim = newSim(); simT = 0; idleT = 0; } },   // clear medium everywhere: dye starts at the feeds
+    setSpeed(x) { speed = x; demo = false; renderPanel(); },
+    flag: setFlag,
+    check: (mode, states, flows) => safetyCheck(net, mode, states, flows, { cells: true }),
+    get decisions() { return decisions; },
+    get defaultFeed() { return PROTOCOL_FEED; },
+    get asbuilt() { return asbuilt; },
+    dyeCss: (k) => `rgb(${DYE_RGB[k].map((x) => Math.round(x * 255)).join(',')})`,
   };
 }

@@ -335,23 +335,37 @@ materials we actually build with — **PMMA (all 27 `TODO`) and printed resin (2
 which is exactly why `tools/check_chip_spec.py` prints "compatibility TODO: PMMA with …"
 against most chips. Those warnings are the remaining work, not a broken file.
 
-### Pipelines: `protocols/pipeline_mvp.json`
+### Pipelines: `protocols/pipeline_*.json`
 
 A pipeline chains the modules (`"kind": "pipeline"`, schema `schemas/pipeline.schema.json`).
-Each entry in `modules` has a `status` (`final`, `draft`, `translated`, `missing`; the twin
-shows it as a badge), an `owner`, its `chip` and `protocol` (a missing module has neither),
-`build` (`method` and a `connector` id for its port style), `built_for_demo` (physically built
-for the dye demo, or twin-only), and optionally `prefer` (`{"glob": "chip/module2*.json"}`:
-switch to that file as soon as it exists). `handoffs` say which outlet feeds which inlet:
-`p_mid` -> `m2_core_in_1` -> ... -> `out_lib` -> library out. A port nobody has named yet
-is `"TBC"`; `ports` lists several inlets at once (Module 4's four). Each hand-off between two
-modules carries a `connector` block (`match`, `mismatch`, or `unknown` when either side is
-TBC, with a `warning`: where the demo needs an adapter).
+Each entry in `modules` has a `status` (`final`, `draft`, `translated`, `missing` or `bench`;
+the last two are placeholders with no chip, every port `"TBC"`), an `owner`, its `chip` and
+`protocol`, `build` (`method` and a `connector` id for its port style), `built_for_demo`, and
+optionally `prefer` (`{"glob": ...}`: switch to that file as soon as it exists). `handoffs` say
+which outlet feeds which inlet; `ports` lists several inlets at once (Module 4's four). Each
+hand-off between two modules carries a `connector` block (`match`, `mismatch`, or `unknown`
+when either side is TBC, with a `warning`: where the demo needs an adapter).
 
-`tools/validate.py` checks the files exist, no superseded chip is used, every named port
-exists and runs outlet -> inlet, and the connector blocks agree with the modules' `build`; it
-lists TBC ports and connector warnings. `tools/check_chip_spec.py` follows the hand-offs to
-check any cell filter against the downstream encapsulation nozzle.
+**Two assays.** `pipeline_capseq.json` (CapSeq, RNA: MJ's chain plus the barcoding and hairpin
+placeholders he dropped) and `pipeline_tipseq.json` (TIP-seq, chromatin DNA: a bench
+permeabilise + tagment placeholder, `sctip_spc_v1`, release before index PCR). Both are built
+from MJ's chain by `tools/build_assay_variants.py --base <his pipeline file>`.
+`pipeline_mvp.json` is a copy of the chosen one (`"same_as"`, `"variant"`):
+
+```
+python tools/choose_assay.py tipseq     # switch; capseq is the default
+```
+
+Edit the chain, not the copy: `tools/validate.py` fails if `pipeline_mvp.json` drifts from its
+variant. It also checks the files exist, no superseded chip is used, every named port exists
+and runs outlet -> inlet, and the connector blocks agree with the modules' `build`; it lists TBC
+ports and connector warnings.
+
+**Port overlap** (`tools/check_chip_spec.py`, an error): a port's lid hole (its `width_um`, else
+`blocks.json`'s `min_port_mm` bore) must open onto the cut channel or chamber under it by at
+least 1 mm², or a quarter of the hole when the hole is under 2 × 2 mm (a 0.8 mm bore holds only
+0.64 mm²). It measures the exported DXF when there is one, else the spec. Fix a failure by
+running the channel across the hole or adding a pad under it.
 
 ## 3. commands: the chip's instruction set
 

@@ -97,6 +97,22 @@ export parts one at a time.
 If a part shows up in the wrong place, the usual cause is a different origin or
 units (inches, or centred on the part). Re-export in place in mm.
 
+## As-built files (Ayrton)
+
+Put the file that was actually cut or printed into the chip's export folder, under any name
+(e.g. `cad/exports/module1_v1/module1_v1_lasercut.dxf`), then:
+
+```
+python tools/check_asbuilt.py                        # Module 1; --chip chip/<id>.json for another
+```
+
+It lists every file our scripts did not write (or one of theirs that was replaced), compares
+it with the chip spec (chamber positions and sizes, channel widths and ends, STL depths, how
+much each port hole opens onto the cut) and, if it differs, writes `asbuilt.json` and
+`<chip_id>_asbuilt.dxf` there. The twin's Module 1 view then draws and solves the flow on the
+as-built channels, since that is what was printed, and says so in its panel. The as-built file
+itself is never changed.
+
 ## Hello world plate (MVP)
 
 `exports/hello_world_plate/hello_world_plate.stl` is Ayrton's hello world MVP: a

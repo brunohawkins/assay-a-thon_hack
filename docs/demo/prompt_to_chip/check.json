@@ -1,0 +1,22 @@
+{
+  "ref": "origin/chip/flowmatter-paper-to-chip",
+  "commit": "02a670a",
+  "design": "capsule_prep_v1",
+  "checked_at": "2026-11-07T18:34:36Z",
+  "schema_errors": [],
+  "errors": [],
+  "warnings": [
+    "material 'unknown' is not in contracts/materials.json: temperature and chemical compatibility can't be checked"
+  ],
+  "todo": [],
+  "passes": true,
+  "counts": {
+    "parts": 8,
+    "ports": 12,
+    "channels": 19,
+    "footprint_mm": [
+      317.326,
+      115.828
+    ]
+  }
+}

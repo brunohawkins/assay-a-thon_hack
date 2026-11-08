@@ -74,6 +74,10 @@
     "coc": {
       "name": "COC (cyclic olefin copolymer, high-Tg grades)",
       "aliases": ["coc", "cyclic_olefin_copolymer", "coc_5013", "coc_6013"],
+      "grade": "TBC",
+      "grade_note": "Not chosen. The 98 C PCR hold needs Tg well above 98 C: grades 5013 (134 C), 6013 (138-142 C), 6015 (158 C) and 6017 (178 C) qualify; 8007 (78 C), 9506 (64 C) and 7010 (110 C, too close) do not. glass_transition_c below is the working value for grade 5013.",
+      "glass_transition_c_range": [64, 178],
+      "glass_transition_source": "Public COC product page of the manufacturer whose grade designations these are: Tg per grade, 64 C (grade 9506) to 178 C (grade 6017). Grade numbers are the published resin designations; the manufacturer's trade name is deliberately not recorded here (CONFIDENTIALITY.md).",
       "max_working_temp_c": 120,
       "glass_transition_c": 134,
       "optical_transparency": "Optically clear, ~91-92% visible transmission, low autofluorescence; UV-transparent",

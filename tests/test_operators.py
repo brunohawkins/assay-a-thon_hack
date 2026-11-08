@@ -68,7 +68,7 @@ class ShippedModule3(unittest.TestCase):
         return {"seed": 4, "sensors": CLOSED, "reservoirs_ul": {r: 2 * v for r, v in need.items()}, **extra}
 
     def test_the_pipeline_still_points_at_this_chip_and_protocol(self):
-        (_, pipe), = schema_io.pipelines()
+        _, pipe = schema_io.chosen_pipeline()
         entry = next(m for m in pipe["modules"] if m["module"] == "module3")
         self.assertEqual(schema_io.pipeline_chip(entry)[0], "chip/module3_v1_translated.json")
         self.assertEqual(entry["protocol"], "protocols/module3_v1.json")
@@ -124,7 +124,7 @@ class PlannerMechanics(unittest.TestCase):
     def test_the_mvp_chip_is_still_marked_superseded(self):
         self.assertEqual(MVP_CHIP["module"]["status"], "superseded")
         self.assertEqual(MVP_CHIP["module"]["superseded_by"], "chip/module3_v1_translated.json")
-        chips = {m.get("chip") for m in schema_io.pipelines()[0][1]["modules"]}
+        chips = {m.get("chip") for m in schema_io.chosen_pipeline()[1]["modules"]}
         self.assertNotIn("cad/m3_wash_spec.json", chips, "a superseded chip must stay out of the pipeline")
 
     def test_clog_is_detected_and_recovered_without_losing_capsules(self):

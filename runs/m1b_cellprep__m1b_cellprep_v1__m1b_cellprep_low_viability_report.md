@@ -4,7 +4,7 @@
 
 - Scenario: `m1b_cellprep_low_viability`: Too many dead cells: viability under 90%. Dilution can't fix that, so the safety checker blocks the hand-off to Module 2.
 - Status: **stopped**
-- Created: 2026-11-07T23:21:54Z
+- Created: 2026-11-08T09:51:04Z
 
 ## Outcome
 

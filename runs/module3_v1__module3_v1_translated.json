@@ -4,7 +4,7 @@
   "chip_id": "module3_v1_translated",
   "chip_spec": "chip/module3_v1_translated.json",
   "operator": "planner",
-  "created_at": "2026-11-07T23:21:53Z",
+  "created_at": "2026-11-08T09:51:03Z",
   "placeholder": true,
   "sizing": {
     "capsule_count": 650000,

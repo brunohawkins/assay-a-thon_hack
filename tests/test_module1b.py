@@ -88,8 +88,14 @@ class CrossChipFilter(unittest.TestCase):
         materials = schema_io.load_json(ROOT / "contracts" / "materials.json")["materials"]
         return ccs.check(chip, [], params, materials, {"laser_kerf_um": None, "min_embossed_feature_um": None}, downstream)
 
+    def other_errors(self, findings):
+        """Everything except port overlap, which is its own rule with its own test
+        (tests/test_port_overlap.py): the CAD generator stops channels at the port edge, so
+        every hand-designed chip fails it today and it would mask the rule under test here."""
+        return [e for e in findings.errors if not e.startswith("port overlap:")]
+
     def pipeline(self):
-        _, pipe = schema_io.pipelines()[0]
+        _, pipe = schema_io.chosen_pipeline()
         chips = {m["module"]: schema_io.load_json(ROOT / schema_io.pipeline_chip(m)[0])
                  for m in pipe["modules"] if schema_io.pipeline_chip(m)[0]}
         return pipe, chips
@@ -133,7 +139,7 @@ class CrossChipFilter(unittest.TestCase):
 
     def test_the_pipelines_encapsulation_chip_declares_its_nozzle(self):
         # Otherwise the upstream cell filter is never checked against it (check_chip_spec.downstream_nozzles is silent).
-        pipe_path, pipe = schema_io.pipelines()[0]
+        pipe_path, pipe = schema_io.chosen_pipeline()
         entry = next(m for m in pipe["modules"] if m["module"] == "module2")
         chip_path = schema_io.pipeline_chip(entry)[0]
         chip = schema_io.load_json(ROOT / chip_path)
@@ -151,7 +157,7 @@ class CrossChipFilter(unittest.TestCase):
         self.assertTrue(filters, f"{src['id']} feeds {dst['id']}'s {nozzle:g} um nozzle through {h['id']} but declares "
                                  f"no cell filter, so clumps reaching the nozzle are unchecked")
         f = self.check(src, ccs.downstream_nozzles(src))
-        self.assertEqual(f.errors, [])
+        self.assertEqual(self.other_errors(f), [])
         self.assertTrue([o for o in f.ok if "nozzle" in o], "the checker should confirm the filter against the nozzle")
 
     def test_filter_smaller_than_the_downstream_nozzle_is_confirmed(self):
@@ -160,7 +166,7 @@ class CrossChipFilter(unittest.TestCase):
         _, chips = self.pipeline()
         nozzle = self.nozzle_of(chips["module2"])
         f = self.check(M1B, [(nozzle, chips["module2"]["id"], "m1b_to_module2")])
-        self.assertEqual(f.errors, [])
+        self.assertEqual(self.other_errors(f), [])
         self.assertTrue(any("m1b_filter_1" in o and f"< the {nozzle:g} um nozzle" in o for o in f.ok))
 
     def test_filter_as_wide_as_the_downstream_nozzle_is_an_error(self):
@@ -183,13 +189,18 @@ class Pipeline(unittest.TestCase):
         self.assertTrue((ROOT / successor).is_file(), successor)
         self.assertNotEqual(schema_io.load_json(ROOT / successor).get("module", {}).get("status"), "superseded",
                             f"{successor} is superseded too: the chain does not end at a shipped chip")
-        (path, pipe), = schema_io.pipelines()
-        pipeline_chips = {schema_io.pipeline_chip(m)[0] for m in pipe["modules"]}
+        # The CHOSEN chain has to run cell prep somewhere; the other assay variant need not
+        # (TIP-seq tagments at the bench instead), so only the chosen one is asked for it.
+        chosen = schema_io.chosen_pipeline()[1]
+        pipeline_chips = {schema_io.pipeline_chip(m)[0] for m in chosen["modules"]}
         self.assertIn(successor, pipeline_chips, f"{successor} replaced m1b but is not in the pipeline")
-        self.assertEqual(schema_io.schema_errors("pipeline", pipe), [])
-        self.assertNotIn("m1b", [m["module"] for m in pipe["modules"]])
-        self.assertNotIn("bench_step", path.read_text())
-        self.assertNotIn("pause_for_human", path.read_text())
+        found = schema_io.pipelines()   # pipeline_mvp.json and the assay variants it can copy
+        self.assertTrue(found)
+        for path, pipe in found:
+            self.assertEqual(schema_io.schema_errors("pipeline", pipe), [], path.name)
+            self.assertNotIn("m1b", [m["module"] for m in pipe["modules"]])
+            self.assertNotIn("bench_step", path.read_text())       # the old human-in-the-loop bridge
+            self.assertNotIn("pause_for_human", path.read_text())
 
 
 if __name__ == "__main__":

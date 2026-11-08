@@ -23,6 +23,25 @@ const portHoleMm = () => contracts().portHoleMm;
 export const shearCeiling = () => contracts().shearCeiling;
 const FIRST_TINT = 2 / 3;
 
+// The port bore and the lid are NOT configured from here any more. They used to be module
+// state set by a configure({ portHoleMm, lidMm }) call, which meant two sources for the same
+// number and an order dependency; the bore now comes from twin/contracts.js (the contract
+// operator/network.py reads) and the lid from the chip's own top layer, per Network instance
+// (net.portHoleMm, net.portHoleUl) and portHoleUl(spec).
+
+// Largest feed that keeps every culture chamber under the shear ceiling: operator/network.py's
+// _default_feed_ul_min, derived from the chip so a rescale can't leave it stale.
+export function defaultFeed(chip, { mu = null, ceiling = null, margin = 0.85 } = {}) {
+  mu ??= mu37c();
+  ceiling ??= shearCeiling();
+  const flows = chip.chambers.filter((c) => c.type !== 'pool').map((c) => {
+    const w = c.size[1] * 1e-3;
+    const h = c.size[2] * 1e-3;
+    return ((ceiling / 10) * w * h * h) / (6 * mu) * 60 * 1e9;   // m3/s -> uL/min
+  });
+  return flows.length ? Math.round(Math.min(...flows) * margin * 1000) / 1000 : 2;
+}
+
 export const MODES = {
   grow: { label: 'Separate growth', feed: ['p_in', 'p_g_in', 'p_a_in'], vent: ['p_mid'] },
   int_n: { label: 'Interact N → G+A', feed: ['p_in'], vent: ['p_g_out', 'p_a_out'] },
@@ -92,6 +111,11 @@ function clipToBox(p0, p1, center, size) {
 }
 
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+function segDist(p, a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy || 1)));
+  return dist(p, [a[0] + t * dx, a[1] + t * dy]);
+}
 
 // id -> {a, b, length_mm, width_mm, depth_mm, source}
 export function channelGeometry(chip, dxfRects = null) {
@@ -111,6 +135,16 @@ export function channelGeometry(chip, dxfRects = null) {
       if (score(best) < 0.05) {
         const fwd = dist(best.a, a) < dist(best.a, b);
         Object.assign(g, { a: fwd ? best.a : best.b, b: fwd ? best.b : best.a, length_mm: best.length_mm, width_mm: best.width_mm, source: 'DXF' });
+      } else {
+        // An as-built file (tools/check_asbuilt.py) needn't trim where our generator does (it may run on
+        // into a port pad): take the outline whose centreline lies along this channel's line.
+        const off = (r) => Math.max(segDist(r.a, ca, cb), segDist(r.b, ca, cb));
+        const along = dxfRects.filter((r) => off(r) < Math.max(0.3, 2 * ch.width_mm) && r.length_mm > 0.3 * dist(a, b));
+        const near = along.length ? along.reduce((m, r) => (off(r) < off(m) ? r : m)) : null;
+        if (near) {
+          const fwd = dist(near.a, ca) < dist(near.b, ca);
+          Object.assign(g, { a: fwd ? near.a : near.b, b: fwd ? near.b : near.a, length_mm: near.length_mm, width_mm: near.width_mm, source: 'DXF (as built)' });
+        }
       }
     }
     out[ch.id] = g;

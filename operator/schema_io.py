@@ -43,6 +43,18 @@ def pipelines() -> list[tuple[Path, dict]]:
     return out
 
 
+def chosen_pipeline(root: Path = ROOT) -> tuple[Path, dict]:
+    """THE pipeline: protocols/pipeline_mvp.json, the chain the repo is currently pointed at.
+
+    protocols/ holds more than one pipeline now - pipeline_mvp.json plus one file per assay
+    variant it can copy (tools/choose_assay.py) - so `pipelines()` no longer returns exactly
+    one and code that wants "the pipeline" has to say which. A variant is a possible chain; the
+    mvp file is the chosen one, and it is what the hand-off and port rules are written about.
+    """
+    path = root / "protocols" / "pipeline_mvp.json"
+    return path, load_json(path)
+
+
 def pipeline_chip(entry: dict, root: Path = ROOT) -> tuple[str | None, str | None, str | None]:
     """The chip a pipeline module uses right now: (path, status, status_note).
 

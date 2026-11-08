@@ -7,7 +7,7 @@
 - Sensors: outlet_absorbance · asked for but not available on `virtual_chip`: pressure_kpa
 - Faults injected: sensor_fault {'sensor': 'pressure_kpa', 'mode': 'stuck', 'start_t_s': 90}
 - Status: **done** · Protocol time: 351.33 s
-- Created: 2026-11-07T23:21:55Z
+- Created: 2026-11-08T09:51:04Z
 
 ## Outcome
 

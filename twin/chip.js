@@ -524,16 +524,30 @@ export class Chip {
   // out_waste on module5_v1 and sctip_spc_v1), so loading the flat folder for every chip
   // showed another chip's parts at another chip's coordinates and called it a success.
   // The owner file decides, and nothing is guessed.
+  // The .stl names a folder actually holds, from the `python -m http.server` listing, or null
+  // when there is no listing to read (a static host): asking for a part that is not there is
+  // then the only way to find out, and the 404 is expected.
+  static async listStls(dir, root) {
+    const html = await Chip.#text(`${root}${dir}`);
+    return html === null ? null : Chip.#stlNames(html);
+  }
+
+  static async #text(url) {
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      return res.ok ? await res.text() : null;
+    } catch {
+      return null;
+    }
+  }
+
+  static #stlNames(html) {
+    return [...html.matchAll(/href="([^"?#]+\.stl)"/gi)].map((m) => decodeURIComponent(m[1]).split('/').pop().replace(/\.stl$/i, ''));
+  }
+
   static async stlSource(chipId, root) {
-    const text = async (url) => {
-      try {
-        const res = await fetch(`${root}${url}`, { cache: 'no-store' });
-        return res.ok ? await res.text() : null;
-      } catch {
-        return null;
-      }
-    };
-    const stls = (html) => [...html.matchAll(/href="([^"?#]+\.stl)"/gi)].map((m) => decodeURIComponent(m[1]).split('/').pop().replace(/\.stl$/i, ''));
+    const text = (url) => Chip.#text(`${root}${url}`);
+    const stls = (html) => Chip.#stlNames(html);
     // The listing from `python -m http.server` says which subfolders exist, so the owner's own
     // chip never asks for a folder that is not there (display.js reads cad/display/ the same way).
     const top = await text('cad/exports/');
@@ -571,7 +585,7 @@ export class Chip {
   // an STL at the wrong coordinates is another chip's part and is refused, not displayed.
   // Returns a report; main.js shows it, so a miss is never silent.
   async loadStls({ dir, names = null } = {}, root = '') {
-    const report = { dir, loaded: [], missing: [], mismatched: [], failed: [], listed: Boolean(names) };
+    const report = { dir, loaded: [], missing: [], mismatched: [], failed: [], blocks: [], listed: Boolean(names) };
     const want = [...this.parts.keys()];
     if (!dir) {
       report.missing = want;
@@ -586,6 +600,9 @@ export class Chip {
     await Promise.all(want.map(async (id) => {
       const part = this.parts.get(id);
       if (!ids.includes(id)) { report.missing.push(id); return; }
+      // A Flowmatter block shape (twin/blocks.js) wins over a plain exported box: the spec
+      // named a library part, so that part's real geometry is already drawn here.
+      if (part.block) { report.blocks.push(id); return; }
       let geom;
       try {
         geom = await loader.loadAsync(`${base}${encodeURIComponent(id)}.stl`);

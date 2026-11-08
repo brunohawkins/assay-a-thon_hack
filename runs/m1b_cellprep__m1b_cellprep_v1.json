@@ -4,7 +4,7 @@
   "chip_id": "m1b_cellprep_v1",
   "chip_spec": "cad/m1b_cellprep_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T23:21:52Z",
+  "created_at": "2026-11-08T09:51:02Z",
   "placeholder": true,
   "simulated_hardware": true,
   "adapter": "sim",

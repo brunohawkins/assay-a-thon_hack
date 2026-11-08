@@ -4,7 +4,7 @@
   "chip_id": "module4_v1",
   "chip_spec": "chip/module4_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T23:21:53Z",
+  "created_at": "2026-11-08T09:51:03Z",
   "placeholder": false,
   "sizing": {
     "capsule_count": null,

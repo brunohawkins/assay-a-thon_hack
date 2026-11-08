@@ -164,7 +164,7 @@ class ShippedChip(unittest.TestCase):
         self.assertEqual(mvp["module"]["superseded_by"], "chip/module3_v1_translated.json")
 
     def test_the_chip_under_test_is_the_pipelines_module_3(self):
-        (_, pipe), = schema_io.pipelines()
+        _, pipe = schema_io.chosen_pipeline()
         entry = next(m for m in pipe["modules"] if m["module"] == "module3")
         self.assertEqual(schema_io.pipeline_chip(entry)[0], "chip/module3_v1_translated.json")
         self.assertEqual(entry["protocol"], "protocols/module3_v1.json")
