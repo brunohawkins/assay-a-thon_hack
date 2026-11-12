@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A four-layer, interaction-controlled human brain-cell assay</title>
+<style>
+:root{
+  --ink:#0B1020; --panel:#121A2E; --panel2:#172038; --line:#2A3654; --line2:#3A4766; --dim:#56627F;
+  --text:#ECEFF4; --muted:#B4BDCC; --amber:#F4B860; --teal:#7FD8CC;
+  --serif: ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--ink);color:var(--text);font-family:var(--sans);overflow:hidden;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+#viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{position:relative;width:1600px;height:900px;flex:none;transform-origin:center center;background:var(--ink)}
+.slide{position:absolute;inset:0;padding:66px 96px 54px;display:flex;flex-direction:column;
+  opacity:0;visibility:hidden;transition:opacity .45s ease, visibility 0s linear .45s}
+.slide.active{opacity:1;visibility:visible;transition:opacity .45s ease}
+.slide > *{flex-shrink:0}
+@media (prefers-reduced-motion: reduce){ .slide,.slide.active{transition:none} #bar{transition:none!important} }
+
+#progress{position:absolute;left:0;right:0;top:0;height:4px;background:#1A2340;z-index:5}
+#bar{height:100%;width:20%;background:var(--amber);transition:width .45s ease}
+#count{position:absolute;right:96px;bottom:22px;font:500 14px/1 var(--mono);color:var(--muted);letter-spacing:.08em;z-index:5}
+
+.kicker{font:600 15px/1 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--amber);margin-bottom:22px;display:flex;gap:14px;align-items:center}
+.kicker .n{font-family:var(--mono);color:var(--muted);letter-spacing:.1em}
+/* the takeaway: one sentence, dominant */
+.take{font:400 52px/1.13 var(--serif);letter-spacing:-.012em;max-width:1380px;color:var(--text);
+  border-left:4px solid var(--amber);padding-left:28px;margin-left:-32px}
+.take em{font-style:italic;color:var(--amber)}
+.fig{display:block;margin-top:40px}
+svg text{font-family:var(--sans)}
+.serif{font-family:var(--serif)}
+
+.src{margin-top:auto;padding-top:14px;border-top:1px solid var(--line);font:400 14px/1.6 var(--sans);color:var(--muted);max-width:1340px}
+.src b{color:var(--text);font-weight:600}
+.src .doi{font-family:var(--mono);font-size:13px;letter-spacing:-.01em;white-space:nowrap}
+.src .sep{color:var(--dim);padding:0 6px}
+
+.s4{display:grid;grid-template-columns:520px 520px 1fr;gap:16px;margin-top:20px;align-items:start}
+.ph{margin:0}
+.phi{position:relative;width:520px;height:385px;border-radius:12px;overflow:hidden;border:1px solid var(--line2);background:#000}
+.phi img{display:block;width:100%;height:100%;object-fit:cover}
+.ph figcaption{margin-top:10px;font-size:16px;line-height:1.4;color:var(--text)}
+.badge{position:absolute;left:12px;top:12px;font:700 12px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;padding:7px 10px;border-radius:5px}
+.badge.real{background:var(--teal);color:var(--ink)}
+.badge.sim{background:rgba(11,16,32,.85);color:var(--amber);border:1px solid var(--amber);left:8px;top:8px;font-size:10.5px;padding:5px 7px}
+.demo{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;border:1px solid var(--line2);background:#000;overflow:hidden}
+.demo video{display:block;width:100%;height:100%;object-fit:contain;background:#000}
+.cap{margin-top:10px;font-size:14.5px;line-height:1.45;color:var(--muted)}
+.status4{margin-top:14px;display:flex;align-items:baseline;gap:16px;font-size:18px;color:var(--text)}
+.status4 b{flex:none;font:600 13px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);background:var(--teal);padding:7px 10px;border-radius:5px}
+.status4 i{font-style:normal;color:var(--dim)}
+.limits{margin-top:18px;display:flex;gap:16px;align-items:baseline;font-size:17px;line-height:1.4;color:var(--muted)}
+.limits b{flex:none;font:600 13px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}
+.limits span i{font-style:normal;color:var(--dim);padding:0 8px}
+
+/* slide 1 */
+.s1{display:grid;grid-template-columns:860px 1fr;gap:56px;margin-top:30px}
+.st{display:grid;grid-template-columns:200px 1fr;align-items:center;gap:20px;padding:16px 0;border-top:1px solid var(--line)}
+.st:first-child{border-top:none;padding-top:0}
+.st .big{font:400 54px/1 var(--serif);color:var(--amber);letter-spacing:-.02em}
+.st .big small{font-size:26px;margin-left:3px}
+.st .lab{font-size:18px;line-height:1.35;color:var(--text);margin-top:8px}
+.st .lab span{color:var(--muted)}
+.reason{margin-top:12px;font:400 22px/1.3 var(--serif);color:var(--muted);max-width:1380px}
+.reason em{font-style:normal;color:var(--amber)}
+.gap1{margin-top:22px}
+.loop{font-size:18px;line-height:1.4;color:var(--muted)}
+.loop span{color:var(--text);font-weight:500}
+.gapline{margin-top:8px;font:400 32px/1.2 var(--serif);color:var(--text)}
+.gapline em{font-style:normal;color:var(--amber)}
+
+/* slide 5 */
+.s5{display:grid;grid-template-columns:1fr 600px;gap:64px;margin-top:34px}
+.h{font:600 14px/1.2 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:16px}
+.pills{display:flex;flex-wrap:wrap;gap:12px}
+.pill{font-size:19px;padding:10px 16px;border:1px solid var(--line2);border-radius:999px;background:var(--panel)}
+.pill.k{border-color:var(--teal);color:var(--teal)}
+.status{margin-top:28px;display:flex;align-items:center;gap:16px;font-size:19px;color:var(--text)}
+.status b{font:600 13px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--ink);background:var(--teal);padding:7px 10px;border-radius:5px}
+.status i{font-style:normal;color:var(--dim)}
+
+@page{size:1600px 900px;margin:0}
+@media print{
+  html,body{overflow:visible;height:auto;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #viewport{position:static;display:block}
+  #stage{transform:none!important;width:1600px;height:auto;background:none}
+  .slide{position:relative;inset:auto;width:1600px;height:900px;opacity:1!important;visibility:visible!important;
+    transition:none!important;break-after:page;page-break-after:always;background:var(--ink);overflow:hidden}
+  .slide:last-child{break-after:auto;page-break-after:auto}
+  #progress,#count{display:none}
+  .demo video{display:block}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="g-neuron" viewBox="-14 -14 28 28" overflow="visible">
+      <path d="M0 0 L13 -2 M0 0 L-9 -9 M0 0 L-8 9" stroke="#ECEFF4" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <circle r="4.6" fill="#ECEFF4"/>
+    </symbol>
+    <symbol id="g-micro" viewBox="-14 -14 28 28" overflow="visible">
+      <path d="M0 0 l9 -6 l3 -4 M0 0 l-10 -3 M0 0 l3 10 l-3 3 M0 0 l9 6" stroke="#7FD8CC" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle r="4.2" fill="#7FD8CC"/>
+    </symbol>
+    <symbol id="g-micro-off" viewBox="-14 -14 28 28" overflow="visible">
+      <path d="M0 0 l9 -6 M0 0 l-10 -3 M0 0 l3 10" stroke="#56627F" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+      <circle r="4.2" fill="#56627F"/>
+    </symbol>
+    <symbol id="g-astro" viewBox="-14 -14 28 28" overflow="visible">
+      <path d="M0 -11 L0 11 M-9.5 -5.5 L9.5 5.5 M-9.5 5.5 L9.5 -5.5" stroke="#B4BDCC" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <circle r="4" fill="#B4BDCC"/>
+    </symbol>
+    <symbol id="g-chip" viewBox="0 0 60 40">
+      <rect x="1" y="1" width="58" height="38" rx="6" fill="#121A2E" stroke="#7FD8CC" stroke-width="1.5"/>
+      <path d="M10 12 H50 M10 20 H50 M10 28 H50" stroke="#7FD8CC" stroke-width="2.5" stroke-linecap="round" opacity=".7"/>
+    </symbol>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#F4B860"/>
+    </marker>
+    <marker id="arrg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#56627F"/>
+    </marker>
+    <marker id="arrt" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#7FD8CC"/>
+    </marker>
+    <pattern id="dots" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+      <circle cx="6" cy="6" r="3.2" fill="#2E3A58"/>
+    </pattern>
+  </defs>
+</svg>
+
+<div id="viewport"><div id="stage">
+<div id="progress"><div id="bar"></div></div>
+<div id="count">1 / 5</div>
+
+<!-- ============ 1 PROBLEM ============ -->
+<section class="slide" data-title="The problem">
+  <div class="kicker"><span class="n">01</span>The problem</div>
+  <h1 class="take">We can screen what a gene does to a cell. We can’t yet screen <em>what a cell does to a cell.</em></h1>
+  <p class="reason">Alzheimer’s risk sits in the regulatory DNA of microglia, yet microglia lose that state the moment they are <em>experimentally isolated</em>.</p>
+
+  <div class="s1" style="margin-top:14px">
+    <svg width="860" height="422" viewBox="0 0 860 422" role="img" aria-label="In the brain a microglial risk enhancer drives its gene; experimentally isolated, the gene switches off">
+      <!-- panel A -->
+      <rect x="0" y="0" width="400" height="320" rx="18" fill="#121A2E" stroke="#2A3654"/>
+      <text x="24" y="38" font-size="19" font-weight="600" fill="#7FD8CC">In the brain</text>
+      <g stroke="#7FD8CC" stroke-opacity=".35" stroke-width="1.5" stroke-dasharray="3 5">
+        <line x1="200" y1="130" x2="80" y2="90"/><line x1="200" y1="130" x2="330" y2="85"/>
+        <line x1="200" y1="130" x2="85" y2="190"/><line x1="200" y1="130" x2="320" y2="185"/>
+      </g>
+      <use href="#g-neuron" x="62" y="72" width="36" height="36"/>
+      <use href="#g-neuron" x="312" y="67" width="36" height="36"/>
+      <use href="#g-astro" x="67" y="172" width="36" height="36"/>
+      <use href="#g-astro" x="302" y="167" width="36" height="36"/>
+      <use href="#g-micro" x="160" y="90" width="80" height="80"/>
+      <!-- DNA strip -->
+      <line x1="30" y1="270" x2="370" y2="270" stroke="#56627F" stroke-width="3"/>
+      <rect x="70" y="256" width="110" height="28" rx="5" fill="#7FD8CC"/>
+      <path d="M125 236 l-8 -12 h16 z" fill="#F4B860"/>
+      <text x="125" y="304" font-size="15" fill="#B4BDCC" text-anchor="middle">enhancer + risk variant</text>
+      <path d="M186 270 C 215 240, 235 240, 258 262" fill="none" stroke="#F4B860" stroke-width="2" marker-end="url(#arr)"/>
+      <rect x="262" y="256" width="90" height="28" rx="5" fill="none" stroke="#7FD8CC" stroke-width="2"/>
+      <text x="307" y="276" font-size="15" font-weight="700" fill="#7FD8CC" text-anchor="middle">gene ON</text>
+
+      <!-- arrow -->
+      <path d="M412 160 H 448" stroke="#56627F" stroke-width="2" marker-end="url(#arrg)"/>
+
+      <!-- panel B -->
+      <rect x="460" y="0" width="400" height="320" rx="18" fill="#121A2E" stroke="#2A3654"/>
+      <text x="484" y="38" font-size="19" font-weight="600" fill="#B4BDCC">Experimentally isolated</text>
+      <g fill="none" stroke="#3A4766" stroke-dasharray="4 5" stroke-width="1.5">
+        <circle cx="540" cy="90" r="18"/><circle cx="790" cy="85" r="18"/><circle cx="545" cy="190" r="18"/><circle cx="780" cy="185" r="18"/>
+      </g>
+      <use href="#g-micro-off" x="620" y="90" width="80" height="80"/>
+      <line x1="490" y1="270" x2="830" y2="270" stroke="#3A4766" stroke-width="3"/>
+      <rect x="530" y="256" width="110" height="28" rx="5" fill="#3A4766"/>
+      <path d="M585 236 l-8 -12 h16 z" fill="#F4B860"/>
+      <text x="585" y="304" font-size="15" fill="#B4BDCC" text-anchor="middle">enhancer + risk variant</text>
+      <rect x="722" y="256" width="90" height="28" rx="5" fill="none" stroke="#56627F" stroke-width="2" stroke-dasharray="4 3"/>
+      <text x="767" y="276" font-size="15" font-weight="700" fill="#B4BDCC" text-anchor="middle">gene OFF</text>
+
+      <!-- captions -->
+      <text x="0" y="366" font-size="19" fill="#ECEFF4">Risk variants: “largely confined to</text>
+      <text x="0" y="392" font-size="19" fill="#ECEFF4">microglia enhancers”</text>
+      <text x="0" y="416" font-size="15" fill="#B4BDCC">Nott 2019</text>
+      <text x="460" y="366" font-size="19" fill="#ECEFF4">Disease-linked genes switch off;</text>
+      <text x="460" y="392" font-size="19" fill="#ECEFF4">survival needs astrocyte signals</text>
+      <text x="460" y="416" font-size="15" fill="#B4BDCC">Gosselin 2017 · Bohlen 2017</text>
+    </svg>
+
+    <div>
+      <div class="st">
+        <div><div class="big">152.8<small>M</small></div></div>
+        <div>
+          <svg width="250" height="44" viewBox="0 0 250 44" role="img" aria-label="57.4 million in 2019 to 152.8 million in 2050">
+            <rect x="0" y="4" width="94" height="14" rx="3" fill="#56627F"/><text x="102" y="16" font-size="13" fill="#B4BDCC">2019</text>
+            <rect x="0" y="26" width="250" height="14" rx="3" fill="#F4B860"/>
+          </svg>
+          <div class="lab">projected dementia cases by 2050 <span>(57.4M in 2019)</span></div>
+        </div>
+      </div>
+      <div class="st">
+        <div><div class="big">0.4<small>%</small></div></div>
+        <div>
+          <svg width="250" height="60" viewBox="0 0 300 72" role="img" aria-label="250 dots, one lit: 0.4 percent">
+            <rect x="0" y="0" width="300" height="60" fill="url(#dots)"/>
+            <circle cx="6" cy="6" r="4.5" fill="#F4B860"/>
+          </svg>
+          <div class="lab">of 413 AD trials succeeded <span>(2002–12)</span></div>
+        </div>
+      </div>
+      <div class="st">
+        <div><div class="big">~1 in 3</div></div>
+        <div>
+          <svg width="250" height="40" viewBox="0 0 250 40" role="img" aria-label="One of three risk genes lacks a mouse ortholog">
+            <rect x="0" y="4" width="32" height="32" rx="6" fill="none" stroke="#F4B860" stroke-width="2" stroke-dasharray="4 3"/>
+            <rect x="44" y="4" width="32" height="32" rx="6" fill="#56627F"/>
+            <rect x="88" y="4" width="32" height="32" rx="6" fill="#56627F"/>
+          </svg>
+          <div class="lab">putative AD risk genes lack an adequate mouse ortholog <span>(Mancuso 2019)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <svg class="fig" style="margin-top:8px" width="1408" height="76" viewBox="0 0 1408 76" role="img" aria-label="Microglia can switch astrocytes into a neurotoxic state">
+    <rect x="0" y="1" width="1408" height="74" rx="14" fill="#121A2E" stroke="#2A3654"/>
+    <use href="#g-micro" x="28" y="21" width="34" height="34"/><text x="72" y="45" font-size="19" fill="#7FD8CC" font-weight="600">Microglia</text>
+    <path d="M168 38 H 238" stroke="#F4B860" stroke-width="2.5" marker-end="url(#arr)"/><text x="203" y="29" font-size="14" fill="#B4BDCC" text-anchor="middle">switch</text>
+    <use href="#g-astro" x="256" y="21" width="34" height="34"/><text x="298" y="45" font-size="19" fill="#B4BDCC" font-weight="600">Astrocytes</text>
+    <path d="M410 38 H 480" stroke="#F4B860" stroke-width="2.5" marker-end="url(#arr)"/><text x="445" y="29" font-size="14" fill="#B4BDCC" text-anchor="middle">kill</text>
+    <use href="#g-neuron" x="498" y="21" width="34" height="34"/><text x="540" y="45" font-size="19" fill="#ECEFF4" font-weight="600">Neurons</text>
+    <text x="680" y="32" font-size="19" fill="#ECEFF4">Why these three cells: microglia can switch astrocytes into a neurotoxic state.</text>
+    <text x="680" y="56" font-size="15" fill="#B4BDCC">Liddelow 2017 · a defined human iPSC tri-culture system exists: Guttikonda 2021</text>
+  </svg>
+
+  <div class="src"><b>Sources</b><span class="sep">|</span>Nott 2019 <span class="doi">10.1126/science.aay0793</span><span class="sep">·</span>Gosselin 2017 <span class="doi">10.1126/science.aal3222</span><span class="sep">·</span>Bohlen 2017 <span class="doi">10.1016/j.neuron.2017.04.043</span><span class="sep">·</span>Mancuso 2019 <span class="doi">10.1038/s41593-019-0525-x</span><br>GBD 2019 <span class="doi">10.1016/S2468-2667(21)00249-8</span><span class="sep">·</span>Cummings 2014 <span class="doi">10.1186/alzrt269</span><span class="sep">·</span>Liddelow 2017 <span class="doi">10.1038/nature21029</span><span class="sep">·</span>Guttikonda 2021 <span class="doi">10.1038/s41593-020-00796-z</span></div>
+</section>
+
+<!-- ============ 2 GAP + WHY FOUR ============ -->
+<section class="slide" data-title="The gap">
+  <div class="kicker"><span class="n">02</span>The gap</div>
+  <h1 class="take">We found no published method that measures <em>both ends of the chain</em> in one cell population.</h1>
+
+  <svg class="fig" style="margin-top:30px" width="1408" height="474" viewBox="0 0 1408 474" role="img" aria-label="Causal chain of four layers with the published methods that cover each; this assay covers both ends and controls interaction">
+    <!-- end bands -->
+    <rect x="318" y="0" width="184" height="474" rx="12" fill="rgba(244,184,96,.07)"/>
+    <rect x="948" y="0" width="184" height="474" rx="12" fill="rgba(244,184,96,.07)"/>
+    <!-- chain header -->
+    <g stroke="#56627F" stroke-width="2">
+      <path d="M432 34 H 592" marker-end="url(#arrg)"/><path d="M642 34 H 802" marker-end="url(#arrg)"/><path d="M852 34 H 1012" marker-end="url(#arrg)"/>
+    </g>
+    <circle cx="410" cy="34" r="16" fill="#F4B860"/><circle cx="620" cy="34" r="16" fill="#B4BDCC"/><circle cx="830" cy="34" r="16" fill="#B4BDCC"/><circle cx="1040" cy="34" r="16" fill="#F4B860"/>
+    <g text-anchor="middle">
+      <text x="410" y="80" font-size="21" font-weight="600" fill="#ECEFF4">Regulatory</text>
+      <text x="620" y="80" font-size="21" font-weight="600" fill="#ECEFF4">Transcript</text>
+      <text x="830" y="80" font-size="21" font-weight="600" fill="#ECEFF4">Protein</text>
+      <text x="1040" y="80" font-size="21" font-weight="600" fill="#ECEFF4">Metabolite</text>
+      <g font-size="13" font-weight="600" letter-spacing="2">
+        <text x="410" y="104" fill="#F4B860">MECHANISM</text>
+        <text x="620" y="104" fill="#B4BDCC">PROPAGATED?</text>
+        <text x="830" y="104" fill="#B4BDCC">TRANSLATED?</text>
+        <text x="1040" y="104" fill="#F4B860">MATTERED?</text>
+      </g>
+      <text x="410" y="126" font-size="14" fill="#B4BDCC">where the risk sits</text>
+      <text x="830" y="126" font-size="14" fill="#B4BDCC">RNA ≠ protein</text>
+      <text x="1040" y="126" font-size="14" fill="#B4BDCC">function</text>
+      <text x="1268" y="80" font-size="19" font-weight="600" fill="#ECEFF4">Cells interact</text>
+      <text x="1268" y="104" font-size="13" font-weight="600" letter-spacing="2" fill="#B4BDCC">ON COMMAND?</text>
+    </g>
+    <line x1="0" y1="146" x2="1408" y2="146" stroke="#3A4766"/>
+
+    <!-- rows -->
+    <g font-size="18" fill="#ECEFF4">
+      <text x="0" y="182">TEA-seq · DOGMA-seq</text>
+      <text x="0" y="220">spatial-Mux-seq</text>
+      <text x="0" y="258">Paired-Tag · scMTR-seq</text>
+      <text x="0" y="296">nanoSPLITS</text>
+      <text x="0" y="334">scMeT-seq · Kang · Vicari</text>
+      <text x="0" y="372">scSpaMet</text>
+      <text x="0" y="410">COSIE <tspan fill="#B4BDCC" font-size="14">preprint · computed</tspan></text>
+    </g>
+    <g fill="#B4BDCC">
+      <circle cx="410" cy="176" r="8"/><circle cx="620" cy="176" r="8"/><circle cx="830" cy="176" r="8"/>
+      <circle cx="410" cy="214" r="8"/><circle cx="620" cy="214" r="8"/><circle cx="830" cy="214" r="8"/>
+      <circle cx="410" cy="252" r="8"/><circle cx="620" cy="252" r="8"/>
+      <circle cx="620" cy="290" r="8"/><circle cx="830" cy="290" r="8"/>
+      <circle cx="620" cy="328" r="8"/><circle cx="1040" cy="328" r="8"/>
+      <circle cx="830" cy="366" r="8"/><circle cx="1040" cy="366" r="8"/>
+    </g>
+    <g font-size="13" fill="#B4BDCC">
+      <text x="845" y="181">antibody</text><text x="845" y="219">antibody</text><text x="845" y="295">MS</text><text x="845" y="371">antibody</text>
+    </g>
+    <g fill="none" stroke="#B4BDCC" stroke-width="2">
+      <circle cx="410" cy="404" r="7"/><circle cx="620" cy="404" r="7"/><circle cx="830" cy="404" r="7"/><circle cx="1040" cy="404" r="7"/>
+    </g>
+    <g stroke="#56627F" stroke-width="2">
+      <line x1="1258" y1="176" x2="1278" y2="176"/><line x1="1258" y1="214" x2="1278" y2="214"/><line x1="1258" y1="252" x2="1278" y2="252"/>
+      <line x1="1258" y1="290" x2="1278" y2="290"/><line x1="1258" y1="328" x2="1278" y2="328"/><line x1="1258" y1="366" x2="1278" y2="366"/><line x1="1258" y1="404" x2="1278" y2="404"/>
+    </g>
+
+    <!-- this assay -->
+    <rect x="-10" y="428" width="1418" height="46" rx="10" fill="rgba(127,216,204,.10)" stroke="#7FD8CC" stroke-opacity=".5"/>
+    <text x="0" y="458" font-size="20" font-weight="700" fill="#7FD8CC">This assay</text>
+    <circle cx="410" cy="451" r="14" fill="#7FD8CC"/><circle cx="620" cy="451" r="14" fill="#7FD8CC"/>
+    <text x="430" y="457" font-size="15" font-weight="600" fill="#ECEFF4">per cell</text>
+    <text x="640" y="457" font-size="15" font-weight="600" fill="#ECEFF4">per cell</text>
+    <circle cx="830" cy="451" r="6" fill="#0B1020" stroke="#7FD8CC" stroke-width="2"/><circle cx="1040" cy="451" r="6" fill="#0B1020" stroke="#7FD8CC" stroke-width="2"/>
+    <text x="845" y="456" font-size="14" fill="#B4BDCC">bulk, lane</text><text x="1055" y="456" font-size="14" fill="#B4BDCC">bulk, lane</text>
+    <path d="M1252 451 l8 8 l16 -16" fill="none" stroke="#7FD8CC" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="1286" y="457" font-size="15" fill="#ECEFF4">+ vehicle</text>
+  </svg>
+
+  <div class="src"><b>Sources</b><span class="sep">|</span>TEA-seq <span class="doi">10.7554/eLife.63632</span><span class="sep">·</span>DOGMA-seq <span class="doi">10.1038/s41587-021-00927-2</span><span class="sep">·</span>spatial-Mux-seq <span class="doi">10.1038/s41592-024-02576-0</span><span class="sep">·</span>Paired-Tag <span class="doi">10.1038/s41592-021-01060-3</span><span class="sep">·</span>scMTR-seq <span class="doi">10.1126/sciadv.adu3308</span><span class="sep">·</span>nanoSPLITS <span class="doi">10.1038/s41467-024-54099-z</span><span class="sep">·</span>scMeT-seq <span class="doi">10.1002/advs.202411276</span><span class="sep">·</span>Kang (plant) <span class="doi">10.1073/pnas.2512828122</span><span class="sep">·</span>Vicari <span class="doi">10.1038/s41587-023-01937-y</span><span class="sep">·</span>scSpaMet <span class="doi">10.1038/s41467-023-43917-5</span><span class="sep">·</span>COSIE <span class="doi">10.64898/2026.03.03.709303</span><span class="sep">·</span>RNA ≠ protein: Liu 2016 <span class="doi">10.1016/j.cell.2016.03.014</span><span class="sep">·</span>Metabolism as microglial function (Aβ: OXPHOS → glycolysis → tolerant state): Baik 2019 <span class="doi">10.1016/j.cmet.2019.06.005</span>. Search not exhaustive.</div>
+</section>
+
+<!-- ============ 3 ASSAY ============ -->
+<section class="slide" data-title="The assay">
+  <div class="kicker"><span class="n">03</span>The assay</div>
+  <h1 class="take">Perturb-seq, except the perturbation is <em>one cell type acting on another.</em></h1>
+
+  <svg class="fig" width="1408" height="470" viewBox="0 0 1408 470" role="img" aria-label="Lanes of neurons, microglia and astrocytes connected on command, cells captured one per capsule, read out as per-cell regulatory state and transcriptome, plus bulk lane-level protein, metabolite and secretome">
+    <!-- 1 lanes -->
+    <text x="0" y="18" font-size="15" font-weight="600" letter-spacing="2" fill="#F4B860">1 · CONNECT ON COMMAND</text>
+    <rect x="0" y="34" width="460" height="262" rx="16" fill="#121A2E" stroke="#2A3654"/>
+    <rect x="22" y="56" width="416" height="48" rx="24" fill="#172038" stroke="#3A4766"/>
+    <rect x="22" y="141" width="416" height="48" rx="24" fill="rgba(127,216,204,.10)" stroke="#7FD8CC" stroke-opacity=".7"/>
+    <rect x="22" y="226" width="416" height="48" rx="24" fill="#172038" stroke="#3A4766"/>
+    <g><use href="#g-neuron" x="50" y="66" width="28" height="28"/><use href="#g-neuron" x="96" y="66" width="28" height="28"/><use href="#g-neuron" x="142" y="66" width="28" height="28"/><use href="#g-neuron" x="188" y="66" width="28" height="28"/></g>
+    <g><use href="#g-micro" x="50" y="151" width="28" height="28"/><use href="#g-micro" x="96" y="151" width="28" height="28"/><use href="#g-micro" x="142" y="151" width="28" height="28"/><use href="#g-micro" x="188" y="151" width="28" height="28"/></g>
+    <g><use href="#g-astro" x="50" y="236" width="28" height="28"/><use href="#g-astro" x="96" y="236" width="28" height="28"/><use href="#g-astro" x="142" y="236" width="28" height="28"/><use href="#g-astro" x="188" y="236" width="28" height="28"/></g>
+    <g font-size="19" text-anchor="end">
+      <text x="420" y="87" fill="#ECEFF4">Neurons</text>
+      <text x="420" y="172" fill="#7FD8CC" font-weight="600">Microglia</text>
+      <text x="420" y="257" fill="#B4BDCC">Astrocytes</text>
+    </g>
+    <g stroke="#F4B860" stroke-width="3" fill="none">
+      <line x1="270" y1="108" x2="270" y2="137" marker-start="url(#arr)" marker-end="url(#arr)"/>
+      <line x1="270" y1="193" x2="270" y2="222" marker-start="url(#arr)" marker-end="url(#arr)"/>
+    </g>
+    <!-- vehicle mini -->
+    <rect x="0" y="312" width="460" height="72" rx="14" fill="none" stroke="#2A3654"/>
+    <rect x="18" y="326" width="200" height="12" rx="6" fill="none" stroke="#56627F" stroke-dasharray="4 3"/>
+    <rect x="18" y="342" width="200" height="12" rx="6" fill="rgba(127,216,204,.25)" stroke="#7FD8CC"/>
+    <rect x="18" y="358" width="200" height="12" rx="6" fill="none" stroke="#56627F" stroke-dasharray="4 3"/>
+    <text x="240" y="346" font-size="18" fill="#ECEFF4">Vehicle arm</text>
+    <text x="240" y="369" font-size="15" fill="#B4BDCC">same steps, no cells</text>
+
+    <!-- arrow to capsules -->
+    <path d="M470 165 H 528" stroke="#7FD8CC" stroke-width="2" marker-end="url(#arrt)"/>
+
+    <!-- 2 capsules -->
+    <text x="540" y="18" font-size="15" font-weight="600" letter-spacing="2" fill="#F4B860">2 · CAPSULES</text>
+    <g id="caps">
+      <g transform="translate(590,90)"><circle r="36" fill="#121A2E" stroke="#7FD8CC" stroke-width="2"/><circle r="30" fill="none" stroke="#7FD8CC" stroke-opacity=".35"/><use href="#g-micro" x="-14" y="-18" width="28" height="28"/><path d="M-10 18 v8 M-5 18 v8 M0 18 v8 M6 18 v8 M10 18 v8" stroke="#F4B860" stroke-width="2"/></g>
+      <g transform="translate(686,90)"><circle r="36" fill="#121A2E" stroke="#7FD8CC" stroke-width="2"/><circle r="30" fill="none" stroke="#7FD8CC" stroke-opacity=".35"/><use href="#g-neuron" x="-14" y="-18" width="28" height="28"/><path d="M-10 18 v8 M-4 18 v8 M1 18 v8 M5 18 v8 M10 18 v8" stroke="#F4B860" stroke-width="2"/></g>
+      <g transform="translate(590,186)"><circle r="36" fill="#121A2E" stroke="#7FD8CC" stroke-width="2"/><circle r="30" fill="none" stroke="#7FD8CC" stroke-opacity=".35"/><use href="#g-astro" x="-14" y="-18" width="28" height="28"/><path d="M-10 18 v8 M-6 18 v8 M0 18 v8 M4 18 v8 M10 18 v8" stroke="#F4B860" stroke-width="2"/></g>
+      <g transform="translate(686,186)"><circle r="36" fill="#121A2E" stroke="#7FD8CC" stroke-width="2"/><circle r="30" fill="none" stroke="#7FD8CC" stroke-opacity=".35"/><use href="#g-micro" x="-14" y="-18" width="28" height="28"/><path d="M-10 18 v8 M-3 18 v8 M1 18 v8 M6 18 v8 M10 18 v8" stroke="#F4B860" stroke-width="2"/></g>
+    </g>
+    <text x="638" y="258" font-size="16" fill="#B4BDCC" text-anchor="middle">each cell barcoded</text>
+
+    <!-- arrow to per-cell readouts -->
+    <path d="M736 138 H 790" stroke="#7FD8CC" stroke-width="2" marker-end="url(#arrt)"/>
+
+    <!-- 3 readouts -->
+    <text x="800" y="18" font-size="15" font-weight="600" letter-spacing="2" fill="#F4B860">3 · READ</text>
+    <rect x="800" y="34" width="608" height="104" rx="14" fill="rgba(127,216,204,.14)" stroke="#7FD8CC" stroke-width="2"/>
+    <text x="826" y="80" font-size="28" font-weight="700" fill="#ECEFF4">Regulatory state</text>
+    <text x="826" y="112" font-size="17" fill="#B4BDCC">TIP-seq · TF binding</text>
+    <rect x="800" y="150" width="608" height="104" rx="14" fill="rgba(127,216,204,.14)" stroke="#7FD8CC" stroke-width="2"/>
+    <text x="826" y="196" font-size="28" font-weight="700" fill="#ECEFF4">Transcriptome</text>
+    <text x="826" y="228" font-size="17" fill="#B4BDCC">single-cell RNA</text>
+    <g>
+      <rect x="1262" y="70" width="124" height="32" rx="6" fill="#7FD8CC"/><text x="1324" y="92" font-size="14" font-weight="700" letter-spacing="2" fill="#0B1020" text-anchor="middle">PER CELL</text>
+      <rect x="1262" y="186" width="124" height="32" rx="6" fill="#7FD8CC"/><text x="1324" y="208" font-size="14" font-weight="700" letter-spacing="2" fill="#0B1020" text-anchor="middle">PER CELL</text>
+    </g>
+    <!-- bulk, secondary -->
+    <text x="800" y="296" font-size="15" fill="#B4BDCC">Bulk, per lane · confirmation and phenotype</text>
+    <g font-size="16" fill="#B4BDCC">
+      <rect x="800" y="310" width="192" height="52" rx="10" fill="none" stroke="#3A4766"/><text x="896" y="342" text-anchor="middle">Protein · MS</text>
+      <rect x="1008" y="310" width="192" height="52" rx="10" fill="none" stroke="#3A4766"/><text x="1104" y="342" text-anchor="middle">Metabolite · MS</text>
+      <rect x="1216" y="310" width="192" height="52" rx="10" fill="none" stroke="#3A4766" stroke-dasharray="4 3"/><text x="1312" y="342" text-anchor="middle">Secretome · time</text>
+    </g>
+    <!-- bypass from lanes -->
+    <path d="M460 270 H 500 V 430 H 1000 V 368" fill="none" stroke="#56627F" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrg)"/>
+    <text x="520" y="456" font-size="15" fill="#B4BDCC">same lanes, one extraction</text>
+  </svg>
+
+  <div class="limits"><b>Limits</b><span>Protein and metabolite are lane-level, not single-cell<i>·</i>Demo chip is single-layer and valveless: on-demand valves or contact-only barriers need a different fabrication process<i>·</i>Capsule barcoding of TIP-seq is unpublished</span></div>
+
+  <div class="src"><b>Source</b><span class="sep">|</span>TIP-seq: Bartlett 2021 <span class="doi">10.1083/jcb.202103078</span> (shown for histone marks, RNAPII, CTCF; not yet microglial TFs)<span class="sep">·</span>Assay design: project records, unpublished.</div>
+</section>
+
+<!-- ============ 4 PLATFORM ============ -->
+<section class="slide" data-title="How it is built">
+  <div class="kicker"><span class="n">04</span>How it is built</div>
+  <h1 class="take">A protocol goes in. <em>A printed chip</em> comes out.</h1>
+
+  <svg class="fig" style="margin-top:22px" width="1408" height="66" viewBox="0 0 1408 66" role="img" aria-label="Ten-step pipeline from protocol to print files">
+    <line x1="40" y1="18" x2="1368" y2="18" stroke="#3A4766" stroke-width="2"/>
+    <g font-family="ui-monospace, Menlo, monospace" font-size="13" text-anchor="middle"><circle cx="40" cy="18" r="16" fill="#121A2E" stroke="#F4B860" stroke-width="2"/><text x="40" y="23" fill="#F4B860">1</text><circle cx="188" cy="18" r="16" fill="#121A2E" stroke="#F4B860" stroke-width="2"/><text x="188" y="23" fill="#F4B860">2</text><circle cx="335" cy="18" r="16" fill="#121A2E" stroke="#F4B860" stroke-width="2"/><text x="335" y="23" fill="#F4B860">3</text><circle cx="483" cy="18" r="16" fill="#121A2E" stroke="#F4B860" stroke-width="2"/><text x="483" y="23" fill="#F4B860">4</text><circle cx="630" cy="18" r="16" fill="#121A2E" stroke="#F4B860" stroke-width="2"/><text x="630" y="23" fill="#F4B860">5</text><circle cx="778" cy="18" r="16" fill="#121A2E" stroke="#F4B860" stroke-width="2"/><text x="778" y="23" fill="#F4B860">6</text><circle cx="926" cy="18" r="16" fill="#121A2E" stroke="#F4B860" stroke-width="2"/><text x="926" y="23" fill="#F4B860">7</text><circle cx="1073" cy="18" r="16" fill="#121A2E" stroke="#F4B860" stroke-width="2"/><text x="1073" y="23" fill="#F4B860">8</text><circle cx="1221" cy="18" r="16" fill="#121A2E" stroke="#F4B860" stroke-width="2"/><text x="1221" y="23" fill="#F4B860">9</text><circle cx="1368" cy="18" r="16" fill="#7FD8CC"/><text x="1368" y="23" fill="#0B1020" font-weight="700">10</text></g>
+    <g font-size="16" text-anchor="middle" fill="#ECEFF4"><text x="40" y="58">Ingest</text><text x="188" y="58">Extract</text><text x="335" y="58">Decide</text><text x="483" y="58">Split</text><text x="630" y="58">Size</text><text x="778" y="58">Route</text><text x="926" y="58">Write</text><text x="1073" y="58">Verify</text><text x="1221" y="58">Simulate</text><text x="1368" y="58" fill="#7FD8CC" font-weight="600">Print</text></g>
+  </svg>
+
+  <div class="s4">
+    <figure class="ph"><div class="phi"><img src="media/chip-printed-flooded.jpg" alt="Photograph of printed Module 1 chip flooded with pink food dye; dye fills the chambers, channels and ports"><span class="badge real">Real hardware</span></div>
+      <figcaption>Module 1, printed and flooded with food dye: dye fills chambers, channels and ports.</figcaption></figure>
+    <figure class="ph"><div class="phi"><img src="media/chip-two-dyes.jpg" alt="Photograph of printed chip with pink dye in one chamber and yellow dye in the next, held apart"><span class="badge real">Real hardware</span></div>
+      <figcaption>Pink in one chamber, yellow in the next, held apart: the grow-apart baseline.</figcaption></figure>
+    <div class="side4">
+      <div class="demo">
+        <video controls preload="metadata" playsinline muted poster="media/capsule-processor-poster.jpg" aria-label="Browser digital twin of the capsule processor, simulated">
+          <source src="media/capsule-processor-demo.mp4" type="video/mp4">
+        </video>
+        <span class="badge sim">Digital twin · simulation</span>
+      </div>
+      <div class="cap">Not live hardware. Every design is simulated first; it caught particle settling in a feed line and a narrow retention-gap tolerance before printing.</div>
+    </div>
+  </div>
+  <div class="status4"><b>Status</b><span>6 chips printed, single-layer and valveless<i> · </i>food dye, not cells<i> · </i>no bench video yet, only these photographs</span></div>
+
+  <div class="src"><b>Source</b><span class="sep">|</span>Bench photographs, design and simulation records: project, unpublished. No external citation applies.</div>
+</section>
+
+<!-- ============ 5 UNLOCKS ============ -->
+<section class="slide" data-title="What it unlocks">
+  <div class="kicker"><span class="n">05</span>What it unlocks</div>
+  <h1 class="take">Small cultures are the point. One run, <em>about eighty conditions.</em></h1>
+
+  <svg class="fig" style="margin-top:34px" width="1408" height="214" viewBox="0 0 1408 214" role="img" aria-label="About 2,000 cells per condition, about 10 conditions per 20,000-cell well, 8 wells: about 80 conditions">
+    <!-- condition -->
+    <rect x="0" y="20" width="330" height="130" rx="16" fill="#121A2E" stroke="#3A4766"/>
+    <rect x="28" y="50" width="70" height="70" rx="10" fill="rgba(127,216,204,.18)" stroke="#7FD8CC" stroke-width="2"/>
+    <text x="122" y="88" font-size="40" fill="#ECEFF4" font-family="ui-serif, Georgia, serif">~2,000</text>
+    <text x="122" y="118" font-size="17" fill="#B4BDCC">cells per condition</text>
+    <text x="400" y="80" font-size="34" fill="#F4B860" text-anchor="middle">×10</text>
+    <path d="M370 100 H 424" stroke="#F4B860" stroke-width="2" marker-end="url(#arr)"/>
+    <!-- well -->
+    <rect x="470" y="20" width="400" height="130" rx="16" fill="#121A2E" stroke="#3A4766"/>
+    <g fill="rgba(127,216,204,.30)" stroke="#7FD8CC">
+      <rect x="494" y="46" width="32" height="32" rx="5"/><rect x="532" y="46" width="32" height="32" rx="5"/><rect x="570" y="46" width="32" height="32" rx="5"/><rect x="608" y="46" width="32" height="32" rx="5"/><rect x="646" y="46" width="32" height="32" rx="5"/>
+      <rect x="494" y="88" width="32" height="32" rx="5"/>
+    </g>
+    <g fill="#56627F" stroke="#B4BDCC"><rect x="532" y="88" width="32" height="32" rx="5"/><rect x="570" y="88" width="32" height="32" rx="5"/><rect x="608" y="88" width="32" height="32" rx="5"/></g>
+    <rect x="646" y="88" width="32" height="32" rx="5" fill="none" stroke="#B4BDCC" stroke-dasharray="4 3"/>
+    <text x="702" y="88" font-size="40" fill="#ECEFF4" font-family="ui-serif, Georgia, serif">~10</text>
+    <text x="702" y="118" font-size="17" fill="#B4BDCC">per ~20k-cell well</text>
+    <text x="940" y="80" font-size="34" fill="#F4B860" text-anchor="middle">×8</text>
+    <path d="M910 100 H 964" stroke="#F4B860" stroke-width="2" marker-end="url(#arr)"/>
+    <!-- chip -->
+    <rect x="1010" y="0" width="398" height="170" rx="18" fill="rgba(244,184,96,.08)" stroke="#F4B860"/>
+    <g fill="none" stroke="#F4B860" stroke-width="2">
+      <circle cx="1048" cy="56" r="15"/><circle cx="1086" cy="56" r="15"/><circle cx="1124" cy="56" r="15"/><circle cx="1162" cy="56" r="15"/>
+      <circle cx="1048" cy="114" r="15"/><circle cx="1086" cy="114" r="15"/><circle cx="1124" cy="114" r="15"/><circle cx="1162" cy="114" r="15"/>
+    </g>
+    <text x="1200" y="108" font-size="76" fill="#F4B860" font-family="ui-serif, Georgia, serif">~80</text>
+    <text x="1204" y="140" font-size="17" fill="#ECEFF4">conditions</text>
+    <text x="0" y="178" font-size="15" fill="#B4BDCC">Microlitre volumes: less reagent,</text>
+    <text x="0" y="198" font-size="15" fill="#B4BDCC">more concentrated sample</text>
+  </svg>
+
+  <div class="s5">
+    <div>
+      <div class="h">First run: does the model pick the right sender?</div>
+      <svg width="744" height="150" viewBox="0 0 744 150" role="img" aria-label="Ten conditions: six directed sender-receiver pairs, three grown-apart baselines, one vehicle control, filling one sequencing well">
+        <g fill="rgba(244,184,96,.18)" stroke="#F4B860" stroke-width="1.5">
+          <rect x="0" y="0" width="52" height="52" rx="8"/><rect x="60" y="0" width="52" height="52" rx="8"/><rect x="120" y="0" width="52" height="52" rx="8"/>
+          <rect x="180" y="0" width="52" height="52" rx="8"/><rect x="240" y="0" width="52" height="52" rx="8"/><rect x="300" y="0" width="52" height="52" rx="8"/>
+        </g>
+        <g fill="rgba(127,216,204,.18)" stroke="#7FD8CC" stroke-width="1.5">
+          <rect x="376" y="0" width="52" height="52" rx="8"/><rect x="436" y="0" width="52" height="52" rx="8"/><rect x="496" y="0" width="52" height="52" rx="8"/>
+        </g>
+        <rect x="572" y="0" width="52" height="52" rx="8" fill="none" stroke="#B4BDCC" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <path d="M0 68 H 352" stroke="#F4B860" stroke-width="2"/><path d="M376 68 H 548" stroke="#7FD8CC" stroke-width="2"/><path d="M572 68 H 624" stroke="#B4BDCC" stroke-width="2"/>
+        <text x="0" y="92" font-size="17" fill="#ECEFF4" font-weight="600">6 directed pairs</text><text x="0" y="112" font-size="14" fill="#B4BDCC">each chamber takes a turn as sender</text>
+        <text x="376" y="92" font-size="17" fill="#ECEFF4" font-weight="600">3 baselines</text><text x="376" y="112" font-size="14" fill="#B4BDCC">grown apart</text>
+        <text x="572" y="92" font-size="17" fill="#ECEFF4" font-weight="600">1 vehicle</text>
+        <text x="660" y="32" font-size="22" fill="#ECEFF4" font-family="ui-serif, Georgia, serif">= 10</text>
+        <text x="0" y="142" font-size="15" fill="#B4BDCC">One well, 10 × 2,000 cells. Barcode plus chamber label shows which receivers really changed.</text>
+      </svg>
+    </div>
+    <div>
+      <div class="h">3 cell types is the proof of concept</div>
+      <svg width="600" height="120" viewBox="0 0 600 120" role="img" aria-label="Three compartments now, ten and beyond next">
+        <g fill="rgba(127,216,204,.18)" stroke="#7FD8CC">
+          <rect x="0" y="10" width="40" height="40" rx="7"/><rect x="48" y="10" width="40" height="40" rx="7"/><rect x="96" y="10" width="40" height="40" rx="7"/>
+        </g>
+        <path d="M150 30 H 196" stroke="#F4B860" stroke-width="2" marker-end="url(#arr)"/>
+        <g fill="none" stroke="#B4BDCC" stroke-dasharray="4 3">
+          <rect x="210" y="10" width="28" height="40" rx="5"/><rect x="244" y="10" width="28" height="40" rx="5"/><rect x="278" y="10" width="28" height="40" rx="5"/><rect x="312" y="10" width="28" height="40" rx="5"/><rect x="346" y="10" width="28" height="40" rx="5"/>
+          <rect x="380" y="10" width="28" height="40" rx="5"/><rect x="414" y="10" width="28" height="40" rx="5"/><rect x="448" y="10" width="28" height="40" rx="5"/><rect x="482" y="10" width="28" height="40" rx="5"/><rect x="516" y="10" width="28" height="40" rx="5"/>
+        </g>
+        <text x="556" y="38" font-size="22" fill="#B4BDCC">…</text>
+        <text x="0" y="80" font-size="17" fill="#ECEFF4">Now: our use case</text>
+        <text x="0" y="102" font-size="15" fill="#B4BDCC">3 brain cell types</text>
+        <text x="210" y="80" font-size="17" fill="#ECEFF4">Next: 10+ compartments</text>
+        <text x="210" y="102" font-size="15" fill="#B4BDCC">talking to each other; combinations multiply</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="status"><b>Status</b><span>6 dye-only chips<i> · </i>no cells on chip yet<i> · </i>trap needs a bought mesh<i> · </i>3 steps still at the bench<i> · </i>full scale simulated, not built</span></div>
+
+  <div class="src"><b>Source</b><span class="sep">|</span>Cell numbers per well and per condition: project sizing, unpublished.</div>
+</section>
+
+</div></div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var stage = document.getElementById('stage');
+  var bar = document.getElementById('bar');
+  var count = document.getElementById('count');
+  var cur = 0;
+
+  function fit(){
+    var s = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
+    stage.style.transform = 'scale(' + s + ')';
+  }
+  function go(n){
+    n = Math.max(0, Math.min(slides.length - 1, n));
+    slides[cur].classList.remove('active');
+    Array.prototype.forEach.call(slides[cur].querySelectorAll('video'), function(v){ v.pause(); });
+    cur = n;
+    slides[cur].classList.add('active');
+    bar.style.width = ((cur + 1) / slides.length * 100) + '%';
+    count.textContent = (cur + 1) + ' / ' + slides.length;
+    if (location.hash !== '#' + (cur + 1)) {
+      try { history.replaceState(null, '', '#' + (cur + 1)); } catch (e) {}
+    }
+  }
+  function fromHash(){
+    var n = parseInt((location.hash || '').replace('#', ''), 10);
+    return isNaN(n) ? 0 : n - 1;
+  }
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target && e.target.tagName === 'VIDEO') return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown' || (k === ' ' && !e.shiftKey) || k === 'Enter') { go(cur + 1); e.preventDefault(); }
+    else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp' || (k === ' ' && e.shiftKey) || k === 'Backspace') { go(cur - 1); e.preventDefault(); }
+    else if (k === 'Home') { go(0); e.preventDefault(); }
+    else if (k === 'End') { go(slides.length - 1); e.preventDefault(); }
+  });
+
+  var tx = null, ty = null, swiped = false;
+  document.addEventListener('touchstart', function(e){ tx = e.touches[0].clientX; ty = e.touches[0].clientY; swiped = false; }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (tx === null) return;
+    var dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { go(cur + (dx < 0 ? 1 : -1)); swiped = true; }
+    tx = null;
+  }, {passive:true});
+  document.addEventListener('click', function(e){
+    if (e.target && e.target.closest && e.target.closest('.demo')) return;
+    if (swiped) { swiped = false; return; }
+    if (window.getSelection && String(window.getSelection()).length) return;
+    go(cur + (e.clientX < window.innerWidth * 0.3 ? -1 : 1));
+  });
+
+  window.addEventListener('resize', fit);
+  window.addEventListener('hashchange', function(){ var n = fromHash(); if (n !== cur) go(n); });
+  fit();
+  slides[0].classList.add('active');
+  go(fromHash());
+})();
+</script>
+</body>
+</html>
