@@ -7,15 +7,18 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const num = (v, d = 1) => (v == null || Number.isNaN(v) ? '–' : Number(v).toLocaleString(undefined, { maximumFractionDigits: d }));
 
+// Drawn on the light chart background (twin/style.css .chart).
 const COLORS = {
-  predicted: '#7dd3fc',
-  measured: '#f8fafc',
-  truth: '#4ade80',
-  limit: '#f87171',
-  alert: '#fbbf24',
-  update: '#a78bfa',
-  cursor: 'rgba(255,255,255,0.55)',
-  grid: 'rgba(148,178,255,0.12)',
+  predicted: '#0969da',
+  measured: '#24292f',
+  truth: '#1a7f37',
+  limit: '#cf222e',
+  alert: '#bf8700',
+  update: '#8250df',
+  cursor: 'rgba(31,35,40,0.45)',
+  grid: 'rgba(31,35,40,0.08)',
+  title: '#424a53',
+  tick: '#6e7781',
 };
 
 export function createControlPanel({ onLoopToggle }) {
@@ -167,7 +170,7 @@ export function createControlPanel({ onLoopToggle }) {
     const X = (t) => pad.l + (t / tMax) * (w - pad.l - pad.r);
     const Y = (v) => pad.t + (1 - (v - cfg.yMin) / (cfg.yMax - cfg.yMin)) * (h - pad.t - pad.b);
     g.font = '10px ui-monospace, Menlo, monospace';
-    g.fillStyle = 'rgba(230,237,248,0.75)';
+    g.fillStyle = COLORS.title;
     g.fillText(cfg.title, pad.l, 11);
     // grid + y labels
     g.strokeStyle = COLORS.grid;
@@ -176,7 +179,7 @@ export function createControlPanel({ onLoopToggle }) {
     for (let i = 0; i <= ticks; i++) {
       const v = cfg.yMin + ((cfg.yMax - cfg.yMin) * i) / ticks;
       g.beginPath(); g.moveTo(pad.l, Y(v)); g.lineTo(w - pad.r, Y(v)); g.stroke();
-      g.fillStyle = 'rgba(141,155,181,0.9)';
+      g.fillStyle = COLORS.tick;
       g.fillText(v.toFixed(Math.abs(cfg.yMax) < 2 ? 1 : 0), 2, Y(v) + 3);
     }
     for (const line of cfg.lines) {

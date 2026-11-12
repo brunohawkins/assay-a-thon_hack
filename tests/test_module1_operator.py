@@ -58,7 +58,10 @@ class Safety(unittest.TestCase):
 
     def test_a_weak_feed_line_warns_about_back_pressure(self):
         states, flows = op.states_of("grow", PROTO_FLOW)
-        flows["p_g_in"] = 0.05 * PROTO_FLOW                # far below the other two
+        # Far below the other two. This was 5%; with the weir crests in the model (operator/
+        # network.py) the glia feed crosses two crests of its own, so its line holds more of its
+        # own pressure and only a feed under ~3% of the others is pushed back on past 70%.
+        flows["p_g_in"] = 0.02 * PROTO_FLOW
         v = op.check(NET, "grow", states, flows)
         self.assertTrue(any(w.startswith("p_g_in: the rest of the chip pushes back") for w in v["warnings"]))
 

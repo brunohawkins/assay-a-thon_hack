@@ -30,6 +30,7 @@ Runs offline. Needs no language model.
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -125,6 +126,47 @@ def _as_pipeline(partition, pairs):
             "modules": modules, "handoffs": handoffs}
 
 
+def _fix_consumer(stage):
+    """None if `stage` can act on a CFD geometry fix; otherwise why it cannot.
+
+    A re-run is only worth asking for if the stage it goes back to READS the fix. A stage
+    declares that with `CONSUMES_CFD_FIXES = True`. Without it the loop re-builds the same
+    chip, re-simulates it, finds the same fault and asks again - three times - which is
+    what every demo run used to do: ~3x the runtime for no change at all.
+    """
+    import importlib
+
+    number = str(stage or "").lstrip("s").split("_")[0]
+    matches = sorted((ROOT / "assay2chip" / "stages").glob(f"s{number}_*.py"))
+    if not matches:
+        return f"there is no stage {stage}"
+    module = importlib.import_module(f"assay2chip.stages.{matches[0].stem}")
+    if getattr(module, "CONSUMES_CFD_FIXES", False):
+        return None
+    return (f"{matches[0].stem} does not read CFD fix proposals (no CONSUMES_CFD_FIXES), "
+            f"so re-running it would rebuild the same geometry")
+
+
+def _geometry_state(pairs):
+    import hashlib
+
+    return {chip_id: hashlib.sha256(path.read_bytes()).hexdigest()
+            for chip_id, path, _protocol in pairs if path is not None}
+
+
+def _note_unconsumed(out_dir, rerun, why):
+    """Append to cfd/report.md, so S12 and a reader see the fix was NOT applied."""
+    path = Path(out_dir) / "report.md"
+    try:
+        text = path.read_text(encoding="utf-8") if path.exists() else "# S10 CFD\n"
+        text += (f"\n## Geometry fix NOT applied\n\n{rerun.get('reason')}\n\n"
+                 f"Not sent back to {rerun.get('rerun_from')}: {why}. It is a proposal for a "
+                 f"human (see fixes.json); the finding it addresses is still open.\n")
+        path.write_text(text, encoding="utf-8")
+    except OSError:
+        pass
+
+
 def run(ctx=None, assay_id=None, verbose=False, **_ignored):
     """Simulate every chip in the partition. May return a rerun_from request."""
     assay_id = assay_id or (ctx.id if ctx is not None else None)
@@ -152,9 +194,21 @@ def run(ctx=None, assay_id=None, verbose=False, **_ignored):
         log("partition.json names no chips: nothing to simulate")
         return None
 
+    from assay2chip.stages import _profile
+    options = {}
+    if _profile.get("cfd_max_steps"):
+        options["max_steps"] = int(_profile.get("cfd_max_steps"))
+    if _profile.get("cfd_particles"):
+        options["n_particles"] = int(_profile.get("cfd_particles"))
     run_obj = cfd.Run(assay_id, out_dir, "pipeline", verbose=bool(verbose),
-                      pipeline_mode=True)
-    run_obj.log(f"S10 CFD: {assay_id} ({len(pairs)} chip(s) from partition.json)")
+                      pipeline_mode=True, **options)
+    run_obj.profile = _profile.name()
+    run_obj.max_figure_steps = _profile.get("cfd_figure_steps")
+    run_obj.log(f"S10 CFD: {assay_id} ({len(pairs)} chip(s) from partition.json), "
+                f"{_profile.banner()}")
+    log(_profile.banner())
+    if _profile.get("cfd_validation_scope") == "run":
+        run_obj.validation_scope = [path for _cid, path, _p in pairs if path is not None]
     run_obj.validate()
     missing = []
     for chip_id, chip_path, protocol_path in pairs:
@@ -189,6 +243,26 @@ def run(ctx=None, assay_id=None, verbose=False, **_ignored):
 
     rerun = result.get("rerun")
     if rerun:
+        consumer = _fix_consumer(rerun.get("rerun_from"))
+        if consumer is not None:
+            log(f"a geometry fix wants {rerun['rerun_from']}, but NOT asking: {consumer}. "
+                f"The fix stays a proposal in cfd/fixes.json: {rerun['reason']}")
+            _note_unconsumed(out_dir, rerun, consumer)
+            return None
+        state = _geometry_state(pairs)
+        marker = out_dir / "rerun_state.json"
+        if loop > 0 and marker.exists():
+            try:
+                before = json.loads(marker.read_text())
+            except ValueError:
+                before = {}
+            if before == state:
+                log(f"the re-run from {rerun['rerun_from']} left every chip spec "
+                    f"byte-identical, so another loop cannot help: NOT asking again. "
+                    f"The fix stays a proposal: {rerun['reason']}")
+                _note_unconsumed(out_dir, rerun, "the previous re-run changed no geometry")
+                return None
+        marker.write_text(json.dumps(state, indent=1))
         if loop >= MAX_LOOPS:
             log(f"a geometry fix wants {rerun['rerun_from']} again, but this is loop "
                 f"{loop} of {MAX_LOOPS}: NOT asking. The fix stays a proposal.")

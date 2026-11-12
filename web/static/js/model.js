@@ -145,6 +145,9 @@ export function normaliseRunList(raw) {
       findings_by_severity: r.findings_by_severity && typeof r.findings_by_severity === 'object' ? r.findings_by_severity : null,
       llm: String(pick(r, 'llm') ?? ''),
       kind: String(pick(r, 'kind') ?? ''),
+      // undefined when the backend does not say, so callers only act on an explicit false
+      has_manifest: typeof r.has_manifest === 'boolean' ? r.has_manifest : undefined,
+      has_report: typeof r.has_report === 'boolean' ? r.has_report : undefined,
     };
   }).filter((r) => r.run_id);
 }

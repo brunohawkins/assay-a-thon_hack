@@ -33,8 +33,10 @@ DEFAULTS = {
     "channel_width_factor_high": 2.0,  # B10 assumption
     "trap_gap_factor_low": 0.3,        # B11 assumption
     "trap_gap_factor_high": 0.4,       # B12 assumption
-    "barcoding_lanes": 3,              # per-lane lipid-oligo barcodes, one per lineage
-    "gelma_flow_ul_h": 250.0,          # B15 SPC methods, 40 um nozzle
+    "barcoding_lanes": 3,              # per-lane oligo barcodes, one per lineage (demux only)
+    "barcode_random_bases": 16,        # random cell barcode: 4^16 = 4.3e9 pool
+    "barcode_loading_mean": 3.0,       # Poisson barcodes per droplet
+    "shell_flow_ul_h": 250.0,          # published SPC methods, 40 um nozzle
     "cell_flow_ul_h": 100.0,           # B16
     "oil_flow_ul_h": 700.0,            # B17
     "cell_conc_per_ul": 1500.0,        # B18
@@ -61,7 +63,9 @@ PARAMETER_KEYS = {
     "trap_gap_factor_low": "trap.gap_factor_low",
     "trap_gap_factor_high": "trap.gap_factor_high",
     "barcoding_lanes": "barcoding.lanes",
-    "gelma_flow_ul_h": "encapsulation.gelma_flow_ul_h",
+    "barcode_random_bases": "barcoding.random_bases",
+    "barcode_loading_mean": "barcoding.loading_mean",
+    "shell_flow_ul_h": "encapsulation.shell_flow_ul_h",
     "cell_flow_ul_h": "encapsulation.cell_flow_ul_h",
     "oil_flow_ul_h": "encapsulation.oil_flow_ul_h",
     "cell_conc_per_ul": "encapsulation.cell_conc_per_ul",
@@ -103,7 +107,7 @@ def compute(inputs: dict | None = None, mode: str = "capsules") -> dict:
     d = p["capsule_diameter_um"]
 
     capsule_volume_nl = 4 / 3 * math.pi * (d / 2) ** 3 / 1_000_000          # B23
-    aqueous_flow_ul_h = p["gelma_flow_ul_h"] + p["cell_flow_ul_h"]          # B34
+    aqueous_flow_ul_h = p["shell_flow_ul_h"] + p["cell_flow_ul_h"]
     capsules_per_hour = aqueous_flow_ul_h / capsule_volume_nl * 1000        # B35
     cells_per_hour = p["cell_flow_ul_h"] * p["cell_conc_per_ul"]            # B37
     mean = _iferror(lambda: cells_per_hour / capsules_per_hour)             # B38
@@ -118,9 +122,13 @@ def compute(inputs: dict | None = None, mode: str = "capsules") -> dict:
     cells = cells_per_hour * hours                                          # B42 (= count x mean)
     lanes, subs = p["barcoding_lanes"], p["sublibraries"]
     packed = capsule_volume_nl * count / p["packing_fraction"] / 1000       # B24
-    # Split-and-pool is dropped. The only barcodes left are the per-lane lipid oligos
-    # the cells already carry, so the distinguishable groups are lanes, and lanes x
-    # sublibrary indices once module 4 adds BC4. This is LANE-level, not single-cell.
+    # Split-and-pool is dropped, and it was REPLACED, not abandoned: each capsule gets a
+    # random barcode amplified clonally inside its own oil droplet, so the barcode space
+    # is the random pool (4^bases), not lanes x sublibraries. Lanes and sublibrary indices
+    # are demultiplexing metadata - which lineage, which sublibrary - and are reported as
+    # such below. Counting them as the barcode space is what made this file conclude the
+    # data was lane-level. It is single-cell. See protocols/sctip_spc_design.md.
+    barcode_pool = 4 ** p["barcode_random_bases"]
     combos = lanes                                                          # B31
     combos_sub = lanes * subs                                               # B61
     wash_per_exchange = packed * p["chamber_volumes_per_wash"] * p["washes_per_exchange"]  # B59
@@ -165,10 +173,20 @@ def compute(inputs: dict | None = None, mode: str = "capsules") -> dict:
         "barcode_combinations_with_sublibraries": combos_sub,                # B61
         "capsules_needed_for_target_cells": _iferror(lambda: p["target_cells"] / mean),  # B62
     }
-    # Not on the sheet: expected fraction of cells sharing their full barcode with another
-    # cell. Approximation 1 - e^(-N/C); C includes the sublibrary index (B61), which is
-    # equivalent to N/S cells per sublibrary over the per-lane barcodes.
-    out["barcode_collision_fraction"] = _iferror(lambda: 1 - math.exp(-cells / combos_sub))
+    # Not on the sheet. Two separate risks, which the old single "collision" number
+    # conflated:
+    #  1. Two capsules drawing the SAME random barcode. Birthday approximation
+    #     1 - e^(-N/pool) over the 4^bases pool. Negligible at our scale.
+    #  2. Poisson LOADING of a free barcode into a droplet, at mean lambda. A droplet with
+    #     no barcode is a lost cell; a droplet with several is recoverable afterwards by
+    #     merging barcodes that share fragments, which is what the source method does.
+    lam = p["barcode_loading_mean"]
+    out["barcode_pool"] = barcode_pool
+    out["barcode_collision_fraction"] = _iferror(lambda: 1 - math.exp(-cells / barcode_pool))
+    out["demux_groups"] = combos_sub
+    out["barcode_absent_fraction"] = math.exp(-lam)
+    out["barcode_multiple_fraction"] = 1 - math.exp(-lam) - lam * math.exp(-lam)
+    out["cells_with_a_barcode"] = cells * (1 - math.exp(-lam))
     out["warnings"] = warnings(out)
     return out
 
@@ -177,11 +195,9 @@ def warnings(r: dict) -> list[str]:
     w = []
     if r["barcode_collision_fraction"] > COLLISION_WARN:
         p = r["inputs"]
-        w.append(f"barcode collisions: about {r['barcode_collision_fraction']:.0%} of {r['cells']:,.0f} cells share a "
-                 f"barcode with another cell ({p['barcoding_lanes']} lanes x {p['sublibraries']} sublibraries "
-                 f"= {r['barcode_combinations_with_sublibraries']:,} combinations). With split-and-pool dropped "
-                 f"this is EXPECTED: the surviving barcodes are per-lane, so the data is lane-level rather than "
-                 f"single-cell. Add sublibraries, or give each cell its own barcode, or load fewer cells")
+        w.append(f"barcode collisions: about {r['barcode_collision_fraction']:.2%} of {r['cells']:,.0f} cells share a "
+                 f"random barcode with another cell, against a pool of {r['barcode_pool']:,} "
+                 f"({p['barcode_random_bases']} random bases). Shorten the run, or lengthen the barcode")
     if r["filter_check"] != "OK":
         w.append(r["filter_check"])
     return w
@@ -254,7 +270,7 @@ ROWS = [
     ("Capsule count", lambda r: f"{math.ceil(r['capsule_count'] - 1e-9):,}"),
     ("Cells", lambda r: f"{r['cells']:,.0f}"),
     ("Capsule diameter (um)", lambda r: f"{r['inputs']['capsule_diameter_um']:g}"),
-    ("Split chambers x rounds", lambda r: f"{r['inputs']['split_chambers_per_round']} x {r['inputs']['barcoding_rounds']}"),
+    ("Barcoding lanes x sublibraries", lambda r: f"{r['inputs']['barcoding_lanes']} x {r['inputs']['sublibraries']}"),
     ("-- capsule handling", None),
     ("Single capsule volume (nL)", lambda r: f"{r['capsule_volume_nl']:.3f}"),
     ("Packed chamber volume (uL)", lambda r: f"{r['packed_volume_ul']:.2f}"),
@@ -273,14 +289,17 @@ ROWS = [
     ("Cell filter vs nozzle", lambda r: r["filter_check"]),
     ("-- step 3", None),
     ("Reagent inlets / valves", lambda r: f"{r['total_reagent_inlets']} / {r['valves']}"),
-    ("Capsules per split chamber", lambda r: f"{r['capsules_per_split_chamber']:,.0f}"),
-    ("Packed vol per split chamber (uL)", lambda r: f"{r['packed_volume_per_split_chamber_ul']:.3f}"),
+    ("Capsules per sublibrary", lambda r: f"{r['capsules_per_sublibrary']:,.0f}"),
+    ("Packed vol per sublibrary (uL)", lambda r: f"{r['packed_volume_per_sublibrary_ul']:.3f}"),
     ("Wash volume per exchange (uL)", lambda r: f"{r['wash_volume_per_exchange_ul']:.1f}"),
     ("Total wash buffer per run (mL)", lambda r: f"{r['total_wash_buffer_ml']:.2f}"),
-    ("-- barcodes", None),
-    ("Combinations (chambers^rounds)", lambda r: f"{r['barcode_combinations']:,}"),
-    ("  x sublibraries", lambda r: f"{r['barcode_combinations_with_sublibraries']:,}"),
-    ("Cells sharing a barcode (approx)", lambda r: f"{r['barcode_collision_fraction']:.1%}"),
+    ("-- barcodes (single-cell: one random barcode per capsule, made in its droplet)", None),
+    ("Random barcode pool (4^bases)", lambda r: f"{r['barcode_pool']:,}"),
+    ("Cells sharing a barcode (approx)", lambda r: f"{r['barcode_collision_fraction']:.4%}"),
+    ("Droplets with no barcode (lost)", lambda r: f"{r['barcode_absent_fraction']:.1%}"),
+    ("Droplets with several (merge after)", lambda r: f"{r['barcode_multiple_fraction']:.1%}"),
+    ("Cells carrying a barcode", lambda r: f"{r['cells_with_a_barcode']:,.0f}"),
+    ("Demux groups (lanes x sublibraries)", lambda r: f"{r['demux_groups']:,}"),
 ]
 
 

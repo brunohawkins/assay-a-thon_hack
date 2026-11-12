@@ -82,13 +82,32 @@ rinse-bounded in the step before the quench. `shear_scope()` decides from DATA:
        channel with `carries: capsules` or `capsule_passable`, a capsule reagent - AND
        this chamber is the retention feature holding them. Judged by escape pressure,
        never by the culture ceiling;
+    2b. CAPSULES when THIS step's own reagents name capsules, whatever the chamber is.
+       Rule 2 needs a retention gap, so a chamber capsules are only loaded INTO - module4's
+       sublibrary wells, module5's bead chamber - used to fall through to rule 3 and get
+       judged at 0.01, which produced four 990x blockers and one 1800x one. A reagent
+       called `pooled_capsule_suspension` is not ambiguous the way a bare weir is;
     3. ADHERENT CELLS when the chamber is a culture block or type, or the protocol coats
        it and loads a cell suspension into it and then holds it warm;
+    3a. NONE when the cells are not in there YET. Coating is evidence of adherent culture
+       and also happens before seeding, so the coat step itself has nothing to detach.
+       Only fires when the protocol does seed this chamber later - if it never seeds it,
+       the cells may arrive pre-loaded and assuming empty would hide real blockers;
+    3b. UNKNOWN on a deliberate dissociation (trypsin, Accutase, collagenase...): the
+       0.01 ceiling exists to stop unwanted detachment, and detachment is the point here.
+       The cells are the product, so a limit exists, but contracts carry no
+       suspended-cell ceiling - so this reports unresolved rather than borrowing 0.3,
+       which means something else;
     4. PRE-LYSIS RINSE when this step is a rinse/exchange on a chamber that held adherent
        cells and the next flowing step on it is a deliberate lyse;
     5. NONE once the cells in it have been deliberately lysed - there is nothing left to
        protect, and holding a quench to a culture ceiling is how you get a 12-minute
        "1-second" flood;
+    5b. UNKNOWN once they have been deliberately DISSOCIATED: from then on they are in
+       suspension, so the adherent ceiling cannot apply, but they are still the product.
+       Same missing contract value as 3b. Without this the report contradicted itself -
+       "no ceiling applies" on the dissociation step, then a 90x blocker two steps later
+       on the transfer;
     6. otherwise UNKNOWN -> a `shear_scope_unknown` finding saying exactly what we
        looked at and failed to resolve. We do NOT pick the strictest ceiling (it invents
        blockers on waste lines) and we do NOT pick the loosest (it hides real ones).
@@ -561,6 +580,11 @@ _RINSE_TERMS = ("rinse", "wash", "exchange", "flush")
 _CELL_REAGENT_TERMS = ("cell_suspension", "cells", "suspension", "seed", "inoculum")
 _CAPSULE_TERMS = ("capsule", "bead", "hydrogel", "gelma")
 _COATING_TERMS = ("coating", "matrigel", "laminin", "poly_l_lysine", "pll", "fibronectin")
+# Reagents whose PURPOSE is to detach adherent cells, which makes the 0.01 "do not detach
+# them" ceiling self-contradictory on that step.
+_DISSOCIATION_TERMS = (
+    "dissociat", "trypsin", "accutase", "tryple", "collagenase", "papain", "versene",
+)
 _CULTURE_OPS = ("culture", "incubate", "grow", "hold_temp", "hold")
 _NO_FLOW_OPS = ("hold_temp", "hold", "incubate", "collect", "soak", "dwell", "image")
 
@@ -877,10 +901,82 @@ def shear_scope(
                 ],
             )
 
+    step_text = " ".join((view.operation, *view.reagents)).lower()
+
+    # 2b. capsules named in THIS step's reagents. Rule 2 above needs a retention gap, so a
+    # chamber capsules are merely LOADED into - module4's sublibrary wells, module5's bead
+    # chamber - fell straight through to the adherent-cell ceiling and reported 10-18
+    # dyn/cm2 against 0.01 as blockers. A reagent called `pooled_capsule_suspension` is not
+    # ambiguous the way a bare 25 um weir is, so this needs no chip-level corroboration.
+    if _matches(step_text, _CAPSULE_TERMS):
+        named = [r for r in view.reagents if _matches(r.lower(), _CAPSULE_TERMS)]
+        return call(
+            "capsules",
+            [
+                f"this step puts {', '.join(named) or 'a capsule reagent'} into {chamber.id}",
+                "what is in it during this step is capsules, not adherent cells",
+                "bounded by escape pressure, NOT the culture shear ceiling",
+            ],
+        )
+
+    # 2c. capsules put in here by an EARLIER step are still in here. module5's bead_cx
+    # takes capsules at step 1 and a dilution buffer at step 5; without this, step 5 has no
+    # capsule word in its reagents and falls through to the 0.01 culture ceiling on a
+    # chamber that demonstrably holds capsules. Mirrors rule 5's backward look.
+    for past in steps:
+        if past.index >= view.index or chamber.id not in past.targets:
+            continue
+        if _matches(" ".join((past.operation, *past.reagents)).lower(), _CAPSULE_TERMS):
+            return call(
+                "capsules",
+                [
+                    f"{past.label} (step {past.index}) put "
+                    f"{', '.join(past.reagents) or 'capsules'} into {chamber.id}",
+                    "nothing since has emptied it, so it still holds capsules",
+                    "bounded by escape pressure, NOT the culture shear ceiling",
+                ],
+            )
+
     adherent, adherent_evidence = _held_adherent_cells(chamber, steps)
 
     if adherent:
         later = [s for s in steps if s.index > view.index]
+        # 3a-i. a COATING step. You coat a surface before cells go onto it - coating under
+        # adherent cells is not a thing - so the coating reagent itself says the cells are
+        # not on yet, even when the protocol models no seeding step at all (module1's does
+        # not: its reagents are media, buffers, coat, dissociate and barcodes). Stated as an
+        # inference in the evidence so it can be audited.
+        if _matches(step_text, _COATING_TERMS):
+            return call(
+                "none",
+                [
+                    f"this step coats {chamber.id}: "
+                    f"{', '.join(view.reagents) or view.operation}",
+                    "a surface is coated BEFORE cells are seeded onto it, so there are no "
+                    "adherent cells here yet and nothing to detach",
+                    "inferred from the coating reagent: this protocol models no seeding step",
+                ],
+            )
+        # 3a. the cells are not in there YET. Rule 3 reads a coating step as evidence of
+        # adherent culture and is right to - but coating happens BEFORE seeding, so there
+        # is nothing in the chamber to detach. Guarded: this only fires when the protocol
+        # really does seed this chamber later. If it never seeds it, the cells may arrive
+        # already loaded and assuming an empty chamber would hide real blockers.
+        seeds = [
+            s for s in steps
+            if chamber.id in s.targets
+            and _matches(" ".join((s.operation, *s.reagents)).lower(), _CELL_REAGENT_TERMS)
+        ]
+        if seeds and all(s.index > view.index for s in seeds):
+            first = min(seeds, key=lambda s: s.index)
+            return call(
+                "none",
+                [
+                    f"{chamber.id} is not seeded until {first.label} (step {first.index})",
+                    f"this is step {view.index}: no cells in it yet, so none to detach",
+                    *adherent_evidence[:1],
+                ],
+            )
         # 5. already lysed? nothing left to protect.
         for past in steps:
             if past.index >= view.index or chamber.id not in past.targets:
@@ -891,6 +987,29 @@ def shear_scope(
                     "none",
                     [f"cells in {chamber.id} were deliberately lysed at {why}", "nothing shear-sensitive left"],
                 )
+        # 5b. already DISSOCIATED? Then nothing in here is adherent any more - the cells
+        # are in suspension. Without this, cell_prep's `transfer` two steps after its
+        # dissociation was judged at 0.01 and reported a 90x blocker, while the
+        # dissociation step itself said "no ceiling applies" - the report contradicted
+        # itself. Not "none" (the cells are the product), not 0.01 (nothing is stuck down),
+        # and the contract has no suspended-cell number, so unresolved - as in rule 3b.
+        for past in steps:
+            if past.index >= view.index or chamber.id not in past.targets:
+                continue
+            if _matches(" ".join((past.operation, *past.reagents)).lower(), _DISSOCIATION_TERMS):
+                return ScopeCall(
+                    "unknown", None, None, "undetermined",
+                    (
+                        f"step {past.index} dissociated {chamber.id}: "
+                        f"{', '.join(past.reagents) or past.operation}",
+                        "from there on the cells here are in SUSPENSION, so "
+                        "shear.culture_ceiling_dyn_cm2 (0.01, adherent only) cannot apply",
+                        "contracts hold no suspended-cell ceiling and picking one would "
+                        "invent it",
+                        "wanted in contracts/parameters.json: shear.suspension_ceiling_dyn_cm2",
+                    ),
+                    False,
+                )
         # is THIS step the lyse?
         lysed_now, why_now = _deliberate_lyse(view, later, chamber.id)
         if lysed_now:
@@ -900,16 +1019,43 @@ def shear_scope(
             nxt = next((s for s in later if chamber.id in s.targets and s.has_flow), None)
             if nxt is not None:
                 lysed_next, why_next = _deliberate_lyse(nxt, [s for s in later if s.index > nxt.index], chamber.id)
-                if lysed_next:
+                # A deliberate DISSOCIATION counts the same way a lyse does: in both cases
+                # the cells are about to be released on purpose, so detachment during the
+                # rinse before it is no longer the risk the 0.01 ceiling guards against.
+                nxt_text = " ".join((nxt.operation, *nxt.reagents)).lower()
+                dissociated_next = _matches(nxt_text, _DISSOCIATION_TERMS)
+                if lysed_next or dissociated_next:
+                    why_next = why_next if lysed_next else (
+                        f"deliberate dissociation: {', '.join(nxt.reagents) or nxt.operation}")
                     return call(
                         "prelysis_rinse",
                         [
                             f"this step is a rinse on {chamber.id}; the next flowing step on it is a "
-                            f"deliberate lyse ({why_next})",
+                            f"deliberate {'lyse' if lysed_next else 'dissociation'} ({why_next})",
                             "detachment no longer matters, so the 0.01 culture ceiling does not apply",
                             *adherent_evidence[:1],
                         ],
                     )
+        # 3b. a deliberate dissociation. Detaching the cells IS the goal, so holding this
+        # step to the 0.01 "do not detach them" ceiling contradicts itself - the same
+        # reasoning as rule 5's lyse. But the cells here are the PRODUCT, not waste, so a
+        # limit does exist; the contracts just do not carry one for cells in suspension.
+        # Picking 0.3 would be borrowing a ceiling that means something else, so report it
+        # unresolved (a flat medium) and name the number we want.
+        if _matches(step_text, _DISSOCIATION_TERMS):
+            return ScopeCall(
+                "unknown", None, None, "undetermined",
+                (
+                    f"this step dissociates {chamber.id}: "
+                    f"{', '.join(view.reagents) or view.operation}",
+                    "detachment is the intent, so shear.culture_ceiling_dyn_cm2 (0.01) "
+                    "cannot be the limit on this step",
+                    "the cells are the product, so a limit exists - but contracts hold no "
+                    "suspended-cell ceiling and choosing one here would invent it",
+                    "wanted in contracts/parameters.json: shear.suspension_ceiling_dyn_cm2",
+                ),
+                False,
+            )
         # 3. plain adherent culture.
         return call("adherent_cells", adherent_evidence)
 

@@ -138,8 +138,15 @@ SIBLING_SPEC = {
 }
 
 
-class SiblingTimeout(Exception):
-    """A sibling ran past its wall-clock budget. Reported, like any other failure."""
+class SiblingTimeout(BaseException):
+    """A sibling ran past its wall-clock budget. Reported, like any other failure.
+
+    Deliberately a BaseException, not an Exception. `fix.py` wraps every candidate it
+    predicts in `except Exception` so that one bad candidate does not lose the rest -
+    which is correct, and which also swallowed the first version of this timeout and
+    went on running for half an hour. Only `Caller.call` catches it, in the same place
+    `KeyboardInterrupt` would be caught: never silently, and never by a sibling.
+    """
 
 
 class _Budget:
@@ -165,7 +172,9 @@ class _Budget:
             if threading.current_thread() is not threading.main_thread():
                 return self
             self.previous = signal.signal(signal.SIGALRM, self._fire)
-            signal.setitimer(signal.ITIMER_REAL, self.seconds)
+            # Repeating, not single-shot: if a sibling does manage to swallow one
+            # alarm, the next one lands a second later instead of never.
+            signal.setitimer(signal.ITIMER_REAL, self.seconds, 1.0)
         except (ImportError, ValueError, OSError):
             self.previous = None
         return self
@@ -246,7 +255,7 @@ class Caller:
         try:
             with _Budget(self.timeout, label):
                 result = fn(*args, **kwargs)
-        except Exception as exc:
+        except (Exception, SiblingTimeout) as exc:
             self.seconds += time.monotonic() - started
             verb = "timed out" if isinstance(exc, SiblingTimeout) else \
                 f"raised {type(exc).__name__}"
@@ -527,13 +536,25 @@ def merge_assumptions(entries):
 
 
 def collect_gaps(blob, subject, into):
-    for item in jsonable(attr(blob, "unresolved", default=[]) or []):
+    """Pull a sibling's `unresolved` list in. A gap recorded is a number not invented.
+
+    Siblings name the sentence differently - `message`, `question`, `note`, `why` - so
+    all four are read before falling back to the raw record. Dumping JSON into the
+    report is the failure mode: it is technically honest and completely unreadable.
+    """
+    for item in figures._rows(attr(blob, "unresolved", default=[]) or [],
+                              id_keys=("key",)):
+        item = jsonable(item)
         if not isinstance(item, dict):
-            item = {"question": str(item)}
+            item = {"message": str(item)}
+        sentence = next((item[key] for key in
+                         ("message", "question", "note", "why", "detail")
+                         if item.get(key)), None)
+        kind = item.get("kind") or item.get("class")
         entry = {"subject": f"{subject}: {item.get('key') or item.get('subject') or ''}"
                             .strip(" :"),
-                 "question": item.get("question") or item.get("note")
-                 or item.get("why") or json.dumps(item)[:200]}
+                 "question": (f"[{kind}] {sentence}" if kind and sentence
+                              else sentence or json.dumps(item)[:220])}
         if entry not in into:
             into.append(entry)
 
@@ -590,6 +611,14 @@ class Run:
         self.rerun = None
         self.loops = 0
         self.validation = None
+        #: None: validate.py sweeps every chip in chip/. A list of chip paths: the
+        #: per-chip benchmarks (mass conservation, Hele-Shaw validity, sections) see only
+        #: these plus module1_v1, which the reference benchmarks always use. The analytic
+        #: benchmarks are unaffected. Set by the demo profile; recorded in validation.json.
+        self.validation_scope = None
+        self.profile = "full"
+        #: None draws every solved step; an int draws only the first N per chip.
+        self.max_figure_steps = None
         self.coupling = {}
         self.out.mkdir(parents=True, exist_ok=True)
         self.figures_dir.mkdir(parents=True, exist_ok=True)
@@ -806,15 +835,29 @@ class Run:
             return out
         self.log(f"    transport on {sum(f is not None for f in work.fields)} field(s)")
         fn = caller.func("analyse", "transport", "residence_times")
+        degraded = 0
         for i, field in enumerate(work.fields):
             if field is None:
                 continue
             step = self._raw_step(work, work.records[i])
-            result, ok = caller.call(fn, work.mesh, field, step=step)
+            result, ok = caller.call(fn, work.mesh, field, step=step, quiet=True)
+            if not ok:
+                # The step's own exchange intent can be rejected (a stated target of
+                # 1.0, say, which no finite volume reaches). Residence time does not
+                # depend on it, and the residence-time map is half the trap test, so
+                # retry without the step rather than lose the field entirely.
+                result, ok = caller.call(fn, work.mesh, field)
+                if ok:
+                    degraded += 1
             if ok:
                 out[i] = result
                 collect_assumptions(result, f"{work.chip_id} transport",
                                     self.assumptions)
+        if degraded:
+            work.record["notes"].append(
+                f"transport: {degraded} step(s) would not accept their own exchange "
+                f"intent, so they were re-run for residence time only - no washout "
+                f"curve and no exchange-fraction check for those steps.")
         return out
 
     def _raw_step(self, work, record):
@@ -1006,7 +1049,20 @@ class Run:
             self.validation = payload
             return payload
         fn = caller.func("run", "validate", "benchmarks")
-        result, ok = caller.call(fn)
+        scope = None
+        original = getattr(caller.module, "repo_chips", None)
+        if self.validation_scope is not None and callable(original):
+            reference = CHIP_DIR / "module1_v1.json"
+            scope = sorted({Path(p).resolve() for p in self.validation_scope}
+                           | ({reference.resolve()} if reference.exists() else set()))
+            caller.module.repo_chips = lambda: list(scope)
+            self.log(f"validation scoped to {len(scope)} chip(s): "
+                     + ", ".join(p.stem for p in scope))
+        try:
+            result, ok = caller.call(fn)
+        finally:
+            if scope is not None:
+                caller.module.repo_chips = original
         if not ok or result is None:
             payload = {"status": "errored", "trusted": False, "checks": [],
                        "detail": caller.errors[0] if caller.errors else caller.detail}
@@ -1052,6 +1108,9 @@ class Run:
             "grid_mm": data.get("grid_mm"),
             "checks": checks,
             "validation_findings": data.get("validation_findings") or [],
+            "profile": self.profile,
+            "chip_scope": ([rel(p) for p in scope] if scope is not None
+                           else "every chip in chip/"),
         }
         write_json(self.out / "validation.json", payload)
         self.validation = payload
@@ -1179,6 +1238,10 @@ class Run:
     def draw(self, pipeline=None, chips_by_module=None):
         for work in self.works:
             entries = list(range(len(work.records))) or [None]
+            if self.max_figure_steps is not None and len(entries) > self.max_figure_steps:
+                self.log(f"    figures for {self.max_figure_steps} of {len(entries)} step(s) "
+                         f"of {work.chip_id} ({self.profile} profile); every step was solved")
+                entries = entries[:self.max_figure_steps]
             for i in entries:
                 record = work.records[i] if i is not None else None
                 step = attr(record, "step", default=None) if record else None
@@ -1217,6 +1280,7 @@ class Run:
         self.fix()
         self.log("  figures")
         self.draw(pipeline, chips_by_module)
+        self.log(f"  figures done: {len(self.figure_paths)}; writing the report")
         findings = [f for work in self.works for f in work.findings]
         fixes = [f for work in self.works for f in work.fixes]
         result = {

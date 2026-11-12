@@ -375,7 +375,9 @@ def run(assay_id: str | None = None, ctx: Any = None, force: bool = False,
     chip_file = kwargs.get("chip_file")
     chip_ids = kwargs.get("chip_ids") or ([kwargs["chip_id"]] if kwargs.get("chip_id") else None)
     grid_mm = float(kwargs.get("grid_mm") or router.DEFAULT_GRID_MM)
-    max_passes = int(kwargs.get("max_passes") or router.DEFAULT_MAX_PASSES)
+    from assay2chip.stages import _profile
+    max_passes = int(kwargs.get("max_passes") or _profile.get("route_max_passes")
+                     or router.DEFAULT_MAX_PASSES)
     dry_run = bool(kwargs.get("dry_run"))
     loud = kwargs.get("loud", True)
     log = kwargs.get("log") or (lambda line: print(line))

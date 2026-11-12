@@ -1,29 +1,26 @@
-// Shell: health gate, nav, hash routing, the run picker, and the global honesty badges.
+// Shell: health gate, the three sections, hash routing and the global status pill.
+//
+// Three views: #/assay (landing), #/run[/<id>] (start a run, watch it), #/results/<id>.
+// The old seven routes still resolve, into the section that now holds them.
 
 import { api, ApiError, explain, apiBase, setApiBase } from './api.js';
 import { el, clear, setChildren, badge, toast, errorState, fmtTime } from './dom.js';
 import { normaliseStages, normaliseRunList, FALLBACK_STAGES } from './model.js';
-import { stubBadge, STUB_TITLE } from './labels.js';
+import { stubBadge } from './labels.js';
 import { keepOnly } from './live.js';
 
-import * as newRun from './views/newrun.js';
-import * as assayView from './views/assay.js';
-import * as runView from './views/run.js';
-import * as stepsView from './views/steps.js';
-import * as chipsView from './views/chips.js';
-import * as cfdView from './views/cfd.js';
-import * as reportView from './views/report.js';
+import * as homeView from './views/home.js';
+import * as runItView from './views/runit.js';
+import * as resultsView from './views/results.js';
 
 const VIEWS = {
-  // Two jobs: run the general pipeline on any assay, and present THIS project's assay.
-  assay: { label: 'Our assay', mod: assayView, needsRun: false },
-  new: { label: 'New run', mod: newRun, needsRun: false },
-  run: { label: 'Run', mod: runView, needsRun: true },
-  steps: { label: 'Steps', mod: stepsView, needsRun: true },
-  chips: { label: 'Chips', mod: chipsView, needsRun: false },
-  cfd: { label: 'CFD', mod: cfdView, needsRun: true },
-  report: { label: 'Report', mod: reportView, needsRun: true },
+  assay: { label: 'The assay', mod: homeView, sub: 'what it is' },
+  run: { label: 'Run it', mod: runItView, sub: 'start or watch' },
+  results: { label: 'Results', mod: resultsView, sub: 'what it found' },
 };
+
+/** Old routes, and the section that now holds what they showed. */
+const LEGACY = { new: 'run', steps: 'results', chips: 'results', cfd: 'results', report: 'results' };
 
 export const state = {
   health: null,
@@ -31,7 +28,7 @@ export const state = {
   stages: FALLBACK_STAGES,
   runs: [],
   runId: null,
-  view: 'new',
+  view: 'assay',
   param: null,
 };
 
@@ -39,8 +36,7 @@ const nodes = {
   nav: document.getElementById('nav'),
   main: document.getElementById('main'),
   banner: document.getElementById('banner'),
-  badges: document.getElementById('badges'),
-  select: document.getElementById('run-select'),
+  status: document.getElementById('status'),
 };
 
 let unmount = null;
@@ -48,8 +44,19 @@ let healthTimer = 0;
 
 /* ------------------------------------------------------------------ routing */
 
+function resolve(view, param) {
+  if (VIEWS[view]) return { view, param };
+  if (LEGACY[view]) {
+    // #/chips/<chip> carried a chip id, not a run id
+    const p = view === 'chips' ? state.runId : param;
+    return { view: LEGACY[view], param: p || state.runId };
+  }
+  return { view: 'assay', param: null };
+}
+
 export function navigate(view, param) {
-  const hash = param ? `#/${view}/${encodeURIComponent(param)}` : `#/${view}`;
+  const r = resolve(view, param);
+  const hash = r.param ? `#/${r.view}/${encodeURIComponent(r.param)}` : `#/${r.view}`;
   if (location.hash === hash) render();
   else location.hash = hash;
 }
@@ -58,10 +65,9 @@ function parseHash() {
   const raw = location.hash.replace(/^#\/?/, '');
   const [view, ...rest] = raw.split('/');
   const param = rest.length ? decodeURIComponent(rest.join('/')) : null;
-  return { view: VIEWS[view] ? view : 'new', param };
+  return resolve(view || 'assay', param);
 }
 
-/** The context every view receives. */
 function context() {
   return {
     state,
@@ -70,74 +76,55 @@ function context() {
     selectRun,
     runId: state.runId,
     param: state.param,
-    // /file is only ever reached through a run, but chip/, protocols/ and cad/figures/
-    // are allowlisted for EVERY run - so any run id opens them. cad/exports/<chip> still
-    // needs the run that built that chip.
+    // chip/, protocols/ and cad/figures/ are readable through ANY run's /file route.
     fileRunId: state.runId || (state.runs[0] && state.runs[0].run_id) || null,
   };
+}
+
+export function selectRun(id, view = 'run') {
+  state.runId = id;
+  keepOnly(id);
+  navigate(view, id);
+}
+
+/** The run most worth showing when none is chosen: one with findings or a report. */
+function bestRun() {
+  const has = (r) => r.findings_by_severity && Object.values(r.findings_by_severity).some((n) => Number(n) > 0);
+  return (state.runs.find((r) => r.status === 'done' && has(r)) || state.runs.find(has)
+    || state.runs.find((r) => r.status === 'done') || state.runs[0] || {}).run_id || null;
 }
 
 /* ------------------------------------------------------------------ chrome */
 
 function renderNav() {
   const nav = clear(nodes.nav);
-  for (const [key, v] of Object.entries(VIEWS)) {
-    const disabled = v.needsRun && !state.runId;
-    const b = el('button', {
-      type: 'button',
-      disabled: disabled || null,
-      title: disabled ? 'Pick or start a run first' : null,
-      onclick: () => navigate(key, v.needsRun ? state.runId : null),
-    }, v.label);
-    if (state.view === key) b.setAttribute('aria-current', 'page');
-    nav.appendChild(b);
-  }
+  Object.entries(VIEWS).forEach(([key, v], i) => {
+    const param = key === 'results' ? (state.runId || bestRun()) : null;
+    const href = param ? `#/${key}/${encodeURIComponent(param)}` : `#/${key}`;
+    const a = el('a', { href, class: 'nav-item' },
+      el('span', { class: 'nav-n', 'aria-hidden': 'true' }, String(i + 1).padStart(2, '0')),
+      el('span', { class: 'nav-l' }, v.label));
+    if (state.view === key) a.setAttribute('aria-current', 'page');
+    nav.appendChild(a);
+  });
 }
 
-function renderBadges() {
-  const host = clear(nodes.badges);
+function renderStatus() {
+  const host = clear(nodes.status);
   const h = state.health;
   if (!h) {
-    host.appendChild(badge('backend unknown', 'bad', state.healthError ? explain(state.healthError) : ''));
+    host.appendChild(badge('server not reachable', 'bad', state.healthError ? explain(state.healthError) : ''));
     return;
   }
-  host.appendChild(badge('backend up', 'ok', h.version ? `version ${h.version}` : ''));
+  host.appendChild(el('span', { class: 'live-dot', title: h.version ? `local server, version ${h.version}` : 'local server' }, 'server up'));
   if (String(h.llm) === 'stub') host.appendChild(stubBadge());
-  else if (String(h.llm) === 'real') host.appendChild(badge('LLM live', 'info', 'Extraction can call a language model.'));
-  if (h.version) host.appendChild(badge(String(h.version), '', 'backend version'));
-}
-
-function renderRunSelect() {
-  const sel = clear(nodes.select);
-  sel.appendChild(el('option', { value: '' }, state.runs.length ? 'select a run...' : 'no runs yet'));
-  for (const r of state.runs) {
-    const bits = [r.run_id];
-    if (r.title && r.title !== r.run_id) bits.push(`- ${r.title}`);
-    if (r.status && r.status !== 'done') bits.push(`(${r.status})`);
-    sel.appendChild(el('option', { value: r.run_id }, bits.join(' ').slice(0, 110)));
-  }
-  sel.value = state.runId || '';
-  sel.disabled = !state.runs.length;
-}
-
-nodes.select.addEventListener('change', (e) => {
-  const id = e.target.value;
-  if (!id) { state.runId = null; renderNav(); return; }
-  selectRun(id, VIEWS[state.view] && VIEWS[state.view].needsRun ? state.view : 'run');
-});
-
-export function selectRun(id, view = 'run') {
-  state.runId = id;
-  keepOnly(id);
-  renderRunSelect();
-  navigate(view, id);
+  else if (String(h.llm) === 'real') host.appendChild(badge('LLM live', 'info', 'Protocols are read by a language model.'));
 }
 
 function showBanner(kind, ...children) {
-  const b = nodes.banner;
-  setChildren(b, ...children);
-  b.className = `banner ${kind}`;
-  b.hidden = false;
+  setChildren(nodes.banner, ...children);
+  nodes.banner.className = `banner ${kind}`;
+  nodes.banner.hidden = false;
 }
 
 function hideBanner() { nodes.banner.hidden = true; }
@@ -149,9 +136,7 @@ async function checkHealth() {
     const h = await api.health();
     state.health = h && typeof h === 'object' ? h : {};
     state.healthError = null;
-    if (Array.isArray(state.health.stages) && state.health.stages.length) {
-      state.stages = normaliseStages(state.health.stages);
-    }
+    if (Array.isArray(state.health.stages) && state.health.stages.length) state.stages = normaliseStages(state.health.stages);
     hideBanner();
     stopHealthPolling();
     return true;
@@ -168,28 +153,24 @@ function renderOfflineBanner(err) {
   const offline = err instanceof ApiError && err.looksOffline;
   const base = apiBase();
   showBanner('bad',
-    el('strong', offline ? 'Backend not running.' : 'Backend error.'),
-    offline
-      ? el('span', {}, 'Start it with ', el('code', 'python web/server.py'), ' (it listens on 127.0.0.1:8765). ')
-      : el('span', {}, `${explain(err)} `),
-    base ? el('span', { class: 'small' }, `Asking ${base}. `) : null,
-    el('button', { type: 'button', class: 'ghost', style: { marginLeft: '8px' }, onclick: () => boot() }, 'Retry'),
+    el('strong', {}, offline ? 'The local server is not running.' : 'The local server answered with an error.'),
+    el('span', {}, offline ? ' Retrying every few seconds. ' : ` ${explain(err)} `),
+    el('button', { type: 'button', class: 'ghost', onclick: () => boot() }, 'Retry now'),
     el('button', {
-      type: 'button', class: 'ghost', style: { marginLeft: '6px' },
+      type: 'button', class: 'ghost',
       onclick: () => {
-        const next = prompt('Backend base URL (blank = same origin as this page)', base);
+        const next = prompt('Server address (blank = this page\'s own address)', base);
         if (next === null) return;
         setApiBase(next.trim());
         boot();
       },
-    }, 'Change backend URL'));
+    }, 'Change server address'));
 }
 
 function startHealthPolling() {
   if (healthTimer) return;
   healthTimer = setInterval(async () => {
-    const ok = await checkHealth();
-    if (ok) { renderBadges(); await refreshRuns(); render(); }
+    if (await checkHealth()) { await Promise.all([loadStages(), refreshRuns()]); renderStatus(); render(); }
   }, 5000);
 }
 
@@ -207,68 +188,62 @@ export async function refreshRuns() {
     if (!(err instanceof ApiError && (err.looksOffline || err.notReady))) console.warn('run list:', explain(err));
   }
   if (state.runId && !state.runs.some((r) => r.run_id === state.runId)) {
-    // keep an id that came straight from POST /api/runs even if the list lags behind
     state.runs.unshift({ run_id: state.runId, title: state.runId, created: null, status: 'running', chips: [] });
   }
-  renderRunSelect();
   return state.runs;
 }
 
 async function loadStages() {
-  try {
-    state.stages = normaliseStages(await api.stages());
-  } catch (err) {
-    state.stages = FALLBACK_STAGES;
-    if (err instanceof ApiError && err.notReady) {
-      console.info('stage list not implemented yet; using the list from assay2chip/README.md');
-    }
-  }
+  try { state.stages = normaliseStages(await api.stages()); } catch (_) { /* keep the health list or the fallback */ }
 }
 
 /* ------------------------------------------------------------------ render */
 
 function offlineView(host) {
-  setChildren(host, errorState('The backend is not running',
-    el('p', {}, 'This page is only the front end. Everything it shows - runs, chips, CFD findings - comes from the local pipeline server.'),
-    el('h4', 'Start it'),
-    el('pre', { class: 'code' }, 'python web/server.py\n# then open http://127.0.0.1:8765'),
-    el('p', { class: 'small muted' }, state.healthError ? explain(state.healthError) : ''),
-    el('p', { class: 'small muted' }, 'Nothing is loaded from the network: no CDN, no web font, no analytics. If the server is on another port, use the "Change backend URL" button above.')));
+  setChildren(host,
+    el('section', { class: 'hero' },
+      el('p', { class: 'eyebrow' }, 'Not connected'),
+      el('h1', { class: 'display' }, 'The local server is not running, so there is nothing to show yet.'),
+      el('p', { class: 'lede' }, 'This page is only the front end. The assay description, the runs, the chips and the simulation results all come from a small server on this computer.')),
+    el('section', { class: 'section' },
+      el('header', { class: 'sec-head' }, el('h2', {}, 'Start it'), el('p', { class: 'sub' }, 'From the repository folder, in a terminal:')),
+      el('pre', { class: 'code' }, 'python web/server.py\n# then open http://127.0.0.1:8765'),
+      state.healthError && !(state.healthError instanceof ApiError && state.healthError.looksOffline)
+        ? el('p', { class: 'cap' }, explain(state.healthError)) : null,
+      el('p', { class: 'cap' }, 'This page will connect by itself as soon as the server answers.')));
 }
 
 function render() {
   const { view, param } = parseHash();
   state.view = view;
   state.param = param;
-
-  const def = VIEWS[view];
-  if (param && def.needsRun) state.runId = param;
-  if (def.needsRun && !state.runId) {
-    // nothing to show: fall back to the new-run view
-    state.view = 'new';
+  if (view === 'results') {
+    state.runId = param || state.runId || bestRun();
+    state.param = state.runId;
+  } else if (view === 'run' && param) {
+    state.runId = param;
   }
-  renderNav();
-  renderRunSelect();
-
   if (unmount) { try { unmount(); } catch (e) { console.error(e); } unmount = null; }
+  if (state.runId) keepOnly(state.runId);
+  renderNav();
+  document.title = `${VIEWS[view].label} · Capsule processor`;
+
   const host = clear(nodes.main);
+  host.dataset.view = view;
 
   if (!state.health) { offlineView(host); return; }
 
-  const active = VIEWS[state.view];
   try {
-    const res = active.mod.mount(host, context());
+    const res = VIEWS[view].mod.mount(host, context());
     if (typeof res === 'function') unmount = res;
-    else if (res && typeof res.then === 'function') res.then((u) => { if (typeof u === 'function') unmount = u; }).catch(viewFailed);
-  } catch (err) {
-    viewFailed(err);
-  }
+    else if (res && typeof res.then === 'function') res.then((u) => { if (typeof u === 'function') unmount = u; }).catch(failed);
+  } catch (err) { failed(err); }
+  window.scrollTo(0, 0);
 
-  function viewFailed(err) {
+  function failed(err) {
     console.error(err);
-    setChildren(host, errorState('This view failed to render',
-      el('p', explain(err)),
-      el('p', { class: 'small muted' }, 'The backend is being built in parallel, so a view can arrive before its data does. The console has the details.')));
+    setChildren(host, errorState('This page failed to draw', el('p', {}, explain(err)),
+      el('p', { class: 'small' }, 'The details are in the browser console.')));
   }
 }
 
@@ -276,24 +251,12 @@ function render() {
 
 async function boot() {
   const ok = await checkHealth();
-  renderBadges();
-  if (ok) {
-    await Promise.all([loadStages(), refreshRuns()]);
-    renderBadges();
-  }
-  if (!state.runId) {
-    const { param, view } = parseHash();
-    if (param && VIEWS[view] && VIEWS[view].needsRun) state.runId = param;
-    else if (state.runs.length) state.runId = state.runs[0].run_id;
-  }
+  if (ok) await Promise.all([loadStages(), refreshRuns()]);
+  renderStatus();
   render();
 }
 
 addEventListener('hashchange', render);
-
-addEventListener('error', (e) => {
-  if (e.message) console.error('uncaught:', e.message);
-});
 
 window.addEventListener('unhandledrejection', (e) => {
   const err = e.reason;

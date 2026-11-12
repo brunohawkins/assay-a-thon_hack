@@ -5,13 +5,21 @@
 
 Model
   Nodes   every chamber (junctions included) and every port.
-  Edges   every channel: R = 12 mu L / (w h^3 (1 - 0.63 h/w)), h the smaller side, L its
-          centreline length (from the DXF when given, else from the spec's path or the
-          straight line between the parts, trimmed at their outlines, as cad/make_train_cad.py
-          cuts it). Each channel also crosses part of the chamber it enters: from the entry
-          edge to the chamber centre, as a slab of the chamber's width and height.
-          Port holes in the lid (2 mm x 3 mm) add next to nothing and are left out, as is
-          any tubing off the chip.
+  Edges   every channel: R = 12 mu L / (w h^3 f), h the smaller side, f the EXACT series for a
+          rectangular duct (operator/flow_calc.py duct_shape_factor; the old 1 - 0.63 h/w was
+          14% high on a square), L its centreline length: the cut centreline from
+          cad/make_train_cad.py centrelines(), the ONE helper the CAD, the drawing and the
+          checks share (it follows a channel's "path" and stops a channel on its port's pad),
+          with the DXF's length for straight channels when given. Each channel also crosses
+          part of the chamber it enters: from the entry edge to the chamber centre, as a slab
+          of the chamber's width and height.
+  Weirs   a chamber with a retention WEIR adds a crest at every opening a channel enters it
+          by: a slit of gap opening_um, as wide as the wall the opening is in, and
+          crest_thickness_um long (else contracts/blocks.json retention.weir_geometry); flow
+          goes as gap^3. Leaving these out made module1_v1's pressures 57% low and split
+          interaction medium 50/50 where the CFD gives 72/28 (assay2chip/cfd/validate.py).
+          Port holes in the lid, port pads and any tubing off the chip add next to nothing
+          and are left out.
   Ports   FEED  a fixed flow source (a syringe pump), uL/min
           VENT  pressure 0 (an open outlet)
           CAP   closed: no flow
@@ -35,24 +43,53 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FEED, VENT, CAP = "FEED", "VENT", "CAP"
-MU_37C = 0.8e-3            # Pa s: water at 37 C, the value protocols/build_module1.py uses
+
+
+def _parameter(name: str) -> float:
+    """One value from contracts/parameters.json. No fallback: a missing contract is a bug,
+    and a literal copied here is exactly how this file drifted from model.py last time."""
+    params = json.loads((ROOT / "contracts" / "parameters.json").read_text())["parameters"]
+    return float(params[name]["value"])
+
+
+# Pa s. The 37 C medium value, NOT fluid.viscosity_pa_s, which is water at 20 C and is the
+# dye-demo figure. These chips run at 37 C, so the 20 C value makes every derived flow about
+# 20% too conservative. The original hard-coded 0.8e-3 was the right physics with no provenance.
+MU_37C = _parameter("fluid.viscosity_37c_pa_s")
+SHEAR_CEILING_DYN_CM2 = _parameter("shear.culture_ceiling_dyn_cm2")
+
+
 def _port_hole_mm() -> float:
     """Port bore, taken from the same contract cad/make_train_cad.py reads.
 
     This was a 2.0 mm literal mirroring a 2.0 mm literal in the CAD generator. When the
     generator started deriving the bore from contracts/blocks.json (0.8 mm) this copy went
     stale, every port-connected channel stopped matching its own DXF, and the geometry
-    silently fell back to the straight-line estimate.
+    silently fell back to the straight-line estimate. Reading the contract and failing on
+    it is the point: falling back to the stale literal is what hid the drift before.
     """
-    try:
-        import json
-        b = json.loads((ROOT / "contracts" / "blocks.json").read_text())
-        return float(b["fabrication_floors"]["min_port_mm"])
-    except Exception:
-        return 2.0
+    b = json.loads((ROOT / "contracts" / "blocks.json").read_text())
+    return float(b["fabrication_floors"]["min_port_mm"])
 
 
 PORT_HOLE_MM = _port_hole_mm()   # cad/make_train_cad.py PORT_SIZE_MM, same source
+
+sys.path.insert(0, str(ROOT / "operator"))
+sys.path.insert(0, str(ROOT / "cad"))
+import flow_calc  # noqa: E402
+import make_train_cad  # noqa: E402  the shared centreline, so the model and the cut agree
+
+
+def _weir_crest_default_um() -> float:
+    """A weir's crest thickness when the spec does not give one: blocks.json's own figure."""
+    b = json.loads((ROOT / "contracts" / "blocks.json").read_text())
+    for section in b.values():
+        if isinstance(section, dict) and "weir_geometry" in section:
+            return float(section["weir_geometry"]["crest_thickness_um"])
+    raise KeyError("contracts/blocks.json has no retention weir_geometry.crest_thickness_um")
+
+
+WEIR_CREST_DEFAULT_UM = _weir_crest_default_um()
 DYN_CM2_PER_PA = 10.0
 
 
@@ -89,45 +126,25 @@ def dxf_channel_segments(dxf_path: Path) -> list[dict]:
     return rects
 
 
-def _clip_to_box(p0, p1, center, size):
-    """Same rule as cad/make_train_cad.py: move p0 along p0->p1 until it leaves the box."""
-    (cx, cy), (sx, sy) = center[:2], size[:2]
-    x0, x1, y0, y1 = cx - sx / 2, cx + sx / 2, cy - sy / 2, cy + sy / 2
-    dx, dy = p1[0] - p0[0], p1[1] - p0[1]
-    best = 0.0
-    for lo, hi, start, delta in ((x0, x1, p0[0], dx), (y0, y1, p0[1], dy)):
-        if abs(delta) < 1e-9:
-            continue
-        for bound in (lo, hi):
-            t = (bound - start) / delta
-            if 0.0 <= t <= 1.0:
-                px, py = p0[0] + dx * t, p0[1] + dy * t
-                if x0 - 1e-6 <= px <= x1 + 1e-6 and y0 - 1e-6 <= py <= y1 + 1e-6:
-                    best = max(best, t)
-    return (p0[0] + dx * best, p0[1] + dy * best)
-
-
 def channel_geometry(chip: dict, dxf_path: Path | None = None) -> dict[str, dict]:
-    """id -> {a, b, length_mm, width_mm, depth_mm, source}: the cut centreline of every channel."""
-    boxes = {c["id"]: (c["center"], c["size"]) for c in chip["chambers"]}
-    for p in chip.get("ports", []):
-        boxes[p["id"]] = (p["position"], [PORT_HOLE_MM, PORT_HOLE_MM, 0])
+    """id -> {a, b, length_mm, width_mm, depth_mm, source}: the cut centreline of every channel.
+
+    From cad/make_train_cad.py centrelines(): a pathed channel follows its path (cut back at
+    each end to the part it leaves), a straight one runs between the parts' outlines, and a
+    channel at a port with a pad stops on the pad - so the port still is the node the channel
+    connects to, through its pad.
+    """
     out = {}
-    for ch in chip["channels"]:
-        if ch.get("path"):
-            pts = ch["path"]
-            length = sum(math.dist(p, q) for p, q in zip(pts[:-1], pts[1:]))
-            out[ch["id"]] = {"a": tuple(pts[0]), "b": tuple(pts[-1]), "length_mm": length, "width_mm": ch["width_mm"],
-                             "depth_mm": ch["depth_mm"], "source": "spec path"}
-            continue
-        (ca, sa), (cb, sb) = boxes[ch["from"]], boxes[ch["to"]]
-        a = _clip_to_box(ca[:2], cb[:2], ca, sa)
-        b = _clip_to_box(cb[:2], ca[:2], cb, sb)
-        out[ch["id"]] = {"a": a, "b": b, "length_mm": math.dist(a, b), "width_mm": ch["width_mm"],
-                         "depth_mm": ch["depth_mm"], "source": "spec (straight, trimmed)"}
+    for ch, pts in make_train_cad.centrelines(chip):
+        length = sum(math.dist(p, q) for p, q in zip(pts[:-1], pts[1:]))
+        out[ch["id"]] = {"a": tuple(pts[0]), "b": tuple(pts[-1]), "length_mm": length, "width_mm": ch["width_mm"],
+                         "depth_mm": ch["depth_mm"],
+                         "source": "spec path" if ch.get("path") else "spec (straight, trimmed)"}
     if dxf_path and dxf_path.exists():
         rects = dxf_channel_segments(dxf_path)
         for cid, g in out.items():   # match each DXF rectangle to the channel whose ends it shares
+            if g["source"] == "spec path":
+                continue             # one rectangle per segment in the DXF: the polyline is the length
             best = min(rects, key=lambda r: min(math.dist(r["a"], g["a"]) + math.dist(r["b"], g["b"]),
                                                 math.dist(r["a"], g["b"]) + math.dist(r["b"], g["a"])), default=None)
             if best and min(math.dist(best["a"], g["a"]) + math.dist(best["b"], g["b"]),
@@ -142,9 +159,17 @@ def channel_geometry(chip: dict, dxf_path: Path | None = None) -> dict[str, dict
 
 
 def rect_resistance(length_mm: float, width_mm: float, depth_mm: float, mu: float) -> float:
-    """Pa s / m^3. R = 12 mu L / (w h^3 (1 - 0.63 h / w)), h the smaller side."""
-    w, h = max(width_mm, depth_mm) / 1000, min(width_mm, depth_mm) / 1000
-    return 12 * mu * (length_mm / 1000) / (w * h ** 3 * (1 - 0.63 * h / w))
+    """Pa s / m^3. R = 12 mu L / (w h^3 f), h the smaller side, f the exact series
+    (operator/flow_calc.py: one implementation, not a copy)."""
+    return flow_calc.rect_channel_resistance_pa_s_m3(length_mm, width_mm, depth_mm, mu)
+
+
+def weir_crest(chamber: dict) -> tuple[float, float] | None:
+    """(gap_um, crest_thickness_um) of a chamber's retention weir, or None if it has none."""
+    ret = chamber.get("retention") or {}
+    if ret.get("type") != "weir" or not ret.get("opening_um"):
+        return None
+    return float(ret["opening_um"]), float(ret.get("crest_thickness_um") or WEIR_CREST_DEFAULT_UM)
 
 
 def shear_dyn_cm2(flow_ul_min: float, width_mm: float, depth_mm: float, mu: float) -> float:
@@ -166,23 +191,36 @@ class Network:
     chip: dict
     mu: float = MU_37C
     dxf: Path | None = None
+    weirs: bool = True      # False only to reproduce the old weir-less model in a comparison
     geometry: dict = field(init=False)
     edges: list[dict] = field(init=False)
     nodes: list[str] = field(init=False)
+    entry_width_mm: dict = field(init=False)   # chamber -> {channel: width across the flow, mm}
 
     def __post_init__(self):
         self.geometry = channel_geometry(self.chip, self.dxf)
         chambers = {c["id"]: c for c in self.chip["chambers"]}
         self.nodes = list(chambers) + [p["id"] for p in self.chip.get("ports", [])]
         self.edges = []
+        self.entry_width_mm = {cid: {} for cid in chambers}
         for ch in self.chip["channels"]:
             g = self.geometry[ch["id"]]
             r = rect_resistance(g["length_mm"], g["width_mm"], g["depth_mm"], self.mu)
+            crests = []
             for end, pt in ((ch["from"], g["a"]), (ch["to"], g["b"])):
                 if end in chambers:
                     leg, width = _chamber_leg(chambers[end], pt)
                     r += rect_resistance(leg, width, chambers[end]["size"][2], self.mu)
-            self.edges.append({"id": ch["id"], "from": ch["from"], "to": ch["to"], "R": r, **g})
+                    self.entry_width_mm[end][ch["id"]] = width
+                    weir = weir_crest(chambers[end])
+                    if weir and self.weirs:
+                        # The crest spans the whole wall this opening is in: a slit that wide.
+                        r_slit = flow_calc.slit_resistance_pa_s_m3(width, weir[0], weir[1] / 1000, self.mu)
+                        r += r_slit
+                        crests.append({"chamber": end, "width_mm": width, "gap_um": weir[0],
+                                       "length_um": weir[1], "R": r_slit})
+            self.edges.append({"id": ch["id"], "from": ch["from"], "to": ch["to"], "R": r,
+                               "weir_crests": crests, **g})
 
     # ------------------------------------------------------------------ solving
 
@@ -272,8 +310,15 @@ class Network:
         chamber_rows = {}
         for cid, c in chambers.items():
             thru = inflow[cid]
+            # Width across the flow is whichever chamber side the stream actually crosses, as
+            # _chamber_leg works out from the entry point - not always sy. Where several
+            # channels feed one chamber, take the narrowest live entry: that is the worst shear.
+            widths = [w for eid, w in self.entry_width_mm[cid].items()
+                      if abs(flows.get(eid, 0.0)) > 1e-12] or list(self.entry_width_mm[cid].values())
+            width = min(widths) if widths else c["size"][1]
             chamber_rows[cid] = {"throughput_ul_min": round(thru, 6),
-                                 "shear_dyn_cm2": round(shear_dyn_cm2(thru, c["size"][1], c["size"][2], self.mu), 6),
+                                 "shear_dyn_cm2": round(shear_dyn_cm2(thru, width, c["size"][2], self.mu), 6),
+                                 "width_across_flow_mm": round(width, 4),
                                  "volume_ul": c["volume_ul"]}
         routing = self._routing(flows, state, culture)
         return {"ports": port_flow, "channels": channel_rows, "chambers": chamber_rows,
@@ -364,12 +409,12 @@ def _default_feed_ul_min() -> float:
     (140 x 75 mm -> the 30 x 20 mm build envelope) and a literal here went stale the
     moment it was, silently pushing wall shear 4x over the ceiling. tau = 6*mu*Q/(w*h^2)
     with w the chamber width across the flow and h its depth.
+
+    The chip is required. Returning a literal when it cannot be read is how a stale 2.0
+    silently came back, so an unreadable chip raises instead.
     """
-    mu, ceiling, margin = 0.8e-3, 0.01, 0.85
-    try:
-        chip = json.loads((ROOT / "chip" / "module1_v1.json").read_text())
-    except OSError:
-        return 2.0
+    mu, ceiling, margin = MU_37C, SHEAR_CEILING_DYN_CM2, 0.85
+    chip = json.loads((ROOT / "chip" / "module1_v1.json").read_text())
     flows = []
     for c in chip["chambers"]:
         if c.get("type") == "pool":          # the junction is not a culture chamber
@@ -377,7 +422,9 @@ def _default_feed_ul_min() -> float:
         w, h = c["size"][1] * 1e-3, c["size"][2] * 1e-3
         q = (ceiling / 10.0) * w * h * h / (6.0 * mu)      # m3/s
         flows.append(q * 60.0 * 1e9)                        # uL/min
-    return round(min(flows) * margin, 3) if flows else 2.0
+    if not flows:
+        raise NetworkError("chip/module1_v1.json has no culture chamber: no feed can be derived")
+    return round(min(flows) * margin, 3)
 
 
 DEFAULT_FEED_UL_MIN = _default_feed_ul_min()
@@ -412,27 +459,68 @@ def threshold_flow(width_mm: float, depth_mm: float, ceiling: float, mu: float) 
     return ceiling / DYN_CM2_PER_PA * (width_mm / 1000) * (depth_mm / 1000) ** 2 / (6 * mu) * 60e9
 
 
-def design_check(net: Network) -> list[dict]:
-    """The design doc's numbers next to what the solver gets. Nothing is tuned to fit."""
-    sols = solve_modes(net)
+DOC_FLOW_UL_MIN = 11.0     # the feed the design doc's pressure numbers were worked out at
+DOC_MU_PA_S = 0.8e-3       # same as fluid.viscosity_37c_pa_s, so no carry-over scaling is needed
+DOC_PRESSURE_MBAR = (0.04, 0.22)
+DOC_Q_CHAMBER_UL_MIN = 13.5
+DOC_Q_CHANNEL_UL_MIN = 0.9
+
+
+def protocol_flow_ul_min(path: Path | None = None) -> float:
+    """The largest feed protocols/module1_v1.json actually asks for.
+
+    The shear row must be checked against a flow the run uses. Checking it at
+    DEFAULT_FEED_UL_MIN made it unfalsifiable, because that flow is itself derived by
+    dividing the shear ceiling by 0.85 - the row then validated its own input.
+    """
+    steps = json.loads((path or ROOT / "protocols" / "module1_v1.json").read_text())["steps"]
+    flows = [s["flow_ul_min"] for s in steps if s.get("flow_ul_min")]
+    if not flows:
+        raise NetworkError("protocols/module1_v1.json sets no flow_ul_min: no run flow to check shear at")
+    return max(flows)
+
+
+def design_check(net: Network, flow: float = DEFAULT_FEED_UL_MIN) -> list[dict]:
+    """The design doc's numbers next to what the solver gets, every row at a stated flow.
+
+    The doc's figures were derived at DOC_FLOW_UL_MIN and DOC_MU_PA_S. The solver runs at
+    `flow` and at the contract viscosity, so each doc figure is carried to those conditions
+    before comparing: pressure scales with mu*Q, a shear-threshold flow with 1/mu. Comparing
+    a solver at 2.4 uL/min against targets frozen at 11 reported DIFF forever and taught
+    everyone to ignore the table.
+    """
+    sols = solve_modes(net, flow)
     running = {m: s["max_pressure_mbar"] for m, s in sols.items() if m in ("grow", "int_n", "int_g", "int_a", "harvest", "seed")}
     lo, hi = min(running.values()), max(running.values())
     ch = net.chip["chambers"][0]
     chan = net.chip["channels"][0]
-    q_chamber = threshold_flow(ch["size"][1], ch["size"][2], 0.01, net.mu)
-    q_channel = threshold_flow(chan["width_mm"], chan["depth_mm"], 0.01, net.mu)
-    worst_chamber = max((r["shear_dyn_cm2"], m, c) for m, s in sols.items() for c, r in s["chambers"].items() if c != "j_mid")
+    ceiling = SHEAR_CEILING_DYN_CM2
+    q_chamber = threshold_flow(ch["size"][1], ch["size"][2], ceiling, net.mu)
+    q_channel = threshold_flow(chan["width_mm"], chan["depth_mm"], ceiling, net.mu)
+    mu_scale = DOC_MU_PA_S / net.mu
+    p_scale = (flow / DOC_FLOW_UL_MIN) / mu_scale
+    doc_lo, doc_hi = (p * p_scale for p in DOC_PRESSURE_MBAR)
+    doc_q_chamber = DOC_Q_CHAMBER_UL_MIN * mu_scale
+    doc_q_channel = DOC_Q_CHANNEL_UL_MIN * mu_scale
+    # Shear is checked at a flow the protocol actually commands, not at the solver's own default.
+    run_flow = protocol_flow_ul_min()
+    run_sols = sols if abs(run_flow - flow) < 1e-9 else solve_modes(net, run_flow)
+    worst_chamber = max((r["shear_dyn_cm2"], m, c) for m, s in run_sols.items() for c, r in s["chambers"].items() if c != "j_mid")
     d_implied = (8.8e-3) ** 2 / (2 * 12 * 3600)
+    at = f"{flow:g} uL/min per feed, mu = {net.mu * 1000:g} mPa s"
     rows = [
-        {"quantity": "Running pressure, all modes at 11 uL/min per feed (mbar)", "doc": "0.04-0.22",
+        {"quantity": f"Running pressure, all modes at {at} (mbar)", "doc": f"{doc_lo:.3f}-{doc_hi:.3f}",
          "solver": f"{lo:.3f}-{hi:.3f}", "per_mode": running,
-         "match": abs(lo - 0.04) / 0.04 < 0.3 and abs(hi - 0.22) / 0.22 < 0.3},
-        {"quantity": "Chamber shear reaches 0.01 dyn/cm2 at (uL/min)", "doc": "13.5", "solver": f"{q_chamber:.2f}",
-         "match": abs(q_chamber - 13.5) < 0.2},
-        {"quantity": "Channel shear reaches 0.01 dyn/cm2 at (uL/min)", "doc": "0.9", "solver": f"{q_channel:.2f}",
-         "match": abs(q_channel - 0.9) < 0.05},
-        {"quantity": "Highest chamber shear in any mode at 11 uL/min (dyn/cm2)", "doc": "< 0.01",
-         "solver": f"{worst_chamber[0]:.4f} ({worst_chamber[2]}, {worst_chamber[1]})", "match": worst_chamber[0] < 0.01},
+         "match": abs(lo - doc_lo) / doc_lo < 0.3 and abs(hi - doc_hi) / doc_hi < 0.3},
+        {"quantity": f"Chamber shear reaches {ceiling:g} dyn/cm2 at (uL/min, mu = {net.mu * 1000:g} mPa s)",
+         "doc": f"{doc_q_chamber:.2f}", "solver": f"{q_chamber:.2f}",
+         "match": abs(q_chamber - doc_q_chamber) < 0.2 * mu_scale},
+        {"quantity": f"Channel shear reaches {ceiling:g} dyn/cm2 at (uL/min, mu = {net.mu * 1000:g} mPa s)",
+         "doc": f"{doc_q_channel:.2f}", "solver": f"{q_channel:.2f}",
+         "match": abs(q_channel - doc_q_channel) < 0.05 * mu_scale},
+        {"quantity": f"Highest chamber shear in any mode at the protocol's {run_flow:g} uL/min (dyn/cm2)",
+         "doc": f"< {ceiling:g}",
+         "solver": f"{worst_chamber[0]:.4f} ({worst_chamber[2]}, {worst_chamber[1]})", "match": worst_chamber[0] < ceiling},
         {"quantity": "Diffusion: implied D from 8.8 mm in 12 h (m2/s)", "doc": "8.8 mm / 12 h, 33 mm / 7 days",
          "solver": f"{d_implied:.2e}; 7 days -> {math.sqrt(2 * d_implied * 7 * 86400) * 1000:.1f} mm", "match": True},
     ]
@@ -470,8 +558,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.report:
             for m, s in sols.items():
                 _print_solution(MODULE1_MODES[m]["label"], s)
-            print("\nDesign-doc check (mu = 0.8 mPa s, water at 37 C, as build_module1.py):")
-            for r in design_check(net):
+            print(f"\nDesign-doc check (mu = {net.mu * 1000:g} mPa s, contracts/parameters.json fluid.viscosity_pa_s; "
+                  f"doc figures carried from {DOC_FLOW_UL_MIN:g} uL/min and {DOC_MU_PA_S * 1000:g} mPa s):")
+            for r in design_check(net, args.flow):
                 print(f"  {'OK  ' if r['match'] else 'DIFF'} {r['quantity']}: doc {r['doc']}, solver {r['solver']}")
         if args.json:
             args.json.write_text(json.dumps({"chip": chip["id"], "flow_ul_min": args.flow, "modes": sols}, indent=1) + "\n")

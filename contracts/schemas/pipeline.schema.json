@@ -113,7 +113,12 @@
         "type": "object",
         "additionalProperties": false,
         "required": ["id", "name"],
-        "properties": { "id": { "$ref": "#/$defs/snake_id" }, "name": { "type": "string" }, "note": { "type": "string" } }
+        "properties": {
+          "id": { "$ref": "#/$defs/snake_id" },
+          "name": { "type": "string" },
+          "built_for_demo": { "type": "boolean", "default": false, "description": "Same meaning as on modules: true if this destination's chip is physically printed for the demo (e.g. module6_bulk_omics, a branch with its own chip). Absent means false." },
+          "note": { "type": "string" }
+        }
       }
     }
   },

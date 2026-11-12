@@ -632,7 +632,7 @@ def _solve(case_dir: Path, n_cores: int, timeout_s: float) -> dict:
 
 def _drop_case(case_dir: Path, *, R: float, sigma: float, liquid: Phase, gas: Phase,
                cells_per_r: int, t_end: float, dt_max: float, sessile_theta: float | None,
-               n_cores: int = 1) -> dict:
+               n_cores: int = 1, reuse: bool = False) -> dict:
     """A 2D drop of radius R. Free (Laplace) or a half-drop sitting on the floor."""
     dx = R / cells_per_r
     if sessile_theta is None:
@@ -664,7 +664,15 @@ def _drop_case(case_dir: Path, *, R: float, sigma: float, liquid: Phase, gas: Ph
     fcase.write_dict(case_dir / "0" / f"alpha.{liquid.name}",
                      field_alpha(bounds, nonuniform_scalar(alpha0)), "volScalarField",
                      object_name=f"alpha.{liquid.name}", location="0")
-    run = _solve(case_dir, n_cores, timeout_s=1800)
+    log = case_dir / "log.interFoam"
+    if reuse and log.exists() and re.search(r"^End\s*$", log.read_text(errors="replace"), re.M):
+        clock = re.findall(r"ClockTime = ([0-9.]+)", log.read_text(errors="replace"))
+        run = {"ok": True, "verdict": "reused",
+               "wall_time_s": float(clock[-1]) if clock else None,
+               "time_steps": len(re.findall(r"^Time = ", log.read_text(errors="replace"), re.M)),
+               "cores": n_cores, "log": log.as_posix(), "fatal": []}
+    else:
+        run = _solve(case_dir, n_cores, timeout_s=1800)
     t_last, d_last = time_dirs(case_dir)[-1]
     alpha = read_scalar_field(d_last / f"alpha.{liquid.name}", md.n_cells)
     p = read_scalar_field(d_last / "p_rgh", md.n_cells)
@@ -690,8 +698,10 @@ def _drop_case(case_dir: Path, *, R: float, sigma: float, liquid: Phase, gas: Ph
     else:
         area = float((alpha * md.volumes).sum() / dx)          # 2D area, m2
         # height: column at x ~ 0; base half-width from the first floor row
+        # the two columns either side of x = 0 (centres at +-dx/2): their MEAN height
         col = np.abs(x) < dx
-        h = float((alpha[col] * dx).sum())
+        n_col = max(1, len(np.unique(np.round(x[col] / dx, 3))))
+        h = float((alpha[col] * dx).sum()) / n_col
         floor = y < dx
         a = float((alpha[floor] * dx).sum()) / 2.0
         theta_meas = math.degrees(2.0 * math.atan2(h, a))
@@ -718,14 +728,15 @@ GV_NOTE = ("the viscous-relaxed (Galusinski-Vigneaux) step was tried on the redu
            "inertial capillary step, sqrt(<rho> dx^3 / (2 pi sigma)), as maxDeltaT")
 
 
-def validate(work: Path | None = None, *, n_cores: int = 1, refine: int = 0) -> dict:
+def validate(work: Path | None = None, *, n_cores: int = 1, refine: int = 0,
+             reuse: bool = False) -> dict:
     """Textbook checks BEFORE any chip result is trusted. Returns the summary dict.
 
     1. Laplace: a 2D drop's pressure jump is sigma / R exactly; also the parasitic velocity.
     2. Sessile drop at 60 and 110 deg: the wall boundary condition gives the angle asked.
     Both use the schemes, solver settings and time-step rule of the chip cases.
     """
-    work = Path(work or (WORK / "validation"))
+    work = Path(work or (WORK / "validation")).resolve()
     sigma = SIGMA_WATER_AIR.value
     liquid = Phase("water", density_kg_m3(), VALIDATION_MU, "20x water: damps oscillation")
     air = Phase("air", AIR_RHO.value, AIR_MU.value, "Textbook")
@@ -737,10 +748,12 @@ def validate(work: Path | None = None, *, n_cores: int = 1, refine: int = 0) -> 
         dx = R / cpr
         lim = capillary_dt(liquid.rho, air.rho, liquid.mu, air.mu, sigma, dx)
         d = work / label
-        _fresh(d)
+        if not reuse:
+            _fresh(d)
+        d.mkdir(parents=True, exist_ok=True)
         res = _drop_case(d, R=R, sigma=sigma, liquid=liquid, gas=air, cells_per_r=cpr,
                          t_end=4e-3, dt_max=lim["brackbill_s"], sessile_theta=theta,
-                         n_cores=n_cores)
+                         n_cores=n_cores, reuse=reuse)
         res["label"] = label
         if theta is None:
             res["pass"] = bool(abs(res["error"]) <= LAPLACE_TOL and res["run"]["ok"])
@@ -1206,10 +1219,10 @@ def geometric_pockets(chip_id: str, plan: PrimingPlan) -> dict:
 
 def run_priming(chip_id: str, *, thetas: Sequence[float] | None = None, refine: int = 0,
                 work: Path | None = None, cores: int = 6, step_budget: int = STEP_BUDGET,
-                timeout_s: float = 4 * 3600, solve: bool = True) -> dict:
+                timeout_s: float = 4 * 3600, solve: bool = True, reuse: bool = False) -> dict:
     """Prime one chip: the geometric dead-end pass always, then - when the surrogate is
     feasible - interFoam at each contact angle of the sweep; pockets, robustness, findings."""
-    work = Path(work or (WORK / "priming")) / chip_id
+    work = Path(work or (WORK / "priming")).resolve() / chip_id
     plan = plan_priming(chip_id, refine=refine, step_budget=step_budget)
     thetas = list(thetas or plan.theta.sweep)
     from assay2chip.foam import mesh as fmesh
@@ -1222,6 +1235,18 @@ def run_priming(chip_id: str, *, thetas: Sequence[float] | None = None, refine: 
 
     def one(theta: float) -> dict:
         d = work / f"theta_{theta:g}"
+        log = d / "log.interFoam"
+        if reuse and log.exists():
+            text = log.read_text(errors="replace")
+            clock = re.findall(r"ClockTime = ([0-9.]+)", text)
+            ended = bool(re.search(r"^End\s*$", text, re.M))
+            res = analyse_priming(d, plan, zone_kind)
+            res.update({"theta_deg": theta, "run": {
+                "ok": ended, "verdict": "reused" if ended else "partial: still running or "
+                "stopped before endTime; analysed at its last write",
+                "time_steps": len(re.findall(r"^Time = ", text, re.M)), "cores": 1,
+                "wall_time_s": float(clock[-1]) if clock else None, "log": log.as_posix()}})
+            return res
         cut = build_priming_case(plan, theta, d, n_cores=per_case)
         _cell_geometry(d)
         run = _solve(d, per_case, timeout_s)
@@ -1444,18 +1469,31 @@ def kit_reference_geometry() -> JunctionGeometry:
 
 
 def repo_droplet_prediction(geom: JunctionGeometry) -> dict:
-    """The repo's own rule: droplet = DROPLET_TO_NOZZLE x orifice (protocols/build_spc_demo.py)."""
+    """What the repo itself says the droplet will be (protocols/build_spc_demo.py).
+
+    The builder's 1.3 x orifice rule of thumb (for an axisymmetric nozzle), and - where the
+    builder applies it - its depth cap: no sphere larger than the etch depth, so the
+    figure it states is min(1.3 x orifice, depth). `d_um` is that stated figure; the
+    unconfined rule is kept beside it, as is the older pipeline_mvp.json figure (about
+    260 um from a 0.2 mm orifice) the brief quoted."""
     import importlib.util
     spec = importlib.util.spec_from_file_location("build_spc_demo",
                                                   ROOT / "protocols" / "build_spc_demo.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     k = float(mod.DROPLET_TO_NOZZLE)
-    d = k * geom.w_orifice
-    out = {"rule": f"d = {k:g} x orifice (protocols/build_spc_demo.py DROPLET_TO_NOZZLE)",
-           "d_um": d * 1e6}
+    unconfined = k * geom.w_orifice * 1e6
+    depth_capped = hasattr(mod, "ORIFICE_DEPTH_UM")
+    stated = min(unconfined, geom.depth * 1e6) if depth_capped else unconfined
+    out = {"rule": (f"min({k:g} x orifice, etch depth) (protocols/build_spc_demo.py)"
+                    if depth_capped else f"{k:g} x orifice (protocols/build_spc_demo.py)"),
+           "d_um": stated, "unconfined_1p3x_um": unconfined,
+           "depth_um": geom.depth * 1e6,
+           "pipeline_mvp_figure": "about 260 um from a 0.2 mm orifice (protocols/pipeline_mvp.json)"}
     if geom.not_our_chip:
         out["contract_capsule_um"] = float(contracts.param("capsule.diameter_um"))
+        out["d_um"] = out["contract_capsule_um"]
+        out["rule"] = "contracts capsule.diameter_um: what the kit is relied on to make"
     return out
 
 
@@ -1471,10 +1509,10 @@ def droplet_inputs(geom: JunctionGeometry) -> dict:
     scenario.py; the kit from contracts encapsulation.*_flow_ul_h."""
     from assay2chip.cfd import scenario
     if geom.not_our_chip:
-        q_aq = (float(contracts.param("encapsulation.gelma_flow_ul_h"))
+        q_aq = (float(contracts.param("encapsulation.shell_flow_ul_h"))
                 + float(contracts.param("encapsulation.cell_flow_ul_h"))) / 3.6e12
         q_oil = float(contracts.param("encapsulation.oil_flow_ul_h")) / 3.6e12
-        src = "contracts encapsulation.gelma_flow_ul_h + cell_flow_ul_h, oil_flow_ul_h"
+        src = "contracts encapsulation.shell_flow_ul_h + cell_flow_ul_h, oil_flow_ul_h"
         unres: list[dict] = []
         aq = scenario._assumed_fluid("viscous_polymer", "aqueous", None, unres)
         oil = scenario._assumed_fluid("oil", "oil", None, unres)
@@ -1541,7 +1579,7 @@ def build_droplet_case(geom: JunctionGeometry, var: DropletVariant, inputs: dict
               "outlet": Boundary("outlet"),
               "walls": Boundary("wall", theta_deg=theta)}
     pred = repo_droplet_prediction(geom)
-    d_window = max(pred["d_um"], pred.get("contract_capsule_um", 0.0)) * 1e-6
+    d_window = max(pred["d_um"], pred["unconfined_1p3x_um"]) * 1e-6
     v_pred = math.pi / 6 * d_window ** 3
     period = v_pred / q_aq
     t_end = n_drops * period
@@ -1581,10 +1619,15 @@ def analyse_droplets(case_dir: Path, q_aq: float, geom: JunctionGeometry) -> dic
     inlet = md.patch_cells["aqueous"]
     outlet = md.patch_cells["outlet"]
     snaps = [(t, d) for t, d in time_dirs(case_dir) if t > 0 and (d / "alpha.aqueous").exists()]
-    thread, drops, events = [], [], []
+    thread, drops, events, smear = [], [], [], []
     for t, d in snaps:
         a = read_scalar_field(d / "alpha.aqueous", md.n_cells)
-        lab = md.components(a > 0.05)
+        total = float((a * md.volumes).sum())
+        diffuse = (a > 0.01) & (a < 0.5)
+        smear.append(float((a[diffuse] * md.volumes[diffuse]).sum()) / total if total else 0.0)
+        # alpha > 0.5 is the drop; a coarse mesh leaves a diffuse aqueous film behind that
+        # would join every drop to the inlet at a lower threshold (see `smeared_fraction`)
+        lab = md.components(a > 0.5)
         tl = set(lab[inlet][lab[inlet] >= 0].tolist())
         ol = set(lab[outlet][lab[outlet] >= 0].tolist())
         tv = 0.0
@@ -1601,7 +1644,12 @@ def analyse_droplets(case_dir: Path, q_aq: float, geom: JunctionGeometry) -> dic
         if v0 > 0 and v1 < 0.8 * v0:
             events.append(t1)
     out: dict[str, Any] = {"case": str(case_dir), "writes": len(snaps),
-                           "pinch_off_times_s": events, "detached_seen": len(drops)}
+                           "pinch_off_times_s": events, "detached_seen": len(drops),
+                           "smeared_fraction": round(float(np.mean(smear[len(smear) // 2:])), 3)
+                           if smear else None,
+                           "smeared_note": "share of the aqueous volume in cells with "
+                                           "0.01 < alpha < 0.5: interface smearing, a "
+                                           "resolution measure (refine to shrink it)"}
     if not drops:
         out.update({"broke_up": False, "message": "no droplet detached inside the window"})
         return out
@@ -1625,9 +1673,18 @@ def analyse_droplets(case_dir: Path, q_aq: float, geom: JunctionGeometry) -> dic
 
 def run_droplets(geom: JunctionGeometry, *, refine: int = 0, work: Path | None = None,
                  cores: int = 6, variants: Sequence[str] | None = None,
-                 timeout_s: float = 4 * 3600) -> dict:
-    work = Path(work or (WORK / "droplets")) / geom.name
+                 timeout_s: float = 4 * 3600, reuse: bool = False,
+                 flows_ul_h: tuple[float, float] | None = None) -> dict:
+    """Every variant of one junction. `reuse` re-reads finished cases (`case.json`) instead
+    of solving them again; `flows_ul_h` = (aqueous, oil) overrides the protocol's flows,
+    and the summary then says so."""
+    work = Path(work or (WORK / "droplets")).resolve() / geom.name
     inputs = droplet_inputs(geom)
+    if flows_ul_h:
+        inputs["q_aq_m3_s"], inputs["q_oil_m3_s"] = (f / 3.6e12 for f in flows_ul_h)
+        inputs["flow_source"] = (f"OVERRIDE {flows_ul_h[0]:g} / {flows_ul_h[1]:g} uL/h "
+                                 f"(aqueous / oil), not the protocol's: "
+                                 + inputs["flow_source"])
     vars_ = droplet_variants(inputs["oil"])
     if variants:
         vars_ = [v for v in vars_ if v.label in variants]
@@ -1635,10 +1692,33 @@ def run_droplets(geom: JunctionGeometry, *, refine: int = 0, work: Path | None =
 
     def one(var: DropletVariant) -> dict:
         d = work / var.label
+        done = d / "case.json"
+        log = d / "log.interFoam"
+        finished = log.exists() and re.search(r"^End\s*$", log.read_text(errors="replace"), re.M)
+        if reuse and (done.exists() or finished):
+            if done.exists():
+                prev = json.loads(done.read_text())
+            else:                                   # a run from before case.json existed
+                import tempfile
+                with tempfile.TemporaryDirectory() as tmp:
+                    setup = build_droplet_case(geom, var, inputs, Path(tmp) / "c",
+                                               refine=refine, mesh=False)
+                text = log.read_text(errors="replace")
+                clock = re.findall(r"ClockTime = ([0-9.]+)", text)
+                prev = {"setup": setup, "run": {
+                    "ok": True, "verdict": "reused", "cores": 1, "log": log.as_posix(),
+                    "time_steps": len(re.findall(r"^Time = ", text, re.M)),
+                    "wall_time_s": float(clock[-1]) if clock else None}}
+            res = analyse_droplets(d, inputs["q_aq_m3_s"], geom)
+            return {"variant": asdict(var), "setup": prev["setup"], "run": prev["run"],
+                    "result": res}
         info = build_droplet_case(geom, var, inputs, d, refine=refine)
         cm = _runner().run(d, "checkMesh", timeout_s=600, check=False)
         info["checkMesh_ok"] = "Mesh OK" in cm.log_text()
         run = _solve(d, 1, timeout_s)
+        done.write_text(json.dumps({"setup": info, "run": run, "inputs": {
+            "q_aq_m3_s": inputs["q_aq_m3_s"], "q_oil_m3_s": inputs["q_oil_m3_s"]}},
+            default=float))
         res = analyse_droplets(d, inputs["q_aq_m3_s"], geom)
         return {"variant": asdict(var), "setup": info, "run": run, "result": res}
 
@@ -1658,6 +1738,9 @@ def run_droplets(geom: JunctionGeometry, *, refine: int = 0, work: Path | None =
         "refinement": f"--refine {refine + 1} doubles cells across the orifice "
                       f"({cells_across(refine)} -> {cells_across(refine + 1)})",
     }
+    val = WORK / "validation" / "validation.json"
+    if val.exists():
+        summary["validation_spurious_ca"] = json.loads(val.read_text()).get("spurious_ca")
     summary["findings"] = [f.to_json() for f in droplet_findings(summary)]
     work.mkdir(parents=True, exist_ok=True)
     (work / "droplets.json").write_text(json.dumps(summary, indent=2, default=float))
@@ -1686,10 +1769,26 @@ def droplet_findings(summary: Mapping[str, Any]) -> list[Finding]:
     off = ref / pred - 1.0
     sev = "high" if abs(off) > 0.5 else ("medium" if abs(off) > 0.2 else "low")
     ca = [c["setup"]["ca_oil_outlet"] for c in summary["cases"]]
+    p = summary["prediction"]
+    smear = [c["result"].get("smeared_fraction") for c in summary["cases"]
+             if c["result"].get("smeared_fraction") is not None]
+    spurious = summary.get("validation_spurious_ca")
+    caveats = []
+    if smear and max(smear) > 0.2:
+        caveats.append(f"up to {max(smear):.0%} of the aqueous volume is smeared over the "
+                       f"interface at this resolution, so the size is a LOWER bound")
+    if spurious and max(ca) < spurious:
+        caveats.append(f"the junction Ca ({max(ca):.1g}) is below the parasitic-current Ca "
+                       f"of the validation drop ({spurious:.1g})")
+    broke = sum(1 for c in summary["cases"] if c["result"].get("broke_up"))
     msg = (f"{tag}{summary['label']}: simulated droplets {ref:.0f} um sphere-equivalent "
-           f"(baseline; {lo:.0f}-{hi:.0f} um across the oil-viscosity and interfacial-tension "
-           f"sweep) against the repo's prediction of {pred:.0f} um "
-           f"({summary['prediction']['rule']}): {off:+.0%}.")
+           f"(baseline; {lo:.0f}-{hi:.0f} um across the {broke} of {len(summary['cases'])} "
+           f"oil-viscosity / interfacial-tension variants that broke up) against the repo's "
+           f"stated {pred:.0f} um ({p['rule']}; unconfined 1.3x rule "
+           f"{p.get('unconfined_1p3x_um', pred):.0f} um): {off:+.0%}."
+           + (" On chip it is a flattened plug, taller than the "
+              f"{p.get('depth_um', 0):.0f} um depth." if ref > p.get("depth_um", 1e9) else "")
+           + (" LOW CONFIDENCE: " + "; ".join(caveats) + "." if caveats else ""))
     if not summary["not_our_chip"] and summary.get("frozen"):
         fix = ("spc_demo_v1 is printed and frozen: carry the simulated size into the "
                "protocol's capsule count and cells-per-capsule figures, and into the next "
@@ -1701,11 +1800,60 @@ def droplet_findings(summary: Mapping[str, Any]) -> list[Finding]:
         chip_id=chip, feature_id="xj_1" if not summary["not_our_chip"] else "nozzle",
         metric="droplet_d_um", value=round(ref, 1), limit=round(pred, 1), units="um",
         message=msg, fix_hint=fix, source=SOURCE, assumption=True,
-        audit={"sizes_um_by_variant": sizes, "ca_oil_outlet": ca,
+        audit={"sizes_um_by_variant": sizes, "ca_oil_outlet": ca, "smeared_fraction": smear,
+               "prediction": p,
                "freq_hz": {c["variant"]["label"]: c["result"].get("freq_hz_measured")
                            or c["result"].get("freq_hz_mass_balance")
                            for c in summary["cases"]},
                "assumptions": summary["assumptions"], "flows": summary["flows"]})]
+
+
+def collect(work: Path | None = None) -> dict:
+    """Every summary under the work tree, condensed: what the report and the reply quote."""
+    work = Path(work or WORK)
+    out: dict[str, Any] = {"validation": None, "priming": {}, "droplets": {}, "findings": []}
+    val = work / "validation" / "validation.json"
+    if val.exists():
+        v = json.loads(val.read_text())
+        out["validation"] = {
+            "pass": v["pass"], "laplace_error": v["laplace_error"],
+            "spurious_ca": v["spurious_ca"],
+            "sessile_deg": {t["label"]: round(t["theta_measured_deg"], 1)
+                            for t in v["tests"] if t.get("theta_measured_deg") is not None},
+            "wall_s": sum((t["run"].get("wall_time_s") or 0) for t in v["tests"])}
+    for path in sorted(work.rglob("priming.json")):
+        s = json.loads(path.read_text())
+        plan = s["plan"]
+        out["priming"][s["chip_id"]] = {
+            "vof_ran": s["vof_ran"], "feasible": plan["feasible"],
+            "ca_protocol": plan["ca_protocol"], "ca_run": plan["ca_run"],
+            "re_run": plan["re_run"], "cells": plan["cells"],
+            "why_not": plan["why_not"],
+            "dead_end_nl": round(s["geometric"]["total_nl"], 1),
+            "dead_end_features": [r["feature_id"] for r in s["geometric"]["pockets"]],
+            "vof_pockets": s["robustness"],
+            "reached_vent": {f"{c['theta_deg']:g}": c.get("liquid_reached_vent")
+                             for c in s["cases"]},
+            "wall_s": s["wall_time_s"]}
+        out["findings"] += s["findings"]
+    for path in sorted(work.rglob("droplets.json")):
+        s = json.loads(path.read_text())
+        key = f"{path.parent.parent.name}/{s['geometry']['name']}"
+        out["droplets"][key] = {
+            "label": s["label"], "prediction": s["prediction"], "flows": s["flows"],
+            "refine": s.get("refine"),
+            "cases": {c["variant"]["label"]: {
+                "d_eq_um": c["result"].get("d_eq_um"),
+                "freq_hz": c["result"].get("freq_hz_measured")
+                or c["result"].get("freq_hz_mass_balance"),
+                "broke_up": c["result"].get("broke_up"),
+                "smeared": c["result"].get("smeared_fraction"),
+                "wall_s": c["run"].get("wall_time_s"), "steps": c["run"].get("time_steps"),
+                "cells_across": c["setup"].get("cells_across_orifice")}
+                for c in s["cases"]},
+            "wall_s": s["wall_time_s"]}
+        out["findings"] += s["findings"]
+    return out
 
 
 # --- CLI ------------------------------------------------------------------------------
@@ -1713,7 +1861,7 @@ def droplet_findings(summary: Mapping[str, Any]) -> list[Finding]:
 
 def main(argv: Sequence[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="interFoam (VOF): validation, priming, droplets")
-    ap.add_argument("what", choices=["validate", "prime", "droplet", "plan"])
+    ap.add_argument("what", choices=["validate", "prime", "droplet", "plan", "report"])
     ap.add_argument("--chip", action="append", default=[], help="chip id (prime/plan)")
     ap.add_argument("--all", action="store_true", help="every pipeline chip")
     ap.add_argument("--geometry", default="spc_demo_v1",
@@ -1725,6 +1873,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap.add_argument("--cores", type=int, default=6)
     ap.add_argument("--steps", type=int, default=STEP_BUDGET, help="priming step budget")
     ap.add_argument("--work", type=Path, default=None)
+    ap.add_argument("--reuse", action="store_true",
+                    help="re-read finished cases instead of re-solving them")
+    ap.add_argument("--flows-ul-h", default=None,
+                    help="droplet: 'aqueous,oil' in uL/h, overriding the protocol's")
     args = ap.parse_args(argv)
     chips = list(PIPELINE_CHIPS) if args.all else args.chip
     if args.what == "plan":
@@ -1733,21 +1885,26 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(json.dumps({k: v for k, v in p.to_dict().items()
                               if k not in ("assumptions", "unrepresented")}, default=float))
         return 0
+    if args.what == "report":
+        print(json.dumps(collect(args.work), indent=1, default=float))
+        return 0
     if not foam_available():
         print(_runner().why_not())
         return 2
     if args.what == "validate":
-        out = validate(args.work, refine=args.refine)
+        out = validate(args.work, refine=args.refine, reuse=args.reuse)
     elif args.what == "prime":
         out = {c: run_priming(c, thetas=args.theta or None, refine=args.refine,
-                              work=args.work, cores=args.cores, step_budget=args.steps)
+                              work=args.work, cores=args.cores, step_budget=args.steps,
+                              reuse=args.reuse)
                for c in chips}
     else:
         g = args.geometry
         geom = (kit_reference_geometry() if g == "kit_reference" else
                 spc_demo_geometry(float(g.split("@")[1]) if "@" in g else None))
+        flows = tuple(float(v) for v in args.flows_ul_h.split(",")) if args.flows_ul_h else None
         out = run_droplets(geom, refine=args.refine, work=args.work, cores=args.cores,
-                           variants=args.variant or None)
+                           variants=args.variant or None, reuse=args.reuse, flows_ul_h=flows)
     print(json.dumps(out, indent=1, default=float)[:20000])
     return 0
 

@@ -172,8 +172,9 @@ function compile(gl, vsSrc, fsSrc) {
 /* ------------------------------------------------------------------ viewer */
 
 export const PALETTE = [
-  [0.37, 0.92, 0.83], [0.49, 0.83, 0.99], [0.65, 0.55, 0.98], [0.98, 0.75, 0.29],
-  [0.95, 0.45, 0.68], [0.55, 0.89, 0.52], [0.98, 0.58, 0.24], [0.69, 0.78, 0.93],
+  // theme.css: --gfp, --gfp-2, --bone, --amber and softer steps of them
+  [0.65, 1.0, 0.45], [0.37, 0.88, 0.48], [0.93, 0.91, 0.85], [1.0, 0.72, 0.36],
+  [0.5, 0.78, 0.36], [0.75, 0.73, 0.68], [0.28, 0.62, 0.36], [0.8, 0.6, 0.32],
 ];
 
 export class StlViewer {
@@ -209,7 +210,7 @@ export class StlViewer {
       uColor: gl.getUniformLocation(this.lineProg, 'uColor'),
     };
     gl.enable(gl.DEPTH_TEST);
-    gl.clearColor(0.016, 0.027, 0.055, 1);
+    gl.clearColor(0.035, 0.051, 0.043, 1);
 
     this._bindInput();
     this._loop = () => {

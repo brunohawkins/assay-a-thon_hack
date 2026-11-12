@@ -1478,8 +1478,18 @@ class TestRealChips(unittest.TestCase):
         chambers = analyse.chamber_views(chip)
         steps = analyse.step_views(protocol)
         for cid in ("n_cx", "g_cx", "a_cx"):
-            flowing = next(s for s in steps if cid in s.targets and s.has_flow)
-            call = analyse.shear_scope(chambers[cid], flowing, steps,
+            flowing = [s for s in steps if cid in s.targets and s.has_flow]
+            calls = [analyse.shear_scope(chambers[cid], s, steps,
+                                         capsule_chip=False, capsule_evidence=())
+                     for s in flowing]
+            # The point of this test: a 25 um weir must never make it a capsule chamber,
+            # on ANY step - stronger than the single step it used to check.
+            self.assertNotIn("capsules", [c.shear_class for c in calls], cid)
+            # And a culture step is adherent-bounded. `next(... has_flow)` used to land on
+            # the COATING step, where there are no cells on the surface yet, so it pinned
+            # the wrong answer by accident of iteration order.
+            culture = next(s for s in flowing if "medium" in " ".join(s.reagents).lower())
+            call = analyse.shear_scope(chambers[cid], culture, steps,
                                        capsule_chip=False, capsule_evidence=())
             self.assertEqual(call.shear_class, "adherent_cells", f"{cid} holds adherent cells")
 
@@ -1551,10 +1561,35 @@ class TestScopingOnRealProtocolsOffline(unittest.TestCase):
         chambers = analyse.chamber_views(chip)
         steps = analyse.step_views(protocol)
         for cid in ("n_cx", "g_cx", "a_cx"):
-            flowing = next(s for s in steps if cid in s.targets and s.has_flow)
-            call = analyse.shear_scope(chambers[cid], flowing, steps,
+            flowing = [s for s in steps if cid in s.targets and s.has_flow]
+            # A medium exchange on a seeded chamber: this is the adherent condition, and
+            # it must stay a 0.01 ceiling. 45 of n_cx's 49 flowing steps are of this kind,
+            # so if a scoping change ever silently clears them, this fails.
+            media = [s for s in flowing if "medium" in " ".join(s.reagents).lower()]
+            self.assertGreater(len(media), 10, f"{cid}: expected many culture steps")
+            for step in media:
+                call = analyse.shear_scope(chambers[cid], step, steps,
+                                           capsule_chip=False, capsule_evidence=())
+                self.assertEqual(call.shear_class, "adherent_cells",
+                                 f"{cid} step {step.index}: {call.evidence}")
+
+    def test_module1_coating_step_has_no_cells_to_detach(self):
+        """Coating happens before seeding, so the 0.01 ceiling cannot apply to it.
+
+        This step used to be judged as adherent culture and reported 0.81-1.18 dyn/cm2
+        against 0.01 as a blocker - a 100x phantom on a chamber that was still empty.
+        """
+        chip = json.loads((ROOT / "chip" / "module1_v1.json").read_text())
+        protocol = json.loads((ROOT / "protocols" / "module1_v1.json").read_text())
+        chambers = analyse.chamber_views(chip)
+        steps = analyse.step_views(protocol)
+        for cid in ("n_cx", "g_cx", "a_cx"):
+            coat = next(s for s in steps if cid in s.targets and s.has_flow
+                        and "coating" in " ".join(s.reagents).lower())
+            call = analyse.shear_scope(chambers[cid], coat, steps,
                                        capsule_chip=False, capsule_evidence=())
-            self.assertEqual(call.shear_class, "adherent_cells", f"{cid}: {call.evidence}")
+            self.assertEqual(call.shear_class, "none", f"{cid}: {call.evidence}")
+            self.assertIsNone(call.ceiling_dyn_cm2, cid)
 
     def test_module3_trap_is_capsules(self):
         chip = json.loads((ROOT / "chip" / "module3_v1_translated.json").read_text())

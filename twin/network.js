@@ -1,29 +1,39 @@
-// Hydraulic network solver for the twin: the same model as operator/network.py (which is the
-// reference; the Playwright check compares the two on every Module 1 v1 mode).
+// Hydraulic network solver for the twin: the same model as operator/network.py, which is the
+// reference implementation.
 //   nodes  chambers + ports;  edges  channels, R = 12 mu L / (w h^3 (1 - 0.63 h/w)), plus each
 //   chamber's slab from the entry edge to its centre;  ports  FEED (uL/min), VENT (0 Pa), CAP.
 // Also: the medium tracer, dye arrival times, the one-line result and the safety rules of
 // operator/module1_operator.py, so editing a pump rate in the twin re-solves on the spot.
+//
+// PARITY IS NOT CHECKED AUTOMATICALLY. Nothing in the repo compares this file against
+// operator/network.py; docs/module1_v1_twin/ holds screenshots of the modes, not a test. The
+// header used to claim a Playwright check did the comparison, which is how the two drifted.
+// Compare by hand after changing either: python operator/network.py chip/module1_v1.json
+// --report against the twin's "Solver: every channel" table.
+//
+// Viscosity, the port bore and the shear ceiling come from twin/contracts.js, which reads the
+// same contracts/ files operator/network.py reads. They are not constants here: this file
+// held MU_37C = 0.8e-3 and PORT_HOLE_MM = 2.0 as bare literals, and the port bore had gone
+// stale against contracts/blocks.json (0.8 mm) without a word. loadContracts() must have
+// finished before anything in here is called.
+import { contracts, portHoleUl } from './contracts.js';
 
-export const MU_37C = 0.8e-3;
+const mu37c = () => contracts().mu_pa_s;
+const portHoleMm = () => contracts().portHoleMm;
+export const shearCeiling = () => contracts().shearCeiling;
 const FIRST_TINT = 2 / 3;
-export const SHEAR_CEILING = 0.01;
 
-// Port bore and lid, as operator/network.py reads them: the bore is contracts/blocks.json's
-// fabrication floor (min_port_mm), the same source cad/make_train_cad.py draws the DXF from.
-// configure() sets them before a Network is built; the exports are live bindings.
-export let PORT_HOLE_MM = 0.8;
-let LID_MM = 3;
-export let PORT_HOLE_UL = PORT_HOLE_MM * PORT_HOLE_MM * LID_MM;   // the bore through the lid
-export function configure({ portHoleMm, lidMm } = {}) {
-  if (portHoleMm > 0) PORT_HOLE_MM = portHoleMm;
-  if (lidMm > 0) LID_MM = lidMm;
-  PORT_HOLE_UL = PORT_HOLE_MM * PORT_HOLE_MM * LID_MM;
-}
+// The port bore and the lid are NOT configured from here any more. They used to be module
+// state set by a configure({ portHoleMm, lidMm }) call, which meant two sources for the same
+// number and an order dependency; the bore now comes from twin/contracts.js (the contract
+// operator/network.py reads) and the lid from the chip's own top layer, per Network instance
+// (net.portHoleMm, net.portHoleUl) and portHoleUl(spec).
 
 // Largest feed that keeps every culture chamber under the shear ceiling: operator/network.py's
 // _default_feed_ul_min, derived from the chip so a rescale can't leave it stale.
-export function defaultFeed(chip, { mu = MU_37C, ceiling = SHEAR_CEILING, margin = 0.85 } = {}) {
+export function defaultFeed(chip, { mu = null, ceiling = null, margin = 0.85 } = {}) {
+  mu ??= mu37c();
+  ceiling ??= shearCeiling();
   const flows = chip.chambers.filter((c) => c.type !== 'pool').map((c) => {
     const w = c.size[1] * 1e-3;
     const h = c.size[2] * 1e-3;
@@ -47,6 +57,15 @@ export const DESIGN_MODES = ['grow', 'int_n', 'int_g', 'int_a', 'harvest', 'seed
 // ------------------------------------------------------------------ geometry
 
 // Channel centrelines from a cad/make_train_cad.py DXF: 4 LINEs per channel rectangle.
+//
+// This reads <chip_id>.dxf, NOT <chip_id>_closed.dxf, and that is deliberate. The generator's
+// own header says so: the plain file is "the REFERENCE drawing, and the hydraulic model's
+// input", with every channel as the full centreline rectangle running to where its centreline
+// meets the chamber wall - which is where the channel's hydraulic length ends. _closed.dxf is
+// the FABRICATION file: one closed LWPOLYLINE per feature with each channel's end cap trimmed
+// back to the chamber wall, so its channels are SHORTER than their hydraulic length, and it
+// holds no LINE entities for this parser to read at all (module1_v1: 52 LINEs in the plain
+// file, 0 in the closed one). Do not switch this over.
 export function parseDxfChannels(text) {
   const t = text.split('\n').map((s) => s.trim());
   const lines = [];
@@ -101,7 +120,8 @@ function segDist(p, a, b) {
 // id -> {a, b, length_mm, width_mm, depth_mm, source}
 export function channelGeometry(chip, dxfRects = null) {
   const boxes = Object.fromEntries(chip.chambers.map((c) => [c.id, [c.center, c.size]]));
-  for (const p of chip.ports ?? []) boxes[p.id] = [p.position, [PORT_HOLE_MM, PORT_HOLE_MM, 0]];
+  const bore = portHoleMm();
+  for (const p of chip.ports ?? []) boxes[p.id] = [p.position, [bore, bore, 0]];
   const out = {};
   for (const ch of chip.channels) {
     const [ca, sa] = boxes[ch.from];
@@ -134,13 +154,37 @@ export function channelGeometry(chip, dxfRects = null) {
 
 // ------------------------------------------------------------------ physics
 
-export function rectResistance(lengthMm, widthMm, depthMm, mu = MU_37C) {
-  const w = Math.max(widthMm, depthMm) / 1000;
-  const h = Math.min(widthMm, depthMm) / 1000;
-  return (12 * mu * (lengthMm / 1000)) / (w * h ** 3 * (1 - (0.63 * h) / w));
+// f in R = 12 mu L / (w h^3 f), w the longer and h the shorter side: the exact series for a
+// rectangular duct, as operator/flow_calc.py duct_shape_factor (MJ: the old 1 - 0.63 h/w was 14%
+// high on a square duct). 50 odd terms converge far past double precision.
+export function ductShapeFactor(widthMm, depthMm, terms = 50) {
+  const w = Math.max(widthMm, depthMm);
+  const h = Math.min(widthMm, depthMm);
+  let total = 0;
+  for (let n = 1; n < 2 * terms; n += 2) total += Math.tanh((n * Math.PI * w) / (2 * h)) / n ** 5;
+  return 1 - ((192 * h) / (Math.PI ** 5 * w)) * total;
 }
 
-export function shear(flowUlMin, widthMm, depthMm, mu = MU_37C) {
+export function rectResistance(lengthMm, widthMm, depthMm, mu = mu37c()) {
+  const w = Math.max(widthMm, depthMm) / 1000;
+  const h = Math.min(widthMm, depthMm) / 1000;
+  return (12 * mu * (lengthMm / 1000)) / (w * h ** 3 * ductShapeFactor(widthMm, depthMm));
+}
+
+// A weir crest: a slit gap_um high, as wide as the chamber wall it spans, crest_um long along the
+// flow. R = 12 mu L / (W g^3), operator/flow_calc.py slit_resistance_pa_s_m3. Flow goes as gap^3.
+export function slitResistance(widthMm, gapUm, crestUm, mu = mu37c()) {
+  return (12 * mu * (crestUm / 1e6)) / ((widthMm / 1000) * (gapUm / 1e6) ** 3);
+}
+
+// (gap_um, crest_um) of a chamber's retention weir, or null: operator/network.py weir_crest().
+export function weirCrest(chamber) {
+  const ret = chamber?.retention ?? {};
+  if (ret.type !== 'weir' || !ret.opening_um) return null;
+  return [Number(ret.opening_um), Number(ret.crest_thickness_um || contracts().weirCrestUm)];
+}
+
+export function shear(flowUlMin, widthMm, depthMm, mu = mu37c()) {
   const q = (Math.abs(flowUlMin) * 1e-9) / 60;
   return ((6 * mu * q) / ((widthMm / 1000) * (depthMm / 1000) ** 2)) * 10;
 }
@@ -153,21 +197,40 @@ function chamberLeg(c, entry) {
 }
 
 export class Network {
-  constructor(chip, dxfRects = null, mu = MU_37C) {
+  constructor(chip, dxfRects = null, mu = mu37c()) {
     this.chip = chip;
     this.mu = mu;
+    this.portHoleMm = portHoleMm();
+    this.portHoleUl = portHoleUl(chip);
     this.geometry = channelGeometry(chip, dxfRects);
+    // Channels whose ends did not land on a DXF rectangle: a straight-line estimate, not the
+    // cut geometry. Said out loud (the twin used to fall back to this without a word).
+    this.estimated = dxfRects?.length
+      ? chip.channels.filter((ch) => this.geometry[ch.id].source !== 'DXF').map((ch) => ch.id)
+      : [];
     this.chambers = Object.fromEntries(chip.chambers.map((c) => [c.id, c]));
     this.nodes = [...chip.chambers.map((c) => c.id), ...(chip.ports ?? []).map((p) => p.id)];
     this.culture = chip.chambers.filter((c) => !['pool', 'junction', 'split', 'inlet', 'outlet'].includes(c.type)).map((c) => c.id);
+    // Each channel, the slab of chamber it crosses to the centre, and (MJ, operator/network.py)
+    // a weir crest wherever it enters a chamber with a retention weir: leaving the crests out made
+    // module1_v1's pressures 57% low and split interaction medium 50/50 where the CFD gives 72/28.
     this.edges = chip.channels.map((ch) => {
       const g = this.geometry[ch.id];
       let R = rectResistance(g.length_mm, g.width_mm, g.depth_mm, mu);
+      const crests = [];
       for (const [end, pt] of [[ch.from, g.a], [ch.to, g.b]]) {
         const c = this.chambers[end];
-        if (c) { const [leg, w] = chamberLeg(c, pt); R += rectResistance(leg, w, c.size[2], mu); }
+        if (!c) continue;
+        const [leg, w] = chamberLeg(c, pt);
+        R += rectResistance(leg, w, c.size[2], mu);
+        const weir = weirCrest(c);
+        if (weir) {
+          const r = slitResistance(w, weir[0], weir[1], mu);
+          R += r;
+          crests.push({ chamber: end, width_mm: w, gap_um: weir[0], length_um: weir[1], R: r });
+        }
       }
-      return { id: ch.id, from: ch.from, to: ch.to, R, ...g };
+      return { id: ch.id, from: ch.from, to: ch.to, R, weir_crests: crests, ...g };
     });
   }
 
@@ -343,10 +406,11 @@ export function safetyCheck(net, mode, states, flows, { cells = true } = {}) {
   try { sol = net.solve(solverPorts(states, flows)); } catch (e) { return { status: 'blocked', reasons: [e.message], warnings: [], sol: null }; }
   const foreign = sol.routing.foreign_medium;
   if (mode === 'grow' && Object.keys(foreign).length) blocked.push(`separate growth must keep the media apart, but ${foreignText(foreign)}`);
+  const ceiling = shearCeiling();
   for (const c of ['n_cx', 'g_cx', 'a_cx']) {
     const tau = sol.chambers[c].shear_dyn_cm2;
-    if (tau > SHEAR_CEILING) {
-      const msg = `${c} wall shear ${tau.toFixed(4)} dyn/cm² > ${SHEAR_CEILING} (throughput ${sol.chambers[c].throughput_ul_min.toFixed(1)} µL/min)`;
+    if (tau > ceiling) {
+      const msg = `${c} wall shear ${tau.toFixed(4)} dyn/cm² > ${ceiling} (throughput ${sol.chambers[c].throughput_ul_min.toFixed(1)} µL/min)`;
       if (cells) blocked.push(msg); else warnings.push(`${msg}: fine for the dye demo (no cells), too high with cells`);
     }
   }
@@ -375,7 +439,9 @@ export function safetyCheck(net, mode, states, flows, { cells = true } = {}) {
 }
 
 // Seconds for each fed port's dye to reach j_mid and each vented port (plug flow; first tint ~2/3).
-export function dyeTimes(net, sol, states, flows) {
+// chambers: also each culture chamber it fills, from the dye entering (first_s) to the chamber
+// swept once at plug flow (mean_s). The default output is the same as operator/network.py's.
+export function dyeTimes(net, sol, states, flows, { chambers = false } = {}) {
   const edges = [];
   for (const e of net.edges) {
     const c = sol.channels[e.id];
@@ -383,10 +449,11 @@ export function dyeTimes(net, sol, states, flows) {
     edges.push([c.from, c.to, (c.volume_ul / Math.abs(c.flow_ul_min)) * 60]);
   }
   const out = {};
-  const targets = ['j_mid', ...Object.entries(states).filter(([, s]) => s === 'VENT').map(([p]) => p)];
+  const targets = ['j_mid', ...(chambers ? net.culture : []), ...Object.entries(states).filter(([, s]) => s === 'VENT').map(([p]) => p)];
   for (const [src, s] of Object.entries(states)) {
     if (s !== 'FEED' || !(flows[src] > 0)) continue;
-    const best = { [src]: (PORT_HOLE_UL / flows[src]) * 60 };
+    const best = { [src]: (net.portHoleUl / flows[src]) * 60 };
+    const enter = {};
     const queue = [src];
     while (queue.length) {
       queue.sort((a, b) => best[a] - best[b]);
@@ -396,10 +463,12 @@ export function dyeTimes(net, sol, states, flows) {
         const ch = net.chambers[b];
         const extra = ch && b !== 'j_mid' && sol.chambers[b].throughput_ul_min > 0 ? (ch.volume_ul / sol.chambers[b].throughput_ul_min) * 60 : 0;
         const tb = best[n] + dt + extra;
-        if (tb < (best[b] ?? Infinity)) { best[b] = tb; queue.push(b); }
+        if (tb < (best[b] ?? Infinity)) { best[b] = tb; enter[b] = best[n] + dt; queue.push(b); }
       }
     }
-    out[src] = Object.fromEntries(targets.filter((tg) => tg in best).map((tg) => [tg, { mean_s: best[tg], first_s: best[tg] * FIRST_TINT }]));
+    out[src] = Object.fromEntries(targets.filter((tg) => tg in best && tg !== src).map((tg) => [tg, net.culture.includes(tg)
+      ? { mean_s: best[tg], first_s: enter[tg], chamber: true }
+      : { mean_s: best[tg], first_s: best[tg] * FIRST_TINT }]));
   }
   return out;
 }

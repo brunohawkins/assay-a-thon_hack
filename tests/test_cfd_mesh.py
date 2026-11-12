@@ -47,6 +47,66 @@ from assay2chip.cfd.model import (  # noqa: E402
 
 MU = contracts.viscosity_for(None).pa_s          # 37 C: the real device, never water
 CHIPS = cfd_mesh.repo_chips()
+#: Specs that cannot be meshed because the SPEC is broken, with the reason. They are
+#: listed, not skipped silently, and `Unmeshable` below asserts the reason is still that
+#: one - so a mesher regression cannot hide in here.
+BROKEN_SPECS = {
+    "e2e_messy_wash_and_lyse_assay_c1.json":
+        "its only channel names load_1_in / load_1_out, which are neither a chamber nor "
+        "a port in the spec (an S6 generator bug, not a mesh one)",
+}
+class Vanished(Exception):
+    """The spec was deleted while the tests ran. S6 regenerates its e2e_* chips
+    continuously, so a per-chip loop must survive one disappearing under it."""
+
+
+_CACHE: dict[str, object] = {}
+_SPECS: dict[Path, object] = {}
+
+
+def chip_of(path: Path) -> dict:
+    """The spec, read ONCE per run - a second read may find it gone or half-written."""
+    if path not in _SPECS:
+        try:
+            _SPECS[path] = schema_io.load_json(path)
+        except (OSError, ValueError) as exc:
+            _SPECS[path] = Vanished(f"{path.name}: {exc}")
+    got = _SPECS[path]
+    if isinstance(got, Exception):
+        raise got
+    return got
+
+
+def mesh_attempt(path: Path, **kwargs) -> object:
+    """One mesh per chip per run, successful or not: chip/ holds ~38 specs, some of them
+    12k cells, so re-meshing them all in every test costs minutes."""
+    key = f"{path}|{sorted(kwargs.items())}"
+    if key not in _CACHE:
+        try:
+            _CACHE[key] = cfd_mesh.build_mesh(chip_of(path), strict=False, **kwargs)
+        except Exception as exc:                            # kept, not swallowed
+            _CACHE[key] = exc
+    return _CACHE[key]
+
+
+def meshed(path: Path, **kwargs) -> Mesh:
+    got = mesh_attempt(path, **kwargs)
+    if isinstance(got, Exception):
+        raise got
+    return got
+
+
+def meshable_chips() -> list[Path]:
+    return [p for p in CHIPS if p.name not in BROKEN_SPECS]
+
+
+def each_meshed_chip():
+    """(path, chip, mesh) for every spec that is still on disk and meshes."""
+    for path in meshable_chips():
+        try:
+            yield path, chip_of(path), meshed(path)
+        except Vanished:
+            continue
 
 
 # --- helpers --------------------------------------------------------------------------
@@ -274,9 +334,7 @@ class ChannelLikeBlocks(unittest.TestCase):
 
     def test_every_channel_like_block_in_the_repo_is_a_duct(self):
         seen = 0
-        for path in CHIPS:
-            chip = schema_io.load_json(path)
-            mesh = cfd_mesh.build_mesh(chip, strict=False)
+        for path, chip, mesh in each_meshed_chip():
             for chamber in chip["chambers"]:
                 block = str(chamber.get("block", ""))
                 if not (block.endswith("_channel")
@@ -290,12 +348,37 @@ class ChannelLikeBlocks(unittest.TestCase):
         # cell_prep mix_1 (serpentine_channel) and spc_demo delay_1 (serpentine_channel)
         self.assertGreaterEqual(seen, 2)
 
-    def test_an_assumed_lane_width_is_flagged_not_silently_used(self):
+    def test_a_stated_lane_is_used_as_stated_and_needs_no_assumption(self):
+        """spc_demo_v1 now STATES delay_1's lane (0.3 mm x 104 mm, volume 4.68 uL), so the
+        mesher must read it rather than fold the bounding box - and must stop flagging."""
         mesh = cfd_mesh.mesh_chip(ROOT / "chip" / "spc_demo_v1.json")
+        chamber = next(c for c in schema_io.load_json(ROOT / "chip" / "spc_demo_v1.json")
+                       ["chambers"] if c["id"] == "delay_1")
         edge = mesh.edge("d:delay_1")
+        self.assertAlmostEqual(edge.width_mm, chamber["mixer"]["channel_width_mm"], places=9)
+        self.assertAlmostEqual(edge.length_mm, chamber["mixer"]["length_mm"], places=9)
+        self.assertLess(edge.width_mm, min(chamber["size"][:2]))    # not the box
+        note = next(f for f in mesh.meta["features"] if f["feature_id"] == "delay_1")
+        self.assertIn("spec mixer", note["lane_source"])
+        self.assertGreater(note["width_error_if_boxed"], 30)        # the 43x class of error
+        self.assertEqual(
+            [u for u in mesh.meta["unresolved"]
+             if u["feature_id"] == "delay_1" and "lane" in u["question"]], [])
+
+    def test_an_assumed_lane_width_is_flagged_not_silently_used(self):
+        """The fallback path, on a spec that states no lane: fold at the fabrication
+        floors, and say so. (No repo chip needs this now that spc_demo_v1 is fixed, which
+        is exactly why it is kept alive on a fixture.)"""
+        spec = chip_spec(
+            [box("ser_1", 15, 10, 11.0, 13.0, depth=0.15, block="serpentine_channel")],
+            [duct("ch_in", "p_in", "ser_1"), duct("ch_out", "ser_1", "p_out")],
+            [port("p_in", 5, 10), port("p_out", 25, 10, "outlet")],
+        )
+        mesh = cfd_mesh.build_mesh(spec)
+        edge = mesh.edge("d:ser_1")
         self.assertLessEqual(edge.width_mm, contracts.floor("min_open_channel_mm"))
         self.assertGreater(edge.length_mm, 50.0)   # a folded path, not an 11 mm box
-        flags = [u for u in mesh.meta["unresolved"] if u["feature_id"] == "delay_1"]
+        flags = [u for u in mesh.meta["unresolved"] if u["feature_id"] == "ser_1"]
         self.assertTrue(flags, "an assumed lane width must be recorded in unresolved")
         self.assertIn("bounding-box", flags[0]["question"])
 
@@ -311,6 +394,110 @@ class ChannelLikeBlocks(unittest.TestCase):
             straight = math.dist(tuple(channel["path"][0]), tuple(channel["path"][-1]))
             if len(channel["path"]) > 2:
                 self.assertGreater(want, straight)   # a straight line would be wrong
+
+
+# --- routing: a feature in series must be meshed in series ----------------------------
+
+
+def port_flows(mesh: Mesh, feeds: dict[str, float], vent: str) -> dict[str, float]:
+    """Edge flows (m^3/s, signed a->b) with `feeds` injected and `vent` held at 0 Pa."""
+    ids = [n.id for n in mesh.nodes]
+    idx = {nid: i for i, nid in enumerate(ids)}
+    a = np.zeros((len(ids), len(ids)))
+    b = np.zeros(len(ids))
+    for edge in mesh.edges:
+        g = edge.conductance_m3_per_pa_s
+        i, j = idx[edge.a], idx[edge.b]
+        a[i, i] += g
+        a[j, j] += g
+        a[i, j] -= g
+        a[j, i] -= g
+    for pid, q_ul_min in feeds.items():
+        b[idx[mesh.ports[pid]]] += q_ul_min * UL_MIN_TO_M3_S
+    sink = idx[mesh.ports[vent]]
+    a[sink, :] = 0.0
+    a[sink, sink] = 1.0
+    b[sink] = 0.0
+    p = np.linalg.solve(a, b)
+    return {e.id: (p[idx[e.a]] - p[idx[e.b]]) * e.conductance_m3_per_pa_s
+            for e in mesh.edges}
+
+
+class Routing(unittest.TestCase):
+    """The delay-line bug: `ch_xj_delay` and `ch_delay_out` both attached to
+    `j:delay_1:a`, so the 234 mm serpentine hung off one node as a dead-end stub, carried
+    1.8e-19 of the through-flow, and spc_demo_v1's 1194 Pa (duct law) / 1136 Pa (OpenFOAM)
+    came out of the reduced model as 39 Pa."""
+
+    def test_no_repo_chip_has_a_bypassed_feature(self):
+        for path, _chip, mesh in each_meshed_chip():
+            with self.subTest(chip=path.name):
+                self.assertEqual(cfd_mesh.routing_problems(mesh), [])
+
+    def test_a_feature_the_spec_puts_in_series_is_meshed_in_series(self):
+        for path, _chip, mesh in each_meshed_chip():
+            for feature, info in mesh.meta["routing"].items():
+                if len(info["neighbours"]) < 2:
+                    continue
+                with self.subTest(chip=mesh.chip_id, feature=feature):
+                    self.assertTrue(info["in_series"])
+                    # each end carries its own neighbours: nothing shares an end with
+                    # the channel on the other side of the run
+                    ends = list(info["by_end"].values())
+                    self.assertTrue(all(ends))
+                    self.assertEqual(set(ends[0]) & set(ends[1]), set())
+
+    def test_the_spc_demo_delay_line_carries_the_whole_through_flow(self):
+        mesh = cfd_mesh.mesh_chip(ROOT / "chip" / "spc_demo_v1.json")
+        feed = 10.0
+        flows = port_flows(mesh, {"in_oil": feed / 3, "in_shell": feed / 3,
+                                  "in_core": feed / 3}, "out_caps")
+        edge = mesh.edge("d:delay_1")
+        q = abs(flows[edge.id])
+        self.assertAlmostEqual(q / (feed * UL_MIN_TO_M3_S), 1.0, places=9)
+        # ... and the pressure drop is now the duct law, not 1/30th of it
+        self.assertAlmostEqual(
+            q * edge.resistance_pa_s_m3,
+            q * analytic_duct_r(edge.length_mm, edge.width_mm, edge.depth_mm),
+            places=9)
+        self.assertNotEqual(mesh.edge("d:ch_xj_delay").b, mesh.edge("d:ch_delay_out").a)
+
+    def test_a_serpentine_in_series_carries_everything_that_crosses_it(self):
+        mesh = cfd_mesh.mesh_chip(ROOT / "chip" / "cell_prep_v1.json")
+        flows = port_flows(mesh, {"in_buffer": 5.0}, "out_cells")
+        self.assertAlmostEqual(abs(flows["d:mix_1"]) / (5.0 * UL_MIN_TO_M3_S), 1.0,
+                               places=9)
+
+    def test_two_channels_on_a_square_run_do_not_share_an_end(self):
+        # The geometry that caused it: a square-ish footprint whose two neighbours are
+        # exactly equidistant from both long-axis extremes, so a nearest-end rule ties
+        # and sends both to the same node.
+        spec = chip_spec(
+            [box("ser_1", 15, 10, 6.0, 6.0, block="serpentine_channel",
+                 mixer={"kind": "serpentine", "channel_width_mm": 0.2, "length_mm": 80.0})],
+            [duct("ch_in", "p_in", "ser_1"), duct("ch_out", "ser_1", "p_out")],
+            [port("p_in", 5, 10), port("p_out", 25, 10, "outlet")],
+        )
+        mesh = cfd_mesh.build_mesh(spec)           # strict: would raise if it stubbed
+        self.assertEqual(cfd_mesh.routing_problems(mesh), [])
+        self.assertNotEqual(mesh.edge("d:ch_in").b, mesh.edge("d:ch_out").a)
+        flows = port_flows(mesh, {"p_in": 3.0}, "p_out")
+        self.assertAlmostEqual(abs(flows["d:ser_1"]) / (3.0 * UL_MIN_TO_M3_S), 1.0,
+                               places=9)
+        # the run really is the 80 mm lane, and it dominates the two 0.2 mm feeds
+        self.assertAlmostEqual(mesh.edge("d:ser_1").length_mm, 80.0, places=9)
+
+    def test_the_check_fires_on_a_stub_and_build_mesh_refuses_it(self):
+        """The check itself, on a mesh deliberately wired the broken way."""
+        mesh = cfd_mesh.mesh_chip(ROOT / "chip" / "spc_demo_v1.json")
+        broken = Mesh.from_json(json.loads(json.dumps(mesh.to_json())))
+        stub = broken.edge("d:ch_delay_out")
+        stub.a = broken.edge("d:ch_xj_delay").b         # both on j:delay_1:a again
+        problems = cfd_mesh.routing_problems(broken)
+        self.assertTrue(problems)
+        self.assertIn("DEAD-END STUB", problems[0])
+        self.assertIn("delay_1", problems[0])
+        self.assertFalse(cfd_mesh.routing(broken)["delay_1"]["in_series"])
 
 
 # --- weirs ----------------------------------------------------------------------------
@@ -399,9 +586,7 @@ class Mouths(unittest.TestCase):
 
 class Ports(unittest.TestCase):
     def test_every_port_in_every_repo_chip_is_a_node_and_is_connected(self):
-        for path in CHIPS:
-            chip = schema_io.load_json(path)
-            mesh = cfd_mesh.build_mesh(chip, strict=False)
+        for path, chip, mesh in each_meshed_chip():
             for p in chip["ports"]:
                 self.assertIn(p["id"], mesh.ports, msg=f"{path.name}: {p['id']}")
                 node = mesh.ports[p["id"]]
@@ -433,6 +618,32 @@ class Ports(unittest.TestCase):
 # --- every repo chip ------------------------------------------------------------------
 
 
+class Unmeshable(unittest.TestCase):
+    """The specs that cannot be meshed, and the reason, pinned so a mesher regression
+    cannot quietly join the list - and so a fixed spec drops off it."""
+
+    def test_exactly_these_specs_are_unmeshable_and_the_reason_is_the_spec(self):
+        failed = {p.name: str(got) for p in CHIPS
+                  if isinstance(got := mesh_attempt(p), Exception)
+                  and not isinstance(got, Vanished)}
+        self.assertEqual(sorted(failed), sorted(BROKEN_SPECS), msg=str(failed))
+        for name, reason in failed.items():
+            # the message must name the chip and what is missing, not just fail
+            self.assertIn("neither a chamber nor a port", reason, msg=name)
+            self.assertIn(name.removesuffix(".json"), reason)
+
+    def test_a_channel_naming_a_missing_feature_is_refused_up_front(self):
+        spec = chip_spec(
+            [box("cx_1", 15, 10, 4.0, 2.5)],
+            [duct("ch_x", "ghost_in", "ghost_out", path=[[2.0, 2.0], [6.0, 2.0]])],
+            [port("p_in", 5, 10), port("p_out", 25, 10, "outlet")],
+        )
+        with self.assertRaises(cfd_mesh.MeshError) as caught:
+            cfd_mesh.build_mesh(spec)
+        self.assertIn("ghost_in", str(caught.exception))
+        self.assertIn("ghost_out", str(caught.exception))
+
+
 class RepoChips(unittest.TestCase):
     def test_there_is_a_chip_to_mesh(self):
         self.assertGreaterEqual(len(CHIPS), 9)
@@ -443,14 +654,23 @@ class RepoChips(unittest.TestCase):
         none at all) really is unreachable, and graph reachability is exactly how the
         README's `dead_end` findings are made. So a node no port can reach is allowed
         only when the SPEC explains it - and the mesh must have written it down."""
-        for path in CHIPS:
+        for path, chip, mesh in each_meshed_chip():
             with self.subTest(chip=path.name):
-                chip = schema_io.load_json(path)
-                mesh = cfd_mesh.mesh_chip(path, strict=False)
-                self.assertEqual(mesh.orphans(), [])
-                self.assertEqual(
-                    [p for p in mesh.check() if "not reachable from any port" not in p],
-                    [])
+                # An orphan node is a mesher fault unless the SPEC joins its feature to
+                # nothing at all, where a lone point feature honestly has no edge.
+                isolated = set(mesh.meta["isolated_features"])
+                for nid in mesh.orphans():
+                    self.assertIn(mesh.node(nid).feature_id, isolated, msg=f"{path.name}")
+                for feature in isolated:
+                    self.assertNotIn(feature,
+                                     {c["from"] for c in chip["channels"]}
+                                     | {c["to"] for c in chip["channels"]},
+                                     msg=f"{path.name}: {feature} has a channel on it")
+                    self.assertTrue([u for u in mesh.meta["unresolved"]
+                                     if u["feature_id"] == feature], msg=feature)
+                # the mesher's own verdict: empty means strict mode accepts this chip,
+                # so a design dead end never gets a sound chip refused
+                self.assertEqual(mesh.meta["structural_problems"], [])
                 self.assertGreater(len(mesh.nodes), len(mesh.ports))
                 self.assertEqual(mesh.meta["mu_pa_s"], MU)
 
@@ -472,8 +692,7 @@ class RepoChips(unittest.TestCase):
                     self.assertTrue(mesh.edges_at(mesh.ports[p["id"]]))
 
     def test_every_chamber_cell_area_is_within_one_percent_of_its_footprint(self):
-        for path in CHIPS:
-            mesh = cfd_mesh.mesh_chip(path, strict=False)
+        for path, _chip, mesh in each_meshed_chip():
             for note in mesh.meta["features"]:
                 if note["model"] != "hele_shaw":
                     continue
@@ -484,9 +703,10 @@ class RepoChips(unittest.TestCase):
                         1.0, delta=0.01)
 
     def test_meshing_is_deterministic(self):
-        for path in CHIPS[:3]:
-            one = cfd_mesh.mesh_chip(path, strict=False).to_json()
-            two = cfd_mesh.mesh_chip(path, strict=False).to_json()
+        for path in meshable_chips()[:3]:
+            chip = chip_of(path)
+            one = cfd_mesh.build_mesh(chip, strict=False).to_json()
+            two = cfd_mesh.build_mesh(chip, strict=False).to_json()
             self.assertEqual(json.dumps(one, sort_keys=True), json.dumps(two, sort_keys=True),
                              msg=path.name)
 
@@ -497,8 +717,7 @@ class RepoChips(unittest.TestCase):
         self.assertAlmostEqual(coarse.area_mm2("n_cx"), fine.area_mm2("n_cx"), places=6)
 
     def test_what_could_not_be_meshed_is_written_down(self):
-        for path in CHIPS:
-            mesh = cfd_mesh.mesh_chip(path, strict=False)
+        for path, _chip, mesh in each_meshed_chip():
             for entry in mesh.meta["unresolved"]:
                 self.assertIn("feature_id", entry)
                 self.assertIn("question", entry)
@@ -510,8 +729,7 @@ class RepoChips(unittest.TestCase):
 
     def test_the_per_feature_grids_the_other_modules_read_are_published(self):
         """meta.grids: particles.py and figures.py walk a chamber through this."""
-        for path in CHIPS:
-            mesh = cfd_mesh.mesh_chip(path, strict=False)
+        for path, _chip, mesh in each_meshed_chip():
             grids = mesh.meta["grids"]
             for note in mesh.meta["features"]:
                 cid = note["feature_id"]

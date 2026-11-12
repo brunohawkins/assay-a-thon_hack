@@ -14,6 +14,9 @@ Physics (every constant from contracts/parameters.json; TODO placeholders are ma
              at capsule.loss_rate per 10 s per unit of overpressure.
   backflush  upward flow lifts capsules off the mesh (backflush.lift_flow_ul_min).
   hold_temp  first-order heating/cooling (thermal.tau_s) with a ramp-rate limit.
+  culture    a batch of medium per chamber every exchange_interval_s, held at temp_c.
+  collect    supernatant out to the collection tube; the cells stay.
+  harvest    the detached cells (or suspended capsules) flushed out to the collection tube.
   volumes    reservoirs -> chamber -> waste (washes) or collection (release).
 
 Commands are applied as time SLICES: args carry the slice's volume (exchange, load,
@@ -54,7 +57,7 @@ class ModelParams:
     @classmethod
     def from_chip(cls, chip: dict, parameters: dict) -> "ModelParams":
         d_um = chip.get("capsule", {}).get("diameter_um", _p(parameters, "capsule.diameter_um"))
-        mu = _p(parameters, "fluid.viscosity_pa_s")
+        mu = _p(parameters, "fluid.viscosity_37c_pa_s")   # 37 C medium, not water at 20 C
         vol, bed, clean, cap = {}, {}, {}, {}
         for c in chip["chambers"]:
             cid = c["id"]
@@ -120,8 +123,9 @@ class ProcessModel:
         if handler is None:
             raise ValueError(f"process model has no rule for command {command!r}")
         handler(s, args, out)
+        held = {args.get("target")} | set(args.get("targets") or [])
         for cid, ch in s.chambers.items():
-            if command != "hold_temp" or cid != args.get("target"):
+            if command not in ("hold_temp", "culture") or cid not in held:
                 ch.temp_c += (self.params.ambient_c - ch.temp_c) * (1 - math.exp(-out["dt_s"] / (4 * self.params.thermal_tau_s)))
         s.clock_s += out["dt_s"]
         return s, out
@@ -246,6 +250,77 @@ class ProcessModel:
             ch.capsule_concentration = ch.concentration + (ch.capsule_concentration - ch.concentration) * math.exp(-dt / self.params.diffusion_time_s)
             ch.pressure_kpa = 0.0
         out["dt_s"] = dt
+
+    def _culture(self, s: ChipState, a: dict, out: dict) -> None:
+        """Keep chambers in culture: a batch of medium through each one every
+        exchange_interval_s, nothing flowing in between, all of it at temp_c.
+
+        Module 1's protocols are written as culture steps, so without this rule the closed
+        loop could not plan them at all (model.predict raised and the optimizer crashed).
+        """
+        dt = float(a["duration_s"])
+        interval = float(a["exchange_interval_s"])
+        targets = list(a["targets"])
+        reagents = list(a.get("reagents") or [])
+        if reagents and len(reagents) != len(targets):
+            raise ValueError(f"culture has {len(targets)} targets but {len(reagents)} reagents")
+        batches = max(1, int(dt // interval)) if interval > 0 else 1
+        per_batch = float(a["volume_ul"])
+        q = float(a["flow_ul_min"])
+        peak = 0.0
+        for i, cid in enumerate(targets):
+            reagent = reagents[i] if reagents else CARRIER
+            drawn = self._draw(s, reagent, per_batch * batches, out)
+            ch = s.chambers[cid]
+            self._flush(s, cid, reagent, drawn, dt)
+            ch.temp_c += (float(a["temp_c"]) - ch.temp_c) * (1 - math.exp(-dt / self.params.thermal_tau_s))
+            p = self.mesh_pressure(s, cid, q)
+            ch.pressure_kpa = p
+            peak = max(peak, p)
+            s.waste_ul += drawn
+            if float(a["temp_c"]) >= 30 and ch.capsules > 0 and dt >= 3600:
+                ch.swollen = True
+        out.update(pressure_kpa=peak, temp_c=float(a["temp_c"]), dt_s=dt,
+                   outlet_absorbance=s.chambers[targets[0]].concentration if targets else None)
+
+    def _collect(self, s: ChipState, a: dict, out: dict) -> None:
+        """Supernatant out of each chamber into the collection tube. The cells stay."""
+        per = float(a["volume_ul"])
+        q = float(a.get("flow_ul_min") or 0.0)
+        total = 0.0
+        for cid in a["targets"]:
+            ch = s.chambers[cid]
+            taken = min(per, ch.volume_ul if ch.volume_ul > 0 else per)
+            ch.volume_ul = max(0.0, ch.volume_ul - taken)
+            ch.pressure_kpa = 0.0                        # out through the outlet, not the retention
+            s.collection_ul += taken
+            total += taken
+        out.update(dispensed_ul=total, dt_s=(total / q * 60 if q else 60.0),
+                   outlet_absorbance=s.chambers[a["targets"][0]].concentration)
+
+    def _harvest(self, s: ChipState, a: dict, out: dict) -> None:
+        """Flush the (detached) cells or capsules out of each chamber through its outlet."""
+        reagent = a["reagent"]
+        q = float(a.get("flow_ul_min") or 0.0)
+        leaving, volume = 0.0, 0.0
+        for cid in a["targets"]:
+            ch = s.chambers[cid]
+            vc = self.params.chamber_volume_ul[cid]
+            v = float(a.get("volume_ul") or 2 * vc)
+            drawn = self._draw(s, reagent, v, out)
+            dt = drawn / q * 60 if q else 60.0
+            out_frac = 1 - math.exp(-drawn / vc)
+            gone = ch.capsules_suspended * out_frac
+            ch.capsules_suspended -= gone
+            leaving += gone
+            self._flush(s, cid, reagent, drawn, dt)
+            ch.pressure_kpa = 0.0
+            volume += drawn
+        s.capsules_collected += leaving
+        s.collection_ul += volume
+        out.update(capsules_out_collection=leaving, dispensed_ul=volume,
+                   dt_s=(volume / q * 60 if q else 60.0),
+                   outlet_absorbance=s.chambers[a["targets"][0]].concentration)
 
     def _split(self, s: ChipState, a: dict, out: dict) -> None:
         src = s.chambers[a["source"]]

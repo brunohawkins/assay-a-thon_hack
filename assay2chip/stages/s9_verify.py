@@ -497,10 +497,52 @@ def run_collisions(chip_id: str, chip: dict, write_figures: bool = False
         )
         lines = finding_lines(run.stdout)
     rows = [
-        classify(line, source="cad/make_figures.py", chip=chip_id, scope=F.PIPELINE)
+        own_port_pad(chip, classify(line, source="cad/make_figures.py", chip=chip_id,
+                                    scope=F.PIPELINE))
         for line in lines
     ]
     return run, rows
+
+
+_PAD_LINE = re.compile(r"port '(?P<port>[^']+)' and chamber '(?P<chamber>[^']+)' overlap: "
+                       r"the port is drilled into a chamber")
+
+
+def own_port_pad(chip: dict, row: dict) -> dict:
+    """A port drilled into ITS OWN pad is the design, not a collision.
+
+    S6 cuts a pad under every port because tools/check_chip_spec.py's port-overlap rule
+    requires the 0.8 mm hole to open onto cut feature, and S7 routes into the pad. When
+    the pad is a chamber rather than a `port.pad`, cad/make_figures.py does not recognise
+    it (it exempts only `port.pad`, "a port's OWN pad is where its bore is meant to land")
+    and calls the hole a short circuit. Treated as a blocker, that sent every run back to
+    S7 three times - which cannot move a port - and then failed it.
+
+    Downgraded to `info` ONLY when all three hold: the chamber is a `port` block, it is
+    named `<port>_pad`, and the port's centre lies inside it. Anything else - a port in a
+    real chamber, or in another port's pad - stays a blocker.
+    """
+    m = _PAD_LINE.search(row.get("message") or "")
+    if not m or row.get("severity") != "blocker":
+        return row
+    port_id, chamber_id = m.group("port"), m.group("chamber")
+    port = next((p for p in chip.get("ports") or [] if p.get("id") == port_id), None)
+    pad = next((c for c in chip.get("chambers") or [] if c.get("id") == chamber_id), None)
+    if port is None or pad is None or pad.get("block") != "port" \
+            or chamber_id != f"{port_id}_pad":
+        return row
+    try:
+        (px, py), (cx, cy) = port["position"][:2], pad["center"][:2]
+        sx, sy = pad["size"][:2]
+    except (KeyError, TypeError, ValueError):
+        return row
+    if abs(px - cx) > sx / 2 or abs(py - cy) > sy / 2:
+        return row
+    out = dict(row)
+    out.update(severity="info", rule="port_in_own_pad", rerun_from=None,
+               what="a port drilled into its own pad (intended; make_figures exempts only "
+                    "port.pad, not a pad cut as a chamber)")
+    return out
 
 
 def run_operator(chip_id: str, chip: dict, protocol: dict, chip_path: Path,

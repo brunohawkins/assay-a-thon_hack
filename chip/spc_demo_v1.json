@@ -1,7 +1,7 @@
 {
   "id": "spc_demo_v1",
-  "name": "Capsule generator, demo scale",
-  "description": "DEMO SCALE: authored directly at demo scale, so the scale factor is 1.0 and fit_chip.py changes nothing. 30 x 20 mm, one fluidic layer, 0.15 mm deep (limit 0.3 mm), 4 ports (limit 6), so no ports were merged and no channel widths were clamped; every channel is 0.3 mm, above the 0.2 mm floor, so flow resistances are as designed. Every chamber and channel now carries a block from contracts/blocks.json: Y-junctions for the oil split and aqueous merge, channel corners for the oil loop, the flow_focusing block for the droplet junction, a serpentine_channel for the delay line, and straight channels for the rest. Residual: the 100 um orifice is below the 0.2 mm open-channel floor, so it must be widened to 0.2 mm or be a documented exception, and droplets would then be about 260 um. The demo build: a 30 x 20 mm single-depth droplet generator, which is the one stage worth filming because you can watch capsules form. It is the front of chip/sctip_spc_v1.json shrunk to the real fabrication envelope, and it supersedes that board for anything anyone actually prints. SINGLE LAYER, ONE DEPTH of 0.15 mm everywhere, smallest feature 100 um at the orifice, so it is resin-printable and hot-embossable. Built only from blocks in the available library: Port, Straight Channel, Curved Channel, Y-Junction, Cross Junction, Flow-Focusing Funnel and Serpentine Channel. No pillar arrays, no phase guides and no traps, because a phase guide is a partial-height ridge and a trap gap would have to be under 100 um, and neither survives a single-depth 2D rule. The oil path deliberately loops around the outside so the two aqueous inlets sit inside it and nothing has to cross: in a single layer there are no vias, so planar routing is the whole game. aq_merge brings the shell and core streams together; they do NOT mix before the junction and are not meant to, since at this speed diffusion would need about 25 mm of channel, and they mix inside each droplet instead. xj_1 is the flow-focusing cross and funnel. delay_1 is a folded residence and observation line, about 104 mm long, which is roughly 20 s at the design flow. Curing stays off-chip. Geometry is ours; the biology is cited in protocols/. Orifice as drawn. NOTE this is above the 40 um the published method uses, because 40 um is below the 200 um printable floor, so capsules from this chip will be much larger than 70 um. See protocols/pipeline_status.md.",
+  "name": "Flow-focusing geometry demo / reference board (not the pipeline's encapsulator)",
+  "description": "DEMO AND REFERENCE ONLY. THIS BOARD IS NOT THE PIPELINE'S ENCAPSULATOR AND DOES NOT SUPPLY IT. It exists to show, at the real fabrication envelope, what a flow-focusing droplet junction looks like and how it is run: prime oil-first, bring the two aqueous streams in, watch the oil pinch the pair off at a cross junction, and follow the train down a folded residence line you can film. WHAT IT CAN SHOW, WITH DYE. The planar routing (the oil loops around the outside so the two aqueous inlets sit inside it and nothing has to cross, because a single layer has no vias); the wetting order, which is the single most common way a droplet board fails; pinch-off at the cross junction; whether the train is even in size and in spacing, which is the result worth measuring; and residence time down the serpentine. Run it with dye in the two aqueous streams. NO CELLS GO THROUGH THIS CHIP. WHAT IT CANNOT DO: MAKE 70 um CAPSULES. The pipeline's capsule is 70 um (contracts/parameters.json capsule.diameter_um, which module3, module4, module6 and contracts/blocks.json all assume). A 70 um capsule needs roughly a 40 um orifice. Our in-plane fabrication floor is 200 um for both routes we have, resin printing and hot embossing, so a 40 um orifice is five times below the floor: there is no on-chip path to 70 um here, by either process, at any flow ratio. ENCAPSULATION IS THEREFORE OFF-CHIP, on the existing commercial droplet kit, at 70 um. That is the resolution; this board is the teaching and reference article, not a stage of the pipeline. THE GEOMETRY AS DRAWN, and every number in this file now agrees with it. 30 x 20 mm, one fluidic layer, ONE DEPTH of 0.15 mm everywhere, 4 ports (limit 6), every channel 0.3 mm wide, which is above the 0.2 mm open-channel floor, so no width was clamped and the flow resistances are as designed. The orifice at xj_1 is 0.3 mm wide by 0.15 mm deep, so the smallest in-plane feature on the board is 300 um, comfortably above the 200 um floor. Earlier versions of this file also claimed a 100 um orifice giving 260 um droplets; that orifice was never drawn, it is below the open-channel floor, and the claim is removed. DROPLET SIZE, INDICATIVE ONLY. The usual rule of thumb, droplet is about 1.3x the nozzle, assumes an axisymmetric nozzle; applied to a 300 um orifice it gives 390 um, and a 390 um sphere cannot exist in a 150 um deep channel, let alone be carried to the outlet. In a shallow rectangular junction like this one the drop is confined by the DEPTH, so the largest spherical droplet this board can form and carry is its 0.15 mm etch depth, 150 um; anything the junction tries to make bigger comes out as a flattened disc. The file therefore states 150 um and states it as INDICATIVE: on the demo, measure the spread, not the diameter. BLOCKS. Built only from contracts/blocks.json: Port, Straight Channel, Channel Corner, Y-Junction, Cross Junction with a Flow-Focusing Funnel, and Serpentine Channel. No pillar arrays, no phase guides, no traps: a phase guide is a partial-height ridge and a trap gap would have to be under 100 um, and neither survives a single-depth 2D rule. oil_split takes one oil port and feeds both arms, which saves a port on a board where ports are the scarce resource. aq_merge brings the shell and core streams together; they do NOT mix before the junction and are not meant to, since at this speed diffusion would need about 25 mm of channel, and in a real core-shell run they demix inside the drop instead. delay_1 is the folded residence and observation line, about 104 mm long, roughly 20 s at the design flow; it is NOT a cure window, because demixing takes minutes and curing belongs in a tube off chip. It supersedes the front of chip/sctip_spc_v1.json for anything anyone actually prints, but as a reference article, not as a supplier of capsules. Authored directly at demo scale, so the scale factor is 1.0 and fit_chip.py changes nothing. Geometry is ours; the flow-focusing and core-shell literature is cited in protocols/spc_demo_v1.json.",
   "placeholder": false,
   "units": "mm",
   "footprint": {
@@ -125,7 +125,7 @@
         0.15
       ],
       "volume_ul": 0.013,
-      "note": "Y-junction merging shell and core. They travel side by side as a laminar pair for the last 3 mm and only mix inside the droplet, which is what makes the core-shell form.",
+      "note": "Y-junction merging the two aqueous streams. They travel side by side as a laminar pair for the last 3 mm and do not mix before the junction. In a real core-shell run that is what lets the shell demix to the outside inside the drop; on this board both streams are dye.",
       "block": "y_junction"
     },
     {
@@ -142,7 +142,7 @@
         0.15
       ],
       "volume_ul": 0.013,
-      "note": "Cross junction with a flow-focusing funnel: the aqueous pair enters from the west, oil pinches from north and south, and the 100 um orifice is the smallest feature on the board. Droplets come out at roughly 1.3x the orifice, so about 135 um.",
+      "note": "Cross junction with a flow-focusing funnel: the aqueous pair enters from the west and the oil pinches from north and south. The orifice is 0.3 mm wide by 0.15 mm deep, the smallest in-plane feature on the board and above the 200 um fabrication floor. Droplets are confined by the 0.15 mm depth, so treat 150 um as an indicative figure and measure the spread, not the diameter. This is not a route to the pipeline's 70 um capsule: that needs about a 40 um orifice, five times below the in-plane floor, so encapsulation is off-chip on the commercial droplet kit.",
       "block": "flow_focusing"
     },
     {
@@ -159,8 +159,13 @@
         0.15
       ],
       "mesh_pore_um": null,
-      "volume_ul": 21.5,
-      "note": "Serpentine residence and observation line. The footprint is 11 x 13 mm; the folded path inside it is about 104 mm of 0.3 mm channel at 0.7 mm pitch (0.4 mm wall between 0.3 mm lanes, the wall floor; it was 0.5 mm, which left a 0.2 mm wall), which is about 20 s at the design flow. This is the window you film. It is NOT a cure window: the two aqueous polymers need minutes to demix, so curing happens in the collection tube.",
+      "volume_ul": 4.68,
+      "mixer": {
+        "kind": "serpentine",
+        "channel_width_mm": 0.3,
+        "length_mm": 104
+      },
+      "note": "Serpentine residence and observation line. The footprint is 11 x 13 mm; the folded path inside it is 104 mm of 0.3 mm channel at 0.7 mm pitch (0.4 mm wall between 0.3 mm lanes, the wall floor). FOOTPRINT IS NOT CROSS-SECTION, and this chamber had both of its numbers wrong because of that. volume_ul was 21.5 uL, which is the 11 x 13 x 0.15 mm BOUNDING BOX; the walls between the lanes are solid, so the liquid only ever occupies the lane, and 104 x 0.3 x 0.15 mm is 4.68 uL - 4.6x less. Wall shear was taken on the 13 mm footprint width instead of the 0.3 mm lane as well, and tau = 6*mu*Q/(w*h^2) goes as 1/w, so it read 43x low and the flow derived from it was 43x too high. The lane is now declared as a mixer block so a tool can read it instead of parsing this note: protocols/build_spc_demo.py takes both the volume and the shear width from there. This is the window you film: even spacing and even size is the whole result. It is NOT a cure window, and on this board there is nothing to cure - it is run with dye.",
       "block": "serpentine_channel"
     }
   ],
@@ -285,7 +290,7 @@
       ],
       "role": "reagent",
       "width_um": 1600,
-      "note": "Shell polymer stream. Sits INSIDE the oil loop, which is how the board stays planar."
+      "note": "The stream that would be the shell. Sits INSIDE the oil loop, which is how the board stays planar. Dye on this board."
     },
     {
       "id": "in_core",
@@ -295,9 +300,9 @@
         6,
         1.35
       ],
-      "role": "cells",
+      "role": "reagent",
       "width_um": 1600,
-      "note": "Core stream with the permeabilised cells."
+      "note": "The stream that would be the core. ON THIS BOARD IT IS DYE, NOT CELLS: this is a geometry demo, not the pipeline's encapsulator, and no cells are loaded onto it."
     },
     {
       "id": "out_caps",
@@ -310,10 +315,12 @@
       "role": "harvest",
       "capsule_passable": true,
       "width_um": 1600,
-      "note": "To a collection tube on ice, then flood-cure."
+      "note": "To a collection tube. Depth-limited demo droplets of order 150 um, for looking at under a scope; there is nothing to cure and nothing downstream of this board in the pipeline."
     }
   ],
   "encapsulation": {
-    "nozzle_um": 300.0
+    "nozzle": "xj_1",
+    "nozzle_um": 300.0,
+    "nozzle_depth_um": 150.0
   }
 }

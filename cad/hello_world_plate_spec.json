@@ -34,6 +34,7 @@
         1.0,
         0.2
       ],
+      "shape": "cylinder",
       "mesh_pore_um": null,
       "volume_ul": 0.1571,
       "open_top": true,
@@ -52,6 +53,7 @@
         1.0,
         0.2
       ],
+      "shape": "cylinder",
       "mesh_pore_um": null,
       "volume_ul": 0.1571,
       "open_top": true,

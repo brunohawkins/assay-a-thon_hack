@@ -1,0 +1,521 @@
+{
+  "schema": "assay2chip/fabricate manifest v1",
+  "chip_id": "demo_small_c2",
+  "generated_by": "assay2chip/stages/s11_fabricate.py",
+  "scale": {
+    "name": "demo",
+    "footprint_mm": {
+      "x": 30.0,
+      "y": 20.0
+    },
+    "is_target_device": false,
+    "warning": "DEMO SCALE: 30 x 20 mm test article. This is what we can print and emboss today, NOT the device. The design target is the ANSI/SLAS microplate footprint 127.76 x 85.48 mm, 18x this area. Do not read any dimension on these files as the real device.",
+    "source": "contracts/blocks.json envelope"
+  },
+  "units": "mm",
+  "origin": "the chip-spec origin: (0, 0) at the lower-left corner of the footprint, z = 0 at the underside of the chip. Every file in this bundle shares it.",
+  "footprint_mm": {
+    "x": 30.0,
+    "y": 20.0
+  },
+  "depth": {
+    "etch_depth_um": 300.0,
+    "depths_present_um": [
+      300.0
+    ],
+    "max_allowed_um": 300.0,
+    "body_thickness_mm": 3.3,
+    "recess_floor_mm": 3.0
+  },
+  "material": {
+    "chip": "cop_1060r",
+    "by_layer": [
+      {
+        "id": "base",
+        "material": "cop_1060r",
+        "thickness_mm": 3.0
+      },
+      {
+        "id": "fluidic",
+        "material": "cop_1060r",
+        "thickness_mm": 0.3
+      },
+      {
+        "id": "lid",
+        "material": "cop_1060r",
+        "thickness_mm": 1.0
+      }
+    ],
+    "fluidic_layer_mm": 0.3,
+    "base_mm": 3.0,
+    "lid": {
+      "id": "lid",
+      "thickness_mm": 1.0,
+      "material": "cop_1060r"
+    }
+  },
+  "features": {
+    "chambers": 5,
+    "channels": 4,
+    "channels_with_explicit_path": 4,
+    "ports": 4,
+    "solids_built": 16,
+    "cut_area_mm2": 20.041,
+    "not_modelled": []
+  },
+  "geometry_method": {
+    "grid": "rectilinear, lines on the feature edges",
+    "cells": 19044,
+    "sampling_pitch_mm": 0.05,
+    "sampled_features": [
+      "inlet_1",
+      "inlet_1_pad",
+      "outlet_1",
+      "outlet_1_pad",
+      "reagent_in",
+      "reagent_in_pad",
+      "waste",
+      "waste_pad"
+    ],
+    "corner_repairs": 0,
+    "note": "axis-aligned features are exact; round port pads and diagonal runs are stepped at the sampling pitch, a quarter of the in-plane floor"
+  },
+  "fabrication_routes": {
+    "process": "resin_3d_print_plus_hot_emboss",
+    "source": "cad/fabrication.json",
+    "resin_print": {
+      "makes": "the tool, and the chip directly for a one-off",
+      "files": [
+        "demo_small_c2_mould.stl",
+        "demo_small_c2_body.stl"
+      ],
+      "min_feature_um": 200,
+      "tooling_at_the_agreed_ceiling": "Formlabs Form 4L, 353 x 196 mm build. Fits with 63 x 6 mm margin."
+    },
+    "hot_emboss": {
+      "makes": "the production chip, pressed from the resin tool into COC/COP sheet",
+      "files": [
+        "demo_small_c2_mould.stl"
+      ],
+      "mould": "mirrored in x, so the EMBOSSED chip matches the spec seen from the port side",
+      "plate_mm": 2.0,
+      "relief_um": 300.0,
+      "tooling_at_the_agreed_ceiling": "296 mm square platen (Collin P300S class). Fits with 6 x 106 mm margin.",
+      "not_usable": "300 mm ROUND wafer tools: a 290 x 190 rectangle has a 346.7 mm diagonal, so it does not fit a 300 mm round platen."
+    },
+    "seal": "a separate lid or film with drilled ports: the channels in this body are OPEN by design (contracts/blocks.json fabrication_floors.note)",
+    "cam_2d": {
+      "makes": "the cut outline, for any 2D route",
+      "files": [
+        "demo_small_c2.dxf"
+      ],
+      "units_declared": "$INSUNITS = 4 (mm) in the DXF HEADER"
+    }
+  },
+  "checks": [
+    {
+      "check": "envelope_fits",
+      "passed": true,
+      "detail": "30 x 20 mm against the demo envelope 30 x 20 mm",
+      "route": "both",
+      "source": "contracts/blocks.json envelope",
+      "advisory": false
+    },
+    {
+      "check": "single_etch_depth",
+      "passed": true,
+      "detail": "one fluidic layer at one depth: 300 um",
+      "route": "both",
+      "source": "contracts/blocks.json envelope.layers",
+      "advisory": false
+    },
+    {
+      "check": "max_etch_depth",
+      "passed": true,
+      "detail": "deepest feature 300 um against the 300 um ceiling",
+      "route": "both",
+      "source": "contracts/blocks.json envelope.max_depth_mm",
+      "advisory": false
+    },
+    {
+      "check": "min_open_channel",
+      "passed": true,
+      "detail": "narrowest cut feature is 'ch_conn_1' at 200 um, floor 200 um",
+      "route": "both",
+      "source": "contracts/blocks.json fabrication_floors",
+      "advisory": false
+    },
+    {
+      "check": "min_wall",
+      "passed": true,
+      "detail": "thinnest solid wall 400 um (between 'outlet_1_pad' and the edge of the footprint), floor 400 um",
+      "route": "both",
+      "source": "contracts/blocks.json fabrication_floors",
+      "advisory": false
+    },
+    {
+      "check": "min_port_bore",
+      "passed": true,
+      "detail": "smallest bore 'inlet_1' at 0.8 mm, floor 0.8 mm",
+      "route": "both",
+      "source": "contracts/blocks.json fabrication_floors",
+      "advisory": false
+    },
+    {
+      "check": "min_port_pitch",
+      "passed": true,
+      "detail": "closest pair inlet_1-reagent_in at 14.37 mm, floor 5 mm",
+      "route": "both",
+      "source": "contracts/blocks.json fabrication_floors",
+      "advisory": false
+    },
+    {
+      "check": "port_count",
+      "passed": true,
+      "detail": "4 fluid ports against the demo envelope (30 x 20 mm) limit of 6",
+      "route": "both",
+      "source": "contracts/blocks.json fabrication_floors.max_ports_per_chip",
+      "advisory": false
+    },
+    {
+      "check": "no_channel_crossings",
+      "passed": true,
+      "detail": "no two routed channels cross in plan view",
+      "route": "both",
+      "source": "tools/check_chip_spec.py crossings() + contracts/blocks.json excluded.multilayer",
+      "advisory": false
+    },
+    {
+      "check": "port_opens_onto_cut",
+      "passed": true,
+      "detail": "every port hole opens onto enough cut channel, chamber or port pad",
+      "route": "both",
+      "source": "tools/check_chip_spec.py port_overlaps()",
+      "advisory": false
+    },
+    {
+      "check": "port_reached_by_routed_channel",
+      "passed": true,
+      "detail": "every port hole is reached by the channel or chamber the design routes to it",
+      "route": "both",
+      "source": "tools/check_chip_spec.py port_overlaps()",
+      "advisory": true
+    },
+    {
+      "check": "features_inside_footprint",
+      "passed": true,
+      "detail": "every feature is inside the footprint",
+      "route": "both",
+      "source": "chip/fusion/chip_from_spec plan()",
+      "advisory": false
+    },
+    {
+      "check": "mould_is_inverse_of_body",
+      "passed": true,
+      "detail": "all 19044 cells match: the mould is raised exactly where the body is cut (after un-mirroring in x)",
+      "route": "hot_emboss",
+      "source": "assay2chip/fabricate/mould.py",
+      "advisory": false
+    },
+    {
+      "check": "geometry_honours_routed_paths",
+      "passed": true,
+      "detail": "4 of 4 channels have an explicit `path`, and every run of it was built; the rest use chip_from_spec's documented automatic route. No channel was drawn as a straight line between its endpoints.",
+      "route": "both",
+      "source": "chip/fusion/chip_from_spec plan()",
+      "advisory": false
+    },
+    {
+      "check": "stl_watertight",
+      "passed": true,
+      "detail": "demo_small_c2_body.stl: every edge used exactly twice",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_consistent_winding",
+      "passed": true,
+      "detail": "demo_small_c2_body.stl: no two faces wind an edge the same way",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_outward_normals",
+      "passed": true,
+      "detail": "demo_small_c2_body.stl: signed volume 1973.9876 mm3 > 0: normals point out of the solid",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_bbox_is_footprint",
+      "passed": true,
+      "detail": "demo_small_c2_body.stl: 30 x 20 mm vs spec footprint 30 x 20 mm",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_at_spec_origin",
+      "passed": true,
+      "detail": "demo_small_c2_body.stl: min corner (0, 0, 0) mm, expected (0, 0, 0)",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_units_mm",
+      "passed": true,
+      "detail": "demo_small_c2_body.stl: footprint in the mesh matches the spec's millimetres, so the file is mm (a 25.4x unit error would show here as inches)",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_height_is_stackup",
+      "passed": true,
+      "detail": "demo_small_c2_body.stl: top at z = 3.3 mm, expected 3.3 mm",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_watertight",
+      "passed": true,
+      "detail": "demo_small_c2_mould.stl: every edge used exactly twice",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_consistent_winding",
+      "passed": true,
+      "detail": "demo_small_c2_mould.stl: no two faces wind an edge the same way",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_outward_normals",
+      "passed": true,
+      "detail": "demo_small_c2_mould.stl: signed volume 1206.0124 mm3 > 0: normals point out of the solid",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_bbox_is_footprint",
+      "passed": true,
+      "detail": "demo_small_c2_mould.stl: 30 x 20 mm vs spec footprint 30 x 20 mm",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_at_spec_origin",
+      "passed": true,
+      "detail": "demo_small_c2_mould.stl: min corner (0, 0, 0) mm, expected (0, 0, 0)",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_units_mm",
+      "passed": true,
+      "detail": "demo_small_c2_mould.stl: footprint in the mesh matches the spec's millimetres, so the file is mm (a 25.4x unit error would show here as inches)",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    },
+    {
+      "check": "stl_height_is_stackup",
+      "passed": true,
+      "detail": "demo_small_c2_mould.stl: top at z = 2.3 mm, expected 2.3 mm",
+      "route": "both",
+      "source": "assay2chip/fabricate/mesh.py validate()"
+    }
+  ],
+  "checks_passed": 28,
+  "checks_failed": [],
+  "advisories_raised": [],
+  "all_checks_passed": true,
+  "stl_validation": [
+    {
+      "name": "demo_small_c2_body",
+      "triangles": 79152,
+      "volume_mm3": 1973.987584,
+      "bbox_min_mm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bbox_max_mm": [
+        30.0,
+        20.0,
+        3.3
+      ],
+      "checks": {
+        "watertight": {
+          "passed": true,
+          "detail": "every edge used exactly twice"
+        },
+        "consistent_winding": {
+          "passed": true,
+          "detail": "no two faces wind an edge the same way"
+        },
+        "outward_normals": {
+          "passed": true,
+          "detail": "signed volume 1973.9876 mm3 > 0: normals point out of the solid"
+        },
+        "bbox_is_footprint": {
+          "passed": true,
+          "detail": "30 x 20 mm vs spec footprint 30 x 20 mm"
+        },
+        "at_spec_origin": {
+          "passed": true,
+          "detail": "min corner (0, 0, 0) mm, expected (0, 0, 0)"
+        },
+        "units_mm": {
+          "passed": true,
+          "detail": "footprint in the mesh matches the spec's millimetres, so the file is mm (a 25.4x unit error would show here as inches)"
+        },
+        "height_is_stackup": {
+          "passed": true,
+          "detail": "top at z = 3.3 mm, expected 3.3 mm"
+        }
+      },
+      "passed": true,
+      "role": "the chip itself: resin-printed direct, or the shape the embossed sheet takes under the mould. Channels open, sealed afterwards."
+    },
+    {
+      "name": "demo_small_c2_mould",
+      "triangles": 79152,
+      "volume_mm3": 1206.012416,
+      "bbox_min_mm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bbox_max_mm": [
+        30.0,
+        20.0,
+        2.3
+      ],
+      "checks": {
+        "watertight": {
+          "passed": true,
+          "detail": "every edge used exactly twice"
+        },
+        "consistent_winding": {
+          "passed": true,
+          "detail": "no two faces wind an edge the same way"
+        },
+        "outward_normals": {
+          "passed": true,
+          "detail": "signed volume 1206.0124 mm3 > 0: normals point out of the solid"
+        },
+        "bbox_is_footprint": {
+          "passed": true,
+          "detail": "30 x 20 mm vs spec footprint 30 x 20 mm"
+        },
+        "at_spec_origin": {
+          "passed": true,
+          "detail": "min corner (0, 0, 0) mm, expected (0, 0, 0)"
+        },
+        "units_mm": {
+          "passed": true,
+          "detail": "footprint in the mesh matches the spec's millimetres, so the file is mm (a 25.4x unit error would show here as inches)"
+        },
+        "height_is_stackup": {
+          "passed": true,
+          "detail": "top at z = 2.3 mm, expected 2.3 mm"
+        }
+      },
+      "passed": true,
+      "role": "the resin-printed positive tool: raised exactly where the chip is cut, hot-embossed into a COC/COP sheet"
+    }
+  ],
+  "files": [
+    {
+      "file": "demo_small_c2_body.stl",
+      "role": "the chip itself: resin-printed direct, or the shape the embossed sheet takes under the mould. Channels open, sealed afterwards.",
+      "bytes": 3957684,
+      "sha256": "da5306c44a198250d1bb31674cdf03716486346074b8fd7dc85060c9168231ab"
+    },
+    {
+      "file": "demo_small_c2_mould.stl",
+      "role": "the resin-printed positive tool: raised exactly where the chip is cut, hot-embossed into a COC/COP sheet",
+      "bytes": 3957684,
+      "sha256": "133ba83a3b71bdac072b84d720ff0ea3240a6e02eb9ed388cc7cb691e56b6c12"
+    },
+    {
+      "file": "demo_small_c2.dxf",
+      "role": "closed-polyline cut outline, units declared as mm in the HEADER",
+      "bytes": 16029,
+      "sha256": "b1e54b2eb22b5b5d34e8b85a9fe8c9234594b3f487c63d4722aed9d1565d1ff7"
+    },
+    {
+      "file": "demo_small_c2_fusion_rebuild.py",
+      "role": "Fusion 360 rebuild of both solids",
+      "bytes": 8727,
+      "sha256": "c04d8a6a56050b9f631fb4cf9ec09823abacec611cb1744fbcdb1f2b4df82334"
+    },
+    {
+      "file": "render_iso.svg",
+      "role": "isometric render",
+      "bytes": 374261,
+      "sha256": "a7319d3de68798d2917f587b444eb59a2cbf1ed013b3ee45bbcc4d5479e53b33"
+    },
+    {
+      "file": "render_top.svg",
+      "role": "top-view render, 1:1",
+      "bytes": 7940,
+      "sha256": "fb873a6222428dac86d0ea84763a8532b9e26d71e46672c8fa398a5cd83ad82c"
+    }
+  ],
+  "contracts": {
+    "contracts/blocks.json": "d0c39a8f4f24d821580a68a41a699f00e15afb7156a5e3e3a1e9315b95d037a8",
+    "contracts/parameters.json": "129356c8d44b9dd9eb7dc57e05b0450adfc8a454f10897d2f71c0c08128fd767"
+  },
+  "dxf": {
+    "polylines": 18,
+    "by_layer": {
+      "OUTLINE": 1,
+      "CUT": 1,
+      "CHAMBERS": 5,
+      "CHANNELS": 7,
+      "PORTS": 4
+    },
+    "insunits": 4,
+    "units": "mm",
+    "all_closed": true,
+    "cut_loops": 1,
+    "cut_islands": 0,
+    "min_feature_floor_mm": 0.2,
+    "note": "$INSUNITS = 4 (mm) and $MEASUREMENT = 1 are in the HEADER, so no importer can scale this 25.4x. Every entity is a closed LWPOLYLINE; cut on the CUT layer, which is the traced boundary of the cut region and so has no line running through the inside of a pocket."
+  },
+  "renders": [
+    {
+      "view": "top",
+      "px_per_mm": 22.0,
+      "loops": 1,
+      "scale_bar_mm": 10.0,
+      "true_scale": true
+    },
+    {
+      "view": "isometric",
+      "triangles_drawn": 2688,
+      "px_per_mm": 17.0,
+      "z_exaggeration": 1.0,
+      "scale_bar_mm": 10.0,
+      "true_scale": false,
+      "azimuth_deg": -40.0,
+      "elevation_deg": 50.0
+    }
+  ],
+  "fusion_script": {
+    "body_features": 16,
+    "mould_features": 16,
+    "builds": [
+      "demo_small_c2_body",
+      "demo_small_c2_mould"
+    ],
+    "kind": "solid BRep rebuild (not a mesh import)",
+    "pattern": "chip/components/build_chip.py"
+  },
+  "body_stack_gaps": [],
+  "mould_notes": {
+    "mirror": "mirrored in x, so the EMBOSSED chip matches the spec seen from the port side",
+    "source": "chip/fusion/chip_from_spec/chip_from_spec.py (plan + MOULD_BASE_MM)",
+    "problems": []
+  }
+}

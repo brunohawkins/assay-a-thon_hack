@@ -7,7 +7,10 @@
 //   offChip  [{ stage, where, status, after, before }]: OFF-CHIP rows, with the chips either side
 //   retired  Set of whole chips the file retires (its retired table, or rows all saying DUPLICATE-RETIRE)
 
-const cells = (line) => line.trim().replace(/^\||\|$/g, '').split('|').map((c) => c.trim());
+// The status file is Markdown, so a cell may be emphasised (**Single-cell barcoding**). The
+// twin renders these as text in a 3D label, where the asterisks would show up literally.
+const plain = (s) => s.replace(/\*\*(.+?)\*\*/g, '$1').replace(/(^|\s)\*(\S[^*]*?)\*(?=\s|$|[.,;:])/g, '$1$2');
+const cells = (line) => line.trim().replace(/^\||\|$/g, '').split('|').map((c) => plain(c.trim()));
 const code = (s) => /`([^`]+)`/.exec(s)?.[1] ?? null;
 const badgeOf = (status) => status.split(/[,(]/)[0].trim().toUpperCase();
 
@@ -68,4 +71,60 @@ export async function loadStatus(root) {
   } catch {
     return null;
   }
+}
+
+// How a status reads on screen: a coloured dot and a plain word (twin/style.css .status).
+// The keys are the words pipeline_status.md and the pipeline files use. BUILT there means a spec
+// and a protocol exist, not that anything was printed or run, so it reads "Designed".
+const SHOWN = {
+  BUILT: ['st-final', 'Designed', 'pipeline_status.md: BUILT. A chip spec and a protocol exist; that does not mean printed or run.'],
+  FINAL: ['st-final', 'Designed', 'Pipeline file: final design (a chip spec and a protocol exist).'],
+  TRANSLATED: ['st-translated', 'Translated', 'Pipeline file: translated from another team member\'s design.'],
+  'RT ONLY': ['st-translated', 'RT only', 'pipeline_status.md: RT ONLY.'],
+  DRAFT: ['st-draft', 'Draft', 'A draft design.'],
+  MISSING: ['st-missing', 'Not designed yet', 'No chip for this stage yet.'],
+  NEXT: ['st-missing', 'Not designed yet', 'No chip for this stage yet.'],
+  BENCH: ['st-bench', 'Bench step', 'Done at the bench, in tubes: no chip.'],
+  'OFF-CHIP': ['st-bench', 'Off-chip', 'pipeline_status.md: OFF-CHIP, done by hand in tubes.'],
+  'DUPLICATE-RETIRE': ['superseded', 'Retired', 'pipeline_status.md: DUPLICATE-RETIRE.'],
+  'DESIGNED + PROTOCOL': ['st-bought', 'Designed', 'pipeline_status.md: DESIGNED + PROTOCOL. Our chemistry; the hardware is bought, not printed.'],
+  RETIRED: ['superseded', 'Retired', 'Retired: replaced by a current chip.'],
+  SUPERSEDED: ['superseded', 'Superseded', 'Replaced by a newer design; kept for reference.'],
+};
+
+export function statusView(badge, detail = '') {
+  const key = String(badge ?? '').trim().toUpperCase();
+  const [cls, word, title] = SHOWN[key] ?? ['st-draft', key ? key[0] + key.slice(1).toLowerCase() : 'Unknown', ''];
+  const d = calm(String(detail ?? '').trim().replace(/^\((.*)\)$/, '$1'));
+  return { cls, word, text: d ? `${word} · ${d}` : word, title };
+}
+
+const escHtml = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// MJ's notes use capitals for emphasis ("THE STAGE THAT MAKES THIS A SINGLE-CELL ASSAY"). On screen,
+// a run of capitalised words reads as shouting, so it is shown in lower case; acronyms (RT, PCR,
+// QC...) keep their capitals. The words are MJ's; only their case changes.
+const ACRONYMS = new Set(['RT', 'PCR', 'QC', 'SPRI', 'DNA', 'RNA', 'CDNA', 'UMI', 'COC', 'STL', 'DXF', 'MVP', 'CAD', 'LLM', 'AI', 'UV', 'ID', 'IN', 'OUT', 'TBC', 'NB']);
+export function calm(text) {
+  return String(text ?? '').replace(/\b[A-Z][A-Z0-9-]*(?:[ ,]+[A-Z][A-Z0-9-]*)+\b/g, (run, offset, whole) => {
+    const words = run.split(/([ ,]+)/);
+    const real = words.filter((w, i) => i % 2 === 0);
+    if (real.filter((w) => !ACRONYMS.has(w) && w.length > 1).length < 2) return run;
+    let out = words.map((w, i) => (i % 2 === 0 && !ACRONYMS.has(w) ? w.toLowerCase() : w)).join('');
+    const before = whole.slice(0, offset).trimEnd();
+    if (!before || /[.!?:]$/.test(before)) out = out[0].toUpperCase() + out.slice(1);
+    return out;
+  });
+}
+
+// The label for a stage: the status file's own stage name, up to any colon
+// ("Single-cell barcoding: one clonal barcode per capsule ..." reads "Single-cell barcoding").
+export const shortStage = (name) => String(name ?? '').split(':')[0].trim();
+
+// A stage the pipeline file marks unprintable: its features are under the in-plane floor, so the
+// chemistry is ours and the hardware is bought (MJ: the chip spec is then a demo layout, not a part).
+export const notPrintable = (entry) => /NOT PRINTABLE/i.test(entry?.build?.method ?? '');
+
+export function statusHtml(badge, detail = '') {
+  const v = statusView(badge, detail);
+  return `<span class="status ${v.cls}" title="${escHtml(v.title)}">${escHtml(v.text)}</span>`;
 }

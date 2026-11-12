@@ -7,9 +7,10 @@ five modules of chip/ipsc_to_mgl_chip_v1.json, with nothing handled off-chip. Th
 script exists so the numbers can be checked rather than taken on trust: the day
 schedule comes from the published protocol cited in SOURCE, and every volume, flow rate
 and duration is computed here from chamber geometry. Nothing numeric about liquid is
-hard-coded: each step's volume is the target chamber's volume_ul times the fraction the
-step intends (a half exchange is 0.5), and each chamber's flow is derived from its
-width and depth. Rescale the chip, rerun this script, and the protocol follows.
+hard-coded: each step's volume is the target chamber's volume_ul times a number of chamber
+volumes set by what the step is FOR (see Protocol.exchange), and each chamber's flow is
+derived from its width and depth. Rescale the chip, rerun this script, and the protocol
+follows.
 
 The chip is currently demo scale (30 x 20 mm), so the absolute numbers are tiny:
 chambers hold about 1 to 4.4 uL and flows are around 1 to 4 uL/min (--report prints them).
@@ -29,6 +30,28 @@ Two calculations set the flow rates.
    duration >= washes * volume_ul / flow_ul_min * 60. The repo validator checks this,
    and we add a margin for valve switching and settling.
 
+mu is READ FROM contracts/parameters.json, not hard-coded, and the key is
+fluid.viscosity_37c_pa_s (0.0008 Pa s): the 37 C culture-medium value the contract says to
+use for every culture and protocol flow or shear calculation. fluid.viscosity_pa_s (0.001)
+is water at 20 C, the dye-demo value, and pointing this file at it made every derived flow
+20% too conservative. The original hard-coded 0.8e-3 was the right physics with the wrong
+provenance; the 37 C key is the right physics with the right provenance.
+
+HOW MUCH LIQUID AN EXCHANGE MOVES. A chamber is well mixed, so what is left of the old
+liquid after V chamber volumes is exp(-V). Half a chamber volume therefore leaves 61%
+behind and CANNOT clear a chamber however many times it is repeated. Each exchange
+declares what it is for in the DATA field `exchange_kind`, and that sets the volume. The
+declaration used to be English prose in the note only, so no checker could tell a
+deliberate half medium change from a wash too small to work; the note still says it in
+words for the twin, but the field is what a rule reads:
+  sweep   - a wash, rinse or stage-medium change whose job is to get the old liquid OUT.
+            SWEEP_CV = -ln(1 - exchange.target_fraction) chamber volumes in total, split
+            across the washes.
+  partial - a routine culture medium half-change. It is NOT trying to clear the chamber:
+            these cells depend on their own secreted factors and the medium left behind is
+            the point. Stays at PARTIAL_CV, and its note says so plainly.
+  fill    - put a reagent in. One chamber volume displaces the bulk of what was there.
+
 Reagent names are generic on purpose. No compositions, concentrations or cell lines
 appear here or in the generated file: see CONFIDENTIALITY.md.
 """
@@ -41,6 +64,7 @@ from pathlib import Path
 
 OUT = Path(__file__).resolve().parent / "ipsc_to_mgl_v1.json"
 CHIP = Path(__file__).resolve().parents[1] / "chip" / "ipsc_to_mgl_chip_v1.json"
+CONTRACT = Path(__file__).resolve().parents[1] / "contracts" / "parameters.json"
 
 SOURCE = (
     "McQuade A, Coburn M, Tu CH, Hasselmann J, Davtyan H, Blurton-Jones M. "
@@ -52,11 +76,43 @@ SOURCE = (
 )
 
 DAY = 86400.0
-MU_PA_S = 0.8e-3          # culture medium at 37 C
-SHEAR_CEILING = 0.01      # dyn/cm^2, below the 0.017 activation threshold
+
+
+def parameter(name: str) -> float:
+    """One value from contracts/parameters.json. No fallback: a missing contract is a bug,
+    and a literal copied here is how mu lost its provenance last time."""
+    return float(json.loads(CONTRACT.read_text())["parameters"][name]["value"])
+
+
+MU_PA_S = parameter("fluid.viscosity_37c_pa_s")
+SHEAR_CEILING = parameter("shear.culture_ceiling_dyn_cm2")   # below the 0.017 activation threshold
+EXCHANGE_TARGET = parameter("exchange.target_fraction")
+SWEEP_CV = -math.log(1.0 - EXCHANGE_TARGET)   # chamber volumes a sweep needs to hit the goal
+PARTIAL_CV = 0.5          # a culture half-change, on purpose
 MARGIN = 1.4              # exchange duration margin over the liquid-moved minimum
 FLOW_FRACTION = 0.85      # run at this fraction of the shear-ceiling flow
 SMALL_FLOW_UL_MIN = 0.1   # report threshold only: below this a syringe pump is unlikely to hold flow
+
+# Appended to every exchange note, so the file always says how much liquid moves and
+# whether the step is trying to clear the chamber.
+CV_NOTE = {
+    "sweep": ("SWEEP: {total:.1f} chamber volumes in total, which is what the {goal:.0%} exchange "
+              "goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), "
+              "so half a volume cannot clear it however often it is repeated)."),
+    "partial": ("PARTIAL change: {total:.1f} of a chamber volume. This is NOT trying to clear the "
+                "chamber - the conditioned medium left behind is wanted, as in any bench half-change."),
+    "fill": ("FILL: {total:.1f} chamber volume(s) to put the reagent in, not a sweep to get the old "
+             "liquid out; about {left:.0%} of what was there stays behind."),
+}
+
+
+def exchange_cv(kind: str, washes: int) -> float:
+    """Chamber volumes PER WASH for an exchange of this kind. See the module docstring."""
+    if kind == "sweep":
+        return SWEEP_CV / washes
+    if kind == "partial":
+        return PARTIAL_CV
+    return 1.0
 
 
 def shear_dyn_cm2(flow_ul_min: float, width_mm: float, height_mm: float) -> float:
@@ -83,12 +139,20 @@ CHANNELS = json.loads(CHIP.read_text())["channels"]
 
 
 def weir_text(chamber: str) -> str:
-    """What the chamber's depth weir holds back, read from the chip file (empty if it has none)."""
-    w = CH[chamber].get("weir")
-    if not w:
+    """What the chamber's depth weir holds back, read from the chip file (empty if it has none).
+
+    The gap lives in the chamber's `retention` block, which is the only form the chip schema
+    allows; there are no crest_height_um or retains_um fields to quote, so this does not
+    invent any. It used to read a `weir` key that no chip has, so it silently returned
+    nothing and left the notes that call it dangling mid-sentence.
+    """
+    r = CH[chamber].get("retention") or {}
+    gap = r.get("opening_um")
+    if r.get("type") != "weir" or gap is None:
         return ""
-    return (f"The depth weir leaves a {w['gap_um']} um gap, so it holds back aggregates and clumps above "
-            f"about {w['retains_um']} um but lets single cells through.")
+    return (f"The depth weir leaves a {gap:g} um gap under the lid, so it holds back capsules and "
+            f"aggregates of roughly {gap * 3:.0f} um and above. It does NOT retain bare cells of "
+            f"10-15 um: see protocols/retention_audit.md.")
 
 
 def waste_port() -> str | None:
@@ -123,7 +187,7 @@ class Protocol:
 
     def _add(self, operation: str, target: str, note: str, duration_s: float,
              reagent=None, volume_ul=None, temp_c=None, washes=None, flow_ul_min=None,
-             waste=None) -> None:
+             waste=None, exchange_kind=None) -> None:
         step = {
             "step": len(self.steps) + 1,
             "operation": operation,
@@ -138,6 +202,8 @@ class Protocol:
         }
         if waste:
             step["waste"] = waste
+        if exchange_kind is not None:
+            step["exchange_kind"] = exchange_kind
         self.steps.append(step)
         self.t += round(duration_s)
 
@@ -146,19 +212,32 @@ class Protocol:
         volume = round(CH[target]["volume_ul"] * fraction, 4)
         self._add("load", target, note, duration_s, volume_ul=volume)
 
-    def exchange(self, target: str, reagent: str, note: str, fraction: float = 1.0,
+    def exchange(self, target: str, reagent: str, note: str, kind: str = "fill",
                  washes: int = 1, duration_s: float | None = None) -> None:
-        """Move `fraction` of the chamber volume through it, `washes` times.
+        """Move liquid through `target` `washes` times, sized by what the step is FOR.
+
+        `kind` is "sweep", "partial" or "fill" (see exchange_cv and the module docstring). It
+        is written out as the step's `exchange_kind` field AND as a sentence in the note, so
+        nothing in the generated file claims to clear a chamber on half a chamber volume and
+        no checker has to parse prose to tell the two cases apart.
 
         A chamber with a channel to a waste port drains there, so the step names it.
         """
         waste = waste_port() if any(c["from"] == target and c["to"] == waste_port()
                                     for c in CHANNELS) else None
-        volume = round(CH[target]["volume_ul"] * fraction, 4)
+        per_wash = exchange_cv(kind, washes)
+        # A SWEEP is rounded UP, never down: rounding the derived chamber volumes down puts
+        # the step a hair below the exchange goal it was derived from.
+        raw = CH[target]["volume_ul"] * per_wash
+        volume = math.ceil(raw * 1e4) / 1e4 if kind == "sweep" else round(raw, 4)
+        total_cv = per_wash * washes
+        note = f"{note} " + CV_NOTE[kind].format(
+            total=total_cv, goal=EXCHANGE_TARGET, left=math.exp(-total_cv))
         flow = FLOW[target]
         minimum = washes * volume / flow * 60.0
         self._add("exchange", target, note, duration_s or minimum * MARGIN,
-                  reagent=reagent, volume_ul=volume, washes=washes, flow_ul_min=flow, waste=waste)
+                  reagent=reagent, volume_ul=volume, washes=washes, flow_ul_min=flow, waste=waste,
+                  exchange_kind=kind)
 
     def hold(self, target: str, temp_c: float, duration_s: float, note: str) -> None:
         if duration_s <= 0:
@@ -184,7 +263,8 @@ def build() -> dict:
     # --- M1: iPSC expansion, days -7 to -1 -------------------------------------------
     # Time starts at day -7, so day 0 of the published schedule is at t = 7 days.
     p.exchange("m1_expand", "coating_solution",
-               "Fill the expansion chamber with coating solution so the iPSCs have a surface to attach to.")
+               "Fill the expansion chamber with coating solution so the iPSCs have a surface to attach to.",
+               kind="fill")
     p.hold("m1_expand", 37, 2 * 3600,
            "Hold the coating in place at 37 C, then it is displaced by the first medium change.")
     p.load("m1_expand",
@@ -193,11 +273,13 @@ def build() -> dict:
            "No flow for 24 hours while the cells attach. Oxygen comes from the recirculating reservoir, not from fresh medium.")
     for day in range(-6, -1):
         p.exchange("m1_expand", "ipsc_medium",
-                   f"Daily feed on day {day}: exchange one chamber volume of iPSC medium.")
+                   f"Daily feed on day {day}: iPSCs get a full daily change, so this one is meant to clear "
+                   f"the spent medium out rather than top it up.",
+                   kind="sweep")
         p.hold_until("m1_expand", day + 7 + 1, 37, f"Grow on through day {day}.")
     p.exchange("m1_expand", "dissociation_reagent",
                "Lift the iPSCs as small aggregates with an enzyme-free reagent. Aggregates, not single cells, are what the next stage needs.",
-               fraction=0.5)
+               kind="fill")
     p.split("m1_expand",
             "Carry the aggregates downstream into the hemogenic chamber. This replaces a pipette transfer between flasks.")
 
@@ -205,20 +287,25 @@ def build() -> dict:
     p.hold_until("m2_hemogenic", 7.0, 37,
                  "No flow for 24 hours while the aggregates attach and spread. The run stops here if the day-0 colony count is out of range.")
     p.exchange("m2_hemogenic", "mesoderm_medium",
-               "Day 0: full exchange into mesoderm medium. Imaging has counted the colonies and confirmed the seeding density is in range.")
+               "Day 0: change into mesoderm medium. A stage switch has to clear what was there, or the "
+               "previous stage's medium keeps driving the cells, so this one sweeps. Imaging has counted "
+               "the colonies and confirmed the seeding density is in range.",
+               kind="sweep")
     p.hold_until("m2_hemogenic", 9.0, 37, "Days 0 to 2: mesoderm specification.")
     p.exchange("m2_hemogenic", "mesoderm_medium",
                "Day 2: half exchange, leaving half the conditioned medium behind. The cells depend on their own secreted factors, so this is never a full change.",
-               fraction=0.5)
+               kind="partial")
     p.hold_until("m2_hemogenic", 10.0, 37, "Day 2 to 3.")
     p.exchange("m2_hemogenic", "hematopoietic_medium",
-               "Day 3: full exchange into hematopoietic medium, which starts the switch from mesoderm to hemogenic endothelium.")
+               "Day 3: change into hematopoietic medium, which starts the switch from mesoderm to hemogenic "
+               "endothelium. Another stage switch, so it sweeps rather than half-changes.",
+               kind="sweep")
     for day in (5, 7, 9):
         p.hold_until("m2_hemogenic", day + 7.0, 37,
                      f"Growing on to day {day}. From about day 7 the first progenitors round up and lift off the endothelial layer.")
         p.exchange("m2_hemogenic", "hematopoietic_medium",
                    f"Day {day}: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample.",
-                   fraction=0.5)
+                   kind="partial")
     p.hold_until("m2_hemogenic", 17.0, 37,
                  "Day 9 to 10: progenitors keep accumulating above the adherent layer.")
 
@@ -227,9 +314,11 @@ def build() -> dict:
         p.split("m2_hemogenic",
                 f"Harvest {n}, day {day}: carry the floating progenitors downstream. The adherent layer stays put, so it keeps producing.")
         p.exchange("m3_concentrate", "wash_buffer",
-                   "Bring the progenitors down the line from the hemogenic chamber and concentrate them here, which replaces a centrifugation step. "
+                   "Bring the progenitors down the line from the hemogenic chamber and concentrate them here, "
+                   "which replaces a centrifugation step. Cells left upstream are cells lost, so this is sized "
+                   "to clear the chamber it sweeps, not to top it up. "
                    + weir_text("m3_concentrate"),
-                   washes=2)
+                   kind="sweep", washes=2)
         p.split("m3_concentrate",
                 "Distribute the progenitors across the four maturation chambers.")
         if day == 10:
@@ -242,7 +331,7 @@ def build() -> dict:
         for chamber in MATURATION:
             p.exchange(chamber, "maturation_medium",
                        f"Day {day}: half exchange in {chamber}. The four chambers are fed one at a time through the selector valve.",
-                       fraction=0.5)
+                       kind="partial")
         p.hold_until("mat_1", day + 7 + 2.0, 37,
                      f"Day {day} to {day + 2}: maturation continues. Imaging tracks ramification and the supernatant is sampled for stress markers.")
 
@@ -252,15 +341,17 @@ def build() -> dict:
     p.hold("m5_harvest", 4, 600,
            "Cool to 4 C before dissociation. Cold handling limits the activation that warm enzymatic lifting causes in this cell type.")
     p.exchange("m5_harvest", "dissociation_reagent",
-               "Fill with a gentle, enzyme-free dissociation reagent.", fraction=0.5)
+               "Fill with a gentle, enzyme-free dissociation reagent.", kind="fill")
     p.hold("m5_harvest", 4, 900,
            "Hold cold while the cells release from the surface.")
     p.exchange("m5_harvest", "quench_buffer",
                "Quench with a carrier-protein buffer so the released cells do not stick to the channel walls.",
-               fraction=0.5)
+               kind="fill")
     p.exchange("m5_harvest", "wash_buffer",
-               "Wash twice with the suspension passing over the depth weir. " + weir_text("m5_harvest"),
-               fraction=0.5, washes=2)
+               "Wash out the dissociation reagent, with the suspension passing over the depth weir. Reagent "
+               "carried into the encapsulation chip keeps working on the cells, so this one has to clear. "
+               + weir_text("m5_harvest"),
+               kind="sweep", washes=2)
     p.release("m5_harvest", "release_buffer",
               "Deliver a counted, filtered single-cell suspension to the outlet, ready for the encapsulation chip.")
 
@@ -275,14 +366,24 @@ def build() -> dict:
             "The one vessel transfer in the published method becomes a channel, and each centrifugation "
             "becomes a trap chamber with liquid flowing past its depth weir. Runs about 47 days end to end, of which "
             "the published schedule accounts for 40. Reagent names are generic; see the source citation for "
-            "compositions. Flow rates are computed from chamber geometry to keep wall shear at or below "
-            "0.01 dyn/cm^2, which is below the lowest shear reported to activate this cell type."
+            f"compositions. Flow rates are computed from chamber geometry to keep wall shear at or below "
+            f"{SHEAR_CEILING:g} dyn/cm^2, which is below the lowest shear reported to activate this cell type "
+            f"(tau = 6*mu*Q/(w*h^2), mu = {MU_PA_S:g} Pa s read from contracts/parameters.json, not hard-coded). "
+            f"Every exchange says what it is for in its `exchange_kind` field as well as in its note, so a "
+            f"checker can read it rather than parse prose: a SWEEP (wash, stage-medium change, cell recovery) moves "
+            f"{SWEEP_CV:.1f} chamber volumes, which is what the {EXCHANGE_TARGET:.0%} exchange goal needs in a "
+            f"well-mixed chamber; a PARTIAL culture half-change moves {PARTIAL_CV:g} and deliberately leaves "
+            f"conditioned medium behind, because these cells depend on their own secreted factors, so the "
+            f"one-chamber-volume floor does not apply to it; a FILL moves one volume to put a reagent in."
         ),
         "steps": p.steps,
     }
 
 
 def report() -> None:
+    print(f"mu = {MU_PA_S:g} Pa s and ceiling {SHEAR_CEILING:g} dyn/cm^2, both from "
+          f"contracts/parameters.json; a sweep is {SWEEP_CV:.2f} chamber volumes for the "
+          f"{EXCHANGE_TARGET:.0%} exchange goal, a partial change {PARTIAL_CV:g}.\n")
     print(f"{'chamber':<16}{'w x h (mm)':<14}{'volume uL':>10}{'flow uL/min':>13}"
           f"{'shear':>10}{'ceiling flow':>14}")
     small = []

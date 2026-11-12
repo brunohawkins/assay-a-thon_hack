@@ -176,7 +176,8 @@ class SyringePumpAdapter(Adapter):
         if command == "hold_temp":
             raise NotImplementedError("heater control is not built yet (see sensors.py / docs/hardware_roadmap.md)")
         if command not in ("exchange", "load", "release"):
-            raise NotImplementedError(f"{command} needs valves to move capsules between chambers (valves.py is a stub)")
+            raise NotImplementedError(f"{command} needs the rig's off-chip routing valves to move capsules between "
+                                      f"chambers (adapters/valves.py is still a stub)")
         reagent = args.get("reagent", "capsule_suspension")
         direction = args.get("direction", "forward")
         self._route(f"{command} {direction} via {args['target']}")

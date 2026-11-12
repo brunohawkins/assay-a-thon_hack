@@ -3,7 +3,7 @@
   "name": "Three-lineage differentiation, interaction and barcoded collection (valve-free chip)",
   "source": "Neural lane: Shi Y, Kirwan P, Livesey FJ. Directed differentiation of human pluripotent stem cells to cerebral cortex neurons and neural networks. Nature Protocols 2012;7:1836, doi:10.1038/nprot.2012.116 (dual-SMAD cortical induction, 80 days). Microglia lane: McQuade A et al. Molecular Neurodegeneration 2018;13:67, doi:10.1186/s13024-018-0297-x (40 days). Astrocyte lane: Schuurmans IME et al. Glia 2026, doi:10.1002/glia.70202 (35 days). Per-lane barcoding before pooling: McGinnis CS et al. Nature Methods 2019;16:619, doi:10.1038/s41592-019-0433-8 (lipid-anchored oligos).",
   "placeholder": false,
-  "description": "Three wild-type iPSC differentiations (neurons, microglia, astrocytes) run in the three chambers of one valve-free chip joined at a central junction. Routing is set by which ports feed, vent or are capped; the chip is meant to be driven by syringe pumps. Seeding is per chamber through its own inlet on its own day (0, 40 and 45) so all three mature on day 80; weeks of growth use separate-growth mode, where three media flow inward to one drain; an interaction window then sends each chamber's conditioned medium across to the other two in turn; each lane is then barcoded and the three are pooled into one suspension for encapsulation. Runs about 87 days. Reagent names are generic; see the source citation. Flow rates are computed from chamber geometry to keep wall shear at or below 0.01 dyn/cm2.",
+  "description": "Three wild-type iPSC differentiations (neurons, microglia, astrocytes) run in the three chambers of one valve-free chip joined at a central junction. Routing is set by which ports feed, vent or are capped; the chip is meant to be driven by syringe pumps. Seeding is per chamber through its own inlet on its own day (0, 40 and 45) so all three mature on day 80; weeks of growth use separate-growth mode, where three media flow inward to one drain; an interaction window then sends each chamber's conditioned medium across to the other two in turn; each lane is then barcoded and the three are pooled into one suspension for encapsulation. Runs about 87 days. Reagent names are generic; see the source citation. Flow rates are computed from chamber geometry to keep wall shear at or below 0.01 dyn/cm2 (tau = 6*mu*Q/(w*h^2), mu = 0.0008 Pa s read from contracts/parameters.json, not hard-coded). Every exchange says what it is for in its `exchange_kind` field as well as in its note, so a checker can read it: a SWEEP (wash, rinse, reset) moves 4.6 chamber volumes, which is what the 99% exchange goal needs in a well-mixed chamber; a PARTIAL culture half-change moves 0.5 and deliberately leaves conditioned medium behind, so the one-chamber-volume floor does not apply to it; a FILL moves one volume to put a reagent in. The 96 steps that used to move half a volume whatever their purpose are now sized by purpose.",
   "steps": [
     {
       "step": 1,
@@ -11,11 +11,12 @@
       "target": "n_cx",
       "reagent": "coating_solution",
       "volume_ul": 3.1,
-      "duration_s": 260,
+      "duration_s": 113,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Coat n_cx through p_in alone with coating solution; the other inlets stay capped so the neural chamber is the only one wetted."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Coat n_cx through p_in alone with coating solution; the other inlets stay capped so the neural chamber is the only one wetted. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 2,
@@ -23,7 +24,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 42940,
+      "duration_s": 43087,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -71,11 +72,12 @@
       "target": "n_cx",
       "reagent": "neural_induction_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 1 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 1 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 7,
@@ -83,7 +85,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -95,11 +97,12 @@
       "target": "n_cx",
       "reagent": "neural_induction_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 3 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 3 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 9,
@@ -107,7 +110,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -119,11 +122,12 @@
       "target": "n_cx",
       "reagent": "neural_induction_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 5 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 5 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 11,
@@ -131,7 +135,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -143,11 +147,12 @@
       "target": "n_cx",
       "reagent": "neural_induction_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 7 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 7 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 13,
@@ -155,7 +160,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -167,11 +172,12 @@
       "target": "n_cx",
       "reagent": "neural_induction_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 9 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 9 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 15,
@@ -179,7 +185,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -191,11 +197,12 @@
       "target": "n_cx",
       "reagent": "neural_induction_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 11 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 11 of the neural lane: half change of neural_induction_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 17,
@@ -203,7 +210,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -214,12 +221,13 @@
       "operation": "exchange",
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
-      "volume_ul": 3.1,
-      "duration_s": 260,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 13 of the neural lane: full change into neural_maturation_medium through p_in, p_mid vented. The stream meets the others only at the junction j_mid, outside every chamber."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 13 of the neural lane: change into neural_maturation_medium through p_in, p_mid vented. This one IS meant to clear the chamber - the previous medium drives a different stage and carrying it over would blur the switch - so it sweeps rather than half-changes. The stream meets the others only at the junction j_mid, outside every chamber. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 19,
@@ -227,7 +235,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172540,
+      "duration_s": 172270,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -239,11 +247,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 15 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 15 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 21,
@@ -251,7 +260,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -263,11 +272,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 17 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 17 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 23,
@@ -275,7 +285,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -287,11 +297,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 19 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 19 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 25,
@@ -299,7 +310,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -311,11 +322,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 21 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 21 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 27,
@@ -323,7 +335,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -335,11 +347,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 23 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 23 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 29,
@@ -347,7 +360,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -359,11 +372,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 25 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 25 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 31,
@@ -371,7 +385,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -383,11 +397,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 27 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 27 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 33,
@@ -395,7 +410,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -407,11 +422,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 29 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 29 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 35,
@@ -419,7 +435,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -431,11 +447,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 31 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 31 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 37,
@@ -443,7 +460,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -455,11 +472,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 33 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 33 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 39,
@@ -467,7 +485,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -479,11 +497,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 35 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 35 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 41,
@@ -491,7 +510,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -503,11 +522,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 37 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 37 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 43,
@@ -515,7 +535,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172666,
+      "duration_s": 172742,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -527,11 +547,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 39 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 39 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 45,
@@ -539,7 +560,7 @@
       "target": "g_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 43066,
+      "duration_s": 43142,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -551,11 +572,12 @@
       "target": "g_cx",
       "reagent": "coating_solution",
       "volume_ul": 3.1,
-      "duration_s": 260,
+      "duration_s": 113,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Coat g_cx through p_g_in alone with coating solution; the other inlets stay capped so the glia chamber is the only one wetted."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Coat g_cx through p_g_in alone with coating solution; the other inlets stay capped so the glia chamber is the only one wetted. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 47,
@@ -563,7 +585,7 @@
       "target": "g_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 42940,
+      "duration_s": 43087,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -611,11 +633,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 41 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 41 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 52,
@@ -623,11 +646,12 @@
       "target": "g_cx",
       "reagent": "hematopoietic_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 1 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 1 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 53,
@@ -635,7 +659,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 172532,
+      "duration_s": 172684,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -647,11 +671,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 43 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 43 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 55,
@@ -659,11 +684,12 @@
       "target": "g_cx",
       "reagent": "hematopoietic_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 3 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 3 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 56,
@@ -671,7 +697,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 129332,
+      "duration_s": 129484,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -683,11 +709,12 @@
       "target": "a_cx",
       "reagent": "coating_solution",
       "volume_ul": 3.1,
-      "duration_s": 260,
+      "duration_s": 113,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Coat a_cx through p_a_in alone with coating solution; the other inlets stay capped so the astrocyte chamber is the only one wetted."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Coat a_cx through p_a_in alone with coating solution; the other inlets stay capped so the astrocyte chamber is the only one wetted. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 58,
@@ -695,7 +722,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 42940,
+      "duration_s": 43087,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -707,11 +734,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 45 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 45 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 60,
@@ -719,11 +747,12 @@
       "target": "g_cx",
       "reagent": "hematopoietic_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 5 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 5 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 61,
@@ -743,7 +772,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 84800,
+      "duration_s": 84952,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -767,11 +796,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 1 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 1 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 65,
@@ -779,7 +809,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -791,11 +821,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 47 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 47 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 67,
@@ -803,11 +834,12 @@
       "target": "g_cx",
       "reagent": "hematopoietic_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 7 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 7 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 68,
@@ -815,7 +847,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -827,11 +859,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 3 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 3 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 70,
@@ -839,7 +872,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -851,11 +884,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 49 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 49 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 72,
@@ -863,11 +897,12 @@
       "target": "g_cx",
       "reagent": "hematopoietic_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 9 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 9 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 73,
@@ -875,7 +910,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -887,11 +922,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 5 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 5 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 75,
@@ -899,7 +935,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -911,11 +947,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 51 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 51 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 77,
@@ -923,11 +960,12 @@
       "target": "g_cx",
       "reagent": "hematopoietic_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 11 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 11 of the glia lane: half change of hematopoietic_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 78,
@@ -935,7 +973,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -947,11 +985,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 7 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 7 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 80,
@@ -959,7 +998,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -971,23 +1010,25 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 53 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 53 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 82,
       "operation": "exchange",
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
-      "volume_ul": 3.1,
-      "duration_s": 260,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 13 of the glia lane: full change into microglia_maturation_medium through p_g_in, p_mid vented. The stream meets the others only at the junction j_mid, outside every chamber."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 13 of the glia lane: change into microglia_maturation_medium through p_g_in, p_mid vented. This one IS meant to clear the chamber - the previous medium drives a different stage and carrying it over would blur the switch - so it sweeps rather than half-changes. The stream meets the others only at the junction j_mid, outside every chamber. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 83,
@@ -995,7 +1036,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86006,
+      "duration_s": 85812,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1007,11 +1048,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 9 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 9 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 85,
@@ -1019,7 +1061,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1031,11 +1073,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 55 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 55 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 87,
@@ -1043,11 +1086,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 15 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 15 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 88,
@@ -1055,7 +1099,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1067,11 +1111,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 11 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 11 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 90,
@@ -1079,7 +1124,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1091,11 +1136,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 57 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 57 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 92,
@@ -1103,11 +1149,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 17 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 17 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 93,
@@ -1115,7 +1162,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1127,11 +1174,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 13 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 13 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 95,
@@ -1139,7 +1187,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1151,11 +1199,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 59 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 59 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 97,
@@ -1163,11 +1212,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 19 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 19 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 98,
@@ -1175,7 +1225,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1187,11 +1237,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 15 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 15 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 100,
@@ -1199,7 +1250,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1211,11 +1262,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 61 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 61 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 102,
@@ -1223,11 +1275,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 21 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 21 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 103,
@@ -1235,7 +1288,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1247,11 +1300,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 17 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 17 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 105,
@@ -1259,7 +1313,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1271,11 +1325,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 63 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 63 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 107,
@@ -1283,11 +1338,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 23 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 23 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 108,
@@ -1295,7 +1351,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1307,11 +1363,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 19 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 19 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 110,
@@ -1319,7 +1376,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1331,11 +1388,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 65 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 65 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 112,
@@ -1343,11 +1401,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 25 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 25 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 113,
@@ -1355,7 +1414,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1367,11 +1426,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 21 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 21 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 115,
@@ -1379,7 +1439,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1391,11 +1451,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 67 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 67 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 117,
@@ -1403,11 +1464,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 27 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 27 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 118,
@@ -1415,7 +1477,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1427,11 +1489,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 23 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 23 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 120,
@@ -1439,7 +1502,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1451,11 +1514,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 69 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 69 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 122,
@@ -1463,11 +1527,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 29 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 29 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 123,
@@ -1475,7 +1540,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1487,11 +1552,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 25 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 25 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 125,
@@ -1499,7 +1565,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1511,11 +1577,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 71 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 71 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 127,
@@ -1523,11 +1590,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 31 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 31 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 128,
@@ -1535,7 +1603,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1547,11 +1615,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 27 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 27 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 130,
@@ -1559,7 +1628,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1571,11 +1640,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 73 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 73 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 132,
@@ -1583,11 +1653,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 33 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 33 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 133,
@@ -1595,7 +1666,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1607,11 +1678,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 29 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 29 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 135,
@@ -1619,7 +1691,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1631,11 +1703,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 75 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 75 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 137,
@@ -1643,11 +1716,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 35 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 35 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 138,
@@ -1655,7 +1729,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1667,11 +1741,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 31 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 31 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 140,
@@ -1679,7 +1754,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1691,11 +1766,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 77 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 77 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 142,
@@ -1703,11 +1779,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 37 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 37 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 143,
@@ -1715,7 +1792,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86132,
+      "duration_s": 86284,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1727,11 +1804,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 33 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 33 of the astrocyte lane: half change of astro_medium through p_a_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 145,
@@ -1739,7 +1817,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 86266,
+      "duration_s": 86342,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1751,11 +1829,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 79 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 79 of the neural lane: half change of neural_maturation_medium through p_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 147,
@@ -1763,11 +1842,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 1.6,
-      "duration_s": 134,
+      "duration_s": 58,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Day 39 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Day 39 of the glia lane: half change of microglia_maturation_medium through p_g_in, p_mid vented. The three media converge at the junction j_mid, outside every chamber, and leave through p_mid. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
+      "exchange_kind": "partial"
     },
     {
       "step": 148,
@@ -1775,7 +1855,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 163892,
+      "duration_s": 164044,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1786,36 +1866,39 @@
       "operation": "exchange",
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Reset before the neural-source direction: half change of neural_maturation_medium so every chamber starts from its own medium."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Reset before the neural-source direction: clear n_cx back to neural_maturation_medium so every chamber starts from its own medium. The previous direction left another lane's conditioned medium in here, and carrying it over would confound the comparison, so this one has to actually clear - a half change would leave most of it. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 150,
       "operation": "exchange",
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Reset before the neural-source direction: half change of microglia_maturation_medium so every chamber starts from its own medium."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Reset before the neural-source direction: clear g_cx back to microglia_maturation_medium so every chamber starts from its own medium. The previous direction left another lane's conditioned medium in here, and carrying it over would confound the comparison, so this one has to actually clear - a half change would leave most of it. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 151,
       "operation": "exchange",
       "target": "a_cx",
       "reagent": "astro_medium",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Reset before the neural-source direction: half change of astro_medium so every chamber starts from its own medium."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Reset before the neural-source direction: clear a_cx back to astro_medium so every chamber starts from its own medium. The previous direction left another lane's conditioned medium in here, and carrying it over would confound the comparison, so this one has to actually clear - a half change would leave most of it. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 152,
@@ -1823,7 +1906,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 8238,
+      "duration_s": 7050,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1835,11 +1918,12 @@
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
       "volume_ul": 3.1,
-      "duration_s": 521,
+      "duration_s": 226,
       "temp_c": null,
       "washes": 2,
-      "flow_ul_min": 1.0,
-      "note": "Mode 3, neurons to glia and astrocytes: Push neural_maturation_medium through n_cx from p_in with p_mid capped. The conditioned medium goes n_cx to the junction j_mid, then splits to g_cx and a_cx and leaves by p_g_out and p_a_out (vented). Twice the chamber volume goes through, so the other two see this lane's secretome."
+      "flow_ul_min": 2.3,
+      "note": "Mode 3, neurons to glia and astrocytes: Push neural_maturation_medium through n_cx from p_in with p_mid capped. The conditioned medium goes n_cx to the junction j_mid, then splits to g_cx and a_cx and leaves by p_g_out and p_a_out (vented), so the other two see this lane's secretome. Deliberately a delivery and not a wash: what matters is what arrives downstream, not clearing n_cx. FILL: 2.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 14% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 154,
@@ -1847,7 +1931,7 @@
       "target": "n_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 163639,
+      "duration_s": 163934,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1858,36 +1942,39 @@
       "operation": "exchange",
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Reset before the glia-source direction: half change of neural_maturation_medium so every chamber starts from its own medium."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Reset before the glia-source direction: clear n_cx back to neural_maturation_medium so every chamber starts from its own medium. The previous direction left another lane's conditioned medium in here, and carrying it over would confound the comparison, so this one has to actually clear - a half change would leave most of it. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 156,
       "operation": "exchange",
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Reset before the glia-source direction: half change of microglia_maturation_medium so every chamber starts from its own medium."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Reset before the glia-source direction: clear g_cx back to microglia_maturation_medium so every chamber starts from its own medium. The previous direction left another lane's conditioned medium in here, and carrying it over would confound the comparison, so this one has to actually clear - a half change would leave most of it. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 157,
       "operation": "exchange",
       "target": "a_cx",
       "reagent": "astro_medium",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Reset before the glia-source direction: half change of astro_medium so every chamber starts from its own medium."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Reset before the glia-source direction: clear a_cx back to astro_medium so every chamber starts from its own medium. The previous direction left another lane's conditioned medium in here, and carrying it over would confound the comparison, so this one has to actually clear - a half change would leave most of it. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 158,
@@ -1895,7 +1982,7 @@
       "target": "g_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 8238,
+      "duration_s": 7050,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1907,11 +1994,12 @@
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
       "volume_ul": 3.1,
-      "duration_s": 521,
+      "duration_s": 226,
       "temp_c": null,
       "washes": 2,
-      "flow_ul_min": 1.0,
-      "note": "Mode 3, glia to neurons and astrocytes: Push microglia_maturation_medium through g_cx from p_g_in with p_mid capped. The conditioned medium goes g_cx to the junction j_mid, then splits to n_cx and a_cx and leaves by p_in and p_a_out (vented). Twice the chamber volume goes through, so the other two see this lane's secretome."
+      "flow_ul_min": 2.3,
+      "note": "Mode 3, glia to neurons and astrocytes: Push microglia_maturation_medium through g_cx from p_g_in with p_mid capped. The conditioned medium goes g_cx to the junction j_mid, then splits to n_cx and a_cx and leaves by p_in and p_a_out (vented), so the other two see this lane's secretome. Deliberately a delivery and not a wash: what matters is what arrives downstream, not clearing g_cx. FILL: 2.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 14% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 160,
@@ -1919,7 +2007,7 @@
       "target": "g_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 163639,
+      "duration_s": 163934,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1930,36 +2018,39 @@
       "operation": "exchange",
       "target": "n_cx",
       "reagent": "neural_maturation_medium",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Reset before the astrocyte-source direction: half change of neural_maturation_medium so every chamber starts from its own medium."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Reset before the astrocyte-source direction: clear n_cx back to neural_maturation_medium so every chamber starts from its own medium. The previous direction left another lane's conditioned medium in here, and carrying it over would confound the comparison, so this one has to actually clear - a half change would leave most of it. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 162,
       "operation": "exchange",
       "target": "g_cx",
       "reagent": "microglia_maturation_medium",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Reset before the astrocyte-source direction: half change of microglia_maturation_medium so every chamber starts from its own medium."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Reset before the astrocyte-source direction: clear g_cx back to microglia_maturation_medium so every chamber starts from its own medium. The previous direction left another lane's conditioned medium in here, and carrying it over would confound the comparison, so this one has to actually clear - a half change would leave most of it. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 163,
       "operation": "exchange",
       "target": "a_cx",
       "reagent": "astro_medium",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Reset before the astrocyte-source direction: half change of astro_medium so every chamber starts from its own medium."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Reset before the astrocyte-source direction: clear a_cx back to astro_medium so every chamber starts from its own medium. The previous direction left another lane's conditioned medium in here, and carrying it over would confound the comparison, so this one has to actually clear - a half change would leave most of it. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 164,
@@ -1967,7 +2058,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 8238,
+      "duration_s": 7050,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -1979,11 +2070,12 @@
       "target": "a_cx",
       "reagent": "astro_medium",
       "volume_ul": 3.1,
-      "duration_s": 521,
+      "duration_s": 226,
       "temp_c": null,
       "washes": 2,
-      "flow_ul_min": 1.0,
-      "note": "Mode 3, astrocytes to neurons and glia: Push astro_medium through a_cx from p_a_in with p_mid capped. The conditioned medium goes a_cx to the junction j_mid, then splits to n_cx and g_cx and leaves by p_in and p_g_out (vented). Twice the chamber volume goes through, so the other two see this lane's secretome."
+      "flow_ul_min": 2.3,
+      "note": "Mode 3, astrocytes to neurons and glia: Push astro_medium through a_cx from p_a_in with p_mid capped. The conditioned medium goes a_cx to the junction j_mid, then splits to n_cx and g_cx and leaves by p_in and p_g_out (vented), so the other two see this lane's secretome. Deliberately a delivery and not a wash: what matters is what arrives downstream, not clearing a_cx. FILL: 2.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 14% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 166,
@@ -1991,7 +2083,7 @@
       "target": "a_cx",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 163639,
+      "duration_s": 163934,
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
@@ -2026,144 +2118,156 @@
       "operation": "exchange",
       "target": "n_cx",
       "reagent": "barcode_1",
-      "volume_ul": 1.6,
+      "volume_ul": 3.1,
       "duration_s": 600,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Feed barcode_1 into n_cx through p_in, p_mid vented. A lipid-anchored oligo inserts into the membrane with no antibody and no spin, so each chamber carries its own label before anything is mixed."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Feed barcode_1 into n_cx through p_in, p_mid vented. A lipid-anchored oligo inserts into the membrane with no antibody and no spin, so each chamber carries its own label before anything is mixed. The leftover medium is the same share in all three chambers, so it does not bias which lane is which. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 170,
       "operation": "exchange",
       "target": "g_cx",
       "reagent": "barcode_2",
-      "volume_ul": 1.6,
+      "volume_ul": 3.1,
       "duration_s": 600,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Feed barcode_2 into g_cx through p_g_in, p_mid vented. A lipid-anchored oligo inserts into the membrane with no antibody and no spin, so each chamber carries its own label before anything is mixed."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Feed barcode_2 into g_cx through p_g_in, p_mid vented. A lipid-anchored oligo inserts into the membrane with no antibody and no spin, so each chamber carries its own label before anything is mixed. The leftover medium is the same share in all three chambers, so it does not bias which lane is which. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 171,
       "operation": "exchange",
       "target": "a_cx",
       "reagent": "barcode_3",
-      "volume_ul": 1.6,
+      "volume_ul": 3.1,
       "duration_s": 600,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Feed barcode_3 into a_cx through p_a_in, p_mid vented. A lipid-anchored oligo inserts into the membrane with no antibody and no spin, so each chamber carries its own label before anything is mixed."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Feed barcode_3 into a_cx through p_a_in, p_mid vented. A lipid-anchored oligo inserts into the membrane with no antibody and no spin, so each chamber carries its own label before anything is mixed. The leftover medium is the same share in all three chambers, so it does not bias which lane is which. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 172,
       "operation": "exchange",
       "target": "n_cx",
       "reagent": "wash_buffer",
-      "volume_ul": 1.6,
-      "duration_s": 269,
+      "volume_ul": 7.3,
+      "duration_s": 533,
       "temp_c": null,
       "washes": 2,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Wash unbound barcode out of n_cx through p_in. Carryover causes background, so this decides whether the labels can be told apart."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Wash unbound barcode out of n_cx through p_in. Carryover causes background, so this decides whether the labels can be told apart, and it is the one step here that MUST reach its exchange goal. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 173,
       "operation": "exchange",
       "target": "g_cx",
       "reagent": "wash_buffer",
-      "volume_ul": 1.6,
-      "duration_s": 269,
+      "volume_ul": 7.3,
+      "duration_s": 533,
       "temp_c": null,
       "washes": 2,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Wash unbound barcode out of g_cx through p_g_in. Carryover causes background, so this decides whether the labels can be told apart."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Wash unbound barcode out of g_cx through p_g_in. Carryover causes background, so this decides whether the labels can be told apart, and it is the one step here that MUST reach its exchange goal. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 174,
       "operation": "exchange",
       "target": "a_cx",
       "reagent": "wash_buffer",
-      "volume_ul": 1.6,
-      "duration_s": 269,
+      "volume_ul": 7.3,
+      "duration_s": 533,
       "temp_c": null,
       "washes": 2,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Wash unbound barcode out of a_cx through p_a_in. Carryover causes background, so this decides whether the labels can be told apart."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Wash unbound barcode out of a_cx through p_a_in. Carryover causes background, so this decides whether the labels can be told apart, and it is the one step here that MUST reach its exchange goal. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 175,
       "operation": "exchange",
       "target": "n_cx",
       "reagent": "dissociation_reagent",
-      "volume_ul": 1.6,
+      "volume_ul": 3.1,
       "duration_s": 900,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Lift the cells in n_cx with a gentle, enzyme-free reagent at 4 C."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Lift the cells in n_cx with a gentle, enzyme-free reagent at 4 C. The wash before this left wash buffer, not medium, in the chamber, so one volume of reagent is enough to act. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 176,
       "operation": "exchange",
       "target": "g_cx",
       "reagent": "dissociation_reagent",
-      "volume_ul": 1.6,
+      "volume_ul": 3.1,
       "duration_s": 900,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Lift the cells in g_cx with a gentle, enzyme-free reagent at 4 C."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Lift the cells in g_cx with a gentle, enzyme-free reagent at 4 C. The wash before this left wash buffer, not medium, in the chamber, so one volume of reagent is enough to act. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 177,
       "operation": "exchange",
       "target": "a_cx",
       "reagent": "dissociation_reagent",
-      "volume_ul": 1.6,
+      "volume_ul": 3.1,
       "duration_s": 900,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Lift the cells in a_cx with a gentle, enzyme-free reagent at 4 C."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Lift the cells in a_cx with a gentle, enzyme-free reagent at 4 C. The wash before this left wash buffer, not medium, in the chamber, so one volume of reagent is enough to act. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
+      "exchange_kind": "fill"
     },
     {
       "step": 178,
       "operation": "exchange",
       "target": "n_cx",
       "reagent": "quench_buffer",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Mode 2 (separate growth): Quench with a carrier-protein buffer through p_in, so released cells do not stick to the walls; it sweeps them on to the junction."
+      "flow_ul_min": 2.3,
+      "note": "Mode 2 (separate growth): Quench with a carrier-protein buffer through p_in, so released cells do not stick to the walls, and sweep them on to the junction. Recovery is the whole point here, so this is sized to clear the chamber, not to top it up. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 179,
       "operation": "exchange",
       "target": "g_cx",
       "reagent": "quench_buffer",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Collect (back-flush): Back-flush g_cx from p_g_out with quench buffer, which lifts the cells off its mesh and sweeps them into the junction j_mid."
+      "flow_ul_min": 2.3,
+      "note": "Collect (back-flush): Back-flush g_cx from p_g_out with quench buffer, which lifts the cells off its weir and sweeps them into the junction j_mid. Sized to clear the chamber: cells left behind are cells lost. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 180,
       "operation": "exchange",
       "target": "a_cx",
       "reagent": "quench_buffer",
-      "volume_ul": 1.6,
-      "duration_s": 134,
+      "volume_ul": 14.5,
+      "duration_s": 530,
       "temp_c": null,
       "washes": 1,
-      "flow_ul_min": 1.0,
-      "note": "Collect (back-flush): Back-flush a_cx from p_a_out with quench buffer, which lifts the cells off its mesh and sweeps them into the junction j_mid."
+      "flow_ul_min": 2.3,
+      "note": "Collect (back-flush): Back-flush a_cx from p_a_out with quench buffer, which lifts the cells off its weir and sweeps them into the junction j_mid. Sized to clear the chamber: cells left behind are cells lost. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
+      "exchange_kind": "sweep"
     },
     {
       "step": 181,

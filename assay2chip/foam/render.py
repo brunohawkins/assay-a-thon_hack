@@ -60,6 +60,7 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -110,6 +111,8 @@ DEFAULT_FPS = 24
 DEFAULT_MAX_STEPS = 6
 #: Frames per protocol step in the per-chip MP4: enough for the tracers to cross the chip.
 FRAMES_PER_STEP = 36
+#: A per-chip clip shorter than this is not worth watching, however few steps it has.
+MIN_VIDEO_S = 6.0
 
 FLOOR_CMAP = "inferno"
 SPEED_CMAP = "viridis"
@@ -175,6 +178,15 @@ def _f(value: Any, default: float = 0.0) -> float:
 
 def load_json(path: Path | str) -> Any:
     return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def _rel(path: Path | str) -> str:
+    """Repo-relative when it is inside the repo, as given when it is not."""
+    path = Path(path)
+    try:
+        return path.resolve().relative_to(ROOT).as_posix()
+    except ValueError:
+        return path.as_posix()
 
 
 def even(n: int) -> int:
@@ -1185,6 +1197,29 @@ def foam_density(summary: dict | None = None) -> float:
         return float(cfd_solve.density()[0])
 
 
+def foam_search_dirs(primary: Path | str | None = None) -> list[Path]:
+    """Every `<out>` that might hold a converted case, this run's first.
+
+    A solve does not have to have been produced by the run that is drawing it: the
+    cross-validation run writes `work/xval/foam/`, the default run writes `work/foam/`,
+    and a pipeline run writes `work/<run>/foam/`. The alternative to looking in all of
+    them is a pipeline scene that draws a chip in 2.5D while a finished 3D field for it
+    sits one directory away - so the search is widened and the label still comes from
+    whichever case is actually read.
+    """
+    seen: list[Path] = []
+    if primary is not None:
+        seen.append(foam_out_dir(primary))
+    work = ROOT / "assay2chip" / "work"
+    if work.is_dir():
+        candidates = [work / "foam"] + sorted(p / "foam" for p in work.iterdir()
+                                              if p.is_dir() and p.name != "foam")
+        for path in candidates:
+            if path.is_dir() and path not in seen:
+                seen.append(path)
+    return seen
+
+
 def _is_flow_summary(doc: Any) -> bool:
     if not isinstance(doc, dict):
         return False
@@ -1198,10 +1233,38 @@ def _step_dirs(out: Path, chip_id: str, step: Any) -> list[Path]:
     `case_dir()` is the one convention. The bare `<chip>/<N>/` form is the layout that
     caused the mesh and the case to land in two different folders; it is still READ so a
     half-finished run is not silently ignored, and never written.
+
+    With no step asked for, every `step_*` directory this chip has, in order. The caller
+    must then take ONE of them whole - see `foam_step_dir`.
     """
     if step is None:
-        return []
+        base = out / str(chip_id)
+        if not base.is_dir():
+            return []
+        return sorted((p for p in base.iterdir()
+                       if p.is_dir() and (p.name.startswith("step_") or p.name == "all")),
+                      key=lambda p: (p.name != "all", p.name))
     return [case_dir(chip_id, step, out=out), out / str(chip_id) / str(step)]
+
+
+def foam_step_dir(out: Path | str, chip_id: str, step: Any = None) -> Path | None:
+    """THE one case directory to read for this chip, or None.
+
+    The summary and the field must come out of the SAME directory. Reading them
+    independently let a step-1 field be captioned with a step-2 summary the moment a chip
+    had two solved steps - the flow rate, the fluid and the findings on the frame would
+    all have described a different experiment from the one drawn. So the directory is
+    chosen once, here, and both readers are given it.
+    """
+    out = foam_out_dir(out)
+    for folder in _step_dirs(out, chip_id, step):
+        if folder.is_dir() and (any(folder.glob("VTK/*.vtm"))
+                                or (folder / "summary.json").is_file()):
+            return folder
+    for folder in _step_dirs(out, chip_id, step):
+        if folder.is_dir():
+            return folder
+    return None
 
 
 def foam_summary(run_dir: Path | str, chip_id: str, step: Any = None) -> dict | None:
@@ -1213,7 +1276,8 @@ def foam_summary(run_dir: Path | str, chip_id: str, step: Any = None) -> dict | 
     itself a flow summary. A file that does not is left alone.
     """
     out = foam_out_dir(run_dir)
-    folders = _step_dirs(out, chip_id, step) + [out / chip_id, out]
+    case = foam_step_dir(out, chip_id, step)
+    folders = ([case] if case is not None else []) + [out / chip_id, out]
     candidates: list[Path] = []
     for folder in folders:
         candidates.extend(folder / name for name in FOAM_SUMMARY_NAMES)
@@ -1236,25 +1300,168 @@ def foam_summary(run_dir: Path | str, chip_id: str, step: Any = None) -> dict | 
 
 
 def foam_vtk(run_dir: Path | str, chip_id: str, step: Any = None) -> Path | None:
-    """The newest VTK dataset written for this chip/step, or None.
+    """The VTK dataset for this chip/step, or None.
 
-    `foamToVTK` leaves `case/VTK/...`; a case that has not been converted has no field
-    this renderer can draw, and None is the honest answer.
+    `foamToVTK` leaves a tree like
+
+        VTK/step_1_86.vtm           <- the whole case: `internal` + `boundary`
+        VTK/step_1_86/boundary.vtm  <- the patch surfaces only
+        VTK/step_1_86/internal.vtu  <- the volume mesh
+
+    and only the TOP-LEVEL `.vtm` is the thing to open: the nested ones are its blocks.
+    Picking by modification time picked whichever block was written last, which is why
+    `flow.py` had to `touch()` the top-level file to win. So the top level is preferred
+    outright, newest-named first, and the nested files are a fallback for a tree that has
+    no top-level `.vtm` at all.
+
+    TODO(flow) done: the `touch()` workaround in flow.py can go.
     """
     out = foam_out_dir(run_dir)
-    base = out / chip_id
-    for folder in _step_dirs(out, chip_id, step):
-        if folder.is_dir():
-            base = folder
-            break
+    base = foam_step_dir(out, chip_id, step) or (out / chip_id)
     if not base.is_dir():
         return None
+    vtk_dir = base / "VTK"
+    for folder in (vtk_dir, base):
+        if not folder.is_dir():
+            continue
+        top = sorted(p for p in folder.glob("*.vtm") if p.is_file())
+        if top:
+            return _newest_time_step(top)
     hits: list[Path] = []
     for pattern in ("**/*.vtm", "**/*.vtu", "**/*.vtk", "**/*.vti"):
-        hits.extend(base.glob(pattern))
+        hits.extend(p for p in base.glob(pattern) if p.is_file())
     if not hits:
         return None
     return sorted(hits, key=lambda p: (p.stat().st_mtime, p.name))[-1]
+
+
+def _newest_time_step(paths: Sequence[Path]) -> Path:
+    """`step_1_86.vtm` beats `step_1_9.vtm`: the trailing number is the OpenFOAM time."""
+    def key(path: Path) -> tuple:
+        match = re.search(r"_(\d+)$", path.stem)
+        return (int(match.group(1)) if match else -1, path.stem)
+    return sorted(paths, key=key)[-1]
+
+
+def _internal_block(data, pv):
+    """The `internal` block of a `foamToVTK` MultiBlock: the volume field itself.
+
+    `combine()` welds the `boundary` patch surfaces into the volume, which inflates the
+    cell count and puts a skin of zero-velocity wall points through every slice.
+    """
+    if not isinstance(data, pv.MultiBlock):
+        return data
+    for i in range(len(data)):
+        name = str(data.get_block_name(i) or "").lower()
+        block = data[i]
+        if name.startswith("internal") and block is not None:
+            return block.combine() if isinstance(block, pv.MultiBlock) else block
+    try:
+        return data.combine()
+    except Exception:
+        return None
+
+
+def _length_scale(data, chip: dict) -> float:
+    """1000 when the dataset is in metres, 1 when it is already in mm.
+
+    Decided by the chip's own footprint rather than by a guess: an OpenFOAM case of a
+    30 x 20 mm chip spans 0.03 m, so if the data is three orders of magnitude smaller
+    than the footprint it is in metres. A dataset already in mm is left alone.
+    """
+    fx, fy = footprint_mm(chip)
+    bounds = data.bounds
+    span = max(bounds[1] - bounds[0], bounds[3] - bounds[2])
+    want = max(fx, fy)
+    if span <= 0 or want <= 0:
+        return 1.0
+    return 1000.0 if span < want / 100.0 else 1.0
+
+
+def _foam_label(summary: dict | None, step: Any) -> str:
+    """`step 1 · exchange · 1 uL/min · simpleFoam`, from the case's own summary."""
+    summary = summary or {}
+    plan = summary.get("plan") or {}
+    q = summary.get("q_in_ul_min") or plan.get("q_in_ul_min")
+    bits = [f"step {summary.get('step', step)}", str(summary.get("operation") or "")]
+    if q:
+        bits.append(f"{_f(q):g} uL/min")
+    solver = str(summary.get("solver") or "")
+    if solver:
+        bits.append(solver + (" (transient)" if summary.get("transient") else ""))
+    cells = ((summary.get("grid") or {}).get("cells"))
+    if cells:
+        bits.append(f"{int(cells):,} cells")
+    return "  ·  ".join(b for b in bits if b)
+
+
+def _fluid_name(summary: dict | None) -> str:
+    """`summary["fluid"]` is now the fluid NAME; its numbers live in `fluid_properties`."""
+    value = (summary or {}).get("fluid")
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):                      # older summaries inlined the object
+        return str(value.get("name") or value.get("fluid") or "")
+    return ""
+
+
+def _fluid_temp(summary: dict | None) -> float | None:
+    summary = summary or {}
+    for source in (summary, summary.get("fluid_properties") or {}, summary.get("plan") or {}):
+        if isinstance(source, dict) and source.get("temp_c") is not None:
+            return _f(source["temp_c"], 0.0) or None
+    value = summary.get("fluid")
+    if isinstance(value, dict) and value.get("temp_c") is not None:
+        return _f(value["temp_c"], 0.0) or None
+    return None
+
+
+def _shear_fraction(chip: dict, data, step: dict | None) -> np.ndarray:
+    """Wall shear as a fraction of the ceiling that governs the chamber each point is in.
+
+    The solver reports a stress; it does not know whether the chamber holds adherent
+    cells, a rinse before a deliberate lyse, or capsules bounded by escape pressure
+    instead. That scoping is `cfd.figures.chamber_ceilings`, the same one the
+    reduced-order path uses, so a 3D frame and a 2.5D frame mean the same thing by
+    "100% of the ceiling". A point in no chamber, or in one with no wall-shear ceiling,
+    stays NaN and draws grey.
+    """
+    tau = np.asarray(data["shear_dyn_cm2"], dtype=float)
+    out = np.full(tau.shape, np.nan)
+    table = chamber_ceiling_table(chip, step, None)
+    points = np.asarray(data.points, dtype=float)
+    for chamber in (chip or {}).get("chambers") or []:
+        ceiling = (table.get(str(chamber.get("id"))) or {}).get("ceiling_dyn_cm2")
+        if not ceiling:
+            continue
+        cx, cy = _f(chamber["center"][0]), _f(chamber["center"][1])
+        sx, sy = _f(chamber["size"][0]), _f(chamber["size"][1])
+        inside = ((np.abs(points[:, 0] - cx) <= sx / 2.0 + 1e-9)
+                  & (np.abs(points[:, 1] - cy) <= sy / 2.0 + 1e-9))
+        if inside.any():
+            out[inside] = tau[inside] / ceiling
+    for channel in (chip or {}).get("channels") or []:
+        ceiling = (table.get(str(channel.get("id"))) or {}).get("ceiling_dyn_cm2")
+        if not ceiling:
+            continue
+        pts = cfd_figures.channel_path(chip, channel)
+        half = max(_f(channel.get("width_mm"), 0.2) or 0.2, 0.1) / 2.0 + 0.05
+        for a, b in zip(pts, pts[1:]):
+            near = _near_segment(points[:, :2], a, b, half)
+            todo = near & ~np.isfinite(out)
+            if todo.any():
+                out[todo] = tau[todo] / ceiling
+    return out.astype(np.float32)
+
+
+def _near_segment(xy: np.ndarray, a, b, half: float) -> np.ndarray:
+    ax, ay = float(a[0]), float(a[1])
+    dx, dy = float(b[0]) - ax, float(b[1]) - ay
+    length2 = dx * dx + dy * dy
+    if length2 <= 1e-18:
+        return np.hypot(xy[:, 0] - ax, xy[:, 1] - ay) <= half
+    t = np.clip(((xy[:, 0] - ax) * dx + (xy[:, 1] - ay) * dy) / length2, 0.0, 1.0)
+    return np.hypot(xy[:, 0] - (ax + t * dx), xy[:, 1] - (ay + t * dy)) <= half
 
 
 def foam_case(run_dir: Path | str, chip_path: Path | str, step: Any = None, *,
@@ -1266,13 +1473,24 @@ def foam_case(run_dir: Path | str, chip_path: Path | str, step: Any = None, *,
     needed: a frame labelled `openfoam` must actually be one, so a summary with no
     converted field returns None and the reduced-order fallback draws the chip instead.
 
-    TODO(F3): `foamToVTK` is not part of `run_step()` yet, so there is no VTK to read even
-    when a case has run. The moment `case/VTK/*.vtm` appears this path takes over with no
-    change here - `tests/test_foam_render.py` pins that a summary alone is not enough.
+    THREE CONVERSIONS, EACH OF WHICH IS A SILENT FACTOR OF A THOUSAND IF MISSED.
 
-    OpenFOAM's incompressible solvers are kinematic: `U` is m/s and `wallShearStress` is
-    m^2/s^2, not Pa. `U` is converted to mm/s here; shear is taken from the summary's
-    already-converted `shear` block rather than being multiplied by rho a second time.
+      geometry   OpenFOAM works in SI, so the case is in METRES while every other number
+                 in this renderer - footprint, port positions, chamber boxes, the scale
+                 bar - is in mm. The points are scaled on the way in, once.
+      velocity   `U` is m/s -> mm/s.
+      shear      the incompressible solvers divide through by density, so
+                 `wallShearStress` is kinematic (m^2/s^2), NOT Pa. It is multiplied by
+                 rho from the case's own summary, then by 10 for dyn/cm^2.
+
+    ONLY THE `internal` BLOCK IS THE FIELD. `foamToVTK` writes a MultiBlock of
+    `internal` + `boundary`; combining them welds the patch surfaces into the volume and
+    doubles the cell count, so the internal mesh is taken on its own.
+
+    SHEAR IS STILL A FRACTION OF THE RIGHT CEILING. The solver does not know what a
+    chamber holds, so `shear_frac` is built here with the same per-chamber rules the
+    reduced-order path uses - a capsule chamber has no wall-shear ceiling and stays NaN,
+    which draws grey.
     """
     chip_path = Path(chip_path)
     chip = load_json(chip_path)
@@ -1288,8 +1506,15 @@ def foam_case(run_dir: Path | str, chip_path: Path | str, step: Any = None, *,
         data = pv.read(vtk_path)
     except Exception:
         return None
-    if isinstance(data, pv.MultiBlock):
-        data = data.combine()
+    data = _internal_block(data, pv)
+    if data is None or data.n_points == 0:
+        return None
+
+    scale = _length_scale(data, chip)
+    if scale != 1.0:
+        data = data.copy()
+        data.points = np.asarray(data.points, dtype=float) * scale
+
     names = {str(k).lower(): str(k) for k in data.point_data.keys()}
     u_key = names.get("u_mm_s") or names.get("u")
     if u_key is None:
@@ -1315,16 +1540,24 @@ def foam_case(run_dir: Path | str, chip_path: Path | str, step: Any = None, *,
         if want == "shear_dyn_cm2" and key.lower() == "wallshearstress":
             raw = raw * rho * DYN_CM2_PER_PA        # kinematic m^2/s^2 -> Pa -> dyn/cm^2
         data[want] = raw.astype(np.float32)
-    if "shear_frac" not in data.point_data:
-        data["shear_frac"] = np.full(data.n_points, np.nan, dtype=np.float32)
+    step_hint = {"operation": str((summary or {}).get("operation", "")),
+                 "reagent": _fluid_name(summary), "note": ""}
+    data["shear_frac"] = _shear_fraction(chip, data, step_hint)
 
+    solved_step = (summary or {}).get("step", step)
     fx, fy = footprint_mm(chip)
-    volume = Volume(grid=data, spacing_mm=_f((summary or {}).get("grid_mm"), 0.05) or 0.05,
-                    nz=int(_f((summary or {}).get("nz"), DEFAULT_NZ) or DEFAULT_NZ),
+    grid_info = (summary or {}).get("grid") or {}
+    notes = [f"read from {_rel(vtk_path)}",
+             f"{data.n_cells:,} cells, {(summary or {}).get('solver', 'OpenFOAM')}"]
+    if scale != 1.0:
+        notes.append("case geometry is in metres; scaled to mm for the picture")
+    volume = Volume(grid=data,
+                    spacing_mm=_f(grid_info.get("spacing_mm"), 0.05) or 0.05,
+                    nz=int(_f(grid_info.get("z_cells"), DEFAULT_NZ) or DEFAULT_NZ),
                     depth_mm=fluid_depth_mm(chip), footprint_mm=(fx, fy),
                     has_age=bool(np.isfinite(np.asarray(data["age_s"])).any()),
                     has_shear_ceiling=bool(np.isfinite(np.asarray(data["shear_frac"])).any()),
-                    notes=[f"read from {vtk_path.relative_to(ROOT).as_posix()}"])
+                    notes=notes)
     plan = (summary or {}).get("plan") or {}
     roles: dict[str, str] = {}
     for key, role in (("feeds", "feed"), ("vents", "vent"), ("capped", "cap")):
@@ -1338,15 +1571,18 @@ def foam_case(run_dir: Path | str, chip_path: Path | str, step: Any = None, *,
                               roles.get(pid, "idle")))
     return Case(
         chip=chip, chip_id=chip_id, chip_path=chip_path.as_posix(),
-        step=(summary or {}).get("step", step), label=str((summary or {}).get("label", "") or
-                                                          f"step {step}"),
+        step=solved_step, label=_foam_label(summary, step),
         operation=str((summary or {}).get("operation", "")),
-        fluid=str((summary or {}).get("fluid", "")),
-        temp_c=(summary or {}).get("temp_c"),
+        fluid=_fluid_name(summary),
+        temp_c=_fluid_temp(summary),
         q_ul_min=((summary or {}).get("q_in_ul_min")
                   or ((summary or {}).get("plan") or {}).get("q_in_ul_min")),
         source=SOURCE_FOAM, volume=volume, ports=marks,
-        findings=[*_for_chip((summary or {}).get("findings") or findings, chip_id, step)],
+        # Filtered on the step the case ACTUALLY solved, not the one the caller asked
+        # for: with no step requested, matching against None threw away every finding the
+        # solver had just produced and the frame read "no finding on this step".
+        findings=[*_for_chip((summary or {}).get("findings") or findings, chip_id,
+                             solved_step)],
         assumptions=[str(a) for a in ((summary or {}).get("assumptions") or [])],
         notes=list(volume.notes),
     )
@@ -1357,14 +1593,19 @@ def cases_for_chip(chip_path: Path | str, protocol_path: Path | str | None = Non
                    cells_budget: int = DEFAULT_CELLS_BUDGET, nz: int = DEFAULT_NZ,
                    max_steps: int = DEFAULT_MAX_STEPS,
                    findings: Sequence[dict] = ()) -> list[Case]:
-    """OpenFOAM where it exists, the reduced-order fallback where it does not."""
-    out: list[Case] = []
-    if run_dir is not None:
-        case = foam_case(run_dir, chip_path, step, findings=findings)
+    """OpenFOAM where it exists, the reduced-order fallback where it does not.
+
+    3D WINS, AND ONLY WHERE IT IS REAL. Every `<out>` is searched for a converted case
+    for this chip (`foam_search_dirs`), and the first one found is drawn and labelled
+    `openfoam`. A chip with no converted case falls back to the depth-averaged solver and
+    keeps the `reduced-order (2.5D)` label. There is no path by which a 2.5D field is
+    labelled 3D: the label is set by whichever branch produced the Case, not by a flag a
+    caller passes in.
+    """
+    for out_dir in foam_search_dirs(run_dir):
+        case = foam_case(out_dir, chip_path, step, findings=findings)
         if case is not None:
-            out.append(case)
-    if out:
-        return out
+            return [case]
     cases = reduced_case(chip_path, protocol_path, step=step, cells_budget=cells_budget,
                          nz=nz, max_steps=max_steps, findings=findings)
     return cases[:max_steps]
@@ -1496,13 +1737,7 @@ def _camera(plotter, chip: dict, depth: float, origin=(0.0, 0.0, 0.0),
 
 def _fluid(volume: Volume):
     """Only the wetted cells: the walls are not part of the picture."""
-    grid = volume.grid
-    if "fluid" in grid.point_data:
-        try:
-            return grid.threshold(0.5, scalars="fluid")
-        except Exception:
-            pass
-    return grid
+    return _wetted(volume.grid)
 
 
 def _layer(volume: Volume, where: str):
@@ -1517,12 +1752,26 @@ def _layer(volume: Volume, where: str):
         nx, ny, _ = grid.dimensions
         sheet = grid.extract_subset((0, nx - 1, 0, ny - 1, 0, 0))
     else:
-        z = 0.0 if where == "floor" else volume.mid_z_mm
+        # An OpenFOAM mesh is the fluid domain itself, so its floor IS the z = 0 boundary
+        # and a cutting plane laid exactly on it returns nothing. The first cell layer
+        # above it carries the wall shear, so the cut sits just inside.
+        z = (volume.depth_mm * 0.05) if where == "floor" else volume.mid_z_mm
         sheet = grid.slice(normal="z", origin=(0, 0, z))
+    return _wetted(sheet)
+
+
+def _wetted(mesh):
+    """Drop the dry cells, unless everything is wet - thresholding 1.5M cells of solid
+    1.0 costs seconds per call and removes nothing."""
+    if mesh is None or "fluid" not in getattr(mesh, "point_data", {}):
+        return mesh
     try:
-        return sheet.threshold(0.5, scalars="fluid")
+        values = np.asarray(mesh.point_data["fluid"])
+        if values.size and float(values.min()) > 0.5:
+            return mesh
+        return mesh.threshold(0.5, scalars="fluid")
     except Exception:
-        return sheet
+        return mesh
 
 
 def _streamlines(volume: Volume, case: Case, *, seeds_per_port: int = 14):
@@ -2010,10 +2259,14 @@ def render_chip(chip_path: Path | str, protocol_path: Path | str | None = None, 
             keyframes.append(png)
         tmp = out_dir / "frames"
         tmp.mkdir(exist_ok=True)
-        for i in range(FRAMES_PER_STEP if video else 1):
+        # A chip with one solved step - which is what an OpenFOAM case gives - would make
+        # a 1.5 s video. Spread the same tracer loop over enough frames that the clip is
+        # watchable, without inventing steps the solver did not run.
+        per_step = max(FRAMES_PER_STEP, int(MIN_VIDEO_S * fps / max(len(cases), 1)))
+        for i in range(per_step if video else 1):
             frame = tmp / f"{chip_id}_s{case.step}_t{i:03d}.png"
             try:
-                render_frame(case, "tracers", size, frame, phase=i / FRAMES_PER_STEP,
+                render_frame(case, "tracers", size, frame, phase=i / per_step,
                              lines=lines)
             except Exception as exc:
                 # One unhappy frame must not throw away the other several hundred.

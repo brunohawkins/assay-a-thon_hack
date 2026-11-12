@@ -4,37 +4,45 @@
 
 import { svg, el, fmtNum, pick } from './dom.js';
 
+// Theme colours only (css/theme.css). Set through style, because a CSS variable is not
+// resolved inside an SVG presentation attribute.
 const CHAMBER_COLOURS = {
-  exchange: '#2dd4bf',
-  culture: '#4ade80',
-  mix: '#7dd3fc',
-  filter: '#a78bfa',
-  split: '#fbbf24',
-  pool: '#f472b6',
-  collect: '#94a3b8',
-  trap: '#fb923c',
-  incubate: '#f59e0b',
-  reservoir: '#60a5fa',
-  waste: '#64748b',
+  culture: 'var(--gfp)',
+  trap: 'var(--gfp)',
+  exchange: 'var(--gfp-2)',
+  incubate: 'var(--gfp-2)',
+  polygon: 'var(--gfp-2)',
+  mix: 'var(--bone)',
+  herringbone: 'var(--bone)',
+  filter: 'var(--bone)',
+  pillar: 'var(--bone)',
+  split: 'var(--bone-2)',
+  junction: 'var(--bone-2)',
+  pool: 'var(--bone-2)',
+  collect: 'var(--bone-2)',
+  reservoir: 'var(--bone-2)',
+  waste: 'var(--bone-3)',
 };
-const CHAMBER_FALLBACK = '#5b7bb5';
+const CHAMBER_FALLBACK = 'var(--bone-2)';
 
-const PORT_COLOURS = { inlet: '#5eead4', outlet: '#f472b6', vent: '#e2e8f0', waste: '#94a3b8' };
+const PORT_COLOURS = { inlet: 'var(--gfp)', outlet: 'var(--bone)', vent: 'var(--bone-3)', waste: 'var(--bone-3)' };
+const CARRIES_COLOURS = { capsules: 'var(--gfp)', oil: 'var(--amber)' };
+const carriesColour = (c) => CARRIES_COLOURS[c] || 'var(--bone-3)';
 
-function chamberColour(type) {
+export function chamberColour(type) {
   const t = String(type || '').toLowerCase();
   if (CHAMBER_COLOURS[t]) return CHAMBER_COLOURS[t];
   for (const [k, v] of Object.entries(CHAMBER_COLOURS)) if (t.includes(k)) return v;
   return CHAMBER_FALLBACK;
 }
 
-function xy(v) {
+export function xy(v) {
   if (Array.isArray(v)) return [Number(v[0]), Number(v[1])];
   if (v && typeof v === 'object') return [Number(pick(v, 'x', 'x_mm')), Number(pick(v, 'y', 'y_mm'))];
   return [NaN, NaN];
 }
 
-function footprintOf(spec) {
+export function footprintOf(spec) {
   const fp = spec && (spec.footprint || spec.envelope);
   const x = Number(pick(fp || {}, 'x', 'x_mm') ?? (Array.isArray(fp) ? fp[0] : NaN));
   const y = Number(pick(fp || {}, 'y', 'y_mm') ?? (Array.isArray(fp) ? fp[1] : NaN));
@@ -42,7 +50,7 @@ function footprintOf(spec) {
 }
 
 /** Positions of everything that a channel can attach to, by id. */
-function anchorMap(spec) {
+export function anchorMap(spec) {
   const map = new Map();
   for (const c of spec.chambers || []) {
     const [x, y] = xy(c.center || c.position);
@@ -97,11 +105,11 @@ export function chipPlan(spec, opts = {}) {
     if (pts.length < 2) continue;
     const w = Number(ch.width_mm ?? ch.width ?? 0.2) || 0.2;
     const carries = String(ch.carries || '').toLowerCase();
-    const colour = carries === 'capsules' ? '#fb923c' : carries === 'oil' ? '#fbbf24' : '#7dd3fc';
+    const colour = carriesColour(carries);
     const d = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${fmtNum(x, 6)} ${fmtNum(flip(y), 6)}`).join(' ');
     const path = svg('path', {
       class: 'channel', d,
-      stroke: colour, 'stroke-width': Math.max(w, 0.12), 'stroke-opacity': 0.92,
+      style: { stroke: colour }, 'stroke-width': Math.max(w, 0.12), 'stroke-opacity': 0.85,
       tabindex: opts.onSelect ? '0' : null,
       role: opts.onSelect ? 'button' : null,
     });
@@ -128,7 +136,7 @@ export function chipPlan(spec, opts = {}) {
     const colour = chamberColour(c.type || c.block);
     const shape = String(c.shape || '').toLowerCase();
     const common = {
-      class: 'chamber', fill: colour, 'fill-opacity': 0.26, stroke: colour,
+      class: 'chamber', style: { fill: colour, stroke: colour }, 'fill-opacity': 0.18,
       tabindex: opts.onSelect ? '0' : null, role: opts.onSelect ? 'button' : null,
     };
     const node = shape === 'circle' || shape === 'round'
@@ -160,11 +168,11 @@ export function chipPlan(spec, opts = {}) {
     const [px, py] = xy(p.position || p.center);
     if (!Number.isFinite(px) || !Number.isFinite(py)) continue;
     const type = String(p.type || '').toLowerCase();
-    const colour = PORT_COLOURS[type] || '#e2e8f0';
+    const colour = PORT_COLOURS[type] || 'var(--bone-2)';
     const r = Number(p.width_um) ? Math.max(0.4, Number(p.width_um) / 2000) : 0.4;
     const node = svg('circle', {
       class: 'port', cx: px, cy: flip(py), r,
-      fill: '#04070e', stroke: colour,
+      style: { fill: 'var(--ink)', stroke: colour },
       tabindex: opts.onSelect ? '0' : null, role: opts.onSelect ? 'button' : null,
     });
     node.appendChild(svg('title', {}, [String(p.id || ''), type, p.role ? `role ${p.role}` : null,
@@ -176,14 +184,14 @@ export function chipPlan(spec, opts = {}) {
   root.appendChild(gTx);
 
   if (!fp.known) {
-    root.appendChild(svg('text', { class: 'glabel', x: 0.4, y: 1.2, 'font-size': 1, fill: '#fbbf24' },
+    root.appendChild(svg('text', { class: 'glabel', x: 0.4, y: 1.2, 'font-size': 1, style: { fill: 'var(--amber)' } },
       'footprint missing from the spec - drawn on a 30 x 20 mm guess'));
   }
 
   return { svg: root, legend: legendFor(spec), footprint: fp };
 }
 
-function channelPoints(ch, anchors) {
+export function channelPoints(ch, anchors) {
   if (Array.isArray(ch.path) && ch.path.length >= 2) {
     return ch.path.map(xy).filter(([x, y]) => Number.isFinite(x) && Number.isFinite(y));
   }
@@ -212,10 +220,10 @@ function legendFor(spec) {
     host.appendChild(el('span', {}, el('i', { style: { background: chamberColour(t) } }), t));
   }
   for (const c of [...carries].sort()) {
-    const colour = c === 'capsules' ? '#fb923c' : c === 'oil' ? '#fbbf24' : '#7dd3fc';
+    const colour = carriesColour(c);
     host.appendChild(el('span', {}, el('i', { style: { background: colour, borderRadius: '1px', height: '3px' } }), `channel: ${c}`));
   }
-  host.appendChild(el('span', {}, el('i', { style: { background: 'transparent', border: '1px solid #5eead4', borderRadius: '50%' } }), 'port'));
+  host.appendChild(el('span', {}, el('i', { style: { background: 'transparent', border: '1px solid var(--gfp)', borderRadius: '50%' } }), 'port'));
   host.appendChild(el('span', { class: 'muted' }, 'grid 5 mm'));
   return host;
 }

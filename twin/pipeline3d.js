@@ -5,10 +5,18 @@
 // up. Statuses come from protocols/pipeline_status.md (twin/status.js); a stage with no chip is a
 // ghost outline labelled "next"; off-chip steps are labelled on the tube where they happen.
 // Click a chip to open its own view. Same playback interface as the old card view.
+//
+// Every word in here comes from protocols/pipeline_mvp.json, the chip spec or
+// protocols/pipeline_status.md: there is no prose table in this file (MJ). A hand-written
+// summary once told every viewer the pipeline had no single-cell step; it has one, between
+// Module 3 and Module 4, and it appears here because the pipeline file lists it. A stage whose
+// features are below the in-plane floor is OUR CHEMISTRY ON BOUGHT HARDWARE, not a chip of ours,
+// and the caveat in a module's note travels with its headline.
 import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { Chip } from './chip.js';
 import { applyBlocks } from './blocks.js';
+import { statusView, shortStage, notPrintable, calm } from './status.js';
 
 const SLOT_W = 30;
 const SLOT_H = 20;
@@ -17,9 +25,20 @@ const GAP_Y = 34;
 const DOTS = 7;
 const TUBE_R = 0.8;    // 1/16 inch tubing: 1.6 mm outer diameter
 const DOT_R = 0.55;    // markers, not to scale (a capsule is 0.07-0.26 mm)
-const KIND_COLOR = { cells: 0xfb7185, capsules: 0x2dd4bf, library: 0xa78bfa };
-const BADGE_CLASS = { BUILT: 'st-final', FINAL: 'st-final', DRAFT: 'st-draft', TRANSLATED: 'st-translated', MISSING: 'st-missing', NEXT: 'st-missing', BENCH: 'st-draft', 'RT ONLY': 'st-translated' };
+const KIND_COLOR = { cells: 0xe5534b, capsules: 0x1b9e8f, library: 0x8250df };
+const CAPSULE_CORE = 0xf08a7e;   // a capsule: the cell-pink core inside its teal shell
+const TUBE_COLOR = 0x8c959f;
 
+// Short stage names for the labels in the scene; the sidebar lists the full ones.
+// The honest half of a note, not just its headline: pipeline_mvp.json's notes carry what is wrong
+// or bought as well as what works, and one sentence of each is all the scene shows (MJ).
+const CAVEAT = /\b(not printable|bought|below the|under the|mismatch|unverified|no barcode|lost|nobody has published|open problem)\b/i;
+export function caveat(e) {
+  const text = `${e?.note ?? ''} ${e?.build?.method ?? ''}`;
+  const head = firstSentence(e?.note ?? '');
+  const hit = (text.match(/[^.!?]+[.!?]/g) ?? []).map((s) => s.trim()).find((s) => s !== head && CAVEAT.test(s));
+  return hit ?? '';
+}
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const ease = (x) => { x = clamp01(x); return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2; };
@@ -189,11 +208,11 @@ export function createPipeline3D(root, ctx, handlers = {}) {
         }
       } else {
         // Ghost: an outline the size of the envelope, labelled "next" (a bench step: amber, "bench").
-        const tint = e.status === 'bench' ? 0xfde68a : 0xfca5a5;
+        const tint = e.status === 'bench' ? 0xbf8700 : 0xcf222e;
         const box = new THREE.BoxGeometry(SLOT_W, SLOT_H, 4);
-        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(box), new THREE.LineDashedMaterial({ color: tint, dashSize: 1.2, gapSize: 0.8, transparent: true, opacity: 0.85 }));
+        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(box), new THREE.LineDashedMaterial({ color: tint, dashSize: 1.2, gapSize: 0.8, transparent: true, opacity: 0.7 }));
         edges.computeLineDistances();
-        const face = new THREE.Mesh(box, new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: 0.05, depthWrite: false }));
+        const face = new THREE.Mesh(box, new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: 0.035, depthWrite: false }));
         for (const o of [edges, face]) { o.position.set(s.x + SLOT_W / 2, s.y + SLOT_H / 2, 2); world.add(o); s.objects.push(o); }
         s.top = 4;
         s.inPos = new THREE.Vector3(s.x, s.y + SLOT_H / 2, 4);
@@ -205,7 +224,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
     // The end of the line: a tube rack vial for the off-chip steps.
     const end = slots.at(-1);
     const vial = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 12, 32, 1, true).rotateX(Math.PI / 2),
-      new THREE.MeshStandardMaterial({ color: 0xe2e8f0, transparent: true, opacity: 0.35, roughness: 0.15, side: THREE.DoubleSide, depthWrite: false }));
+      new THREE.MeshStandardMaterial({ color: 0xaab4be, transparent: true, opacity: 0.4, roughness: 0.15, side: THREE.DoubleSide, depthWrite: false }));
     vial.position.set(end.x + SLOT_W / 2, end.y + SLOT_H / 2, 6);
     const liquid = new THREE.Mesh(new THREE.CylinderGeometry(2.9, 2.9, 3, 32).rotateX(Math.PI / 2),
       new THREE.MeshStandardMaterial({ color: KIND_COLOR.library, emissive: KIND_COLOR.library, emissiveIntensity: 0.2, transparent: true, opacity: 0.5 }));
@@ -231,7 +250,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       });
       curves.forEach((c, i) => {
         const mesh = new THREE.Mesh(new THREE.TubeGeometry(c, 80, i ? TUBE_R * 0.7 : TUBE_R, 10, false),
-          new THREE.MeshStandardMaterial({ color: 0xe2e8f0, emissive: KIND_COLOR[kind], emissiveIntensity: 0, transparent: true, opacity: 0.4, roughness: 0.2, depthWrite: false }));
+          new THREE.MeshStandardMaterial({ color: TUBE_COLOR, emissive: KIND_COLOR[kind], emissiveIntensity: 0, transparent: true, opacity: 0.5, roughness: 0.35, depthWrite: false }));
         mesh.renderOrder = 9;
         world.add(mesh);
         objects.push(mesh);
@@ -240,7 +259,8 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       // An end-of-line step (SPRI, QC) only labels the tube into the end, whatever the chip order.
       const off = (status?.offChip ?? []).filter((o) => o.after && o.after === a.entry?.spec?.id && (o.before !== null || b.kind === 'end'));
       if (off.length && b.kind !== 'end') {
-        const lab = label(`<span class="p3-off">off-chip</span> ${off.map((o) => esc(o.stage.toLowerCase())).join(' · ')}`, 'p3-tube');
+        const lab = label('off-chip step', 'p3-tube');
+        lab.element.title = off.map((o) => o.stage).join('; ');
         lab.center.set(0.5, -0.9);
         lab.position.copy(curves[0].getPoint(0.5));
         world.add(lab);
@@ -249,25 +269,27 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       tubes.push({ k, kind, curve: curves[0], points: curves[0].getPoints(60), objects, handoff: h });
     }
 
-    // Labels: number, stage, status badge, chip id; ghosts say "next".
+    // Labels: number, a short stage name and a status dot (the sidebar has the full names and
+    // words); a stage with no chip says so. The back row's labels sit behind their chips, the front
+    // row's in front, so the two rows never cover each other.
     slots.forEach((s, k) => {
       let html;
       if (s.kind === 'end') {
-        const road = (pipe.roadmap ?? []).map((r) => r.name);
-        const off = (status?.offChip ?? []).filter((o) => o.after && o.after === slots.at(-2)?.entry?.spec?.id).map((o) => o.stage);
-        html = `<b>${esc((road.length ? road : off).join(' → ') || 'Library out')}</b><br><span class="p3-id">off-chip, in tubes</span>`;
+        html = '<b>Library out</b><span class="p3-id">off-chip, in tubes</span>';
       } else {
         const e = s.entry;
         const st = s.chip ? status?.byChip.get(s.chip.spec.id) : null;
         const badge = s.kind === 'ghost' ? (e.status === 'bench' ? 'BENCH' : 'NEXT') : st?.badge ?? (e.status ?? '').toUpperCase();
-        const stage = st?.stage ?? e.name;
-        const extras = (st?.extras ?? []).map((x) => `<br><span class="p3-extra">+ ${esc(x.stage.split('(')[0].trim())}: ${esc(x.status)}</span>`).join('');
-        const sub = s.chip ? `${esc(s.chip.spec.id)} · ${s.chip.spec.footprint.x} × ${s.chip.spec.footprint.y} mm${e.built_for_demo ? ' · built for the demo' : ''}`
-          : esc(firstSentence(e.status_note ?? e.note ?? 'not designed yet'));
-        html = `<span class="p3-num">${k + 1}</span><b>${esc(stage)}</b> <span class="badge ${BADGE_CLASS[badge] ?? 'st-draft'}">${esc(badge)}</span><br><span class="p3-id">${sub}</span>${extras}`;
+        const v = statusView(badge, s.kind === 'ghost' ? '' : st?.detail ?? '');
+        const name = shortStage(st?.stage ?? e.name);
+        const dot = `<i class="sdot ${v.cls}" title="${esc(v.text)}"></i>`;
+        const sub = s.kind === 'ghost' ? v.word.toLowerCase() : notPrintable(e) ? 'bought hardware · our chemistry' : '';
+        html = `<span class="p3-head">${dot}<span class="p3-num">${k + 1}</span><b>${esc(name)}</b></span>${sub ? `<span class="p3-id">${esc(sub)}</span>` : ''}`;
       }
       const obj = label(html, s.kind);
-      obj.position.set(s.x + SLOT_W / 2, s.y + SLOT_H + 2, 0);
+      const front = s.y === 0 && slots.some((o) => o.y > 0);
+      obj.center.set(0.5, front ? 0 : 1);
+      obj.position.set(s.x + SLOT_W / 2, front ? s.y - 2 : s.y + SLOT_H + 2, 0);
       world.add(obj);
       s.objects.push(obj);
       s.label = obj.element;
@@ -290,8 +312,9 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       const e = s.entry;
       const st = s.chip ? data.status?.byChip.get(s.chip.spec.id) : null;
       const what = s.kind === 'ghost' ? `${e.name}: ${e.status === 'bench' ? 'a bench step' : 'not on a chip yet'}. ${firstSentence(e.note ?? e.status_note ?? '')}`
-        : `${st?.stage ?? e.name} (${s.chip.spec.id}) · ${st?.badge ?? e.status}${st?.detail ? ` ${st.detail}` : ''}. ${firstSentence(e.note ?? s.chip.spec.description ?? '')}`;
-      phases.push({ id: `pl_${e.module}`, kind: 'module', k, play: s.kind === 'ghost' ? 2.5 : 4.5, proto: e.duration_s ?? 600,
+        : `${st?.stage ?? e.name} (${s.chip.spec.id}), ${statusView(st?.badge ?? e.status, st?.detail ?? '').text.toLowerCase()}`
+          + `${notPrintable(e) ? ', bought hardware · our chemistry' : ''}. ${calm(firstSentence(e.note ?? s.chip.spec.description ?? ''))}${caveat(e) ? ` ${calm(caveat(e))}` : ''}`;
+      phases.push({ id: `pl_${e.module}`, kind: 'module', k, play: s.kind === 'ghost' ? 2 : 3.2, proto: e.duration_s ?? 600,
         narration: what, args: s.chip ? { chip: s.chip.spec.id, status: st?.status ?? e.status } : { status: 'next' } });
       const tb = tubes[k];
       if (!tb) return;
@@ -299,7 +322,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       const h = tb.handoff;
       const toName = to.kind === 'end' ? 'the off-chip steps' : to.chip ? to.chip.spec.id : to.entry?.name;
       const off = (data.status?.offChip ?? []).filter((o) => o.after && o.after === s.chip?.spec.id && o.before !== null && to.kind !== 'end').map((o) => o.stage.toLowerCase());
-      phases.push({ id: `pl_${h?.id ?? `${e.module}_to_next`}`, kind: 'handoff', k, play: 2.6, proto: 120,
+      phases.push({ id: `pl_${h?.id ?? `${e.module}_to_next`}`, kind: 'handoff', k, play: 2, proto: 120,
         narration: `${(h?.carries ?? 'sample').replace(/^./, (c) => c.toUpperCase())} go from ${s.chip ? `${s.chip.spec.id} ${s.outPort ?? ''}` : e.name} to ${toName}${to.kind === 'chip' && to.inPort ? ` ${to.inPort}` : ''} through 1/16 inch tubing${off.length ? `; off-chip on the way: ${off.join(', ')}` : ''}.`,
         args: { carries: h?.carries ?? 'cells', from: h?.from?.port ?? '', to: (h?.to?.ports ?? [h?.to?.port ?? h?.to?.roadmap ?? '']).join(', ') } });
     });
@@ -364,7 +387,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
     });
     tubes.forEach((tb, k) => {
       const on = ph.kind === 'handoff' && ph.k === k;
-      for (const o of tb.objects) if (o.material?.emissive) { o.material.emissiveIntensity = on ? 0.9 : k < ph.k ? 0.25 : 0; o.material.opacity = on ? 0.6 : 0.4; }
+      for (const o of tb.objects) if (o.material?.emissive) { o.material.emissiveIntensity = on ? 0.75 : k < ph.k ? 0.2 : 0; o.material.opacity = on ? 0.75 : 0.5; }
     });
     const end = slots.at(-1);
     if (end?.liquid) end.liquid.visible = done || (ph.kind === 'handoff' && ph.k === slots.length - 2 && p > 0.6);
@@ -403,8 +426,8 @@ export function createPipeline3D(root, ctx, handlers = {}) {
       d.core.visible = Boolean(pos);
       if (!pos) return;
       d.core.position.copy(pos);
-      d.core.material.color.setHex(kind === 'capsules' ? 0xfda4af : KIND_COLOR[kind]);
-      d.core.material.emissive.setHex(kind === 'capsules' ? 0xfda4af : KIND_COLOR[kind]);
+      d.core.material.color.setHex(kind === 'capsules' ? CAPSULE_CORE : KIND_COLOR[kind]);
+      d.core.material.emissive.setHex(kind === 'capsules' ? CAPSULE_CORE : KIND_COLOR[kind]);
       d.shell.visible = kind === 'capsules';
       d.core.scale.setScalar(kind === 'library' ? 0.7 : 1);
     });
@@ -438,7 +461,8 @@ export function createPipeline3D(root, ctx, handlers = {}) {
   });
 
   // A wider frame than a single chip's: in perspective the near row spreads beyond the far one.
-  function frame() { ctx.frameChip({ x: size.x * 1.16, y: size.y * 1.12, targetY: size.y * 0.05 }); }
+  // A steeper view than a single chip's, so the two rows read as a plan of the line.
+  function frame() { ctx.frameChip({ x: size.x * 1.08, y: size.y * 1.3, targetY: size.y * 0.02, dir: [-0.03, 0.78, 0.62] }); }
 
   return {
     load,
@@ -465,6 +489,7 @@ export function createPipeline3D(root, ctx, handlers = {}) {
     seek(x) { t = Math.min(Math.max(x, 0), total); stopAt = null; render(); },
     seekToPhase(i) { this.seek(starts[Math.max(0, Math.min(i, starts.length - 1))] ?? 0); },
     phaseIndex(id) { return phases.findIndex((ph) => ph.id === id); },
+    phaseSlot(i) { const ph = phases[i]; return ph ? { k: ph.k, kind: ph.kind } : null; },
     // Play phases i0..i1 (inclusive) and stop inside i1.
     playRange(i0, i1) {
       t = starts[i0] ?? 0;

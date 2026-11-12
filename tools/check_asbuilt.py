@@ -69,18 +69,10 @@ def regenerate(chip_path: Path, chip_id: str) -> dict[str, bytes]:
         folder = Path(tmp) / chip_id
         if not folder.is_dir():
             folder = Path(tmp)
-        out = {p.name: p.read_bytes() for p in folder.iterdir() if p.is_file()}
-        dxf = folder / f"{chip_id}.dxf"
-        if dxf.is_file():
-            dc = _load(ROOT / "cad" / "dxf_closed.py", "_dxfc_asbuilt")
-            import contextlib
-            import io
-            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
-                dc.main([str(dxf)])
-            closed = folder / f"{chip_id}_closed.dxf"
-            if closed.is_file():
-                out[closed.name] = closed.read_bytes()
-        return out
+        # Both DXFs come out of make_train_cad.py in one pass now: <chip>.dxf (LINE
+        # centrelines, the reference drawing) and <chip>_closed.dxf (closed polylines, the file
+        # to machine). There is no separate cad/dxf_closed.py step to run afterwards.
+        return {p.name: p.read_bytes() for p in folder.iterdir() if p.is_file()}
 
 
 def incoming(folder: Path, fresh: dict[str, bytes]) -> list[tuple[Path, str]]:

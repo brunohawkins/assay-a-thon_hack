@@ -4,7 +4,7 @@
   "chip_id": "ipsc_to_mgl_chip_v1",
   "chip_spec": "chip/ipsc_to_mgl_chip_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T17:52:55Z",
+  "created_at": "2026-11-08T09:51:02Z",
   "placeholder": false,
   "sizing": {
     "capsule_count": null,
@@ -37,7 +37,12 @@
     ],
     "swollen_diameter_um": 140.0
   },
-  "total_duration_s": 4064003.0,
+  "simulated_hardware": true,
+  "adapter": "sim",
+  "scenario": {
+    "description": "No scenario file: the sim adapter records the commands the planner sent and nothing else. No virtual chip, no sensors and no injected faults, so there is no reality to configure - and nothing was measured, which is why simulated_hardware is true."
+  },
+  "total_duration_s": 4064468.0,
   "events": [
     {
       "t_s": 0.0,
@@ -50,7 +55,7 @@
         "washes": 1,
         "flow_ul_min": 3.671
       },
-      "narration": "Fill the expansion chamber with coating solution so the iPSCs have a surface to attach to.",
+      "narration": "Fill the expansion chamber with coating solution so the iPSCs have a surface to attach to. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
       "protocol_step": 1
     },
     {
@@ -90,150 +95,150 @@
     },
     {
       "t_s": 94301.0,
-      "duration_s": 101.0,
+      "duration_s": 466.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "ipsc_medium",
-        "volume_ul": 4.424,
+        "volume_ul": 20.3733,
         "washes": 1,
         "flow_ul_min": 3.671
       },
-      "narration": "Daily feed on day -6: exchange one chamber volume of iPSC medium.",
+      "narration": "Daily feed on day -6: iPSCs get a full daily change, so this one is meant to clear the spent medium out rather than top it up. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
       "protocol_step": 5
     },
     {
-      "t_s": 94402.0,
-      "duration_s": 78398.0,
+      "t_s": 94767.0,
+      "duration_s": 78033.0,
       "command": "hold_temp",
       "args": {
         "target": "m1_expand",
         "temp_c": 37,
-        "duration_s": 78398
+        "duration_s": 78033
       },
       "narration": "Grow on through day -6.",
       "protocol_step": 6
     },
     {
       "t_s": 172800.0,
-      "duration_s": 101.0,
+      "duration_s": 466.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "ipsc_medium",
-        "volume_ul": 4.424,
+        "volume_ul": 20.3733,
         "washes": 1,
         "flow_ul_min": 3.671
       },
-      "narration": "Daily feed on day -5: exchange one chamber volume of iPSC medium.",
+      "narration": "Daily feed on day -5: iPSCs get a full daily change, so this one is meant to clear the spent medium out rather than top it up. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
       "protocol_step": 7
     },
     {
-      "t_s": 172901.0,
-      "duration_s": 86299.0,
+      "t_s": 173266.0,
+      "duration_s": 85934.0,
       "command": "hold_temp",
       "args": {
         "target": "m1_expand",
         "temp_c": 37,
-        "duration_s": 86299
+        "duration_s": 85934
       },
       "narration": "Grow on through day -5.",
       "protocol_step": 8
     },
     {
       "t_s": 259200.0,
-      "duration_s": 101.0,
+      "duration_s": 466.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "ipsc_medium",
-        "volume_ul": 4.424,
+        "volume_ul": 20.3733,
         "washes": 1,
         "flow_ul_min": 3.671
       },
-      "narration": "Daily feed on day -4: exchange one chamber volume of iPSC medium.",
+      "narration": "Daily feed on day -4: iPSCs get a full daily change, so this one is meant to clear the spent medium out rather than top it up. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
       "protocol_step": 9
     },
     {
-      "t_s": 259301.0,
-      "duration_s": 86299.0,
+      "t_s": 259666.0,
+      "duration_s": 85934.0,
       "command": "hold_temp",
       "args": {
         "target": "m1_expand",
         "temp_c": 37,
-        "duration_s": 86299
+        "duration_s": 85934
       },
       "narration": "Grow on through day -4.",
       "protocol_step": 10
     },
     {
       "t_s": 345600.0,
-      "duration_s": 101.0,
+      "duration_s": 466.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "ipsc_medium",
-        "volume_ul": 4.424,
+        "volume_ul": 20.3733,
         "washes": 1,
         "flow_ul_min": 3.671
       },
-      "narration": "Daily feed on day -3: exchange one chamber volume of iPSC medium.",
+      "narration": "Daily feed on day -3: iPSCs get a full daily change, so this one is meant to clear the spent medium out rather than top it up. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
       "protocol_step": 11
     },
     {
-      "t_s": 345701.0,
-      "duration_s": 86299.0,
+      "t_s": 346066.0,
+      "duration_s": 85934.0,
       "command": "hold_temp",
       "args": {
         "target": "m1_expand",
         "temp_c": 37,
-        "duration_s": 86299
+        "duration_s": 85934
       },
       "narration": "Grow on through day -3.",
       "protocol_step": 12
     },
     {
       "t_s": 432000.0,
-      "duration_s": 101.0,
+      "duration_s": 466.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "ipsc_medium",
-        "volume_ul": 4.424,
+        "volume_ul": 20.3733,
         "washes": 1,
         "flow_ul_min": 3.671
       },
-      "narration": "Daily feed on day -2: exchange one chamber volume of iPSC medium.",
+      "narration": "Daily feed on day -2: iPSCs get a full daily change, so this one is meant to clear the spent medium out rather than top it up. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
       "protocol_step": 13
     },
     {
-      "t_s": 432101.0,
-      "duration_s": 86299.0,
+      "t_s": 432466.0,
+      "duration_s": 85934.0,
       "command": "hold_temp",
       "args": {
         "target": "m1_expand",
         "temp_c": 37,
-        "duration_s": 86299
+        "duration_s": 85934
       },
       "narration": "Grow on through day -2.",
       "protocol_step": 14
     },
     {
       "t_s": 518400.0,
-      "duration_s": 51.0,
+      "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m1_expand",
         "reagent": "dissociation_reagent",
-        "volume_ul": 2.212,
+        "volume_ul": 4.424,
         "washes": 1,
         "flow_ul_min": 3.671
       },
-      "narration": "Lift the iPSCs as small aggregates with an enzyme-free reagent. Aggregates, not single cells, are what the next stage needs.",
+      "narration": "Lift the iPSCs as small aggregates with an enzyme-free reagent. Aggregates, not single cells, are what the next stage needs. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
       "protocol_step": 15
     },
     {
-      "t_s": 518451.0,
+      "t_s": 518501.0,
       "duration_s": 900.0,
       "command": "split",
       "args": {
@@ -246,40 +251,40 @@
       "protocol_step": 16
     },
     {
-      "t_s": 519351.0,
-      "duration_s": 85449.0,
+      "t_s": 519401.0,
+      "duration_s": 85399.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 85449
+        "duration_s": 85399
       },
       "narration": "No flow for 24 hours while the aggregates attach and spread. The run stops here if the day-0 colony count is out of range.",
       "protocol_step": 17
     },
     {
       "t_s": 604800.0,
-      "duration_s": 101.0,
+      "duration_s": 466.0,
       "command": "exchange",
       "args": {
         "target": "m2_hemogenic",
         "reagent": "mesoderm_medium",
-        "volume_ul": 4.424,
+        "volume_ul": 20.3733,
         "washes": 1,
         "flow_ul_min": 3.671,
         "waste": "waste_1"
       },
-      "narration": "Day 0: full exchange into mesoderm medium. Imaging has counted the colonies and confirmed the seeding density is in range.",
+      "narration": "Day 0: change into mesoderm medium. A stage switch has to clear what was there, or the previous stage's medium keeps driving the cells, so this one sweeps. Imaging has counted the colonies and confirmed the seeding density is in range. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
       "protocol_step": 18
     },
     {
-      "t_s": 604901.0,
-      "duration_s": 172699.0,
+      "t_s": 605266.0,
+      "duration_s": 172334.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 172699
+        "duration_s": 172334
       },
       "narration": "Days 0 to 2: mesoderm specification.",
       "protocol_step": 19
@@ -296,7 +301,7 @@
         "flow_ul_min": 3.671,
         "waste": "waste_1"
       },
-      "narration": "Day 2: half exchange, leaving half the conditioned medium behind. The cells depend on their own secreted factors, so this is never a full change.",
+      "narration": "Day 2: half exchange, leaving half the conditioned medium behind. The cells depend on their own secreted factors, so this is never a full change. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 20
     },
     {
@@ -313,27 +318,27 @@
     },
     {
       "t_s": 864000.0,
-      "duration_s": 101.0,
+      "duration_s": 466.0,
       "command": "exchange",
       "args": {
         "target": "m2_hemogenic",
         "reagent": "hematopoietic_medium",
-        "volume_ul": 4.424,
+        "volume_ul": 20.3733,
         "washes": 1,
         "flow_ul_min": 3.671,
         "waste": "waste_1"
       },
-      "narration": "Day 3: full exchange into hematopoietic medium, which starts the switch from mesoderm to hemogenic endothelium.",
+      "narration": "Day 3: change into hematopoietic medium, which starts the switch from mesoderm to hemogenic endothelium. Another stage switch, so it sweeps rather than half-changes. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
       "protocol_step": 22
     },
     {
-      "t_s": 864101.0,
-      "duration_s": 172699.0,
+      "t_s": 864466.0,
+      "duration_s": 172334.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 172699
+        "duration_s": 172334
       },
       "narration": "Growing on to day 5. From about day 7 the first progenitors round up and lift off the endothelial layer.",
       "protocol_step": 23
@@ -350,7 +355,7 @@
         "flow_ul_min": 3.671,
         "waste": "waste_1"
       },
-      "narration": "Day 5: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample.",
+      "narration": "Day 5: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 24
     },
     {
@@ -377,7 +382,7 @@
         "flow_ul_min": 3.671,
         "waste": "waste_1"
       },
-      "narration": "Day 7: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample.",
+      "narration": "Day 7: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 26
     },
     {
@@ -404,7 +409,7 @@
         "flow_ul_min": 3.671,
         "waste": "waste_1"
       },
-      "narration": "Day 9: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample.",
+      "narration": "Day 9: half exchange. Spent medium leaves through the waste port and is kept as a supernatant sample. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 28
     },
     {
@@ -434,20 +439,20 @@
     },
     {
       "t_s": 1469700.0,
-      "duration_s": 158.0,
+      "duration_s": 364.0,
       "command": "exchange",
       "args": {
         "target": "m3_concentrate",
         "reagent": "wash_buffer",
-        "volume_ul": 1.08,
+        "volume_ul": 2.4868,
         "washes": 2,
         "flow_ul_min": 1.147
       },
-      "narration": "Bring the progenitors down the line from the hemogenic chamber and concentrate them here, which replaces a centrifugation step. ",
+      "narration": "Bring the progenitors down the line from the hemogenic chamber and concentrate them here, which replaces a centrifugation step. Cells left upstream are cells lost, so this is sized to clear the chamber it sweeps, not to top it up. The depth weir leaves a 25 um gap under the lid, so it holds back capsules and aggregates of roughly 75 um and above. It does NOT retain bare cells of 10-15 um: see protocols/retention_audit.md. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
       "protocol_step": 31
     },
     {
-      "t_s": 1469858.0,
+      "t_s": 1470064.0,
       "duration_s": 900.0,
       "command": "split",
       "args": {
@@ -463,13 +468,13 @@
       "protocol_step": 32
     },
     {
-      "t_s": 1470758.0,
-      "duration_s": 170842.0,
+      "t_s": 1470964.0,
+      "duration_s": 170636.0,
       "command": "hold_temp",
       "args": {
         "target": "m2_hemogenic",
         "temp_c": 37,
-        "duration_s": 170842
+        "duration_s": 170636
       },
       "narration": "Day 10 to 12: the endothelium produces a second batch.",
       "protocol_step": 33
@@ -489,20 +494,20 @@
     },
     {
       "t_s": 1642500.0,
-      "duration_s": 158.0,
+      "duration_s": 364.0,
       "command": "exchange",
       "args": {
         "target": "m3_concentrate",
         "reagent": "wash_buffer",
-        "volume_ul": 1.08,
+        "volume_ul": 2.4868,
         "washes": 2,
         "flow_ul_min": 1.147
       },
-      "narration": "Bring the progenitors down the line from the hemogenic chamber and concentrate them here, which replaces a centrifugation step. ",
+      "narration": "Bring the progenitors down the line from the hemogenic chamber and concentrate them here, which replaces a centrifugation step. Cells left upstream are cells lost, so this is sized to clear the chamber it sweeps, not to top it up. The depth weir leaves a 25 um gap under the lid, so it holds back capsules and aggregates of roughly 75 um and above. It does NOT retain bare cells of 10-15 um: see protocols/retention_audit.md. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
       "protocol_step": 35
     },
     {
-      "t_s": 1642658.0,
+      "t_s": 1642864.0,
       "duration_s": 900.0,
       "command": "split",
       "args": {
@@ -518,13 +523,13 @@
       "protocol_step": 36
     },
     {
-      "t_s": 1643558.0,
-      "duration_s": 84442.0,
+      "t_s": 1643764.0,
+      "duration_s": 84236.0,
       "command": "hold_temp",
       "args": {
         "target": "mat_1",
         "temp_c": 37,
-        "duration_s": 84442
+        "duration_s": 84236
       },
       "narration": "Progenitors settle and begin to adhere in maturation medium. Flow stays off while they attach.",
       "protocol_step": 37
@@ -540,7 +545,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 14: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 14: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 38
     },
     {
@@ -554,7 +559,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 14: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 14: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 39
     },
     {
@@ -568,7 +573,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 14: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 14: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 40
     },
     {
@@ -582,7 +587,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 14: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 14: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 41
     },
     {
@@ -608,7 +613,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 16: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 16: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 43
     },
     {
@@ -622,7 +627,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 16: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 16: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 44
     },
     {
@@ -636,7 +641,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 16: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 16: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 45
     },
     {
@@ -650,7 +655,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 16: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 16: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 46
     },
     {
@@ -676,7 +681,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 18: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 18: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 48
     },
     {
@@ -690,7 +695,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 18: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 18: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 49
     },
     {
@@ -704,7 +709,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 18: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 18: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 50
     },
     {
@@ -718,7 +723,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 18: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 18: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 51
     },
     {
@@ -744,7 +749,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 20: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 20: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 53
     },
     {
@@ -758,7 +763,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 20: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 20: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 54
     },
     {
@@ -772,7 +777,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 20: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 20: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 55
     },
     {
@@ -786,7 +791,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 20: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 20: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 56
     },
     {
@@ -812,7 +817,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 22: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 22: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 58
     },
     {
@@ -826,7 +831,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 22: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 22: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 59
     },
     {
@@ -840,7 +845,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 22: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 22: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 60
     },
     {
@@ -854,7 +859,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 22: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 22: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 61
     },
     {
@@ -880,7 +885,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 24: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 24: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 63
     },
     {
@@ -894,7 +899,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 24: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 24: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 64
     },
     {
@@ -908,7 +913,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 24: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 24: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 65
     },
     {
@@ -922,7 +927,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 24: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 24: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 66
     },
     {
@@ -948,7 +953,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 26: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 26: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 68
     },
     {
@@ -962,7 +967,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 26: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 26: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 69
     },
     {
@@ -976,7 +981,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 26: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 26: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 70
     },
     {
@@ -990,7 +995,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 26: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 26: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 71
     },
     {
@@ -1016,7 +1021,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 28: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 28: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 73
     },
     {
@@ -1030,7 +1035,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 28: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 28: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 74
     },
     {
@@ -1044,7 +1049,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 28: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 28: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 75
     },
     {
@@ -1058,7 +1063,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 28: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 28: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 76
     },
     {
@@ -1084,7 +1089,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 30: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 30: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 78
     },
     {
@@ -1098,7 +1103,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 30: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 30: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 79
     },
     {
@@ -1112,7 +1117,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 30: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 30: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 80
     },
     {
@@ -1126,7 +1131,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 30: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 30: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 81
     },
     {
@@ -1152,7 +1157,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 32: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 32: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 83
     },
     {
@@ -1166,7 +1171,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 32: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 32: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 84
     },
     {
@@ -1180,7 +1185,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 32: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 32: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 85
     },
     {
@@ -1194,7 +1199,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 32: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 32: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 86
     },
     {
@@ -1220,7 +1225,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 34: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 34: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 88
     },
     {
@@ -1234,7 +1239,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 34: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 34: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 89
     },
     {
@@ -1248,7 +1253,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 34: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 34: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 90
     },
     {
@@ -1262,7 +1267,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 34: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 34: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 91
     },
     {
@@ -1288,7 +1293,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 36: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 36: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 93
     },
     {
@@ -1302,7 +1307,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 36: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 36: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 94
     },
     {
@@ -1316,7 +1321,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 36: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 36: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 95
     },
     {
@@ -1330,7 +1335,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 36: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 36: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 96
     },
     {
@@ -1356,7 +1361,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 38: half exchange in mat_1. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 38: half exchange in mat_1. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 98
     },
     {
@@ -1370,7 +1375,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 38: half exchange in mat_2. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 38: half exchange in mat_2. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 99
     },
     {
@@ -1384,7 +1389,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 38: half exchange in mat_3. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 38: half exchange in mat_3. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 100
     },
     {
@@ -1398,7 +1403,7 @@
         "washes": 1,
         "flow_ul_min": 2.937
       },
-      "narration": "Day 38: half exchange in mat_4. The four chambers are fed one at a time through the selector valve.",
+      "narration": "Day 38: half exchange in mat_4. The four chambers are fed one at a time through the selector valve. PARTIAL change: 0.5 of a chamber volume. This is NOT trying to clear the chamber - the conditioned medium left behind is wanted, as in any bench half-change.",
       "protocol_step": 101
     },
     {
@@ -1443,20 +1448,20 @@
     },
     {
       "t_s": 4062300.0,
-      "duration_s": 51.0,
+      "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m5_harvest",
         "reagent": "dissociation_reagent",
-        "volume_ul": 1.106,
+        "volume_ul": 2.212,
         "washes": 1,
         "flow_ul_min": 1.835
       },
-      "narration": "Fill with a gentle, enzyme-free dissociation reagent.",
+      "narration": "Fill with a gentle, enzyme-free dissociation reagent. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
       "protocol_step": 105
     },
     {
-      "t_s": 4062351.0,
+      "t_s": 4062401.0,
       "duration_s": 900.0,
       "command": "hold_temp",
       "args": {
@@ -1468,35 +1473,35 @@
       "protocol_step": 106
     },
     {
-      "t_s": 4063251.0,
-      "duration_s": 51.0,
-      "command": "exchange",
-      "args": {
-        "target": "m5_harvest",
-        "reagent": "quench_buffer",
-        "volume_ul": 1.106,
-        "washes": 1,
-        "flow_ul_min": 1.835
-      },
-      "narration": "Quench with a carrier-protein buffer so the released cells do not stick to the channel walls.",
-      "protocol_step": 107
-    },
-    {
-      "t_s": 4063302.0,
+      "t_s": 4063301.0,
       "duration_s": 101.0,
       "command": "exchange",
       "args": {
         "target": "m5_harvest",
+        "reagent": "quench_buffer",
+        "volume_ul": 2.212,
+        "washes": 1,
+        "flow_ul_min": 1.835
+      },
+      "narration": "Quench with a carrier-protein buffer so the released cells do not stick to the channel walls. FILL: 1.0 chamber volume(s) to put the reagent in, not a sweep to get the old liquid out; about 37% of what was there stays behind.",
+      "protocol_step": 107
+    },
+    {
+      "t_s": 4063402.0,
+      "duration_s": 466.0,
+      "command": "exchange",
+      "args": {
+        "target": "m5_harvest",
         "reagent": "wash_buffer",
-        "volume_ul": 1.106,
+        "volume_ul": 5.0934,
         "washes": 2,
         "flow_ul_min": 1.835
       },
-      "narration": "Wash twice with the suspension passing over the depth weir. ",
+      "narration": "Wash out the dissociation reagent, with the suspension passing over the depth weir. Reagent carried into the encapsulation chip keeps working on the cells, so this one has to clear. The depth weir leaves a 25 um gap under the lid, so it holds back capsules and aggregates of roughly 75 um and above. It does NOT retain bare cells of 10-15 um: see protocols/retention_audit.md. SWEEP: 4.6 chamber volumes in total, which is what the 99% exchange goal needs in a well-mixed chamber (what is left after V chamber volumes is exp(-V), so half a volume cannot clear it however often it is repeated).",
       "protocol_step": 108
     },
     {
-      "t_s": 4063403.0,
+      "t_s": 4063868.0,
       "duration_s": 600.0,
       "command": "release",
       "args": {

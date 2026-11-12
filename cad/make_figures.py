@@ -40,7 +40,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from make_train_cad import PORT_SIZE_MM, clip_to_box, in_envelope  # noqa: E402  (sibling module)
+from make_train_cad import (PORT_SIZE_MM, centrelines, channel_outline, in_envelope,  # noqa: E402
+                            pad_polygon, polygon_distance, rect_polygon)  # (sibling module)
+import make_train_cad  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 FIGURES = ROOT / "cad" / "figures"
@@ -197,26 +199,29 @@ def spacer_of(chip):
 
 
 def anchors_of(chip):
-    a = {c["id"]: (c["center"], c["size"]) for c in chip["chambers"]}
-    for port in chip["ports"]:
-        x, y, z = port["position"]
-        a[port["id"]] = ([x, y, z], [PORT_SIZE_MM, PORT_SIZE_MM, 0])
-    return a
+    return make_train_cad.anchors_of(chip)
+
+
+def runs_of(chip):
+    """Every channel as (channel, [centreline points], is_groove): the cut centreline from
+    make_train_cad.centrelines, which follows a channel's "path" and stops on port pads."""
+    spacer = spacer_of(chip)
+    return [(ch, pts, bool(spacer) and ch["depth_mm"] < spacer["thickness_mm"] - 1e-6)
+            for ch, pts in centrelines(chip)]
 
 
 def segments_of(chip):
-    """Every channel as (channel, p0, p1, is_groove), clipped exactly as the DXF is."""
-    anchors, spacer = anchors_of(chip), spacer_of(chip)
-    out = []
-    for ch in chip["channels"]:
-        a, b = anchors.get(ch["from"]), anchors.get(ch["to"])
-        if a is None or b is None:
-            continue
-        p0 = clip_to_box(a[0][:2], b[0][:2], a[0], a[1])
-        p1 = clip_to_box(b[0][:2], a[0][:2], b[0], b[1])
-        groove = bool(spacer) and ch["depth_mm"] < spacer["thickness_mm"] - 1e-6
-        out.append((ch, p0, p1, groove))
-    return out
+    """Every straight piece of every channel as (channel, p0, p1, is_groove), clipped exactly
+    as the DXF is. A pathed channel gives one tuple per segment."""
+    return [(ch, a, b, g) for ch, pts, g in runs_of(chip) for a, b in zip(pts, pts[1:])]
+
+
+def port_outline(port):
+    """What a port occupies in plan: its pad, or the bore's square when it has none."""
+    pad = pad_polygon(port)
+    if pad:
+        return pad
+    return rect_polygon(port["position"][0], port["position"][1], PORT_SIZE_MM, PORT_SIZE_MM)
 
 
 def quad(p0, p1, width):
@@ -286,7 +291,7 @@ def geometry_warnings(chip):
     channel, and a port whose hole lands on a channel it is not connected to is a
     short circuit between whatever those two lines serve.
     """
-    segs = segments_of(chip)
+    runs = [(ch, pts) for ch, pts, _ in runs_of(chip)]
     ports = {p["id"]: p for p in chip["ports"]}
     wall = load_blocks().get("fabrication_floors", {}).get("min_wall_mm")
 
@@ -303,13 +308,17 @@ def geometry_warnings(chip):
         if gap < tightest[0]:
             tightest = (gap, what)
 
-    for i, (c1, a1, b1, _) in enumerate(segs):
-        for c2, a2, b2, _ in segs[i + 1:]:
+    def pieces(pts):
+        return list(zip(pts, pts[1:]))
+
+    for i, (c1, pts1) in enumerate(runs):
+        for c2, pts2 in runs[i + 1:]:
             shared = {c1["from"], c1["to"]} & {c2["from"], c2["to"]}
             # Channels meeting at a port or junction genuinely merge there.
             if shared & meeting:
                 continue
-            gap = _seg_seg(a1, b1, a2, b2) - (c1["width_mm"] + c2["width_mm"]) / 2
+            gap = min(_seg_seg(a1, b1, a2, b2) for a1, b1 in pieces(pts1)
+                      for a2, b2 in pieces(pts2)) - (c1["width_mm"] + c2["width_mm"]) / 2
             what = f"channels '{c1['id']}' and '{c2['id']}'"
             note(gap, what)
             if gap < 0 and not shared:
@@ -323,13 +332,22 @@ def geometry_warnings(chip):
 
     for pid, port in ports.items():
         pos = port["position"][:2]
-        for ch, a, b, _ in segs:
+        pad = pad_polygon(port)
+        for ch, pts in runs:
             if pid in (ch["from"], ch["to"]):
                 continue
-            gap = _point_seg(pos, a, b) - PORT_SIZE_MM / 2 - ch["width_mm"] / 2
+            if pad:
+                # A pad is cut in the fluidic layer: measured as the polygon it is, against
+                # the channel's own outline, segment by segment.
+                gap = min(polygon_distance(pad, quad(a, b, ch["width_mm"])) for a, b in pieces(pts))
+            else:
+                gap = min(_point_seg(pos, a, b) for a, b in pieces(pts)) - PORT_SIZE_MM / 2 - ch["width_mm"] / 2
             what = f"port '{pid}' and channel '{ch['id']}'"
             note(gap, what)
-            if gap < 0:
+            if gap <= 0 and pad:
+                msgs.append(f"ERROR  {what} touch: the port's pad is cut into a channel it is "
+                            f"not connected to: a short circuit between '{ch['from']}' and '{ch['to']}'.")
+            elif gap < 0:
                 msgs.append(f"ERROR  {what} overlap by {-gap:.2f} mm. The port is drilled "
                             f"into a channel it is not connected to: a short circuit "
                             f"between '{ch['from']}' and '{ch['to']}'.")
@@ -357,11 +375,11 @@ def geometry_warnings(chip):
                 if gap < TIGHT_MM:
                     msgs.append(f"WARN   {what} are {gap:.2f} mm apart, {rib(gap)}")
 
-    for ch, a, b, _ in segs:
+    for ch, pts in runs:
         for c in chambers:
             if c["id"] in (ch["from"], ch["to"]):
                 continue
-            gap = _seg_rect(a, b, rects[c["id"]]) - ch["width_mm"] / 2
+            gap = min(_seg_rect(a, b, rects[c["id"]]) for a, b in pieces(pts)) - ch["width_mm"] / 2
             what = f"channel '{ch['id']}' and chamber '{c['id']}'"
             note(gap, what)
             if gap < 0:
@@ -372,15 +390,38 @@ def geometry_warnings(chip):
 
     for pid, port in ports.items():
         x, y = port["position"][0], port["position"][1]
-        if not (half <= x <= fx - half and half <= y <= fy - half):
+        pad = pad_polygon(port)
+        inside = (all(0 <= px <= fx and 0 <= py <= fy for px, py in pad) if pad
+                  else half <= x <= fx - half and half <= y <= fy - half)
+        if not inside:
             msgs.append(f"ERROR  port '{pid}' at ({x:g}, {y:g}) is not fully inside the "
                         f"{fx:g} x {fy:g} mm board.")
         for c in chambers:
-            gap = _rect_rect(rects[c["id"]], (x - half, y - half, x + half, y + half))
+            # A port's OWN pad is where its bore is meant to land, so it is never "a chamber"
+            # here; the pad itself is held to the same rule against every real chamber.
+            if pad:
+                gap = polygon_distance(pad, rect_polygon(c["center"][0], c["center"][1],
+                                                         c["size"][0], c["size"][1]))
+            else:
+                gap = _rect_rect(rects[c["id"]], (x - half, y - half, x + half, y + half))
             what = f"port '{pid}' and chamber '{c['id']}'"
             note(gap, what)
-            if gap == 0.0:
+            if gap == 0.0 and pad:
+                msgs.append(f"ERROR  {what} touch: the port's pad is cut into a chamber.")
+            elif gap == 0.0:
                 msgs.append(f"ERROR  {what} overlap: the port is drilled into a chamber.")
+            elif gap < TIGHT_MM:
+                msgs.append(f"WARN   {what} are {gap:.2f} mm apart, {rib(gap)}")
+    plist = list(ports.values())
+    for i, p1 in enumerate(plist):
+        for p2 in plist[i + 1:]:
+            if not (pad_polygon(p1) or pad_polygon(p2)):
+                continue                 # bore against bore: the pitch rule below covers it
+            gap = polygon_distance(port_outline(p1), port_outline(p2))
+            what = f"ports '{p1['id']}' and '{p2['id']}'"
+            note(gap, what)
+            if gap == 0.0:
+                msgs.append(f"ERROR  {what} touch: a pad joins two ports in the fluidic layer.")
             elif gap < TIGHT_MM:
                 msgs.append(f"WARN   {what} are {gap:.2f} mm apart, {rib(gap)}")
     pitch = load_blocks().get("fabrication_floors", {}).get("min_port_pitch_mm")
@@ -727,17 +768,26 @@ def fig_layout(chip, sched):
 
     grooves, badcut = [], []
     seg_px = []
-    for ch, p0, p1, is_groove in segments_of(chip):
+    label_px = []        # the longest straight piece of each channel: where its label goes
+    for ch, line, is_groove in runs_of(chip):
         if is_groove and envelope:
             badcut.append(ch["id"])          # drawn as a channel, but flagged below
         elif is_groove:
-            grooves.append((ch, p0, p1))
+            grooves.append((ch, line[0], line[-1]))
             continue
-        pts = quad(p0, p1, ch["width_mm"])
+        # A pathed channel is drawn along its path, as the one mitred outline it is cut as.
+        pts = quad(line[0], line[1], ch["width_mm"]) if len(line) == 2 else channel_outline(line, ch["width_mm"])
         if pts:
             svg.poly([v.p(c) for c in pts], CHAN_F, LASER_C if is_groove else CHAN_S,
                      1.4 if is_groove else 0.8, dash="4 2" if is_groove else None)
-            seg_px.append((ch, v.p(p0), v.p(p1), is_groove))
+            pieces = [(ch, v.p(p0), v.p(p1), is_groove) for p0, p1 in zip(line, line[1:])]
+            seg_px += pieces
+            label_px.append(max(pieces, key=lambda s: math.hypot(s[2][0] - s[1][0], s[2][1] - s[1][1])))
+    # Port pads: cut in the fluidic layer under the bore, drawn as channel area.
+    for port in chip["ports"]:
+        pad = pad_polygon(port)
+        if pad:
+            svg.poly([v.p(c) for c in pad], CHAN_F, CHAN_S, 0.8)
 
     # --- obstacles for the label placer ---------------------------------------------------
     marks = port_marks(chip, v, scale)
@@ -813,8 +863,8 @@ def fig_layout(chip, sched):
     # numbered tag on the run and a line in the key under the figure. A label that has to
     # sit on top of another feature is worse than a number.
     chan_labels, chan_tags = [], []
-    for ch, a, b, _ in sorted(seg_px, key=lambda s: -math.hypot(s[2][0] - s[1][0],
-                                                                  s[2][1] - s[1][1])):
+    for ch, a, b, _ in sorted(label_px, key=lambda s: -math.hypot(s[2][0] - s[1][0],
+                                                                    s[2][1] - s[1][1])):
         if not ch.get("block") and not has_blocks:
             continue
         block, ok = block_of(ch)
@@ -1864,18 +1914,23 @@ PIPELINE = [
                 ("gelation, 15–30 min", [("4 °C", 4)]),
                 ("emulsion break, washes", [("4 °C", 4), ("RT", 22)]),
                 ("405 nm crosslink", [("RT", 22)])]),
-    dict(w=136, tag="MODULES 1–3", name="Culture", chip=True,
-         notes=["37 °C incubator,", "days to weeks"], on=["module1_v1.json", "modules 2, 3: no spec"],
+    dict(w=136, tag="MODULE 1", name="Culture", chip=True,
+         notes=["37 °C incubator,", "days to weeks"], on=["module 1", "module1_v1.json"],
          trace=[(0, 37), (1, 37)], trace_note="days–weeks",
          pills=[("culture + interaction", [("37 °C · 5% CO₂", 37)])]),
-    dict(w=136, tag="STEP 3", name="Library prep", chip=True,
-         notes=["3 split-pool rounds,", "hairpin ligation"], on=["library-prep chip", "spec not in chip/"],
-         trace=[(0, 22), (.3, 22), (.3, 46), (.55, 46), (.55, 25), (1, 25)],
+    dict(w=136, tag="MODULE 3", name="Lysis + RTx", chip=True,
+         notes=["lysis, washes, RTx", "in the capsule trap"], on=["module 3", "module3_v1_translated"],
+         trace=[(0, 22), (.4, 22), (.4, 46), (1, 46)],
          pills=[("lysis", [("RT", 22)]),
                 ("washes", [("RT", 22), ("4 °C", 4)]),
-                ("RT + template switch", [("42–50 °C", 46)]),
-                ("ligate BC2, BC3", [("16–25", 20), ("37 °C", 37)]),
-                ("hairpin ligation", [("16–25", 20), ("37 °C", 37)])]),
+                ("RTx + template switch", [("42–50 °C", 46)])]),
+    # Stage 4b: one capsule per oil droplet, a 16-base clonal barcode amplified in that droplet
+    # and overlap-extended onto its cDNA (protocols/sctip_spc_v1.json). No split-and-pool, no ligation.
+    dict(w=136, tag="STAGE 4b", name="Barcoding in oil", chip=False,
+         notes=["1 capsule per droplet,", "amplified in a tube"], on=["sctip_spc_v1.json", "droplets: bought hw"],
+         trace=[(0, 22), (.2, 22), (.2, 72), (.8, 72), (.8, 22), (1, 22)], trace_note="in tube, ~2 h",
+         pills=[("barcode, in its droplet", [("≤ 72 °C", 72)]),
+                ("emulsion break, washes", [("RT", 22)])]),
     dict(w=136, tag="MODULE 4", name="Split + index PCR", chip=True, cycled=True,
          notes=["4 sublibraries, 1 index", "each; cycler is external"], on=["module 4", "module4_v1.json"],
          trace=_pcr_trace(), trace_note="8–14 cycles",
@@ -1912,8 +1967,8 @@ def fig_pipeline():
     svg.text(w - pad, 24, "generated by", 8, INK3, "end")
     svg.text(w - pad, 36, "cad/make_figures.py", 8, INK3, "end", mono=True)
     svg.text(w - pad, 48, "do not edit by hand", 8, INK3, "end")
-    svg.text(pad, 60, "Index PCR in module 4 is the ONLY thermocycling step. Every other stage "
-                      "is a constant-temperature hold.", 10.5, LASER_C, weight="bold")
+    svg.text(pad, 60, "Index PCR in module 4 is the ONLY on-chip thermocycling step. Stage 4b's barcode "
+                      "amplification runs off-chip in a tube.", 10.5, LASER_C, weight="bold")
 
     xs, x = [], x0
     for s in PIPELINE:

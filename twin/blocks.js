@@ -10,6 +10,7 @@
 // block field and keep theirs too. Anything without a matching block falls back unchanged.
 import * as THREE from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { outlineOf } from './chip.js';
 
 const ROOT = '../';                                        // the repo root, as main.js serves it
 const CATALOGUE = `${ROOT}chip/components/catalogue.json`;
@@ -108,6 +109,7 @@ export async function applyBlocks(chip) {
     const mesh = new THREE.Mesh(geom, mat);
     mesh.renderOrder = part.box.renderOrder;
     mesh.name = `block:${c.id}:${c.block}`;
+    mesh.add(outlineOf(geom, part.color));
     chip.group.add(mesh);
     part.box.visible = false;
     if (part.edges) part.edges.visible = false;

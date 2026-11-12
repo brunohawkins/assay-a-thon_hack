@@ -8,6 +8,17 @@ works for capsules. Capsule diameter, swell factor and nozzle width come from th
 when it states them, else from contracts/parameters.json. Protocols are the ones with a
 run on the chip (runs/), plus any given with --protocol.
 
+The build envelope and the port rule come from the chip's optional top-level "scale"
+(contracts/schemas/chip_spec.schema.json), read out of contracts/blocks.json:
+  demo (the default, so every chip that does not say otherwise)  -> envelope, 30 x 20 mm,
+      and fabrication_floors.max_ports_per_chip (6), which blocks.json says plainly is a
+      demo-envelope limit rather than a process floor;
+  target -> target_envelope, 127.76 x 85.48 mm (ANSI/SLAS), where the port limit lifts and
+      becomes how many ports fit that area at fabrication_floors.min_port_pitch_mm.
+Nothing else changes with scale: one fluidic layer, one etch depth, 0.3 mm max depth, the
+in-plane floors and the block library apply identically, so a demo chip is checked exactly
+as strictly as it always was.
+
 Errors (exit code 1):
   - trap gap or retention opening >= 0.4 x capsule diameter
   - capsule-carrying channel, or capsule-passable outlet, narrower than 1.5 x capsule diameter
@@ -18,19 +29,38 @@ Errors (exit code 1):
     filter chamber whose purpose is cells), including the nozzle of a chip DOWNSTREAM across
     a pipeline hand-off (Module 1b's filter vs Module 2's nozzle); a pass prints an OK line
   - thermal zone (or protocol hold_temp) above the chip material's max working temperature
+  - two channels that CROSS in plan view. We print ONE fluidic layer, so a crossing is not a
+    bridge, it is a short circuit between whatever those two lines serve. Every channel is
+    checked: the ones that declare a "path" along it, the rest along the straight clipped
+    centreline cad/make_train_cad.py actually cuts (imported from cad/make_figures.py, so
+    the drawing, the cut path and this check cannot disagree). This used to be a warning that
+    only looked at channels with an explicit path, which is 8 of 16 specs, so on the other
+    half the rule returned an empty list and passed trivially.
+  - port bore below fabrication_floors.min_port_mm: tubing cannot be connected to it
+  - more than one layer at the fluidic depth, or any on-chip valve: both need a second layer
   - port overlap: a port's hole (a square of its width_um, else contracts/blocks.json's
     min_port_mm bore) must open onto the cut channel or chamber under it by at least 1 mm2,
     or by a quarter of the hole's own area when the hole is smaller than 2 x 2 mm (a 0.8 mm
     bore holds 0.64 mm2 in all, so 1 mm2 can't be met; a quarter is what 1 mm2 is of the
     2 mm holes the rule was written for). The cut area is the chip's exported DXF
-    (cad/exports/<chip>/<chip>.dxf, CHANNELS and CHAMBERS) when there is one, else the spec.
-Warnings:
+    (cad/exports/<chip>/<chip>.dxf, CHANNELS, CHAMBERS and PADS) when there is one, else the
+    spec. A channel clipped at the bore's own edge opens 0 mm2 to it, so a port either sits
+    over a chamber or declares a `pad` (chip schema) that the bore opens onto.
+  - port pad: a declared pad must cover its bore, be wider than the channels that end on it,
+    have at least one, and clear every feature it is not connected to (chambers, other ports,
+    other channels) by fabrication_floors.min_wall_mm
+Warnings (do not fail CI, so only judgement calls live here):
   - fabricated feature smaller than the fabrication minimum in cad/fabrication.json
-    (fabrication limits never block the design; while they're TODO, one summary warning)
-  - barcode collision rate above 5%
+    (fabrication limits never block the design; while they're TODO, one summary warning).
+    A WEIR's opening_um is excluded: it is a gap in Z between the crest and the lid, and the
+    in-plane floor limits width only (see the schema's retention description), so comparing
+    it with the in-plane minimum was a false positive on every weir chip.
+  - barcode collision rate above 5%, over the RANDOM per-cell barcode pool (4^random_bases);
+    lanes and sublibraries are demultiplexing metadata and are never the barcode space
   - reagent whose compatibility with the chip material is TODO or incompatible
   - unknown material, channel shallower than a capsule, outlet without a width
-  - two channels with explicit paths that cross in the same layer (they would join)
+  - ports closer than min_port_pitch_mm (set by the connector footprint, not the process)
+  - a mesh pore below the in-plane floor (legal as a bought insert, not if we must make it)
 TODO lines: fabrication limits still unknown; parts marked fabricable: false (by design).
 """
 
@@ -45,10 +75,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "operator"))
+sys.path.insert(0, str(ROOT / "cad"))
 
 import commands  # noqa: E402
 import schema_io  # noqa: E402
 import sizing  # noqa: E402
+
+# Channel geometry comes from the drawing tool, which gets it from the CAD tool: one
+# computation of "where does this channel actually run", not three. make_figures.segments_of
+# clips each channel to the boxes at its ends exactly as cad/make_train_cad.py cuts it.
+try:
+    import make_figures as figures  # noqa: E402
+except Exception:                   # pragma: no cover - cad/ missing or unimportable
+    figures = None
 
 TRAP_MAX_FACTOR = 0.4
 CHANNEL_MIN_FACTOR = 1.5
@@ -125,8 +164,14 @@ def paired_protocols(chip: dict, extra: list[Path]) -> list[tuple[Path, dict]]:
 
 
 def downstream_nozzles(chip: dict) -> list[tuple[float, str, str]]:
-    """Encapsulation nozzles fed by this chip through pipeline hand-offs: [(nozzle_um, chip_id, handoff_id)]."""
+    """Encapsulation nozzles fed by this chip through pipeline hand-offs: [(nozzle_um, chip_id, handoff_id)].
+
+    Deduplicated, because protocols/ now holds several pipeline files and pipeline_mvp.json is a
+    COPY of the chosen assay variant (tools/choose_assay.py): the same hand-off is read twice and
+    would otherwise be reported twice, which is not a second constraint.
+    """
     out = []
+    seen = set()
     my_ports = {p["id"] for p in chip.get("ports", [])}
     for _, pipe in schema_io.pipelines():
         chips = {}
@@ -143,7 +188,8 @@ def downstream_nozzles(chip: dict) -> list[tuple[float, str, str]]:
             down = chips.get(dst.get("module"))
             if src.get("port") in my_ports and chips.get(src.get("module"), {}).get("id") == chip.get("id") and down:
                 nozzle = (down.get("encapsulation") or {}).get("nozzle_um")
-                if nozzle:
+                if nozzle and (nozzle, down["id"], h["id"]) not in seen:
+                    seen.add((nozzle, down["id"], h["id"]))
                     out.append((nozzle, down["id"], h["id"]))
     return out
 
@@ -269,8 +315,18 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
     features = [(f"channel '{ch['id']}' width", ch["width_mm"] * 1000) for ch in made_here]
     features += [(f"port '{p['id']}' width", p["width_um"]) for p in ports.values() if "width_um" in p]
     # chamber height is z, like channel depth: not a lateral feature, so not checked here.
+    # NOR IS A WEIR'S GAP. It is the clearance in Z between the crest and the lid (see the
+    # schema's retention description and blocks.json retention.weir_geometry): the in-plane
+    # floor limits width only, which is the whole reason a 25 um weir gap is buildable when
+    # no printable in-plane gap can retain a 70 um capsule. Comparing it with the in-plane
+    # minimum warned on every weir chip in the repo for a feature that is legal by design.
+    # A mesh or pillar opening IS in plane, so those stay.
     features += [(f"chamber '{c['id']}' {c['retention']['type']} opening", c["retention"]["opening_um"])
-                 for c in chambers.values() if c.get("retention", {}).get("source") == "fabricated"]
+                 for c in chambers.values()
+                 if c.get("retention", {}).get("source") == "fabricated"
+                 and c["retention"].get("type") != "weir"]
+    features += [(f"chamber '{c['id']}' weir crest thickness", c["retention"]["crest_thickness_um"])
+                 for c in chambers.values() if _num((c.get("retention") or {}).get("crest_thickness_um"))]
     known = [v for v in (fab.get("laser_kerf_um"), fab.get("min_embossed_feature_um")) if isinstance(v, (int, float))]
     if features and not known:
         smallest = min(features, key=lambda x: x[1])
@@ -292,20 +348,35 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
             inputs["capsule_count"] = caps["count"]
         # Split-and-pool is dropped. A chip may still carry the old rounds/chambers_per_round
         # keys, but they no longer describe anything, so they are ignored rather than passed on.
-        if "lanes" in bc:
-            inputs["barcoding_lanes"] = bc["lanes"]
-        if "sublibraries" in bc:
-            inputs["sublibraries"] = bc["sublibraries"]
+        #
+        # THE BARCODE SPACE IS THE RANDOM POOL, NOT lanes x sublibraries. Each capsule gets one
+        # barcode of barcoding.random_bases random bases (4^16 = about 4.3e9), amplified clonally
+        # inside that capsule's own oil droplet; one capsule holds one cell, so the assay IS
+        # single-cell. lanes and sublibraries say which lineage and which sublibrary a read came
+        # from - demultiplexing metadata - and counting them as the barcode space (about twelve
+        # groups) is the arithmetic that made this repo wrongly call the data lane-level.
+        # Both random-barcode fields were missing from the chip schema, so no chip could supply
+        # them and this rule could never fire; they are optional now and fall back to
+        # contracts/parameters.json through operator/sizing.py.
+        for key, inp in (("lanes", "barcoding_lanes"), ("sublibraries", "sublibraries"),
+                         ("random_bases", "barcode_random_bases"), ("loading_mean", "barcode_loading_mean")):
+            if key in bc:
+                inputs[inp] = bc[key]
         r = sizing.compute(inputs)
+        eff = {**sizing.DEFAULTS, **inputs}       # what sizing actually used, after its defaults
         if r["barcode_collision_fraction"] > sizing.COLLISION_WARN:
-            f.warn(f"barcode collisions: about {r['barcode_collision_fraction']:.0%} of the ~{r['cells']:,.0f} cells "
-                   f"in {r['capsule_count']:,.0f} capsules share a barcode "
-                   f"({r['barcode_combinations_with_sublibraries']:,} combinations)")
+            f.warn(f"barcode collisions: about {r['barcode_collision_fraction']:.1%} of the ~{r['cells']:,.0f} cells "
+                   f"in {r['capsule_count']:,.0f} capsules share their random barcode with another cell, against a "
+                   f"pool of {r['barcode_pool']:,} ({eff['barcode_random_bases']:g} random bases). Shorten the run "
+                   f"or lengthen the barcode; lanes x sublibraries is demultiplexing, not resolution")
+        if r.get("barcode_absent_fraction", 0) > 0.5:
+            f.warn(f"barcode loading: at a Poisson mean of {eff['barcode_loading_mean']:g} barcodes per droplet, "
+                   f"{r['barcode_absent_fraction']:.0%} of droplets get none and those cells are lost")
 
-    # --- channels that cross (explicit paths only) ---------------------------------------
+    # --- channels that cross in plan view (every channel, path or not) -------------------
     for a, b, (x, y) in crossings(chip):
-        f.warn(f"channels '{a}' and '{b}' cross at ({x:g}, {y:g}): in one layer they would join; "
-               f"needs a bridge (second layer) or a reroute")
+        f.error(f"channels '{a}' and '{b}' cross at ({x:g}, {y:g}): we print ONE fluidic layer, so that is not "
+                f"a bridge but a short circuit between what those two lines serve; reroute one of them")
 
     # --- reagent compatibility ----------------------------------------------------------
     reagents = sorted({r for _, proto in protocols for s in proto.get("steps", [])
@@ -321,6 +392,7 @@ def check(chip: dict, protocols: list[tuple[Path, dict]], params: dict, material
     if blocks:
         check_blocks(chip, blocks, f)
     check_port_overlap(chip, f, blocks)
+    check_port_pads(chip, f, blocks)
     return f
 
 
@@ -333,18 +405,27 @@ def _dxf_outlines(chip_id: str) -> tuple[list[list[tuple[float, float]]], str] |
         if not path.is_file():
             continue
         tokens = path.read_text(errors="replace").split("\n")
-        starts, cur, layer = [], None, None
+        starts, pad_lines, cur, layer = [], [], None, None
         for code, val in zip(tokens[0::2], tokens[1::2]):
             code, val = code.strip(), val.strip()
             if code == "0":
                 if cur is not None and layer in ("CHANNELS", "CHAMBERS") and "10" in cur and "20" in cur:
                     starts.append((cur["10"], cur["20"]))
+                elif cur is not None and layer == "PADS" and all(k in cur for k in ("10", "20", "11", "21")):
+                    pad_lines.append(((cur["10"], cur["20"]), (cur["11"], cur["21"])))
                 cur, layer = ({} if val == "LINE" else None), None
             elif cur is not None and code == "8":
                 layer = val
-            elif cur is not None and code in ("10", "20"):
+            elif cur is not None and code in ("10", "20", "11", "21"):
                 cur[code] = float(val)
         polys = [starts[i:i + 4] for i in range(0, len(starts) - 3, 4)]
+        # Port pads (layer PADS): each is one closed loop of LINEs, any number of sides.
+        loop: list = []
+        for a, b in pad_lines:
+            loop.append(a)
+            if math.dist(b, loop[0]) < 1e-6:
+                polys.append(loop)
+                loop = []
         return polys, path.relative_to(ROOT).as_posix()
     return None, None
 
@@ -363,6 +444,8 @@ def _spec_outlines(chip: dict) -> list[list[tuple[float, float]]]:
             n = math.hypot(dx, dy) or 1.0
             px, py = -dy / n * ch["width_mm"] / 2, dx / n * ch["width_mm"] / 2
             polys.append([(a[0] + px, a[1] + py), (b[0] + px, b[1] + py), (b[0] - px, b[1] - py), (a[0] - px, a[1] - py)])
+    if figures is not None:
+        polys += [pad for p in chip.get("ports", []) if (pad := figures.pad_polygon(p))]
     return polys
 
 
@@ -416,13 +499,126 @@ def check_port_overlap(chip: dict, f: "Findings", blocks: dict | None = None) ->
             f.ok.append(msg)
 
 
+def check_port_pads(chip: dict, f: "Findings", blocks: dict | None = None) -> None:
+    """Every port pad (the optional `pad` in the chip schema) must:
+      - cover the bore: the bore's square (width_um, else min_port_mm) inside the pad, so the
+        hole opens onto the pad and nowhere else;
+      - be wider than each channel that runs into it, or the channel cannot end on it;
+      - clear every feature it is NOT connected to - every chamber, every other port's pad
+        or bore, every channel that does not end at this port - by min_wall_mm, the thinnest
+        wall the process can stand up. A pad is cut in the fluidic layer, so touching any of
+        those is a short circuit, and coming closer than min_wall_mm is a wall we cannot make.
+    Geometry from cad/make_train_cad.py (the same polygons and centrelines it cuts)."""
+    if figures is None:
+        return
+    mtc = figures.make_train_cad
+    if blocks is None:
+        try:
+            blocks = json.loads((ROOT / "contracts" / "blocks.json").read_text())
+        except (OSError, ValueError):
+            blocks = {}
+    floors = blocks.get("fabrication_floors") or {}
+    wall = floors.get("min_wall_mm")
+    floor = floors.get("min_port_mm", 2.0)
+    ports = chip.get("ports", [])
+    try:
+        runs = mtc.centrelines(chip)
+    except Exception:
+        runs = []
+    for p in ports:
+        pad = mtc.pad_polygon(p)
+        if not pad:
+            continue
+        x, y = p["position"][0], p["position"][1]
+        side = (p.get("width_um") or floor * 1000) / 1000
+        bore = mtc.rect_polygon(x, y, side, side)
+        if not all(mtc.inside_convex(c, pad, 1e-9) for c in bore):
+            f.error(f"port pad: '{p['id']}' {p['pad'].get('shape')} pad of {p['pad']['size_mm']:g} mm does not "
+                    f"cover its {side:g} mm bore: part of the hole would land on solid plastic")
+        apothem = min(abs((b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0])) / math.dist(a, b)
+                      for a, b in mtc.polygon_lines(pad))
+        mine = [(ch, pts) for ch, pts in runs if p["id"] in (ch["from"], ch["to"])]
+        for ch, _ in mine:
+            if ch["width_mm"] / 2 >= apothem - 1e-9:
+                f.error(f"port pad: channel '{ch['id']}' is {ch['width_mm']:g} mm wide, as wide as the "
+                        f"'{p['id']}' pad ({2 * apothem:g} mm across): it cannot end on the pad")
+        if not mine:
+            f.error(f"port pad: '{p['id']}' has a pad but no channel runs into it")
+        others = [(f"chamber '{c['id']}'", mtc.rect_polygon(c["center"][0], c["center"][1], c["size"][0], c["size"][1]))
+                  for c in chip.get("chambers", [])]
+        others += [(f"port '{q['id']}'", mtc.pad_polygon(q) or mtc.rect_polygon(
+                        q["position"][0], q["position"][1],
+                        (q.get("width_um") or floor * 1000) / 1000, (q.get("width_um") or floor * 1000) / 1000))
+                   for q in ports if q is not p]
+        others += [(f"channel '{ch['id']}'", r) for ch, pts in runs if p["id"] not in (ch["from"], ch["to"])
+                   for r in mtc.segment_rects(pts, ch["width_mm"])]
+        worst: dict[str, float] = {}
+        for label, poly in others:
+            worst[label] = min(worst.get(label, math.inf), mtc.polygon_distance(pad, poly))
+        for label, gap in worst.items():
+            if gap <= 1e-9:
+                f.error(f"port pad: '{p['id']}' pad touches {label}, which it is not connected to: a short "
+                        f"circuit in the one fluidic layer")
+            elif _num(wall) and gap < wall - 1e-9:
+                f.error(f"port pad: '{p['id']}' pad is {gap:.2f} mm from {label}, under the {wall:g} mm "
+                        f"minimum wall")
+        if not any(e.startswith(f"port pad: '{p['id']}'") for e in f.errors):
+            nearest = min(worst.items(), key=lambda kv: kv[1]) if worst else None
+            f.ok.append(f"port pad: '{p['id']}' covers its {side:g} mm bore"
+                        + (f", nearest unconnected feature {nearest[0]} at {nearest[1]:.2f} mm" if nearest else ""))
+
+
 def _num(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool)
 
 
+def scale_of(chip: dict) -> str:
+    """The chip's build scale: "demo" (the schema default) or "target"."""
+    return str(chip.get("scale") or "demo")
+
+
+def envelope_for(chip: dict, blocks: dict) -> tuple[dict, str]:
+    """({max_x_mm, max_y_mm, max_depth_mm, layers}, label) for this chip's scale.
+
+    Both envelopes live in contracts/blocks.json: `envelope` (demo, 30 x 20 mm) and
+    `target_envelope` (the ANSI/SLAS 127.76 x 85.48 mm plate), which until now no code read.
+    Only the x/y limits differ: depth and the layer count are the same at both scales.
+    """
+    demo = blocks.get("envelope", {})
+    if scale_of(chip) != "target":
+        return demo, f"demo build envelope ({demo.get('max_x_mm', '?')} x {demo.get('max_y_mm', '?')} mm)"
+    tgt = blocks.get("target_envelope", {})
+    env = {"max_x_mm": tgt.get("x_mm"), "max_y_mm": tgt.get("y_mm"),
+           "max_depth_mm": tgt.get("depth_mm", demo.get("max_depth_mm")),
+           "layers": tgt.get("layers", demo.get("layers"))}
+    return env, f"target envelope ({tgt.get('standard', 'ANSI/SLAS')}, {env['max_x_mm']} x {env['max_y_mm']} mm)"
+
+
+def max_ports_for(chip: dict, blocks: dict, env: dict) -> tuple[float | None, str]:
+    """(limit, why) on port count for this chip's scale.
+
+    DEMO: fabrication_floors.max_ports_per_chip (6), unchanged - blocks.json says in two
+    places that this is what 30 x 20 mm fits at the 5 mm pitch, a DEMO ENVELOPE limit and
+    not a process floor.
+    TARGET: the limit lifts and becomes geometric - how many 5 mm-pitch port positions the
+    board area holds - because nothing about printing or embossing caps port count. The
+    pairwise pitch check below is what actually keeps ports apart at both scales.
+    """
+    floors = blocks.get("fabrication_floors", {})
+    cap = floors.get("max_ports_per_chip")
+    if scale_of(chip) != "target":
+        return cap, "max ports per chip (a demo-envelope limit at the 5 mm port pitch)"
+    pitch = floors.get("min_port_pitch_mm")
+    if not (_num(pitch) and pitch > 0 and _num(env.get("max_x_mm")) and _num(env.get("max_y_mm"))):
+        return None, "no port limit at target scale"
+    grid = int(env["max_x_mm"] // pitch) * int(env["max_y_mm"] // pitch)
+    return grid, (f"port positions an {env['max_x_mm']:g} x {env['max_y_mm']:g} mm board holds on a "
+                  f"{pitch:g} mm grid (the 6-port demo limit does not apply at target scale)")
+
+
 def check_blocks(chip: dict, blocks: dict, f: Findings) -> None:
     """Fabrication envelope, floors and CAD block library from contracts/blocks.json."""
-    env = blocks.get("envelope", {})
+    env, env_label = envelope_for(chip, blocks)
     floors = blocks.get("fabrication_floors", {})
     library = set(blocks.get("basic", {})) | set(blocks.get("advanced", {}))
     chambers = [c for c in chip.get("chambers", []) if isinstance(c, dict)]
@@ -432,7 +628,7 @@ def check_blocks(chip: dict, blocks: dict, f: Findings) -> None:
     fp = chip.get("footprint") or {}
     for axis, key in (("x", "max_x_mm"), ("y", "max_y_mm")):
         if _num(fp.get(axis)) and _num(env.get(key)) and fp[axis] > env[key]:
-            f.error(f"footprint {axis} {fp[axis]:g} mm > build envelope {key} {env[key]:g} mm")
+            f.error(f"footprint {axis} {fp[axis]:g} mm > {env_label} {key} {env[key]:g} mm")
 
     max_depth = env.get("max_depth_mm")
     chamber_depths = []
@@ -454,9 +650,20 @@ def check_blocks(chip: dict, blocks: dict, f: Findings) -> None:
                 f.error(f"{kind} '{item.get('id')}' declares block '{item['block']}', which is not in the CAD block "
                         f"library (contracts/blocks.json basic/advanced)")
 
-    max_ports = floors.get("max_ports_per_chip")
+    max_ports, why_ports = max_ports_for(chip, blocks, env)
     if _num(max_ports) and len(ports) > max_ports:
-        f.error(f"{len(ports)} ports > max {max_ports:g} ports per chip")
+        f.error(f"{len(ports)} ports > max {max_ports:g}: {why_ports}")
+
+    # Port BORE is a process floor at every scale: we drill min_port_mm holes and tubing has
+    # to go into them. Promoted from nothing at all - no rule here read min_port_mm, so the
+    # only thing that ever looked at a port width was the fabrication-TODO comparison, which
+    # never fails CI.
+    min_port = floors.get("min_port_mm")
+    if _num(min_port):
+        for p in ports:
+            if _num(p.get("width_um")) and p["width_um"] < min_port * 1000 - 1e-9:
+                f.error(f"port '{p.get('id')}' bore is {p['width_um']:g} um, below the "
+                        f"{min_port * 1000:g} um minimum port we can drill and connect tubing to")
 
     pitch = floors.get("min_port_pitch_mm")
     if _num(pitch):
@@ -476,11 +683,18 @@ def check_blocks(chip: dict, blocks: dict, f: Findings) -> None:
                 f.error(f"channel '{ch.get('id')}' is {ch['width_mm']:g} mm wide, below the {min_open:g} mm "
                         f"minimum open channel")
 
+    # ONE FLUIDIC LAYER is the hardest rule in contracts/blocks.json (its whole "excluded"
+    # section exists because of it), so a second one is an error, not a warning.
     fluidic = [la for la in chip.get("layers", []) if isinstance(la, dict) and _num(la.get("thickness_mm"))
                and any(abs(la["thickness_mm"] - d) < 1e-9 for d in chamber_depths)]
-    if len(fluidic) > 1:
-        f.warn(f"{len(fluidic)} layers ({', '.join(str(la.get('id')) for la in fluidic)}) match a chamber depth: "
-               f"we print one fluidic layer")
+    layers_allowed = env.get("layers", 1)
+    if _num(layers_allowed) and len(fluidic) > layers_allowed:
+        f.error(f"{len(fluidic)} layers ({', '.join(str(la.get('id')) for la in fluidic)}) match a chamber depth, "
+                f"but we print {layers_allowed:g} fluidic layer: a second one is a second process we do not have")
+    if chip.get("valves"):
+        f.error(f"{len(chip['valves'])} on-chip valve(s) ({', '.join(str(v.get('id')) for v in chip['valves'])}): "
+                f"a pneumatic valve needs a control layer above the fluidic one, and we print one layer "
+                f"(contracts/blocks.json excluded.multilayer)")
 
     if _num(min_open):
         for c in chambers:
@@ -492,6 +706,34 @@ def check_blocks(chip: dict, blocks: dict, f: Findings) -> None:
 
 def _segments(path: list[list[float]]) -> list[tuple[tuple[float, float], tuple[float, float]]]:
     return [((a[0], a[1]), (b[0], b[1])) for a, b in zip(path[:-1], path[1:])]
+
+
+def channel_segments(chip: dict) -> dict[str, list]:
+    """Every channel's centreline as segments, by channel id.
+
+    A channel with an explicit "path" is taken along it. A channel without one is taken
+    along the STRAIGHT RUN BETWEEN ITS TWO ENDS, clipped to the boxes at each end - which
+    is what cad/make_train_cad.py cuts and what cad/make_figures.py draws. That geometry is
+    imported from make_figures rather than recomputed here: a third copy of "where does
+    this channel run" is how the drawing, the cut path and the checks drift apart.
+
+    Without the fallback this check saw only the 8 of 16 specs that declare paths, and
+    returned an empty list - a silent pass - on the other half.
+    """
+    out: dict[str, list] = {}
+    for ch in chip.get("channels", []):
+        if ch.get("path"):
+            out[ch["id"]] = _segments(ch["path"])
+    if figures is None:
+        return out
+    try:
+        drawn = figures.runs_of(chip)
+    except Exception:       # a spec too incomplete to draw (e.g. no layers): paths only
+        return out
+    # The cut centreline, path or not: the same one the DXF, the drawing and the network use.
+    for ch, pts, _groove in drawn:
+        out[ch["id"]] = [(tuple(a), tuple(b)) for a, b in zip(pts, pts[1:])]
+    return out
 
 
 def _intersect(p1, p2, p3, p4) -> tuple[float, float] | None:
@@ -508,14 +750,20 @@ def _intersect(p1, p2, p3, p4) -> tuple[float, float] | None:
 
 
 def crossings(chip: dict) -> list[tuple[str, str, tuple[float, float]]]:
-    """Pairs of channels (both with an explicit path, no shared end) whose centrelines cross."""
-    chans = [ch for ch in chip.get("channels", []) if ch.get("path")]
+    """Pairs of channels with no shared end whose centrelines cross in plan view.
+
+    EVERY channel is checked, along its "path" where it has one and along the straight
+    clipped run it is cut as where it has not (channel_segments). Channels that share an
+    end genuinely meet there and are skipped.
+    """
+    segs = channel_segments(chip)
+    chans = [ch for ch in chip.get("channels", []) if ch["id"] in segs]
     out = []
     for i, a in enumerate(chans):
         for b in chans[i + 1:]:
             if {a["from"], a["to"]} & {b["from"], b["to"]}:
                 continue
-            hit = next((pt for s1 in _segments(a["path"]) for s2 in _segments(b["path"]) if (pt := _intersect(*s1, *s2))), None)
+            hit = next((pt for s1 in segs[a["id"]] for s2 in segs[b["id"]] if (pt := _intersect(*s1, *s2))), None)
             if hit:
                 out.append((a["id"], b["id"], hit))
     return out

@@ -18,9 +18,13 @@ for both is what produced the two worst errors in the audits.
 
   CHANNELS are 1D. One duct edge at the exact rectangular resistance
 
-      R = 12 mu L / (w h^3 (1 - 0.63 h/w))      h the SMALLER, w the LARGER side
+      R = 12 mu L / (w h^3 f)       h the SMALLER, w the LARGER side
 
-  taken from `operator/flow_calc.py` rather than re-typed, with L the real centreline
+  where f is the EXACT Fourier series for Poiseuille flow in a rectangle
+  (`flow_calc.duct_shape_factor`). This used to read `f = 1 - 0.63 h/w`; that shortcut is
+  14% off at a square duct, so flow_calc.py moved to the series and this follows it by
+  calling it. Nothing here re-types the law.
+  Taken from `operator/flow_calc.py` rather than re-typed, with L the real centreline
   length: the `path` polyline when the spec gives one, otherwise the straight line between
   the two features trimmed at their walls exactly as `cad/make_train_cad.py` cuts it.
 
@@ -250,8 +254,9 @@ def polyline_length_mm(points: list[Iterable[float]]) -> float:
 def duct_g_geom_m3(length_mm: float, width_mm: float, depth_mm: float) -> float:
     """Geometry factor of a rectangular duct: conductance x mu, in m^3.
 
-    Straight from `R = 12 mu L / (w h^3 (1 - 0.63 h/w))` in operator/flow_calc.py with
-    mu divided out, so `g_geom / mu` reproduces 1/R exactly for any fluid. h is the
+    Straight from `R = 12 mu L / (w h^3 f)` in operator/flow_calc.py - f the exact series,
+    not the retired 1 - 0.63 h/w shortcut - with mu divided out, so `g_geom / mu`
+    reproduces 1/R exactly for any fluid. It CALLS flow_calc, so the two cannot drift. h is the
     SMALLER and w the LARGER of width and depth - getting that round the wrong way turns
     a 0.2 x 0.3 mm channel into a 0.3 x 0.2 mm one and the resistance with it.
     """
@@ -311,6 +316,8 @@ class Mesher:
         self.weir_sides: dict[str, list[dict]] = {}
         #: chamber id -> how it was meshed, used when a channel attaches to it
         self._model: dict[str, dict] = {}
+        #: duct-meshed feature -> {channel tag: which END of the run it attaches to}
+        self._duct_attach: dict[str, dict[str, str]] = {}
 
     # -- small helpers ----------------------------------------------------------
 
@@ -497,17 +504,79 @@ class Mesher:
                        "an open Hele-Shaw field",
                        "the filter's own resistance and its trapping are missing")
 
+    def duct_attachments(self, cid: str) -> list[tuple[str, tuple[float, float]]]:
+        """(tag, anchor) for every channel end that names this feature, from the spec alone.
+
+        Known before anything is meshed, which is what lets a duct-meshed feature be put
+        IN the flow path between its neighbours instead of hanging off one of its nodes.
+        """
+        out: list[tuple[str, tuple[float, float]]] = []
+        for channel in self.channels:
+            if cid not in (channel.get("from"), channel.get("to")):
+                continue
+            try:
+                seg_a, seg_b, _length, _source = self._terminal_segments(channel)
+            except MeshError:
+                continue                      # a dangling id; _mesh_channel reports it
+            if channel["from"] == cid:
+                out.append((f"{channel['id']}:from", seg_a[0]))
+            if channel["to"] == cid:
+                out.append((f"{channel['id']}:to", seg_b[0]))
+        return out
+
+    def _duct_end_points(self, cid: str, fp: Footprint,
+                         anchors: list[tuple[str, tuple[float, float]]],
+                         ) -> tuple[tuple[float, float], tuple[float, float]]:
+        """Where the two ends of a duct-meshed run go: at the two attachments FARTHEST
+        apart, so the run spans the gap its neighbours leave.
+
+        The ends used to sit at the footprint's long-axis extremes, which is wrong twice
+        over: the extremes are not where the liquid enters, and on a square-ish footprint
+        both neighbours are equidistant from both of them, so a nearest-end rule put them
+        BOTH on end a. spc_demo_v1's 234 mm delay line then hung off one node as a
+        dead-end stub carrying 1.8e-19 of the flow, and its 1194 Pa (duct law) / 1136 Pa
+        (OpenFOAM) came out as 39 Pa.
+        """
+        x0, x1, y0, y1 = fp.bounds
+        extremes = (((x0, fp.cy), (x1, fp.cy)) if fp.sx >= fp.sy
+                    else ((fp.cx, y0), (fp.cx, y1)))
+        if len(anchors) >= 2:
+            pairs = [(math.dist(p, q), i, j)
+                     for i, (_ti, p) in enumerate(anchors)
+                     for j, (_tj, q) in enumerate(anchors) if i < j]
+            far, i, j = max(pairs, key=lambda t: (t[0], -t[1], -t[2]))
+            if far > 1e-9:
+                a, b = anchors[i][1], anchors[j][1]
+                return (a, b) if (a[0], a[1]) <= (b[0], b[1]) else (b, a)
+            self._flag(cid, "every channel on this run arrives at the same point, so the "
+                            "two ends of the run cannot be told apart",
+                       "the footprint's long-axis extremes",
+                       "the run may not be in series with its neighbours; check the layout")
+            return extremes
+        if len(anchors) == 1:
+            a = anchors[0][1]
+            b = max(((x0, fp.cy), (x1, fp.cy), (fp.cx, y0), (fp.cx, y1)),
+                    key=lambda p: (math.dist(a, p), p))
+            self._flag(cid, "only one channel attaches to this run, so it is a stub",
+                       "the far end left open", "nothing flows through it")
+            return a, b
+        return extremes
+
     def _mesh_duct_chamber(self, chamber: dict) -> None:
-        """A channel-like chamber: two end nodes and ONE duct at the real lane geometry."""
+        """A channel-like chamber: two end nodes and ONE duct at the real lane geometry.
+
+        The two ends are placed at - and the attached channels assigned to - opposite ends
+        of the run, so a feature the spec puts in series IS in series. Each channel keeps
+        its own attachment; what it must not do is share an end with the channel on the
+        other side of the run.
+        """
         cid = chamber["id"]
         fp, depth = self.footprint(chamber), self.depth_mm(chamber)
         lane = self._lane_geometry(chamber, fp, depth)
         width, length, source = lane["width_mm"], lane["length_mm"], lane["source"]
 
-        long_axis = "x" if fp.sx >= fp.sy else "y"
-        x0, x1, y0, y1 = fp.bounds
-        ends = (((x0, fp.cy), (x1, fp.cy)) if long_axis == "x"
-                else ((fp.cx, y0), (fp.cx, y1)))
+        anchors = self.duct_attachments(cid)
+        ends = self._duct_end_points(cid, fp, anchors)
         ids = []
         for suffix, (px, py) in zip(("a", "b"), ends):
             nid = f"j:{cid}:{suffix}"
@@ -515,6 +584,12 @@ class Mesher:
                                 note=f"{suffix} end of the {chamber.get('block', 'channel')} "
                                      f"run (its volume is on the duct edge)"))
             ids.append(nid)
+        # Each attachment to the nearer end, and the pair that defined the ends lands on
+        # its own end exactly (distance 0), so the run always spans them.
+        self._duct_attach[cid] = {
+            tag: min(zip(ids, ends), key=lambda t: (math.dist(anchor, t[1]), t[0]))[0]
+            for tag, anchor in anchors
+        }
         g = duct_g_geom_m3(length, width, depth)
         self._add_edge(f"d:{cid}", ids[0], ids[1], "duct", g, length, width, depth, cid,
                        note=f"channel-like block meshed as a duct ({source})")
@@ -702,10 +777,13 @@ class Mesher:
         if model["kind"] == "junction":
             return model["node"]
         if model["kind"] == "duct":
-            near = seg[0]
+            end = self._duct_attach.get(feature_id, {}).get(tag)
+            if end is not None:
+                return end
+            near = seg[0]                      # a port bore, which names no channel
             return min(model["ends"],
-                       key=lambda nid: math.dist(near, (self.node(nid).x_mm,
-                                                        self.node(nid).y_mm)))
+                       key=lambda nid: (math.dist(near, (self.node(nid).x_mm,
+                                                         self.node(nid).y_mm)), nid))
         return self._mouth(feature_id, model, seg, width_mm, tag, purpose)
 
     def node(self, node_id: str) -> Node:
@@ -873,6 +951,20 @@ class Mesher:
                        "the gap as stated", "the slit is as deep as the chamber")
         return float(crest_um) / 1000.0, gap_um
 
+    def isolated_features(self) -> list[str]:
+        """Chambers the spec joins to NOTHING: no channel names them, no port opens onto
+        them. A rasterised one comes out as a connected island (unreachable); a point
+        feature comes out as a single node with no edge at all, which looks like an orphan
+        but is not a mesher fault - it is a design dead end, and `build_mesh` says so
+        rather than refusing the chip.
+        """
+        outward: set[str] = set()
+        for edge in self.edges:
+            fa, fb = self.node(edge.a).feature_id, self.node(edge.b).feature_id
+            if fa != fb:                      # an edge that leaves the feature
+                outward.update((fa, fb))
+        return sorted(cid for cid in self.chambers if cid not in outward)
+
     # -- what we could not mesh -------------------------------------------------
 
     def note_unmeshed(self) -> None:
@@ -909,9 +1001,32 @@ class Mesher:
 
     # -- build ------------------------------------------------------------------
 
+    def check_spec(self) -> None:
+        """Refuse a spec whose channels name features that are not there.
+
+        Caught up front and by name: a channel with a `path` never looks its endpoints up
+        for geometry, so without this the spec error surfaced much later as an obscure
+        'nothing meshed for feature' from the attachment code.
+        """
+        known = set(self.chambers) | set(self.ports)
+        missing = sorted({end for c in self.channels
+                          for end in (c.get("from"), c.get("to"))
+                          if end not in known})
+        if missing:
+            raise MeshError(
+                f"{self.chip_id}: channel endpoint(s) {', '.join(repr(m) for m in missing)} "
+                f"are neither a chamber nor a port in this spec, so there is nothing to "
+                f"join: "
+                + "; ".join(f"{c['id']} ({c['from']} -> {c['to']})" for c in self.channels
+                            if c.get("from") in missing or c.get("to") in missing)
+                + f". The spec has chambers {', '.join(sorted(self.chambers))} and ports "
+                  f"{', '.join(sorted(self.ports)) or '(none)'}."
+            )
+
     def build(self) -> Mesh:
         if not self.chambers:
             raise MeshError(f"{self.chip_id}: a chip spec with no chambers cannot be meshed")
+        self.check_spec()
         self.mesh_ports()
         self.mesh_chambers()
         self.mesh_channels()
@@ -929,8 +1044,17 @@ class Mesher:
                        "for one crest is 2 Pa, which the duct form does not reproduce - "
                        "analyse.py should report that disagreement")
 
+        isolated = self.isolated_features()
+        for cid in isolated:
+            self._flag(cid, "nothing in the spec joins this feature to anything: no "
+                            "channel names it and no port opens onto it",
+                       "meshed on its own, with no edge leaving it",
+                       "a dead_end finding for analyse.py; it is not a mesher fault, so "
+                       "the mesh is still handed back")
+
         meta: dict[str, Any] = {
             "chip_id": self.chip_id,
+            "isolated_features": isolated,
             "grid_mm": self.grid_mm,
             "mu_pa_s": self.mu,
             "mu_source": self.mu_source,
@@ -965,6 +1089,80 @@ class Mesher:
         return mesh
 
 
+# --- routing: is every feature actually IN the flow path? -----------------------------
+
+
+def routing(mesh: Mesh) -> dict[str, dict]:
+    """Per duct-meshed feature: which neighbours hang off which end of its run.
+
+    This is the view that makes a bypassed feature obvious WITHOUT a solve, and it is why
+    it lives in the mesher: `assay2chip/foam/validate_foam.py routing_mismatch()` finds
+    the same fault by comparing a reduced-order field against a 3D one, which is both
+    expensive and far too late - by then every pressure, shear and residence time on the
+    chip has already been reported wrong.
+    """
+    out: dict[str, dict] = {}
+    for feature, grid in sorted(mesh.meta.get("grids", {}).items()):
+        if grid.get("kind") != "duct":
+            continue
+        ends = list(grid.get("nodes") or [])
+        sides = {}
+        for node in ends:
+            sides[node] = sorted({e.feature_id for e in mesh.edges_at(node)
+                                  if e.feature_id != feature})
+        neighbours = sorted(set().union(*sides.values()) if sides else set())
+        out[feature] = {
+            "ends": ends, "by_end": sides, "neighbours": neighbours,
+            "in_series": all(sides.get(n) for n in ends) if len(ends) == 2 else False,
+            "duct_length_mm": max((e.length_mm for e in mesh.edges_of(feature)
+                                   if e.kind == "duct"), default=0.0),
+        }
+    return out
+
+
+def routing_problems(mesh: Mesh) -> list[str]:
+    """Features the mesh would let the flow BYPASS. Each line is a blocker, not a warning.
+
+    A duct-meshed run with neighbours on only one of its two ends is a dead-end stub: the
+    network solves happily and quietly routes everything past it. That is what happened to
+    spc_demo_v1's delay line, so this is checked at mesh time and `build_mesh(strict=True)`
+    refuses to hand back such a mesh.
+
+    A feature with exactly ONE neighbour in the whole spec is a different thing - a design
+    stub, reported as a dead end - so it is not a routing fault and is not flagged here.
+    """
+    problems = []
+    for feature, info in routing(mesh).items():
+        if len(info["neighbours"]) < 2 or info["in_series"]:
+            continue
+        crowded = max(info["by_end"].items(), key=lambda kv: (len(kv[1]), kv[0]))
+        empty = sorted(n for n in info["ends"] if not info["by_end"].get(n))
+        problems.append(
+            f"{feature} is meshed as a {info['duct_length_mm']:.4g} mm duct but "
+            f"{', '.join(info['neighbours'])} all attach to {crowded[0]} while "
+            f"{', '.join(empty)} has nothing on it: the run is a DEAD-END STUB and the "
+            f"flow bypasses it. A feature the spec puts in series must be meshed in series."
+        )
+    # Two channels must never share one opening into a rasterised chamber either: each
+    # names the chamber at ITS OWN mouth, or they short-circuit through a single point
+    # instead of through the chamber.
+    openings: dict[str, set[str]] = {}
+    for edge in mesh.edges_of_kind("mouth"):
+        if not edge.id.startswith("m:"):
+            continue
+        tag, _, _cell = edge.id[2:].partition(">")
+        for end in (edge.a, edge.b):
+            if mesh.node(end).kind == "junction":
+                openings.setdefault(end, set()).add(tag)
+    for node, tags in sorted(openings.items()):
+        if len(tags) > 1:
+            problems.append(
+                f"node {node} is the single opening for {', '.join(sorted(tags))}: two "
+                f"channels sharing one mouth bypass the chamber between them"
+            )
+    return problems
+
+
 # --- entry points ---------------------------------------------------------------------
 
 
@@ -979,11 +1177,21 @@ def build_mesh(chip: dict, *, grid_mm: float | None = None, mu_pa_s: float | Non
     """
     mesh = Mesher(chip, grid_mm=grid_mm, mu_pa_s=mu_pa_s,
                   min_cells_across=min_cells_across, temp_c=temp_c).build()
-    problems = [p for p in mesh.check() if "not reachable from any port" not in p]
+    # A feature the spec joins to nothing is a DESIGN dead end - reported, never a reason
+    # to refuse the mesh. Anything else `check()` finds is structural and is a refusal.
+    lonely = {f"node {n.id!r} has no edge (orphan)" for n in mesh.nodes
+              if n.feature_id in set(mesh.meta.get("isolated_features", []))}
+    problems = [p for p in mesh.check()
+                if "not reachable from any port" not in p and p not in lonely]
+    mesh.meta["routing"] = routing(mesh)
+    problems += routing_problems(mesh)
+    # The mesher's own verdict, so nobody has to re-derive it from problem strings:
+    # empty means strict mode accepts this mesh.
+    mesh.meta["structural_problems"] = list(problems)
     if problems and strict:
         raise MeshError(f"{mesh.chip_id}: the mesh is not sound:\n  - "
                         + "\n  - ".join(problems))
-    mesh.meta["problems"] = mesh.check()
+    mesh.meta["problems"] = mesh.check() + routing_problems(mesh)
 
     # A node no port can reach is a DESIGN dead end, not a broken mesh - graph
     # reachability is exactly how the README's `dead_end` class is found - so it is not a

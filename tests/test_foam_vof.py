@@ -240,7 +240,10 @@ class TestJunctions(unittest.TestCase):
 
     def test_prediction_is_the_repo_rule(self):
         g = vof.spc_demo_geometry(200)
-        self.assertAlmostEqual(vof.repo_droplet_prediction(g)["d_um"], 260.0, places=6)
+        pred = vof.repo_droplet_prediction(g)
+        self.assertAlmostEqual(pred["unconfined_1p3x_um"], 260.0, places=6)
+        self.assertLessEqual(pred["d_um"], pred["unconfined_1p3x_um"])
+        self.assertIn(pred["d_um"], (260.0, 150.0))     # the depth cap, if the builder has it
 
     def test_block_mesh_of_a_cross(self):
         g = vof.spc_demo_geometry(200)
@@ -258,9 +261,13 @@ class TestJunctions(unittest.TestCase):
         self.assertLess(len(plain.rect_mesh(50e-6).fluid), len(rm.fluid))
 
     def test_flows_come_from_protocol_and_contracts(self):
+        import json
         spc = vof.droplet_inputs(vof.spc_demo_geometry())
-        self.assertAlmostEqual(spc["q_oil_m3_s"] * 3.6e12, 146.5, delta=0.2)
-        self.assertAlmostEqual(spc["q_aq_m3_s"] * 3.6e12, 39.8, delta=0.2)
+        proto = json.loads((ROOT / "protocols/spc_demo_v1.json").read_text())
+        flows = next(s for s in proto["steps"] if s["operation"] == "encapsulate")["flows_ul_h"]
+        self.assertAlmostEqual(spc["q_oil_m3_s"] * 3.6e12, flows["oil"], delta=0.02)
+        self.assertAlmostEqual(spc["q_aq_m3_s"] * 3.6e12, flows["core"] + flows["shell"],
+                               delta=0.02)
         self.assertTrue(spc["oil"].assumption)
         kit = vof.droplet_inputs(vof.kit_reference_geometry())
         self.assertAlmostEqual(kit["q_aq_m3_s"] * 3.6e12, 350.0)

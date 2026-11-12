@@ -205,8 +205,18 @@ def module_of(chip_spec: str | None) -> str | None:
 
 
 def rebuild_index(runs_dir: Path = planner.RUNS_DIR) -> Path:
-    """Scan runs/*.json and write runs/index.json for the twin."""
+    """Scan runs/*.json and write runs/index.json for the twin.
+
+    simulated_hardware is copied EXACTLY as the run file has it. It used to be read with
+    `run.get("simulated_hardware", False)`, so a run that recorded nothing at all - no
+    pump, no sensors, nothing moved - was indexed as a real-hardware run, which is the
+    worst answer the index could give. The field is required by
+    contracts/schemas/run.schema.json and set by the adapter, so absence now means a stale
+    or hand-edited file: it is recorded as null (absence, not false), listed under
+    runs_missing_simulated_hardware, and printed as a warning.
+    """
     entries = []
+    missing = []
     for path in sorted(Path(runs_dir).glob("*.json")):
         if path.name == INDEX_NAME:
             continue
@@ -216,6 +226,8 @@ def rebuild_index(runs_dir: Path = planner.RUNS_DIR) -> Path:
             print(f"skipping {path.name}: not valid JSON ({e})")
             continue
         scn = run.get("scenario") or {}
+        if "simulated_hardware" not in run:
+            missing.append(path.name)
         entries.append({
             "file": path.name,
             "protocol_id": run.get("protocol_id"),
@@ -226,7 +238,8 @@ def rebuild_index(runs_dir: Path = planner.RUNS_DIR) -> Path:
             "events": len(run.get("events", [])),
             "total_duration_s": run.get("total_duration_s"),
             "placeholder": run.get("placeholder", False),
-            "simulated_hardware": run.get("simulated_hardware", False),
+            # null when the run file does not say; never false by default.
+            "simulated_hardware": run["simulated_hardware"] if "simulated_hardware" in run else None,
             "scenario": scn.get("name"),
             "loop": run.get("loop"),
             "faults": [f.get("type") for f in scn.get("faults", [])],
@@ -236,8 +249,14 @@ def rebuild_index(runs_dir: Path = planner.RUNS_DIR) -> Path:
         })
     entries.sort(key=lambda e: (str(e["protocol_name"]), str(e["scenario"] or ""), str(e["operator"]), e["file"]))
     out = Path(runs_dir) / INDEX_NAME
-    schema_io.write_json(out, {"generated_by": "operator/run.py", "runs": entries})
+    index = {"generated_by": "operator/run.py", "runs": entries}
+    if missing:
+        index["runs_missing_simulated_hardware"] = missing
+    schema_io.write_json(out, index)
     print(f"wrote {planner.repo_relative(out)}  ({len(entries)} runs)")
+    if missing:
+        print(f"  WARNING: {len(missing)} run(s) carry no simulated_hardware flag, so the index says null (not "
+              f"false) for them: {', '.join(missing)}. The field is required by run.schema.json - regenerate them.")
     return out
 
 

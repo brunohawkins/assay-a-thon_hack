@@ -85,6 +85,7 @@ import argparse
 import json
 import math
 import re
+import shlex
 import sys
 from dataclasses import dataclass, field as dc_field
 from pathlib import Path
@@ -1230,6 +1231,10 @@ class CasePlan:
 
     chip_id: str
     step: Any
+    #: The protocol step's own words, carried so a summary (and a render) can label
+    #: itself without re-reading the protocol.
+    operation: str = ""
+    fluid_name: str = ""
     solver: str = "simpleFoam"
     transient: bool = False
     transient_reason: str = ""
@@ -1533,6 +1538,9 @@ def plan_case(
     return CasePlan(
         chip_id=chip_id,
         step=step,
+        operation=str(getattr(record, "operation", "") or ""),
+        fluid_name=str(getattr(getattr(record, "fluid", None), "name", None)
+                       or getattr(scenario, "fluid", "") or ""),
         solver=force_solver or ("pimpleFoam" if reason else "simpleFoam"),
         transient=(force_solver not in STEADY_SOLVERS if force_solver else bool(reason)),
         transient_reason=reason,
@@ -1604,6 +1612,11 @@ def summarise(raw: RawFields, plan: CasePlan, *, mesh: Optional[Mesh] = None,
         "source": "openfoam",
         "chip_id": plan.chip_id,
         "step": plan.step,
+        "operation": plan.operation,
+        # `fluid` is the NAME, as `Scenario.fluid` and `Field.meta["fluid"]` are
+        # everywhere else in this repo - render.py labels a figure with it. The numbers
+        # live under `fluid_properties`.
+        "fluid": plan.fluid_name,
         "solver": plan.solver,
         "transient": plan.transient,
         "transient_reason": plan.transient_reason,
@@ -1618,7 +1631,8 @@ def summarise(raw: RawFields, plan: CasePlan, *, mesh: Optional[Mesh] = None,
             "cap": list(plan.capped),
             "prescribed_q_in_ul_min": prescribed,
         },
-        "fluid": {
+        "fluid_properties": {
+            "name": plan.fluid_name,
             "mu_pa_s": mu,
             "mu_source": plan.mu_source,
             "rho_kg_m3": rho,
@@ -1913,7 +1927,7 @@ def findings_for(
                     ),
                     fix_hint="drop the step flow, widen the tightest lane, or open a second vent",
                     source="openfoam",
-                    assumption=bool((summary.get("fluid", {}) or {}).get("rho_is_assumption")),
+                    assumption=bool((summary.get("fluid_properties", {}) or {}).get("rho_is_assumption")),
                 ))
     return out
 
@@ -2134,6 +2148,83 @@ def run_case(case_dir: Path, plan: CasePlan, stack: Optional[FoamStack] = None) 
         "converged": result.converged,
         "steps": steps,
         "result": _plain(result.to_dict()),
+    }
+
+
+#: Fields the renderer actually draws. `foamToVTK` with no `-fields` converts everything
+#: in the time directory, which on a 1.5M-cell case is most of a gigabyte of `phi` and
+#: `age` nobody reads. Naming them keeps the demo's conversion quick and the file small.
+VTK_FIELDS = ("U", "p", "wallShearStress")
+
+
+def convert_to_vtk(case_dir: Path, plan: Optional[CasePlan] = None,
+                   stack: Optional[FoamStack] = None, *,
+                   fields: Sequence[str] = VTK_FIELDS,
+                   latest_only: bool = True) -> dict:
+    """`foamToVTK` into `<case>/VTK/`, which is where `render.py` looks.
+
+    WITHOUT THIS THERE IS NO 3D PICTURE. `render.foam_vtk()` globs
+    `<case>/**/*.vtm|vtu|vtk|vti` and falls back to the reduced-order 2.5D field when it
+    finds nothing, so a converged 3D solve that was never converted renders as the very
+    model it was supposed to replace - silently, because the fallback is legitimate
+    behaviour. So conversion is part of a solve, not a separate step someone remembers.
+
+    `-latestTime` and an explicit field list are for speed: the renderer draws the final
+    field, and converting every intermediate write of `phi` and `age` on module3's 1.5M
+    cells costs minutes and hundreds of megabytes for nothing.
+
+    Never fatal. A failed conversion loses the picture, not the physics: the summary is
+    already complete, so this returns its status and lets `run_step` carry on.
+    """
+    stack = stack or discover_foam()
+    case_dir = Path(case_dir)
+    if stack.runner is None:
+        return {"ok": False, "reason": "assay2chip/foam/runner.py is not importable"}
+    args: List[str] = []
+    if latest_only:
+        args.append("-latestTime")
+    if fields:
+        # `runner.run` joins `args` into a SHELL command, so an OpenFOAM list has to
+        # arrive already quoted: bare `(U p wallShearStress)` is a subshell to the shell,
+        # which exits 2 before the solver is ever reached and before the log exists.
+        args.append("-fields")
+        args.append(shlex.quote("(" + " ".join(fields) + ")"))
+    try:
+        result = stack.runner.run(case_dir, "foamToVTK", args=args, check=False,
+                                  timeout_s=(plan.timeout_s if plan else DEFAULT_TIMEOUT_S))
+    except Exception as exc:                            # pragma: no cover - runner's own
+        return {"ok": False, "reason": f"{type(exc).__name__}: {exc}", "args": args}
+    found = [p for pattern in ("**/*.vtm", "**/*.vtu", "**/*.vtk", "**/*.vti")
+             for p in case_dir.glob(pattern)]
+    # `render.foam_vtk()` takes the NEWEST match by mtime, and foamToVTK writes the
+    # top-level `<case>_<time>.vtm` BEFORE the `boundary.vtm` and `internal.vtu` it
+    # points at - so the renderer would pick up `boundary.vtm`, which is wall surfaces
+    # only, and have no interior to slice or trace streamlines through. The top-level
+    # multiblock holds both, so it is touched last to make it the newest.
+    #
+    # TODO(render): this is a tie-break by timestamp. If render.foam_vtk() preferred a
+    # top-level `*.vtm` over anything nested, the touch could go.
+    top = sorted((p for p in found
+                  if p.suffix == ".vtm" and p.parent == case_dir / "VTK"),
+                 key=lambda p: p.name)
+    if top:
+        try:
+            top[-1].touch()
+        except OSError:                                 # pragma: no cover - best effort
+            pass
+    produced = sorted(p.relative_to(case_dir).as_posix() for p in found)
+    return {
+        "ok": bool(result.ok) and bool(produced),
+        "command": "foamToVTK",
+        "args": args,
+        "returncode": result.returncode,
+        "wall_time_s": round(result.wall_time_s, 2),
+        "files": produced[:12],
+        "file_count": len(produced),
+        "read_by": "assay2chip/foam/render.py foam_vtk() globs <case>/**/*.vtm|vtu|vtk|vti",
+        "reason": ("" if result.ok and produced else
+                   (f"foamToVTK exited {result.returncode}" if not result.ok else
+                    "foamToVTK succeeded but wrote no VTK file")),
     }
 
 
@@ -2448,6 +2539,7 @@ def run_step(
     escalate: bool = True,
     step_index: Optional[int] = None,
     force_solver: str = "",
+    vtk: bool = True,
 ) -> dict:
     """One chip, one protocol step: mesh, case, run, read, summarise, judge.
 
@@ -2506,10 +2598,27 @@ def run_step(
             "summary": superseded,
         }
 
+    # The 3D picture. Last, so an escalated re-run converts the field that was kept, and
+    # non-fatal, so a conversion failure costs the render and not the result.
+    if vtk:
+        summary["vtk"] = convert_to_vtk(Path(plan.case_dir), plan, stack)
+
     summary["plan"] = plan.to_json()
     summary["findings"] = [
         f.to_json() for f in findings_for(summary, chip, protocol, step_index=step_index)
     ]
+
+    # Leave the summary IN THE CASE DIRECTORY. `render.foam_summary()` looks for a JSON
+    # stamped `foam-flow` in the case dir and deliberately does not insist on a filename,
+    # and without one the renderer draws the 3D field with no flow rate, no fluid, no
+    # findings and no assumption labels on it - which for a "SIMULATED, DEMO SCALE" render
+    # is the part that must not be missing. Returning the summary is not enough; it has to
+    # be on disk next to the field it describes.
+    try:
+        (Path(plan.case_dir) / "summary.json").write_text(
+            json.dumps(summary, indent=2, default=str) + "\n", encoding="utf-8")
+    except OSError as exc:                              # pragma: no cover - best effort
+        summary.setdefault("notes", []).append(f"could not write summary.json: {exc}")
     return summary
 
 

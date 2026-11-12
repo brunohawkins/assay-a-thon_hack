@@ -1,7 +1,7 @@
 // "Our assay": THIS project's pipeline, not the general one.
 //
-// iPSCs -> three neural lineages -> single-cell transcriptome, plus the bulk multi-omic
-// arm. One card per stage in chain order, showing exactly what that module does.
+// iPSCs -> three neural lineages -> single-cell libraries (an optional bulk-sampling
+// branch sits to one side). One card per stage in chain order, showing exactly what that module does.
 //
 // The six printed modules are FROZEN. This section presents them and never proposes a
 // change: no fix buttons, no "rerun", no edit. Where a full-spec target design exists it
@@ -27,7 +27,7 @@ export function mount(host, ctx) {
   setChildren(host,
     el('div', { class: 'view-head' },
       el('h2', 'Our assay'),
-      el('span', { class: 'sub' }, 'iPSCs to three neural lineages, single-cell transcriptome and the bulk multi-omic arm')),
+      el('span', { class: 'sub' }, 'iPSCs to three neural lineages, then single-cell libraries from co-cultured cells')),
     loading('Reading docs/modules.json'));
 
   (async () => {
@@ -69,7 +69,10 @@ function render(host, ctx, state, viewers, isCancelled) {
   const doc = state.doc;
   const printedIds = new Set(doc.printed.map((p) => p.chip_id));
   const chipStages = doc.stages.filter((s) => s.chip);
-  const printedCount = chipStages.filter((s) => printedIds.has(s.chip.chip_id) || s.chip.printed).length;
+  const branchCount = doc.stages.filter((s) => s.branch_from).length;
+  const printedChips = new Set([...doc.stages, ...doc.not_in_pipeline]
+    .filter((s) => s.chip && (printedIds.has(s.chip.chip_id) || s.chip.printed)).map((s) => s.chip.chip_id));
+  const printedCount = Math.max(printedChips.size, printedIds.size);
 
   const head = el('div', { class: 'view-head' },
     el('h2', 'Our assay'),
@@ -81,7 +84,9 @@ function render(host, ctx, state, viewers, isCancelled) {
   const overview = el('section', { class: 'panel' },
     el('h3', { style: { marginTop: 0 } }, 'The chain'),
     el('p', { class: 'small muted' },
-      `${doc.stages.length} stages, ${chipStages.length} on a chip, ${printedCount} printed for the demo.`
+      `${doc.stages.length - branchCount} stages in the chain`
+      + (branchCount ? ` plus ${branchCount} branch${branchCount > 1 ? 'es' : ''}` : '')
+      + `, ${chipStages.length} on a chip, ${printedCount} chips printed for the demo.`
       + (doc.variant ? ` Variant: ${doc.variant}.` : '')),
     chainStrip(doc, printedIds, (id) => jumpTo(id)),
     el('p', { class: 'hint' }, 'Every number on a card is read from the module\'s own chip spec and protocol. '
@@ -118,30 +123,58 @@ function render(host, ctx, state, viewers, isCancelled) {
   }
 }
 
-/** The chain as a row of clickable chips, in order. */
+/**
+ * The chain as a row of clickable chips, in order. Branches (stages that leave the chain
+ * part-way, such as the bulk-omics arm off culture) get their own row below, so they are
+ * never drawn as a step between two chain stages.
+ */
 function chainStrip(doc, printedIds, onJump) {
-  const strip = el('div', { class: 'chain', style: { marginTop: '10px' } });
-  doc.stages.forEach((s, i) => {
+  const main = doc.stages.filter((s) => !s.branch_from);
+  const branches = doc.stages.filter((s) => s.branch_from);
+  const node = (s) => {
     const printed = s.chip && (s.chip.printed || printedIds.has(s.chip.chip_id));
-    strip.appendChild(el('button', {
+    return el('button', {
       type: 'button', class: 'node', style: { textAlign: 'left', cursor: 'pointer' },
       onclick: () => onJump(s.id),
     },
-    el('h5', {}, String(i + 1), '. ', s.name || s.id),
+    el('h5', {}, String(s.order), '. ', s.name || s.id),
     s.chip ? el('span', { class: 'id' }, s.chip.chip_id) : el('span', { class: 'id' }, s.kind),
     el('div', { class: 'row', style: { gap: '4px', marginTop: '5px' } },
       printed ? badge('PRINTED', 'ok', 'Printed for the demo.') : null,
       s.chip && !printed ? badge('design only', '') : null,
-      !s.chip ? offChipBadge(s.kind) : null)));
-    if (i < doc.stages.length - 1) {
-      const h = s.leaves[0];
-      strip.appendChild(el('div', { class: 'link' },
-        el('div', { class: 'arrow' }, '\u2192'),
-        h ? el('div', {}, h.carries || 'transfer') : null,
-        h && h.volume_ul ? el('div', {}, `${fmtNum(h.volume_ul, 4)} uL`) : null));
+      !s.chip ? offChipBadge(s.kind) : null,
+      s.branch_from ? badge('BRANCH', 'info', 'Leaves the chain; never reaches the capsule stages.') : null));
+  };
+  const link = (h, arrow = '\u2192') => el('div', { class: 'link' },
+    el('div', { class: 'arrow' }, arrow),
+    h ? el('div', {}, h.carries || 'transfer') : null,
+    h && h.volume_ul ? el('div', {}, `${fmtNum(h.volume_ul, 4)} uL`) : null);
+  const branchIds = new Set(branches.map((b) => b.id));
+  const toStage = (h) => (h.to && h.to.stage) || '';
+
+  const strip = el('div', { class: 'chain', style: { marginTop: '10px' } });
+  main.forEach((s, i) => {
+    strip.appendChild(node(s));
+    if (i < main.length - 1) {
+      const next = main[i + 1];
+      const h = s.leaves.find((x) => toStage(x) === next.id) || s.leaves.find((x) => !branchIds.has(toStage(x)));
+      strip.appendChild(link(h));
     }
   });
-  return strip;
+  if (!branches.length) return strip;
+
+  const byId = new Map(doc.stages.map((s) => [s.id, s]));
+  const rows = branches.map((b) => {
+    const from = byId.get(b.branch_from);
+    const h = b.arrives.find((x) => x.from && x.from.stage === b.branch_from) || b.arrives[0];
+    return el('div', { class: 'chain', style: { marginTop: '8px' } },
+      el('div', { class: 'link', style: { flex: '0 0 220px', textAlign: 'left' } },
+        el('div', { class: 'small' }, 'Branch off ', el('strong', {}, from ? `${from.order}. ${from.name}` : b.branch_from)),
+        el('div', { class: 'arrow' }, '\u21b3'),
+        h ? el('div', {}, h.carries || 'transfer') : null),
+      node(b));
+  });
+  return el('div', {}, strip, ...rows);
 }
 
 function offChipBadge(kind) {
@@ -640,4 +673,4 @@ function planFor(chip, env) {
   return host;
 }
 
-export { toast, download, clear };
+export { toast, download, clear, cardBody };

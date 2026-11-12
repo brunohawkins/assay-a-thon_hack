@@ -11,8 +11,14 @@ distorted, then repairs what pure scaling would break:
   * Channel widths and chamber sides are CLAMPED at the fabrication floors in
     contracts/blocks.json, so a scaled channel can never fall below what we can make.
     A clamped feature is reported, because clamping changes the aspect ratio.
-  * volume_ul is RECOMPUTED from the new geometry. A scaled chamber holds far less, and
-    a stale volume would silently corrupt every protocol step that exchanges it.
+  * volume_ul is RECOMPUTED from the new geometry, as a box or, for shape "cylinder",
+    as pi/4 of its bounding box. A scaled chamber holds far less, and a stale volume
+    would silently corrupt every protocol step that exchanges it.
+  * A cylinder's two in-plane sides are one diameter, so they are clamped together.
+  * height_um is rewritten whenever the depth is clamped: check_chip_spec.py reads it in
+    preference to size[2].
+  * Channel path waypoints move with everything else, so channels still meet the
+    chambers and ports they join.
   * Ports keep their z, which is set by the layer stack, not by the footprint.
 
 The point of one shared tool is that everyone's chips come out on the same scale with
@@ -23,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,14 +57,33 @@ def fit(chip: dict) -> tuple[dict, list[str], float]:
 
     for c in chip.get("chambers", []):
         c["center"][0], c["center"][1] = px(c["center"][0]), px(c["center"][1])
-        for i in (0, 1):
-            want = c["size"][i] * s
+        cylinder = c.get("shape") == "cylinder"
+        if cylinder:
+            # size is [diameter, diameter, depth]: the two in-plane axes are one number.
+            # Clamping them independently can leave them unequal, which breaks the
+            # cylinder contract in contracts/schemas/chip_spec.schema.json.
+            want = max(c["size"][0], c["size"][1]) * s
             if want < MIN_W:
-                notes.append(f"chamber '{c['id']}' side {want:.3f} -> clamped to {MIN_W} mm")
+                notes.append(f"chamber '{c['id']}' diameter {want:.3f} -> clamped to {MIN_W} mm")
                 want = MIN_W
-            c["size"][i] = round(want, 3)
-        c["size"][2] = min(c["size"][2], MAX_D)
-        c["volume_ul"] = round(c["size"][0] * c["size"][1] * c["size"][2], 3)
+            c["size"][0] = c["size"][1] = round(want, 3)
+        else:
+            for i in (0, 1):
+                want = c["size"][i] * s
+                if want < MIN_W:
+                    notes.append(f"chamber '{c['id']}' side {want:.3f} -> clamped to {MIN_W} mm")
+                    want = MIN_W
+                c["size"][i] = round(want, 3)
+        depth = min(c["size"][2], MAX_D)
+        if depth != c["size"][2] and "height_um" in c:
+            # check_chip_spec.py reads height_um in preference to size[2]; leaving it alone
+            # would have it checking a depth this chip no longer has.
+            notes.append(f"chamber '{c['id']}' height_um {c['height_um']:g} -> {depth * 1000:g} (depth clamped)")
+            c["height_um"] = round(depth * 1000, 3)
+        c["size"][2] = depth
+        # A cylinder is pi/4 of its bounding box. Calling it a box inflated it by 27.3%.
+        area = math.pi / 4 * c["size"][0] * c["size"][1] if cylinder else c["size"][0] * c["size"][1]
+        c["volume_ul"] = round(area * c["size"][2], 3)
 
     for ch in chip.get("channels", []):
         want = ch["width_mm"] * s
@@ -66,6 +92,11 @@ def fit(chip: dict) -> tuple[dict, list[str], float]:
             want = MIN_W
         ch["width_mm"] = round(want, 3)
         ch["depth_mm"] = min(ch["depth_mm"], MAX_D)
+        # Waypoints are geometry too. Unscaled, they kept the old 150 x 100 mm board's
+        # coordinates while the chambers and ports they join moved, so a fitted chip's
+        # channels ran nowhere near its own features.
+        for pt in ch.get("path") or []:
+            pt[0], pt[1] = px(pt[0]), px(pt[1])
 
     for p in chip.get("ports", []):
         p["position"][0], p["position"][1] = px(p["position"][0]), px(p["position"][1])

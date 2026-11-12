@@ -25,7 +25,7 @@ export function createOverlays() {
     if (key === lastDay) return;
     lastDay = key;
     day.hidden = false;
-    day.innerHTML = `<span class="d">Day ${d}</span><span class="of">of ${Math.round(totalT / 86400)} · compressed</span>`;
+    day.innerHTML = `<span class="d">Day ${d}</span><span class="of">of ${Math.round(totalT / 86400)}, time compressed</span>`;
   }
 
   function setNozzle(info) {
@@ -52,7 +52,7 @@ export function createOverlays() {
     if (key === lastWatch) return;
     lastWatch = key;
     watch.hidden = false;
-    watch.innerHTML = `<span class="lbl">stopwatch${info.running ? '' : ' (stopped)'}</span><span class="t">${text}</span>`;
+    watch.innerHTML = `<span class="lbl">Stopwatch${info.running ? '' : ', stopped'}</span><span class="t">${text}</span>`;
   }
 
   return { setDay, setNozzle, setStopwatch };
@@ -60,7 +60,7 @@ export function createOverlays() {
 
 // ------------------------------------------------------------------ drawing
 
-const C = { core: '#fda4af', shell: '#2dd4bf', oil: '#fbbf24', wall: 'rgba(188, 215, 255, 0.55)', text: '#cbd5e1', cell: '#7f1d1d' };
+const C = { core: '#f4a7a0', shell: '#3fb8a9', oil: '#e9c46a', wall: 'rgba(87, 96, 106, 0.6)', text: '#424a53', cell: '#82071e', rim: 'rgba(31, 35, 40, 0.45)' };
 
 function rand(seed) {
   const x = Math.sin(seed * 12.9898) * 43758.5453;
@@ -145,7 +145,7 @@ function draw(g, canvas, p, args) {
     g.fill();
     g.globalAlpha = 1;
     g.restore();
-    g.strokeStyle = 'rgba(255,255,255,0.75)';
+    g.strokeStyle = C.rim;
     g.lineWidth = 1.2;
     g.beginPath();
     g.arc(x, cy, r, 0, Math.PI * 2);

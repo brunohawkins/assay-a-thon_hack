@@ -20,7 +20,10 @@ export function mount(host, ctx) {
     let md = null;
     let json = null;
     let err = null;
+    const summary = (ctx.state.runs || []).find((r) => r.run_id === runId);
     try {
+      // The run list says when there is no report; asking anyway only logs a 404.
+      if (summary && summary.has_report === false) throw new ApiError('no report yet', { status: 404 });
       const res = await api.report(runId);
       md = typeof res === 'string' ? res : (res && (res.markdown || res.md)) || null;
       json = res && typeof res === 'object' ? (res.json || null) : null;
@@ -29,7 +32,7 @@ export function mount(host, ctx) {
     if (cancelled) return;
 
     // Fall back to the file route if /report is not wired up yet.
-    if (!md) {
+    if (!md && !(summary && summary.has_report === false)) {
       const artifacts = await loadArtifacts(runId).catch(() => []);
       // /file takes repo-relative paths, so the full path goes first: a bare name is a
       // guaranteed 403 and only adds noise to the network log.

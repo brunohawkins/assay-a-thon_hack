@@ -6,8 +6,8 @@ command per target). The planner:
   2. checks every step's target exists in the chip spec,
   3. skips steps meant for another variant (a step's "variant" vs the run's run_parameters),
   4. maps the step to commands (split/pool fan-out comes from the chip's channels, passing
-     through junctions), and checks each with safety.check_static (e.g. no pair valve may
-     open in a control run),
+     through junctions), and checks each with safety.check_static (e.g. nothing may join two
+     culture chambers in a control run),
   5. lays the commands out in time using each step's duration_s,
   6. uses each step's "note" as narration.
 
@@ -159,8 +159,6 @@ def step_to_command(step: dict, chip: dict) -> tuple[str, dict]:
     if op == "release":
         return "release", {"target": target, "reagent": step["reagent"]}
     targets = commands.step_targets(step)
-    if op == "valve":
-        return "valve", {"valves": targets, "state": step["valve_state"]}
     if op == "culture":
         args = {"targets": targets, "reagents": step["reagents"], "duration_s": step["duration_s"],
                 "exchange_interval_s": step["exchange_interval_s"], "volume_ul": step["volume_ul"],

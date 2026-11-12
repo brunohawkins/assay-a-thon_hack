@@ -12,7 +12,9 @@ Faults (set in a scenario's "faults" list; they change the SIMULATED truth only)
       a sensor freezes on its last value, or returns wild values, from a time on
 
 Monitor alerts (each with its evidence):
-  pressure_high         measured pressure above monitor.pressure_alert_fraction of the escape pressure
+  pressure_high         pressure above monitor.pressure_alert_fraction of the escape pressure,
+                        from the sensor while it is trusted and from the model when it is not
+                        (the alert must not vanish with the sensor that raised the doubt)
   reagent_low           the pump delivered much less than commanded, or the believed reservoir
                         can't cover the rest of the protocol
   capsule_count_drop    the outlet capsule counter sees capsules leaving during a wash
@@ -170,12 +172,21 @@ class Monitor:
                 if a:
                     alerts.append(a)
 
-        if forward and "pressure_kpa" in meas and not disagree and "pressure_kpa" in ctl.trusted:
-            if meas["pressure_kpa"] >= self.alert_fraction * self.limit:
+        # The pressure backstop uses the best estimate available: the sensor while it is
+        # trusted and agreeing, otherwise the model's own prediction. It used to be gated on
+        # "pressure_kpa" in ctl.trusted, so the moment a sensor was distrusted - exactly when
+        # the model is least reliable, because it may have been fitted from that sensor -
+        # the last line of defence disappeared with it.
+        if forward:
+            trusted = "pressure_kpa" in meas and not disagree and "pressure_kpa" in ctl.trusted
+            estimate = meas["pressure_kpa"] if trusted else pred["pressure_kpa"]
+            source = "measured at the mesh" if trusted else "predicted by the model (no trusted pressure sensor)"
+            if estimate is not None and estimate >= self.alert_fraction * self.limit:
                 a = self._raise(ctl, "pressure_high", "critical",
-                                f"{meas['pressure_kpa']:.2f} kPa at the mesh (alert at {self.alert_fraction * self.limit:.2f}, "
+                                f"{estimate:.2f} kPa {source} (alert at {self.alert_fraction * self.limit:.2f}, "
                                 f"capsules escape at {self.limit:g})",
-                                {"measured_kpa": meas["pressure_kpa"], "predicted_kpa": round(pred["pressure_kpa"], 3),
+                                {"estimate_kpa": round(estimate, 3), "source": "sensor" if trusted else "model",
+                                 "measured_kpa": meas.get("pressure_kpa"), "predicted_kpa": round(pred["pressure_kpa"], 3),
                                  "limit_kpa": self.limit, "flow_ul_min": sl.get("flow_ul_min")})
                 if a:
                     alerts.append(a)

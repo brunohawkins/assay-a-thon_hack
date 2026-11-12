@@ -104,12 +104,23 @@ class ExactDuctPhysics(unittest.TestCase):
         # formula's error changes sign.
         self.assertLess(0.63, coefficient)
 
-    def test_approx_form_is_exactly_what_operator_flow_calc_computes(self):
+    def test_exact_series_is_what_operator_flow_calc_computes(self):
+        # flow_calc.py computes the EXACT series, so that is what must match. This test
+        # asserted the 1 - 0.63 h/w form instead, which was true until flow_calc moved off
+        # it. Two independent truncations of one series, so the floor is truncation (~2e-9)
+        # rather than machine precision.
         for length, width, depth in ((10, 0.8, 0.3), (3.4, 0.2, 0.3), (8, 0.2, 0.15)):
-            self.assertAlmostEqual(
-                validate.duct_resistance_approx(length, width, depth, MU)
-                / flow_calc.rect_channel_resistance_pa_s_m3(length, width, depth, MU),
-                1.0, places=12)
+            ratio = (validate.duct_resistance_exact(length, width, depth, MU)
+                     / flow_calc.rect_channel_resistance_pa_s_m3(length, width, depth, MU))
+            self.assertLess(abs(ratio - 1.0), validate.TOL["law_consistency"],
+                            msg=f"{width}x{depth} mm")
+
+    def test_the_retired_0p63_form_really_is_retired(self):
+        # If the approximation still matched flow_calc, the migration would not have
+        # happened. At w/h 1.33 it is 2.6% off, which is the whole reason for the change.
+        ratio = (validate.duct_resistance_approx(8, 0.2, 0.15, MU)
+                 / flow_calc.rect_channel_resistance_pa_s_m3(8, 0.2, 0.15, MU))
+        self.assertGreater(abs(ratio - 1.0), 0.01)
 
     def test_the_0p63_error_changes_sign_and_the_report_says_where(self):
         # Two effects compete: tanh < 1 makes the true bracket smaller (formula
@@ -442,8 +453,10 @@ class TheSuitePasses(unittest.TestCase):
         for chip in solved:
             self.assertLess(chip["max_node_imbalance_frac"], validate.TOL["mass_imbalance"],
                             msg=chip["chip_id"])
-            self.assertLess(chip["total_in_vs_out_error"], validate.TOL["mass_imbalance"],
-                            msg=chip["chip_id"])
+            # The GLOBAL sum, against its own tolerance: its floor is float64 accumulation
+            # over every edge and so grows with mesh size, unlike the per-node check above.
+            self.assertLess(chip["total_in_vs_out_error"],
+                            validate.TOL["mass_total_imbalance"], msg=chip["chip_id"])
             self.assertTrue(chip["residual_agrees"], msg=chip["chip_id"])
 
     def test_the_crosscheck_names_which_solver_is_wrong(self):
@@ -494,9 +507,14 @@ class TheSuitePasses(unittest.TestCase):
         # which side of the sign change each aspect ratio is on.
         self.assertLess(detail["series_convergence"]["max_change_from_10x_terms"], 1e-12)
         self.assertTrue(2.0 < detail["sign_of_the_error"]["crossover_w_over_h"] < 3.0)
-        # mesh.py must build its duct edges from the contract form, exactly.
-        self.assertLess(detail["mesh_vs_contract_form_max_error"],
+        # mesh.py must build its duct edges from the EXACT series, which is what
+        # operator/flow_calc.py uses. It used to be the 1 - 0.63 h/w form; that form is 14%
+        # off at a square duct, so both moved off it and this asserts the law in use.
+        self.assertLess(detail["mesh_vs_exact_series_max_error"],
                         validate.TOL["law_consistency"])
+        # And it must NOT still match the retired approximation, or the migration is a
+        # comment rather than a change.
+        self.assertGreater(detail["mesh_vs_contract_form_max_error"], 0.01)
 
 
 class SuiteHasTeeth(unittest.TestCase):

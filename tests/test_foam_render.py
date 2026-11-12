@@ -48,7 +48,8 @@ HAS_FFMPEG = foam_render.ffmpeg() is not None
 
 
 def _synthetic_chain(tmp: Path, *, with_barcoding: bool,
-                     built_for_demo: bool | None = None) -> Path:
+                     built_for_demo: bool | None = None,
+                     dropped: bool = False) -> Path:
     """A minimal pipeline file, optionally with a stage inserted in the middle.
 
     Deliberately NOT a copy of the repo's: the point is that scene.py reads a chain, not
@@ -69,7 +70,9 @@ def _synthetic_chain(tmp: Path, *, with_barcoding: bool,
     if with_barcoding:
         modules.insert(1, {"module": "mid", "name": "Barcoding: split and pool",
                            "status": "missing",
-                           "status_note": "bought kit, done at the bench"})
+                           "status_note": ("dropped for now, nothing happens here"
+                                           if dropped else
+                                           "bought kit, done at the bench")})
         handoffs = [
             {"id": "a_to_mid", "carries": "cells",
              "from": {"module": "a", "port": "p_mid"},
@@ -151,11 +154,17 @@ class OffChipStagesAreLabelledPlaceholders(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.layout, _ = foam_scene.layout_from_file(PIPELINE)
 
-    def test_a_stage_with_no_chip_is_a_placeholder(self) -> None:
+    def test_a_stage_with_no_chip_anywhere_is_a_placeholder(self) -> None:
+        """"No chip" means the chain gives none AND the stage names none that exists."""
         chain = foam_scene.cfd_couple.read_chain(PIPELINE)
+        extras = foam_scene.chain_extras(PIPELINE)
         for key, place in self.layout.stages.items():
-            expected = "chip" if chain.stages[key].chip_path else "placeholder"
+            named = chain.stages[key].chip_path or (
+                extras[key].chip if key in extras else None)
+            expected = "chip" if (named and (ROOT / named).is_file()) else "placeholder"
             self.assertEqual(place.kind, expected, key)
+            if place.kind == "placeholder":
+                self.assertIsNone(place.chip_path, key)
 
     def test_every_placeholder_is_badged_off_chip(self) -> None:
         placeholders = self.layout.placeholders()
@@ -163,9 +172,17 @@ class OffChipStagesAreLabelledPlaceholders(unittest.TestCase):
         for place in placeholders:
             self.assertIn(foam_render.OFF_CHIP, place.badge, place.key)
 
-    def test_no_chip_stage_carries_an_off_chip_badge(self) -> None:
+    def test_a_chip_stage_is_unbadged_unless_it_will_not_be_made(self) -> None:
+        extras = foam_scene.chain_extras(PIPELINE)
         for place in self.layout.chips():
-            self.assertEqual(place.badge, "", place.key)
+            extra = extras.get(place.key)
+            will_not_be_made = bool(
+                extra and not extra.built_for_demo
+                and any(p in extra.text for p in foam_scene.NOT_MADE_PHRASES))
+            if will_not_be_made:
+                self.assertIn(foam_render.BOUGHT_KIT, place.badge, place.key)
+            else:
+                self.assertEqual(place.badge, "", place.key)
 
     def test_real_off_chip_work_is_badged_bought_kit(self) -> None:
         """SPRI/QC is work done with bought kit; a DROPPED placeholder is not."""
@@ -174,13 +191,47 @@ class OffChipStagesAreLabelledPlaceholders(unittest.TestCase):
         self.assertIn(foam_render.BOUGHT_KIT, spri.badge)
 
     def test_a_dropped_placeholder_is_off_chip_but_not_a_bought_kit(self) -> None:
+        """A stage the chain drops does nothing to the sample, so it is not a kit.
+
+        The MVP chain may or may not carry one at any moment - the merge that gave
+        barcoding a chip removed both of its dropped stages - so the rule is pinned on a
+        synthetic chain and merely checked here.
+        """
         chain = foam_scene.cfd_couple.read_chain(PIPELINE)
-        dropped = [k for k, s in chain.stages.items() if s.pass_through]
-        self.assertTrue(dropped, "the current chain drops barcoding and hairpin")
-        for key in dropped:
-            badge = self.layout.stages[key].badge
-            self.assertEqual(badge, foam_render.OFF_CHIP,
-                             f"{key} does nothing to the sample, so it is not a kit")
+        for key, stage in chain.stages.items():
+            if stage.pass_through and key in self.layout.stages:
+                self.assertEqual(self.layout.stages[key].badge, foam_render.OFF_CHIP, key)
+
+    def test_the_rule_for_a_dropped_stage_holds_whatever_the_chain_carries(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            layout, _ = foam_scene.layout_from_file(
+                _synthetic_chain(Path(tmp), with_barcoding=True, dropped=True))
+        self.assertEqual(layout.stages["mid"].badge, foam_render.OFF_CHIP)
+
+    def test_a_chip_the_chain_will_not_make_is_badged_bought_kit(self) -> None:
+        """Barcoding has a chip, but its build method says the work runs on a kit."""
+        extras = foam_scene.chain_extras(PIPELINE)
+        not_made = [k for k, e in extras.items()
+                    if any(p in e.text for p in foam_scene.NOT_MADE_PHRASES)]
+        for key in not_made:
+            place = self.layout.stages.get(key)
+            if place is None:
+                continue
+            self.assertIn(foam_render.BOUGHT_KIT, place.badge, key)
+
+    def test_a_bought_part_inside_a_printed_chip_is_not_a_bought_kit(self) -> None:
+        """"a bought mesh insert" is a PART. Module 3 and cell prep both say it."""
+        extras = foam_scene.chain_extras(PIPELINE)
+        checked = 0
+        for key, extra in extras.items():
+            place = self.layout.stages.get(key)
+            if place is None or not place.on_chip:
+                continue
+            if "bought mesh" not in extra.text:
+                continue
+            checked += 1
+            self.assertEqual(place.badge, "", f"{key} is a printed chip with a bought part")
+        self.assertTrue(checked, "the chain still describes a bought mesh insert")
 
     def test_the_badge_follows_the_chain_when_a_stage_becomes_real_work(self) -> None:
         """Re-describe the same stage as a bought kit and the badge changes by itself."""
@@ -221,12 +272,25 @@ class ChipsOnThePrinterSaySo(unittest.TestCase):
         self.assertFalse(twin.printed)
         self.assertNotIn(foam_render.PRINTED_FOR_DEMO, twin.badges())
 
-    def test_five_of_the_six_are_in_the_mvp_chain_and_are_marked(self) -> None:
-        marked = {p.key: p.printed_slot for p in self.layout.chips() if p.printed}
-        self.assertEqual(sorted(marked.values()),
-                         ["Module 1", "Module 2", "Module 3", "Module 4", "Module 5"])
-        self.assertNotIn("module6", self.layout.stages,
-                         "Module 6 is not in this chain yet; it arrives with the merge")
+    def test_every_printed_chip_in_the_chain_is_marked(self) -> None:
+        """Whichever of the six the chain carries, all of them wear the badge."""
+        queue = {Path(rel).stem for rel in foam_render.printed_chips()}
+        in_chain = {p.key: Path(p.chip_path).stem for p in self.layout.chips()}
+        expected = {k for k, stem in in_chain.items() if stem in queue}
+        marked = {p.key for p in self.layout.chips() if p.printed}
+        self.assertTrue(expected, "the chain carries printed chips")
+        self.assertEqual(marked, expected, f"in chain: {in_chain}")
+
+    def test_module_6_is_drawn_as_the_chip_it_is_not_an_empty_block(self) -> None:
+        """It is filed under `roadmap` only because the format expresses one chain; its
+        own note says "do not read 'roadmap' as 'not designed'"."""
+        module6 = next((p for p in self.layout.placements()
+                        if Path(p.chip_path or "").stem == "module6_v1"), None)
+        if module6 is None:
+            self.skipTest("this chain does not carry Module 6")
+        self.assertEqual(module6.kind, "chip")
+        self.assertTrue(module6.printed)
+        self.assertEqual(module6.badge, "")
 
     def test_a_printed_chip_never_carries_a_suggested_change(self) -> None:
         case = foam_render.Case(
@@ -758,6 +822,189 @@ class RenderRules(unittest.TestCase):
         for stage in doc["stages"]:
             if stage["kind"] == "placeholder":
                 self.assertIn(foam_render.OFF_CHIP, stage["badge"])
+
+
+class ARealThreeDimensionalField(unittest.TestCase):
+    """Converted OpenFOAM cases exist now. A frame drawn from one says `openfoam`, and
+    nothing that is not one ever does."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.found = {}
+        for out in foam_render.foam_search_dirs(None):
+            for chip in sorted((ROOT / "chip").glob("*.json")):
+                if chip.stem in cls.found:
+                    continue
+                vtk = foam_render.foam_vtk(out, chip.stem)
+                if vtk is not None:
+                    cls.found[chip.stem] = (out, vtk)
+
+    def test_at_least_one_converted_case_is_on_disk(self) -> None:
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case in any work directory")
+        self.assertTrue(self.found)
+
+    def test_the_top_level_vtm_wins_over_its_own_blocks(self) -> None:
+        """`VTK/step_1_86.vtm` is the case; `VTK/step_1_86/boundary.vtm` is one block of
+        it. Picking by mtime picked whichever block was written last."""
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case")
+        for chip_id, (_out, vtk) in self.found.items():
+            self.assertEqual(vtk.parent.name, "VTK", f"{chip_id}: {vtk}")
+            nested = list(vtk.parent.glob("*/*.vtm"))
+            self.assertNotIn(vtk, nested, f"{chip_id} picked a nested block")
+
+    def test_a_newer_nested_block_does_not_steal_the_pick(self) -> None:
+        import os
+        import time
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case")
+        chip_id, (out, vtk) = next(iter(self.found.items()))
+        nested = list(vtk.parent.glob("*/*.vtm"))
+        if not nested:
+            self.skipTest("this case has no nested block to compete with")
+        now = time.time() + 60
+        os.utime(nested[0], (now, now))      # the exact situation touch() worked around
+        self.assertEqual(foam_render.foam_vtk(out, chip_id), vtk)
+
+    @unittest.skipUnless(HAS_PYVISTA, "PyVista is not installed")
+    def test_the_case_is_read_in_millimetres_not_metres(self) -> None:
+        """OpenFOAM is SI; everything else in this renderer is mm."""
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case")
+        for chip_id, (out, _vtk) in self.found.items():
+            chip_path = ROOT / "chip" / f"{chip_id}.json"
+            case = foam_render.foam_case(out, chip_path)
+            if case is None:
+                continue
+            fx, fy = foam_render.footprint_mm(case.chip)
+            x0, x1, y0, y1, _z0, _z1 = case.volume.grid.bounds
+            self.assertLessEqual(x1 - x0, fx + 1e-6, f"{chip_id} is wider than its chip")
+            self.assertGreater(x1 - x0, fx / 10.0,
+                               f"{chip_id} looks like metres, not mm")
+            self.assertLessEqual(y1 - y0, fy + 1e-6)
+
+    @unittest.skipUnless(HAS_PYVISTA, "PyVista is not installed")
+    def test_only_the_internal_block_is_the_field(self) -> None:
+        """Combining `internal` with `boundary` welds the patch surfaces into the volume."""
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case")
+        chip_id, (out, vtk) = next(iter(self.found.items()))
+        pv = foam_render.pyvista()
+        whole = pv.read(vtk)
+        case = foam_render.foam_case(out, ROOT / "chip" / f"{chip_id}.json")
+        self.assertIsNotNone(case)
+        if isinstance(whole, pv.MultiBlock):
+            self.assertLess(case.volume.grid.n_cells, whole.combine().n_cells,
+                            "the boundary block is still in the volume")
+
+    @unittest.skipUnless(HAS_PYVISTA, "PyVista is not installed")
+    def test_a_three_d_case_says_openfoam_and_never_says_reduced_order(self) -> None:
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case")
+        for chip_id, (out, _vtk) in self.found.items():
+            case = foam_render.foam_case(out, ROOT / "chip" / f"{chip_id}.json")
+            if case is None:
+                continue
+            self.assertEqual(case.source, foam_render.SOURCE_FOAM, chip_id)
+            self.assertFalse(case.reduced, chip_id)
+            self.assertIn(foam_render.SOURCE_FOAM, case.badges(), chip_id)
+            self.assertNotIn(foam_render.SOURCE_REDUCED, case.badges(), chip_id)
+
+    @unittest.skipUnless(HAS_PYVISTA, "PyVista is not installed")
+    def test_a_two_point_five_d_case_can_never_be_labelled_three_d(self) -> None:
+        """The label follows the branch that produced the field, not a caller's flag."""
+        case = foam_render.reduced_case(CHIP, PROTOCOL, max_steps=1,
+                                        cells_budget=40_000, nz=5)[0]
+        self.assertEqual(case.source, foam_render.SOURCE_REDUCED)
+        self.assertTrue(case.reduced)
+        self.assertIn(foam_render.SOURCE_REDUCED, case.badges())
+        self.assertNotIn(foam_render.SOURCE_FOAM, case.badges())
+
+    @unittest.skipUnless(HAS_PYVISTA, "PyVista is not installed")
+    def test_three_d_wins_over_the_fallback_wherever_it_exists(self) -> None:
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case")
+        chip_id = next(iter(self.found))
+        chip_path = ROOT / "chip" / f"{chip_id}.json"
+        cases = foam_render.cases_for_chip(chip_path, None, run_dir=None,
+                                           cells_budget=40_000, nz=5, max_steps=1)
+        self.assertEqual(cases[0].source, foam_render.SOURCE_FOAM,
+                         f"{chip_id} has a 3D field and must not be drawn in 2.5D")
+
+    @unittest.skipUnless(HAS_PYVISTA, "PyVista is not installed")
+    def test_the_summary_and_the_field_come_from_one_case_directory(self) -> None:
+        """Otherwise a step-1 field gets captioned with a step-2 summary."""
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case")
+        for chip_id, (out, vtk) in self.found.items():
+            case_dir = foam_render.foam_step_dir(out, chip_id)
+            self.assertIsNotNone(case_dir, chip_id)
+            self.assertEqual(vtk.parent.parent, case_dir, chip_id)
+            summary = foam_render.foam_summary(out, chip_id)
+            if summary and summary.get("_path"):
+                self.assertEqual(Path(summary["_path"]).parent, case_dir, chip_id)
+
+    @unittest.skipUnless(HAS_PYVISTA, "PyVista is not installed")
+    def test_the_fluid_is_a_name_and_its_numbers_live_beside_it(self) -> None:
+        """`summary["fluid"]` is the fluid NAME now; properties are in fluid_properties."""
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case")
+        for chip_id, (out, _vtk) in self.found.items():
+            summary = foam_render.foam_summary(out, chip_id)
+            if not summary or "fluid" not in summary:
+                continue
+            case = foam_render.foam_case(out, ROOT / "chip" / f"{chip_id}.json")
+            self.assertIsInstance(case.fluid, str)
+            self.assertNotIn("{", case.fluid, "a dict leaked onto the frame")
+            if isinstance(summary["fluid"], str):
+                self.assertEqual(case.fluid, summary["fluid"])
+
+    @unittest.skipUnless(HAS_PYVISTA, "PyVista is not installed")
+    def test_wall_shear_is_still_a_fraction_of_the_right_ceiling(self) -> None:
+        """The solver reports a stress; it does not know what the chamber holds."""
+        import numpy as np
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case")
+        scoped = 0
+        for chip_id, (out, _vtk) in self.found.items():
+            case = foam_render.foam_case(out, ROOT / "chip" / f"{chip_id}.json")
+            if case is None:
+                continue
+            frac = np.asarray(case.volume.grid["shear_frac"], dtype=float)
+            table = foam_render.chamber_ceiling_table(case.chip, None, None)
+            capsule = [c for c, r in table.items() if r["shear_class"] == "capsules"]
+            if capsule and not any(r["ceiling_dyn_cm2"] for r in table.values()):
+                self.assertFalse(np.isfinite(frac).any(),
+                                 f"{chip_id} is capsule-scoped: no wall-shear ceiling")
+            if np.isfinite(frac).any():
+                scoped += 1
+        self.assertTrue(scoped, "at least one 3D chip has a scoped shear ceiling")
+
+    @unittest.skipUnless(HAS_PYVISTA, "PyVista is not installed")
+    def test_every_frame_kind_renders_from_the_three_d_field(self) -> None:
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case")
+        chip_id, (out, _vtk) = next(iter(self.found.items()))
+        case = foam_render.foam_case(out, ROOT / "chip" / f"{chip_id}.json")
+        self.assertIsNotNone(case)
+        lines = foam_render._streamlines(case.volume, case)
+        with tempfile.TemporaryDirectory() as tmp:
+            for kind in ("speed", "shear", "streamlines", "tracers"):
+                png = foam_render.render_frame(case, kind, (320, 240),
+                                               Path(tmp) / f"{kind}.png", lines=lines)
+                self.assertTrue(png.exists(), kind)
+
+    @unittest.skipUnless(HAS_PYVISTA, "PyVista is not installed")
+    def test_the_floor_slice_of_an_unstructured_mesh_is_not_empty(self) -> None:
+        """An OpenFOAM mesh IS the fluid domain, so z = 0 is its boundary and a cutting
+        plane laid exactly on it returns nothing."""
+        if not self.found:
+            self.skipTest("no converted OpenFOAM case")
+        chip_id, (out, _vtk) = next(iter(self.found.items()))
+        case = foam_render.foam_case(out, ROOT / "chip" / f"{chip_id}.json")
+        floor = foam_render._layer(case.volume, "floor")
+        self.assertGreater(floor.n_points, 100)
 
 
 class OpenFoamIsPreferredAndItsAbsenceIsHonest(unittest.TestCase):

@@ -2,11 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://capsule-processor.local/schemas/commands.schema.json",
   "title": "Command",
-  "description": "One operator command: the chip's whole instruction set. Each $defs entry is the argument object for one command; operator/llm_operator.py turns them into Claude API tools.",
+  "description": "One operator command: the chip's whole instruction set. Each $defs entry is the argument object for one command; operator/llm_operator.py turns them into Claude API tools. There is no `valve` command: on-chip valves need a second fluidic layer, contracts/blocks.json excludes them, no chip spec declares one, and routing is done by which port is fed, vented or capped. The rig's off-chip pinch valves are hardware, not a command.",
   "type": "object",
   "required": ["command", "args"],
   "properties": {
-    "command": { "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "valve", "culture", "collect", "harvest", "encapsulate", "cure", "mix", "transfer", "count"] },
+    "command": { "enum": ["load", "exchange", "hold_temp", "split", "pool", "release", "culture", "collect", "harvest", "encapsulate", "cure", "mix", "transfer", "count"] },
     "args": { "type": "object" }
   },
   "allOf": [
@@ -33,10 +33,6 @@
     {
       "if": { "properties": { "command": { "const": "release" } }, "required": ["command"] },
       "then": { "properties": { "args": { "$ref": "#/$defs/release" } } }
-    },
-    {
-      "if": { "properties": { "command": { "const": "valve" } }, "required": ["command"] },
-      "then": { "properties": { "args": { "$ref": "#/$defs/valve" } } }
     },
     {
       "if": { "properties": { "command": { "const": "culture" } }, "required": ["command"] },
@@ -157,17 +153,6 @@
       "properties": {
         "target": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Chamber holding the capsules." },
         "reagent": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$", "description": "Generic release reagent name." }
-      }
-    },
-    "valve": {
-      "title": "valve(valves[], state)",
-      "description": "Open or close on-chip valves. A pair valve can't be opened in a control run.",
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["valves", "state"],
-      "properties": {
-        "valves": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$" }, "description": "Valve ids." },
-        "state": { "enum": ["open", "closed"] }
       }
     },
     "culture": {

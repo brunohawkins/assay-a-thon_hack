@@ -41,7 +41,7 @@ export class RunLive {
   on(event, fn) {
     if (!this.listeners.has(event)) this.listeners.set(event, new Set());
     this.listeners.get(event).add(fn);
-    return () => this.listeners.get(event).delete(fn);
+    return () => { const set = this.listeners.get(event); if (set) set.delete(fn); };
   }
 
   emit(event, payload) {

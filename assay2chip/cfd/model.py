@@ -419,7 +419,10 @@ class Mesh:
         return seen
 
     def orphans(self) -> list[str]:
-        """Nodes with no edge at all: always a mesher bug, never a design finding."""
+        """Nodes with no edge at all: a mesher bug, UNLESS the feature is one the spec
+        joins to nothing (`meta.isolated_features`), where a lone point feature honestly
+        has no edge and the right answer is a dead_end finding. mesh.py makes that split.
+        """
         adj = self.adjacency()
         return sorted(n.id for n in self.nodes if not adj[n.id])
 

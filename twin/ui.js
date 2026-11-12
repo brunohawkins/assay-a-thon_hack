@@ -1,22 +1,46 @@
 // Protocol picker, play/pause/step, speed, narration panel and timeline.
 import { reagentCss, tempCss, LIBRARY_COLOR, formatDuration } from './player.js';
+import { statusView } from './status.js';
 
+// Mid-tone colours: they read on the light timeline (twin/style.css).
 const COMMAND_COLORS = {
-  load: '#7dd3fc',
-  split: '#a78bfa',
-  pool: '#60a5fa',
+  load: '#218bff',
+  split: '#8250df',
+  pool: '#0969da',
   release: LIBRARY_COLOR,
-  valve: '#f87171',
-  collect: '#fde68a',
+  valve: '#cf222e',
+  collect: '#bf8700',
   harvest: LIBRARY_COLOR,
-  encapsulate: '#2dd4bf',
-  cure: '#a78bfa',
-  transfer: '#fda4af',
-  count: '#f0abfc',
-  pl_m1: '#c4b5fd', pl_m1_out: '#fda4af', pl_m1b: '#86efac', pl_m1b_out: '#fda4af',
-  pl_m2: '#2dd4bf', pl_m2_out: '#5eead4', pl_m3: '#7dd3fc', pl_roadmap: '#64748b',
+  encapsulate: '#1b9e8f',
+  cure: '#8250df',
+  transfer: '#e5534b',
+  count: '#a475f9',
+  module: '#0969da',
+  'hand-off': '#8c959f',
 };
-const MODULE_NAMES = { pipeline: 'Pipeline', m1: 'Module 1 · Culture', m1b: 'Module 1b · Cell prep', m2: 'Module 2 · Encapsulation', m3: 'Module 3 · Capsule wash', other: 'Other runs' };
+// Chip id -> what that chip is, for the parameters panel. The chain is
+// protocols/pipeline_mvp.json / protocols/pipeline_status.md: module1_v1 (1), cell_prep_v1
+// (2), spc_demo_v1 (3), module3_v1_translated (4), sctip_spc_v1 (4b, barcoding),
+// module4_v1 (5), module5_v1 (6). The m1/m1b/m2/m3 names are the RETIRED drafts in cad/,
+// kept because their runs still play in "Old drafts" and labelled retired so they cannot be
+// read as current modules. sctip_spc_v1 is NOT retired: filing it as a duplicate of module
+// 3's trap is what lost the pipeline its single-cell step. Only its stage A is retired.
+const CHIP_NAMES = {
+  module1_v1: 'Module 1 · culture + lane label',
+  cell_prep_v1: 'Cell prep · detach, quench, count',
+  spc_demo_v1: 'Module 2 · encapsulation',
+  module3_v1_translated: 'Module 3 · load, lysis, wash, RT',
+  sctip_spc_v1: 'Barcoding (4b) · one clonal barcode per capsule, in its own droplet',
+  module4_v1: 'Module 4 · sublibrary split + index PCR',
+  module5_v1: 'Module 5 · release + cleanup',
+  module6_v1: 'Module 6 · three-lineage co-culture',
+  ipsc_to_mgl_chip_v1: 'iPSC-to-microglia train (separate experiment, not in the chain)',
+  placeholder_chip_v1: 'Placeholder chip',
+  m1_culture_v1: 'Module 1 culture (retired draft)',
+  m1b_cellprep_v1: 'Module 1b cell prep (retired draft)',
+  m2_encapsulation_v1: 'Module 2 encapsulation (retired draft)',
+  m3_wash_v1: 'Module 3 capsule wash (retired draft)',
+};
 
 // "core_flow_ul_h" -> ["core flow", "µL/h"]
 const UNIT_SUFFIXES = [['_per_ul', 'per µL'], ['_ul_h', 'µL/h'], ['_ul_min', 'µL/min'], ['_ul', 'µL'], ['_um', 'µm'], ['_mm', 'mm'], ['_nm', 'nm'],
@@ -27,10 +51,12 @@ function paramLabel(key) {
 }
 
 export function commandColor(ev) {
+  // Pipeline phases may carry their own colour: their ids come from pipeline_mvp.json (MJ).
+  if (ev.color) return ev.color;
   if (ev.command === 'exchange' || ev.command === 'mix') return reagentCss(ev.args.reagent);
   if (ev.command === 'culture') return reagentCss(ev.args.reagents?.[0]);
   if (ev.command === 'hold_temp') return tempCss(ev.args.temp_c);
-  return COMMAND_COLORS[ev.command] ?? '#9ca3af';
+  return COMMAND_COLORS[ev.command] ?? '#8c959f';
 }
 
 const $ = (id) => document.getElementById(id);
@@ -64,10 +90,13 @@ export function createUI(actions) {
     tabs: [...document.querySelectorAll('[data-module]')],
     printBadge: $('print-badge'),
     draftBadge: $('draft-badge'),
+    hardware: $('hardware-badge'),
+    cad: $('cad-badge'),
   };
   let segments = [];
   let total = 1;
   let events = [];
+  let lastPhase = null;      // a collapsed phase is shown once, not once per command in it
 
   el.select.addEventListener('change', () => actions.onSelectRun(el.select.value));
   el.play.addEventListener('click', () => actions.onPlayPause());
@@ -81,6 +110,31 @@ export function createUI(actions) {
   el.tabs.forEach((b) => b.addEventListener('click', () => {
     if (b.getAttribute('aria-pressed') !== 'true') actions.onModule?.(b.dataset.module);
   }));
+
+  // The Chips menu in the header.
+  const menu = $('chips-menu');
+  const trigger = menu.querySelector('.nav-trigger');
+  const list = menu.querySelector('.menu');
+  const items = () => [...list.querySelectorAll('button')].filter((b) => b.offsetParent !== null);
+  function openMenu(on) {
+    list.hidden = !on;
+    menu.classList.toggle('open', on);
+    trigger.setAttribute('aria-expanded', String(on));
+    if (on) (items().find((b) => b.getAttribute('aria-pressed') === 'true') ?? items()[0])?.focus();
+  }
+  trigger.addEventListener('click', (e) => { e.stopPropagation(); openMenu(list.hidden); });
+  list.addEventListener('click', (e) => { if (e.target.closest('button')) openMenu(false); });
+  document.addEventListener('pointerdown', (e) => { if (!list.hidden && !menu.contains(e.target)) openMenu(false); });
+  menu.addEventListener('keydown', (e) => {
+    if (list.hidden) return;
+    const all = items();
+    const i = all.indexOf(document.activeElement);
+    if (e.key === 'Escape') { e.preventDefault(); openMenu(false); trigger.focus(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); all[(i + 1) % all.length]?.focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); all[(i - 1 + all.length) % all.length]?.focus(); }
+    else return;
+    e.stopPropagation();
+  });
   el.views.forEach((b) => b.addEventListener('click', () => {
     if (b.disabled || b.getAttribute('aria-pressed') === 'true') return;
     actions.onView(b.dataset.view);
@@ -90,7 +144,8 @@ export function createUI(actions) {
     actions.onSeek(((e.clientX - r.left) / r.width) * total);
   });
   window.addEventListener('keydown', (e) => {
-    if (e.target instanceof HTMLSelectElement || e.metaKey || e.ctrlKey) return;
+    // Typing in a field (the bench demo's pump rate) or using a menu is not a shortcut.
+    if (e.target.closest?.('input, select, textarea, [contenteditable], .menu') || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.code === 'Space') { e.preventDefault(); actions.onPlayPause(); }
     else if (e.code === 'ArrowRight') { e.preventDefault(); actions.onStep(); }
     else if (e.key === '1') setSpeed(1);
@@ -105,6 +160,28 @@ export function createUI(actions) {
   }
 
   let toastTimer = null;
+
+  // Was this run recorded against real hardware? Three states, because the flag is missing from
+  // many run files and neither answer may be assumed (MJ: the badge used to say "simulated" for
+  // whatever it was looking at, including a real-hardware run).
+  function setHardware(run) {
+    const flag = run?.simulated_hardware;
+    if (run?.kind === 'pipeline') {
+      hardwareNote('Drawing, not a run', 'sim-unknown', 'The pipeline view draws protocols/pipeline_mvp.json; it is not a recorded run, so there is no hardware to report. Open a chip to see its run.');
+    } else if (flag === true) {
+      hardwareNote('Simulated hardware', 'sim', 'This run says simulated_hardware: true. No physical pump, valves or sensors; closed-loop runs drive a virtual chip.');
+    } else if (flag === false) {
+      hardwareNote('Hardware run', 'sim-real', 'This run says simulated_hardware: false, so it claims real hardware.');
+    } else {
+      hardwareNote('Hardware not recorded', 'sim-unknown', `${run?.__file ?? 'This run'} carries no simulated_hardware flag, so the twin cannot say whether it was real or simulated. Neither answer is assumed.`);
+    }
+  }
+  function hardwareNote(text, cls, title) {
+    el.hardware.textContent = text;
+    el.hardware.className = `badge ${cls}`;
+    el.hardware.title = title;
+  }
+  const eng = () => document.body.classList.contains('eng');
 
   return {
     setRuns(runs, selected) {
@@ -122,7 +199,8 @@ export function createUI(actions) {
       if (selected) el.select.value = selected;
     },
 
-    setRun(run, timeline) {
+    setRun(run, timeline, paceNote = '') {
+      lastPhase = null;
       events = timeline.map((s) => s.ev);
       total = timeline.length ? timeline[timeline.length - 1].start + timeline[timeline.length - 1].duration : 1;
       el.timeline.querySelectorAll('.seg').forEach((s) => s.remove());
@@ -136,15 +214,36 @@ export function createUI(actions) {
         return seg;
       });
       el.placeholder.hidden = !run.placeholder;
+      setHardware(run);
       el.operator.textContent = run.operator === 'llm' ? `LLM operator${run.model ? ` · ${run.model}` : ''}` : 'planner';
       el.operator.dataset.kind = run.operator;
       el.runMeta.textContent = run.kind === 'pipeline'
         ? `pipeline_mvp · ${events.length} phases · ${formatDuration(run.total_duration_s)} of protocol time`
-        : `${run.protocol_id} on ${run.chip_id}${run.run_parameters?.variant ? ` (${run.run_parameters.variant})` : ''} · ${events.length} commands · ${formatDuration(run.total_duration_s)} of protocol time`;
+        : `${run.protocol_id} on ${run.chip_id}${run.run_parameters?.variant ? ` (${run.run_parameters.variant})` : ''} · ${events.length} commands · ${formatDuration(run.total_duration_s)} of protocol time${paceNote ? ` · ${paceNote}` : ''}`;
     },
 
-    setEvent(i, ev) {
+    setEvent(i, ev, phase = null) {
       segments.forEach((s, k) => s.classList.toggle('active', k === i));
+      if (ev && phase && phase.repeat > 1) {
+        const key = `${phase.first}-${phase.last}`;
+        if (key === lastPhase) return;
+        lastPhase = key;
+        const first = events[phase.first] ?? ev;
+        const stepOf = (k) => events[k]?.protocol_step ?? k + 1;
+        const lastStep = events.reduce((m, e, k) => Math.max(m, e.protocol_step ?? k + 1), 0);
+        const cmds = events.slice(phase.first, phase.first + phase.period).map((e) => e.command);
+        el.stepLabel.textContent = `Steps ${stepOf(phase.first)}–${stepOf(phase.last)} of ${lastStep}`;
+        el.commandChip.hidden = false;
+        el.commandChip.textContent = `${cmds.join(' + ')} ×${phase.repeat}`;
+        el.commandChip.style.setProperty('--chip', commandColor(first));
+        el.narration.textContent = `${first.narration || ''} Repeated ${phase.repeat} times, shown at a glance.`.trim();
+        el.narration.classList.remove('enter');
+        void el.narration.offsetWidth;
+        el.narration.classList.add('enter');
+        el.details.replaceChildren(...details(first));
+        return;
+      }
+      lastPhase = null;
       if (!ev) {
         el.stepLabel.textContent = 'Ready';
         el.commandChip.hidden = true;
@@ -182,6 +281,10 @@ export function createUI(actions) {
     setTab(module) {
       el.tabs.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.module === module)));
       document.body.dataset.module = module;
+      // The Chips menu names the chip on screen.
+      const item = list.querySelector(`[data-module="${module}"]`);
+      menu.classList.toggle('current', Boolean(item));
+      trigger.firstChild.textContent = item ? item.querySelector('span').textContent : 'Chips';
     },
 
     // Badges and the parameters panel from the chip spec's module and generator blocks.
@@ -189,44 +292,40 @@ export function createUI(actions) {
     // md: this chip's row in protocols/pipeline_status.md (twin/status.js), which wins for the badge.
     setChipInfo(spec, info = null, md = null) {
       const m = spec?.module;
-      const STATUS = { final: 'FINAL', draft: 'DRAFT', translated: 'TRANSLATED', missing: 'MISSING' };
-      const MD_CLASS = { BUILT: 'st-final', 'RT ONLY': 'st-translated', 'DUPLICATE-RETIRE': 'superseded', 'OFF-CHIP': 'st-draft' };
       if (md) {
-        el.printBadge.hidden = false;
-        el.printBadge.textContent = info?.built_for_demo ? 'Built for the dye demo' : 'Twin only';
-        el.printBadge.className = `badge ${info?.built_for_demo ? 'printed' : 'sim-only'}`;
+        const v = statusView(md.badge, md.detail);
+        el.printBadge.hidden = true;
         el.draftBadge.hidden = false;
-        el.draftBadge.textContent = `${md.badge}${md.detail ? ` · ${md.detail}` : ''}`;
-        el.draftBadge.className = `badge ${MD_CLASS[md.badge] ?? 'st-draft'}`;
+        el.draftBadge.textContent = v.text;
+        el.draftBadge.className = `badge eng-only ${v.cls}`;
         el.draftBadge.title = `protocols/pipeline_status.md: ${md.stage}: ${md.status}`;
       } else if (info) {
-        el.printBadge.hidden = false;
-        el.printBadge.textContent = info.built_for_demo ? 'Built for Sunday’s dye demo' : 'Twin only';
-        el.printBadge.className = `badge ${info.built_for_demo ? 'printed' : 'sim-only'}`;
+        const v = statusView(info.status, info.statusNote ?? '');
+        el.printBadge.hidden = true;
         el.draftBadge.hidden = false;
-        el.draftBadge.textContent = `${STATUS[info.status] ?? info.status}${info.statusNote ? ` · ${info.statusNote}` : ''}`;
-        el.draftBadge.className = `badge st-${info.status}`;
+        el.draftBadge.textContent = v.text;
+        el.draftBadge.className = `badge eng-only ${v.cls}`;
       } else if (m?.status === 'superseded') {
         el.printBadge.hidden = true;
         el.draftBadge.hidden = false;
         el.draftBadge.textContent = 'Superseded · reference only';
-        el.draftBadge.className = 'badge superseded';
+        el.draftBadge.className = 'badge eng-only superseded';
         el.draftBadge.title = m.note ?? `Replaced by ${m.superseded_by}`;
       } else {
         el.printBadge.hidden = !m;
         el.draftBadge.hidden = m?.status !== 'draft';
         el.draftBadge.textContent = 'Draft design';
-        el.draftBadge.className = 'badge draft';
+        el.draftBadge.className = 'badge eng-only draft';
         if (m) {
           el.printBadge.textContent = m.printed === false ? 'Designed · simulated · not printed this weekend' : 'Printed';
-          el.printBadge.className = `badge ${m.printed === false ? 'sim-only' : 'printed'}`;
+          el.printBadge.className = `badge eng-only ${m.printed === false ? 'sim-only' : 'printed'}`;
         }
       }
       const gen = spec?.generator;
       el.params.hidden = !gen;
       if (!gen) return;
       const tag = { draft: ' (draft design)', superseded: ' (superseded)' }[m?.status] ?? '';
-      el.paramsMeta.textContent = `${MODULE_NAMES[m?.id] ?? spec.id}${tag} · generated by ${gen.script}`;
+      el.paramsMeta.textContent = `${info?.name ?? CHIP_NAMES[spec.id] ?? spec.id}${tag} · generated by ${gen.script}`;
       el.paramsBody.replaceChildren(...Object.entries(gen.params).flatMap(([k, v]) => {
         const [name, unit] = paramLabel(k);
         const dt = document.createElement('dt');
@@ -242,14 +341,92 @@ export function createUI(actions) {
       el.views.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === mode)));
     },
 
+    // Which STLs this chip actually got, and from where. Loading another chip's parts used to
+    // be invisible: the loader console.warn'd and left the wrong geometry on screen, and a
+    // chip with no STLs at all looked exactly like one that had them.
+    // r = { chipId, dir, loaded, missing, mismatched, failed, listed, unrelated, why, undrawn }
+    setCadStatus(r) {
+      const bad = [];
+      if (!r.dir) bad.push(r.why ?? `No CAD folder belongs to ${r.chipId}, so every part is a box from the spec.`);
+      // Say what was measured, not what caused it: the same mismatch is another chip's part
+      // when x or y is wrong, and a stale export of this chip's own part when only z is.
+      for (const m of r.mismatched ?? []) {
+        const flat = m.at[0] === m.expected[0] && m.at[1] === m.expected[1];
+        bad.push(`${m.id}.stl sits at (${m.at.join(', ')}) mm, but ${r.chipId} puts ${m.id} at (${m.expected.join(', ')}) mm, so it is not drawn. `
+          + (flat
+            ? 'Same x and y, wrong depth: a stale export of this chip, from before its port moved through the other face. Re-run cad/make_train_cad.py.'
+            : "Wrong position in plane: that file is another chip's part, or this chip's layout has moved since it was exported."));
+      }
+      if (r.listed && r.failed?.length) bad.push(`${r.failed.join(', ')}: listed in ${r.dir} but could not be read.`);
+      const detail = [
+        r.dir ? `CAD from ${r.dir}` : 'no CAD folder for this chip',
+        r.loaded?.length ? `${r.loaded.length} part${r.loaded.length > 1 ? 's' : ''} drawn from STL: ${r.loaded.join(', ')}` : 'no part drawn from STL',
+        r.missing?.length ? `no STL for ${r.missing.join(', ')} (box drawn from the spec instead)` : null,
+        r.mismatched?.length ? `REFUSED, wrong coordinates for this chip (box drawn from the spec instead): ${r.mismatched.map((m) => `${m.id} at (${m.at.join(', ')}) not (${m.expected.join(', ')})`).join('; ')}` : null,
+        r.failed?.length ? `could not be read: ${r.failed.join(', ')}${r.listed ? '' : ' (no directory listing: these may simply not exist)'}` : null,
+        r.blocks?.length ? `drawn from the Flowmatter block library instead of an export: ${r.blocks.join(', ')}` : null,
+        r.unrelated?.length ? `${r.unrelated.join(', ')} in that folder belong to no part of this chip` : null,
+        ...(r.undrawn ?? []),
+        r.why ?? null,
+      ].filter(Boolean).join('\n');
+      // Blocks count as drawn geometry, not as a miss: a part the spec names from the
+      // Flowmatter library is already on screen as that block's real shape.
+      const total = (r.loaded?.length ?? 0) + (r.missing?.length ?? 0) + (r.mismatched?.length ?? 0)
+        + (r.failed?.length ?? 0) + (r.blocks?.length ?? 0);
+      const drawn = (r.loaded?.length ?? 0) + (r.blocks?.length ?? 0);
+      el.cad.hidden = false;
+      el.cad.title = detail;
+      // A clean load is an engineering detail and stays behind the Engineering switch; a problem
+      // is not, so the badge drops `eng-only` and shows in every view (MJ). Toasts stay in
+      // engineering: the clean view also says it in the chip card.
+      const quiet = !eng();
+      if (bad.length) {
+        el.cad.textContent = r.mismatched?.length ? `CAD problem: ${r.mismatched.length} part(s) at the wrong coordinates` : 'CAD: none for this chip';
+        el.cad.className = 'badge warn';
+        if (!quiet) this.toast(bad[0]);
+      } else if (!drawn) {
+        el.cad.textContent = 'CAD: none, boxes from the spec';
+        el.cad.className = 'badge warn';
+        if (!quiet) this.toast(`No part of ${r.chipId} is drawn from CAD: every shape on screen is a box from the spec.`);
+      } else {
+        el.cad.textContent = `CAD: ${drawn}/${total} parts`;
+        el.cad.className = `badge eng-only ${drawn === total ? 'printed' : 'sim-only'}`;
+      }
+      if (r.undrawn?.length && !quiet) this.toast(r.undrawn[0]);
+      return bad.length ? bad[0] : el.cad.textContent.replace(/^CAD: /, '');
+    },
+
     // Enable the "Display model" view only when one exists for this chip.
-    setDisplayAvailable(manifest, chipId) {
+    // The manifest carries no hash or mtime of the spec it was generated from, so a stale
+    // model cannot be ruled out. What CAN be checked is the footprint it recorded against the
+    // spec on screen; either way the provenance gap is stated rather than hidden.
+    setDisplayAvailable(manifest, chipId, spec = null) {
       const btn = el.views.find((b) => b.dataset.view === 'display');
       btn.disabled = !manifest;
-      btn.title = manifest
-        ? `Printed display model, ${manifest.display_scale}× scale (${manifest.overall_mm.join(' × ')} mm)`
-        : `No display model for ${chipId} yet: python cad/export_display_model.py <chip spec>`;
+      if (!manifest) {
+        btn.title = `No display model for ${chipId} yet: python cad/export_display_model.py <chip spec>`;
+        return;
+      }
+      const [fx, fy] = manifest.real_footprint_mm ?? [];
+      const stale = spec && Number.isFinite(fx)
+        && (Math.abs(fx - spec.footprint.x) > 1e-6 || Math.abs(fy - spec.footprint.y) > 1e-6);
+      btn.title = [
+        `Printed display model, ${manifest.display_scale}× scale (${manifest.overall_mm.join(' × ')} mm)`,
+        stale
+          ? `STALE: built for a ${fx} × ${fy} mm chip, but ${chipId} is now ${spec.footprint.x} × ${spec.footprint.y} mm. Re-run python cad/export_display_model.py ${manifest.chip_spec ?? ''}`
+          : `Generated from ${manifest.chip_spec ?? 'an unrecorded spec'}. The manifest records no spec hash or date, so the twin cannot prove it is up to date: re-run cad/export_display_model.py if the spec has changed.`,
+      ].join('\n');
+      if (stale) {
+        el.cad.hidden = false;
+        el.cad.textContent = 'Display model stale';
+        el.cad.className = 'badge warn';
+        el.cad.title = btn.title;
+        if (eng()) this.toast(`Display model for ${chipId} was built for a ${fx} × ${fy} mm chip, not today's ${spec.footprint.x} × ${spec.footprint.y} mm.`);
+      }
     },
+
+    // The bench demo runs the twin's own model, not a recorded run.
+    setHardwareNote(text, cls, title) { hardwareNote(text, cls, title); },
 
     setSizing(s) {
       el.sizing.hidden = !s;

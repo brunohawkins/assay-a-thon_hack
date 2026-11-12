@@ -478,7 +478,8 @@ class TestPostProcessing(unittest.TestCase):
         self.assertEqual(summary["schema"], flow.SCHEMA)
         self.assertEqual(summary["source"], "openfoam")
         self.assertEqual(summary["labels"], ["SIMULATED"])
-        self.assertTrue(summary["fluid"]["kinematic_inputs"])
+        self.assertTrue(summary["fluid_properties"]["kinematic_inputs"])
+        self.assertIsInstance(summary["fluid"], str)   # the NAME, for render.py
         self.assertAlmostEqual(summary["flow"]["delivered_vs_prescribed"], 0.0, places=6)
         self.assertEqual(summary["grid"]["cells"], 12345)
         self.assertIn("mesh.py", summary["grid"]["spacing_chosen_by"])
@@ -791,6 +792,79 @@ class TestCaseDirectoryConvention(unittest.TestCase):
         # run from before the fix is not silently invisible
         self.assertIn(foam_case.case_dir(run_dir, "module1_v1", 1),
                       render._step_dirs(foam_case.out_dir(work=run_dir), "module1_v1", 1))
+
+
+class TestVtkConversion(unittest.TestCase):
+    """Without `foamToVTK` there is no 3D picture, and the renderer says nothing is wrong.
+
+    `render.foam_vtk()` falls back to the reduced-order 2.5D field when it finds no VTK,
+    which is legitimate behaviour - so a converged 3D solve that was never converted
+    renders as the very model it replaced, silently. Every chip did exactly that.
+    """
+
+    def test_the_field_list_is_shell_quoted(self):
+        """`runner.run` joins `args` into a SHELL command, so a bare `(U p ...)` is a
+        subshell: foamToVTK exited 2 before it ran and before its log existed."""
+        stack = flow.FoamStack(reason="no runner")
+        self.assertFalse(flow.convert_to_vtk(Path("/nonexistent"), stack=stack)["ok"])
+
+        calls = []
+
+        class _Result:
+            ok, returncode, wall_time_s = True, 0, 1.0
+
+        class _Runner:
+            @staticmethod
+            def run(case_dir, command, **kw):
+                calls.append((command, list(kw.get("args", ()))))
+                return _Result()
+
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            out = flow.convert_to_vtk(Path(tmp), stack=flow.FoamStack(
+                mesh=object(), case=object(), runner=_Runner()))
+        command, args = calls[0]
+        self.assertEqual(command, "foamToVTK")
+        self.assertIn("-latestTime", args)
+        quoted = args[args.index("-fields") + 1]
+        self.assertTrue(quoted.startswith("'") and quoted.endswith("'"),
+                        f"the field list must be shell-quoted, got {quoted!r}")
+        self.assertIn("wallShearStress", quoted)
+        # no VTK was written, so it is NOT ok even though the command succeeded
+        self.assertFalse(out["ok"])
+        self.assertIn("wrote no VTK", out["reason"])
+
+    def test_only_the_fields_the_renderer_draws(self):
+        self.assertEqual(tuple(flow.VTK_FIELDS), ("U", "p", "wallShearStress"))
+
+    def test_render_py_finds_the_top_level_multiblock(self):
+        """foamToVTK writes `<case>_<time>.vtm` BEFORE the `boundary.vtm` it points at,
+        and `render.foam_vtk()` takes the newest by mtime - so the renderer would get
+        wall surfaces with no interior to slice. The top-level file is touched last."""
+        import tempfile
+        from assay2chip.foam import render
+        with tempfile.TemporaryDirectory() as tmp:
+            case = Path(tmp) / "foam" / "spc_demo_v1" / "step_1"
+            vtk = case / "VTK" / "step_1_62"
+            vtk.mkdir(parents=True)
+            top = case / "VTK" / "step_1_62.vtm"
+            top.write_text("<VTKFile/>")
+            (vtk / "boundary.vtm").write_text("<VTKFile/>")
+            (vtk / "internal.vtu").write_text("<VTKFile/>")
+            import os
+            # the order foamToVTK leaves: the top-level pointer first, its parts after
+            os.utime(top, (1000.0, 1000.0))
+            os.utime(vtk / "internal.vtu", (1500.0, 1500.0))
+            os.utime(vtk / "boundary.vtm", (2000.0, 2000.0))
+            self.assertEqual(render.foam_vtk(Path(tmp), "spc_demo_v1", 1).name,
+                             "boundary.vtm", "the bug this guards against")
+            top.touch()
+            self.assertEqual(render.foam_vtk(Path(tmp), "spc_demo_v1", 1).name,
+                             "step_1_62.vtm")
+
+    def test_run_step_converts_by_default(self):
+        import inspect
+        self.assertIs(inspect.signature(flow.run_step).parameters["vtk"].default, True)
 
 
 class TestShearScoping(unittest.TestCase):

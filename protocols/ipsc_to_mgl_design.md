@@ -49,13 +49,33 @@ monolayer in a single vessel. Its yield is 125 progenitors per input iPSC and it
 purity is 90–94%, and it has a cryopreservable intermediate. The simplification over
 Abud is precisely the removal of the sort, which the authors validated by RNA-seq.
 
+**38 days, checked in the paper.** The published method calls itself "the complete 38 day
+paradigm" and collects at day 28 of microglia medium after the ~10-day progenitor stage.
+**38 is the published number; 40 is ours.** Our on-chip schedule holds maturation two days
+longer, to day 40, which is where `m5_harvest` sits in the module table below — that extra
+window is the adherence modification, not McQuade. ⚠️ `protocols/build_module1.py`,
+`protocols/module1_v1.json` and `protocols/ipsc_to_mgl_v1.json` still attribute **40 days**
+to McQuade; those files belong to other owners, so this is flagged rather than edited. The
+paper says 38.
+
 **One modification.** McQuade's maturation-stage cells "predominantly grow
 non-adherently", which a chamber cannot hold. Washer et al. 2022
-(doi 10.1038/s41598-022-23477-2) showed that adding one more factor to the maturation
-medium restores adherence and retention without costing identity, and Lanfer et al. 2022
-(doi 10.3390/ijms23094526) independently matured progenitors from the same monolayer kit
-into adherent cells. The protocol file follows that, and it is a clean side experiment:
-with and without, scored on adherent fraction.
+(doi 10.1038/s41598-022-23477-2) supports adding one more factor, and the specific finding
+is worth quoting rather than paraphrasing. Washer is a **subtractive** study — it strips the
+maturation medium to a minimum and scores what each component does — but its final
+differentiation series adds one factor back: in the section *"Low-dose GM-CSF promotes
+cellular retention while maintaining microglial identity"* (differentiation three, Fig. 4a),
+a minimal transforming-growth-factor/macrophage-colony-stimulating-factor medium gave "low
+survival and adherence", and "when supplemented with GM-CSF the survival and adherence is
+improved"; the authors conclude that the GM-CSF-containing medium "is preferable for
+experiments requiring consistent adherence". So the granulocyte-macrophage colony-stimulating
+factor is the one factor, and the claim is the paper's, not ours. Lanfer et al. 2022
+(doi 10.3390/ijms23094526) independently matured progenitors from the same class of
+commercial monolayer differentiation system into adherent cells.
+
+What remains **our inference** is that this transfers to a 0.3 mm perfused chamber at all:
+Washer scored retention in wells with 50% medium changes, not under flow. The protocol file
+follows it, and it is a clean side experiment: with and without, scored on adherent fraction.
 
 ## How a flask protocol becomes a chip protocol
 
@@ -115,10 +135,24 @@ I had these conflated in the first version, and `tools/check_chip_spec.py` caugh
 
 ### Why the suspension stage cannot be designed away
 
-Blood cells are born from hemogenic endothelium by the endothelial-to-hematopoietic
-transition. RUNX1 switches on, silences the adhesion programme, and the cell lets go
-(review: doi 10.1182/blood-2016-05-716480). Losing adhesion and becoming a blood cell
-are the same event, so **every** wild-type route has a floating stage. The chip catches
+Blood cells are born from hemogenic endothelium by the endothelial-to-haematopoietic
+transition (EHT). A haematopoietic transcriptional programme switches on in a subset of
+endothelial cells, and the cells then round up, break their junctions to their neighbours
+and adopt a haematopoietic fate (review: Ottersbach 2019, doi 10.1042/BST20180320, whose
+abstract states exactly that sequence). RUNX1 is required for the transition and not
+afterwards (Chen et al. 2009, doi 10.1038/nature07619 — primary, not a review). Losing
+adhesion and becoming a blood cell are the same event, so **every** wild-type route has a
+floating stage.
+
+> **Citation corrected.** This paragraph previously cited doi 10.1182/blood-2016-05-716480
+> as a review supporting "RUNX1 switches on, silences the adhesion programme". That DOI is
+> Nestorowa et al. 2016, *Blood* — a single-cell expression map of **mouse** haematopoietic
+> stem and progenitor cells. It says nothing about RUNX1 or adhesion, and it was the
+> load-bearing justification for the whole floating stage. Both replacements above were
+> resolved and read before being used. Note that "silences the adhesion programme" as a
+> mechanism is still **our wording**: the review supports junction breakdown and rounding
+> up, and the *Nature* paper supports RUNX1's requirement, but neither is cited here for a
+> specific adhesion-gene repression step. The chip catches
 it rather than fighting it: the cells go from flat to floating in two to three hours
 (Yoneda 2024, doi 10.2142/biophysico.bppb-v21.s015), so skimming the effluent catches
 them within hours of their birth, where a flask collects every two days.

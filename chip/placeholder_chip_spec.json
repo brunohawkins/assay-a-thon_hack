@@ -1,7 +1,7 @@
 {
   "id": "placeholder_chip_v1",
   "name": "Placeholder capsule processor v1",
-  "description": "PLACEHOLDER - not a real design. Generic layout for development: inlet, one exchange chamber with a mesh floor, a four-way split, a pool chamber and an outlet, left to right. DEMO SCALE: originally 75 x 25 mm, scaled uniformly by 0.389 into the 30 x 20 mm envelope (0.4 mm margin); depth capped at 0.3 mm (was 2-3 mm / 0.5 mm channels) and channels clamped at the 0.2 mm floor. Ports: 2, no merges needed. The old 20 um mesh on exchange_1, split_1-4 and pool_1 CANNOT be printed (in-plane floor 200 um), so mesh_pore_um is now null and those six chambers are trap_chamber blocks that retain by a DEPTH WEIR instead: a 275 um crest in the 300 um layer leaves a 25 um gap under the lid (z is free; see contracts/blocks.json retention), which is 0.4 x a 70 um capsule and so retains capsules of about 70 um and above; each of the six chambers carries this as a structured weir object (crest_height_um 272, gap_um 28, retains_um 70). The weir is UNTESTED, and the z tolerance (about +/-20 um on a 25 um gap, roughly +/-71%) is the biggest unknown: the gap could close or leak outright. Run a 40/60/80 um gap coupon first. A 25 um gap will NOT hold bare cells of 10-15 um, so if the old 20 um mesh was meant to hold cells or small particles rather than capsules, this weir does not do that job. All numbers are placeholders. Retention is a depth weir (275 um crest, 25 um gap) recorded in each chamber's retention field; the in-plane 200 um floor does not apply in z. UNTESTED: z tolerance of about +/-20 um on a 25 um gap is the main risk.",
+  "description": "PLACEHOLDER - not a real design. Generic layout for development: inlet, one exchange chamber with a mesh floor, a four-way split, a pool chamber and an outlet, left to right. DEMO SCALE: originally 75 x 25 mm, scaled uniformly by 0.389 into the 30 x 20 mm envelope; depth capped at 0.3 mm (was 2-3 mm / 0.5 mm channels) and channels clamped at the 0.2 mm floor. RE-SPACED BY HAND, 7 Nov 2026. The uniform 0.389 scale shrank the gaps between features by the same factor as the features, which left six ribs between the fan-out and fan-in channels at 0.25-0.41 mm against the 0.4 mm min_wall_mm in contracts/blocks.json - four of them unsealable and none of them mouldable. The scale also left the whole layout in the bottom half of the board, so the room to fix it was already there: the line is now centred on y = 10, the four split chambers are on a 3.2 mm y pitch instead of about 2.2 mm, and pool_1 moved in to x = 20.5 so the four channels converging on it leave its edge at the same spread as the four leaving exchange_1. Every rib is now at least 0.59 mm, clear of both the 0.4 mm wall minimum and the 0.5 mm thin-rib warning in cad/make_figures.py, and nothing crosses in plan view. Chamber sizes, channel widths and volumes are untouched: only centres moved, so every volume_ul still holds. Ports: 2, no merges needed. The old 20 um mesh on exchange_1, split_1-4 and pool_1 CANNOT be printed (in-plane floor 200 um), so mesh_pore_um is now null and those six chambers are trap_chamber blocks that retain by a DEPTH WEIR instead: a crest as tall as this chip's etch depth minus the gap - not a fixed height, since chips differ in depth - leaves a 25 um gap under the lid (z is free; see contracts/blocks.json retention), and 25 um is strictly below 0.4 x a 70 um capsule (28 um, the bound tools/check_chip_spec.py enforces with >=, so a 28 um gap would FAIL it), so it retains capsules of about 70 um and above. Each of the six chambers carries this as retention {type: weir, opening_um: 25, source: fabricated}, the only form the schema allows: there is no separate weir object with crest_height_um or retains_um, and the schema forbids one. The weir is UNTESTED, and the z tolerance (about +/-20 um on a 25 um gap, roughly +/-71%) is the biggest unknown: the gap could close or leak outright. Run a 40/60/80 um gap coupon first. A 25 um gap will NOT hold bare cells of 10-15 um, so if the old 20 um mesh was meant to hold cells or small particles rather than capsules, this weir does not do that job. All numbers are placeholders. Retention is a depth weir with a 25 um gap, the crest being this chip's etch depth minus that gap, recorded in each chamber's retention field (type weir, opening_um 25, source fabricated) and nowhere else; the in-plane 200 um floor does not apply in z. UNTESTED: z tolerance of about +/-20 um on a 25 um gap is the main risk. ONE ETCH DEPTH, ONE SEALED ROUTE: the fluidic layer is declared as 0.3 mm, which is the etch depth of every chamber and channel here, and the 2 mm lid sits over it. It read 3 mm until 7 Nov 2026 and that was the second real violation: all ten channels are 0.2 mm wide, under the 0.5 mm min_enclosed_printed_channel_mm, so the contract's answer is to print them OPEN and seal them with the lid - but with no layer matching the 0.3 mm features there was no layer to print open and nothing recorded as sealing them. WHICH FIX AND WHY: the layer was corrected rather than the channels widened to 0.5 mm. 0.2 mm IS min_open_channel_mm, and a minimal schema example is more useful sitting exactly on that floor and showing the open-and-seal route that the floor assumes than it would be with ten channels at a width no rule in the contract asks for. Nothing here is a constraint that cannot be met: this chip now clears the demo envelope, the one-layer rule, the one etch depth, both channel floors, the wall minimum, the port minimum and pitch, and the 6-port limit, so there is no silent violation left to disclose.",
   "placeholder": true,
   "units": "mm",
   "footprint": {
@@ -17,7 +17,8 @@
     {
       "id": "fluidic",
       "material": "acrylic",
-      "thickness_mm": 3
+      "thickness_mm": 0.3,
+      "note": "The ONE etched fluidic layer, and its thickness IS the one etch depth (0.3 mm), as on every other chip in the fleet. It read 3 mm until 7 Nov 2026, left over from the pre-demo-scale 2-3 mm depths: with a 3 mm layer no layer matched the 0.3 mm features, so the ten 0.2 mm channels - all under the 0.5 mm min_enclosed_printed_channel_mm - had no print-open-and-seal route and nothing above them to seal against. 0.3 mm with the lid over it is that route."
     },
     {
       "id": "lid",
@@ -30,9 +31,9 @@
       "id": "exchange_1",
       "type": "exchange",
       "center": [
-        7.019,
-        5.267,
-        3.5
+        7.0,
+        10.0,
+        2.15
       ],
       "size": [
         3.893,
@@ -53,8 +54,8 @@
       "type": "split",
       "center": [
         14.416,
-        1.957,
-        3.5
+        5.2,
+        2.15
       ],
       "size": [
         2.725,
@@ -75,8 +76,8 @@
       "type": "split",
       "center": [
         14.416,
-        4.099,
-        3.5
+        8.4,
+        2.15
       ],
       "size": [
         2.725,
@@ -97,8 +98,8 @@
       "type": "split",
       "center": [
         14.416,
-        6.435,
-        3.5
+        11.6,
+        2.15
       ],
       "size": [
         2.725,
@@ -119,8 +120,8 @@
       "type": "split",
       "center": [
         14.416,
-        8.576,
-        3.5
+        14.8,
+        2.15
       ],
       "size": [
         2.725,
@@ -140,9 +141,9 @@
       "id": "pool_1",
       "type": "pool",
       "center": [
-        21.813,
-        5.267,
-        3.5
+        20.5,
+        10.0,
+        2.15
       ],
       "size": [
         3.115,
@@ -247,8 +248,8 @@
       "type": "inlet",
       "position": [
         1.957,
-        5.267,
-        7
+        10.0,
+        4.3
       ]
     },
     {
@@ -256,8 +257,8 @@
       "type": "outlet",
       "position": [
         27.653,
-        5.267,
-        7
+        10.0,
+        4.3
       ]
     }
   ]

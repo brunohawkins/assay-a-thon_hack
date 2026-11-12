@@ -177,7 +177,7 @@
     },
     "thermal_zones": {
       "type": "array",
-      "description": "Optional. Heated or cooled regions. Checks compare max_temp_c with the chip material's max working temperature.",
+      "description": "Optional. Heated or cooled regions, including sub-ambient ones. Checks compare max_temp_c with the chip material's max working temperature.",
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -185,9 +185,13 @@
         "properties": {
           "id": { "$ref": "#/$defs/snake_id" },
           "chambers": { "type": "array", "items": { "$ref": "#/$defs/snake_id" }, "description": "Chamber ids inside the zone." },
-          "max_temp_c": { "type": "number" },
-          "min_temp_c": { "type": "number" },
-          "purpose": { "type": "string", "description": "e.g. culture, rt, pcr, gelation. 'culture' triggers the swollen-capsule height check." }
+          "max_temp_c": { "type": "number", "description": "Hottest set point of the zone. Checked against the chip material's max working temperature (contracts/materials.json)." },
+          "min_temp_c": { "type": "number", "description": "Optional. Coldest set point. Declare it for any sub-ambient zone (a cold rinse, a -20 C solvent quench), so the zone says what it has to reach and not only what it must survive." },
+          "purpose": {
+            "type": "string",
+            "description": "DELIBERATELY A FREE STRING, not an enum: the vocabulary grows with the chemistry, and an enum written today would have excluded module 6's rinse, solvent quench and resolubilisation zones. Values in use: culture, rt, pcr, gelation, rinse, quench, resolubilisation. Only ONE value is load-bearing in code: \"culture\" (case-insensitive) marks a zone where cells or capsules are grown, and triggers the swollen-capsule chamber-height check in tools/check_chip_spec.py. Everything else is documentation. This matches contracts/README.md, which fixes the field list and the meaning of \"culture\" and does not close the list of purposes."
+          },
+          "note": { "type": "string", "description": "Optional. What this zone is for and why it is at this temperature, e.g. which protocol step drives it." }
         }
       }
     },
@@ -392,6 +396,17 @@
           "type": "number",
           "exclusiveMinimum": 0,
           "description": "Optional. Opening width in micrometres. Capsule-passable outlets must be >= 1.5 x capsule diameter."
+        },
+        "pad": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["shape", "size_mm"],
+          "description": "Optional PORT PAD: a feature CUT IN THE FLUIDIC LAYER directly under the bore, centred on the port's position, at the fluidic layer's one depth. The bore is drilled through the lid; without a pad every tool clips the port's channels at the edge of the bore's own square, so a 0.8 mm hole opens onto 0 mm2 of channel and lands on solid plastic. With a pad, the port's channels run into the pad and stop on its boundary (cad/make_train_cad.py cuts it: <port_id>_pad.stl and layer PADS in both DXFs), the bore opens onto the pad, and every tool (cad/make_figures.py, tools/check_chip_spec.py, operator/network.py) treats the channel as connected through it. tools/check_chip_spec.py requires the pad to cover the bore, to be wider than each channel that ends on it, and to clear every feature it is not connected to by contracts/blocks.json fabrication_floors.min_wall_mm. Its hydraulic resistance is negligible (a 1.2 mm square 0.3 mm deep) and is not modelled. Opt-in: a port without a pad is exported exactly as before.",
+          "properties": {
+            "shape": { "enum": ["square", "round"], "description": "square: axis-aligned square of side size_mm. round: a circle of diameter size_mm, cut as a regular 64-gon inscribed in it (make_train_cad.PAD_ROUND_SEGMENTS) by every tool alike." },
+            "size_mm": { "type": "number", "exclusiveMinimum": 0, "description": "Side (square) or diameter (round) in mm. At least the bore (width_um, else fabrication_floors.min_port_mm); a round pad must hold the bore's square, so its diameter is at least the bore x sqrt(2) / cos(pi/64)." },
+            "note": { "type": "string" }
+          }
         },
         "note": { "type": "string" },
         "placeholder": { "$ref": "#/$defs/inferred" }

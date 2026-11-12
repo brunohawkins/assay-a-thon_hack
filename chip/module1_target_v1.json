@@ -1,0 +1,2519 @@
+{
+  "id": "module1_target_v1",
+  "name": "Module 1 at target scale: three perfused lanes, replicated fields, one sample for every omic arm",
+  "scale": "target",
+  "description": "TARGET-SCALE Module 1 on the ANSI/SLAS 127.76 x 85.48 mm footprint (contracts/blocks.json target_envelope). The demo chip/module1_v1.json is kept alongside it, unchanged; this is not a replacement of its architecture but of its SCALE, which is what the biology audit found fatal. Three lanes, one lineage each, sized from each route's own published needs: neural 13.23 cm2, glia 13.23 cm2, astrocyte 9.24 cm2, 35.7 cm2 of culture in total, 33% of the plate. Each lane is SIX replicated fields of 2.2 cm2 (1.5 cm2 astrocyte) on one etch depth, fed by a distribution spine through per-field restrictor risers and drained by a collection spine. The fields are split into two hydraulic groups: fields 1-2 are quenched in place for metabolome and proteome while fields 3-6 of the SAME lane are dissociated for the single-cell transcriptome, and the lane's effluent is sampled repeatedly for the secretome. Same lane, same medium, same reservoir, same differentiation, same interaction history, so 'multi-omic from one sample' is true across arms rather than true within one arm. There are no valves, no barriers and NO RETENTION FEATURES: routing is by which port is FEED, VENT or CAP, as on the demo chip, and non-adherent cells are held by sedimentation (an 88x margin) rather than by a weir that would vent them. Perfusion is CONTINUOUS at 480 uL/cm2/day through an off-chip vented gas-exchange reservoir per lane (stages[]); no step in the protocol caps a lane. 17 ports: 5 per lane plus a bus drain and a vehicle-control inlet. The 6-port limit is a demo-envelope constraint that blocks.json says lifts at this scale; every process floor still binds (0.2 mm open channel, 0.4 mm wall, 0.8 mm port, 5 mm port pitch, 0.3 mm depth, one fluidic layer, no crossings, library blocks only). Harvest chemistry is deliberately NOT designed here: the day-87 lift belongs to the cell-prep stage, and this chip hands over adherent, lane-labelled cells in place. Derivation and arithmetic: protocols/module1_target_design.md.",
+  "placeholder": false,
+  "units": "mm",
+  "generator": {
+    "script": "protocols/build_module1_target.py",
+    "params": {
+      "field_length_mm": 14.0,
+      "field_widths_mm": {
+        "n": 15.75,
+        "g": 15.75,
+        "a": 11.0
+      },
+      "fields_per_lane": 6,
+      "quench_fields_per_lane": 2,
+      "depth_mm": 0.3,
+      "medium_ul_cm2_day": 480.0
+    }
+  },
+  "footprint": {
+    "x": 127.76,
+    "y": 85.48,
+    "note": "ANSI/SLAS 1-2004 microplate footprint, so plate handlers, readers, imagers, liquid handlers and incubator shelves all take it (blocks.json _why_sbs)."
+  },
+  "layers": [
+    {
+      "id": "base",
+      "material": "coc",
+      "thickness_mm": 3.0,
+      "note": "Stock sheet, bonded under the fluidic layer."
+    },
+    {
+      "id": "fluidic",
+      "material": "coc",
+      "thickness_mm": 0.3,
+      "note": "THE one fluidic layer and THE one etch depth: every chamber and channel on this chip is 0.3 mm deep, hot-embossed from a resin-printed tool."
+    },
+    {
+      "id": "lid",
+      "material": "coc",
+      "thickness_mm": 3.0,
+      "note": "Sealing lid, ports drilled through. It is what seals the sub-0.5 mm channels: they are printed OPEN and closed by this layer, which is the route blocks.json's min_enclosed_printed_channel_mm assumes. Optically clear for the imaging gate."
+    }
+  ],
+  "chambers": [
+    {
+      "id": "bus_n2",
+      "type": "junction",
+      "block": "network_node",
+      "center": [
+        121.0,
+        25.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Shared-bus node for the neural lane's group 2. Three arms: the lane's spoke and the two vertical links to its neighbours on the bus. The bus is the ONLY place the three lanes can meet, and every lane reaches it through its own spoke, so no lane's medium crosses another lane's fields to get there - the mistake the demo chip's first version made. Dead and capped for all 80 days of differentiation."
+    },
+    {
+      "id": "bus_n1",
+      "type": "junction",
+      "block": "network_node",
+      "center": [
+        121.0,
+        28.9,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Shared-bus node for the neural lane's group 1. Three arms: the lane's spoke and the two vertical links to its neighbours on the bus. The bus is the ONLY place the three lanes can meet, and every lane reaches it through its own spoke, so no lane's medium crosses another lane's fields to get there - the mistake the demo chip's first version made. Dead and capped for all 80 days of differentiation."
+    },
+    {
+      "id": "bus_g2",
+      "type": "junction",
+      "block": "network_node",
+      "center": [
+        121.0,
+        52.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Shared-bus node for the glia lane's group 2. Three arms: the lane's spoke and the two vertical links to its neighbours on the bus. The bus is the ONLY place the three lanes can meet, and every lane reaches it through its own spoke, so no lane's medium crosses another lane's fields to get there - the mistake the demo chip's first version made. Dead and capped for all 80 days of differentiation."
+    },
+    {
+      "id": "bus_g1",
+      "type": "junction",
+      "block": "network_node",
+      "center": [
+        121.0,
+        55.9,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Shared-bus node for the glia lane's group 1. Three arms: the lane's spoke and the two vertical links to its neighbours on the bus. The bus is the ONLY place the three lanes can meet, and every lane reaches it through its own spoke, so no lane's medium crosses another lane's fields to get there - the mistake the demo chip's first version made. Dead and capped for all 80 days of differentiation."
+    },
+    {
+      "id": "bus_a2",
+      "type": "junction",
+      "block": "network_node",
+      "center": [
+        121.0,
+        79.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Shared-bus node for the astrocyte lane's group 2. Three arms: the lane's spoke and the two vertical links to its neighbours on the bus. The bus is the ONLY place the three lanes can meet, and every lane reaches it through its own spoke, so no lane's medium crosses another lane's fields to get there - the mistake the demo chip's first version made. Dead and capped for all 80 days of differentiation."
+    },
+    {
+      "id": "bus_a1",
+      "type": "junction",
+      "block": "network_node",
+      "center": [
+        121.0,
+        82.9,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Shared-bus node for the astrocyte lane's group 1. Three arms: the lane's spoke and the two vertical links to its neighbours on the bus. The bus is the ONLY place the three lanes can meet, and every lane reaches it through its own spoke, so no lane's medium crosses another lane's fields to get there - the mistake the demo chip's first version made. Dead and capped for all 80 days of differentiation."
+    },
+    {
+      "id": "n_dn1",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        16.875,
+        3.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 1 (group 1): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 2 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "n_cn1",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        16.875,
+        25.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 1 (group 1). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "n_dn2",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        35.025,
+        3.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 2 (group 1): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 2 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "n_cn2",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        35.025,
+        25.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 2 (group 1). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "n_dn3",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        53.175,
+        3.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 3 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "n_cn3",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        53.175,
+        25.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 3 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "n_dn4",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        71.325,
+        3.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 4 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "n_cn4",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        71.325,
+        25.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 4 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "n_dn5",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        89.475,
+        3.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 5 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "n_cn5",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        89.475,
+        25.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 5 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "n_dn6",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        107.625,
+        3.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 6 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "n_cn6",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        107.625,
+        25.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 6 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "n_jl",
+      "type": "junction",
+      "block": "network_node",
+      "center": [
+        35.025,
+        28.9,
+        3.15
+      ],
+      "size": [
+        1.0,
+        1.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.3,
+      "note": "Routing node that lifts the group-1 spoke out of the band into the corridor, so it can run to the bus without crossing the group-2 spine. Pure geometry: two arms, no process function. Group 1 has to be on the bus, because fields quenched for metabolome and proteome must have the same interaction history as the fields that get sequenced."
+    },
+    {
+      "id": "n_f1",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        16.875,
+        14.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 1 of 6 in the neural lane, 2.21 cm2: QUENCHED IN PLACE for metabolome + proteome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "n_f2",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        35.025,
+        14.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 2 of 6 in the neural lane, 2.21 cm2: QUENCHED IN PLACE for metabolome + proteome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "n_f3",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        53.175,
+        14.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 3 of 6 in the neural lane, 2.21 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "n_f4",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        71.325,
+        14.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 4 of 6 in the neural lane, 2.21 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "n_f5",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        89.475,
+        14.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 5 of 6 in the neural lane, 2.21 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "n_f6",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        107.625,
+        14.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 6 of 6 in the neural lane, 2.21 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "g_dn1",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        16.875,
+        30.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 1 (group 1): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 2 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "g_cn1",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        16.875,
+        52.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 1 (group 1). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "g_dn2",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        35.025,
+        30.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 2 (group 1): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 2 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "g_cn2",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        35.025,
+        52.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 2 (group 1). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "g_dn3",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        53.175,
+        30.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 3 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "g_cn3",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        53.175,
+        52.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 3 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "g_dn4",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        71.325,
+        30.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 4 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "g_cn4",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        71.325,
+        52.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 4 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "g_dn5",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        89.475,
+        30.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 5 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "g_cn5",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        89.475,
+        52.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 5 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "g_dn6",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        107.625,
+        30.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 6 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "g_cn6",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        107.625,
+        52.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 6 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "g_jl",
+      "type": "junction",
+      "block": "network_node",
+      "center": [
+        35.025,
+        55.9,
+        3.15
+      ],
+      "size": [
+        1.0,
+        1.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.3,
+      "note": "Routing node that lifts the group-1 spoke out of the band into the corridor, so it can run to the bus without crossing the group-2 spine. Pure geometry: two arms, no process function. Group 1 has to be on the bus, because fields quenched for metabolome and proteome must have the same interaction history as the fields that get sequenced."
+    },
+    {
+      "id": "g_f1",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        16.875,
+        41.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 1 of 6 in the glia lane, 2.21 cm2: QUENCHED IN PLACE for metabolome + proteome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "g_f2",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        35.025,
+        41.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 2 of 6 in the glia lane, 2.21 cm2: QUENCHED IN PLACE for metabolome + proteome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "g_f3",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        53.175,
+        41.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 3 of 6 in the glia lane, 2.21 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "g_f4",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        71.325,
+        41.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 4 of 6 in the glia lane, 2.21 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "g_f5",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        89.475,
+        41.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 5 of 6 in the glia lane, 2.21 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "g_f6",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        107.625,
+        41.5,
+        3.15
+      ],
+      "size": [
+        15.75,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 66.15,
+      "note": "Culture field 6 of 6 in the glia lane, 2.21 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 15.75 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "a_dn1",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        16.875,
+        57.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 1 (group 1): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 2 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "a_cn1",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        16.875,
+        79.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 1 (group 1). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "a_dn2",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        35.025,
+        57.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 2 (group 1): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 2 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "a_cn2",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        35.025,
+        79.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 2 (group 1). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "a_dn3",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        53.175,
+        57.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 3 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "a_cn3",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        53.175,
+        79.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 3 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "a_dn4",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        71.325,
+        57.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 4 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "a_cn4",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        71.325,
+        79.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 4 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "a_dn5",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        89.475,
+        57.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 5 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "a_cn5",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        89.475,
+        79.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 5 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "a_dn6",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        107.625,
+        57.75,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Feed tee for field 6 (group 2): the group's spine comes in, carries on to the next tee, and the field hangs off it through its own 200 um restrictor riser. The restrictor is 28x the resistance of the spine run beside it, which is what makes 4 parallel fields split the flow evenly - flow distribution across a wide chamber is explicitly NOT scale-free (blocks.json)."
+    },
+    {
+      "id": "a_cn6",
+      "type": "junction",
+      "block": "t_junction",
+      "center": [
+        107.625,
+        79.25,
+        3.15
+      ],
+      "size": [
+        1.5,
+        1.5,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.675,
+      "note": "Collection tee for field 6 (group 2). The group's collection spine carries its effluent, which is also the supernatant the secretome arm samples."
+    },
+    {
+      "id": "a_jl",
+      "type": "junction",
+      "block": "network_node",
+      "center": [
+        35.025,
+        82.9,
+        3.15
+      ],
+      "size": [
+        1.0,
+        1.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 0.3,
+      "note": "Routing node that lifts the group-1 spoke out of the band into the corridor, so it can run to the bus without crossing the group-2 spine. Pure geometry: two arms, no process function. Group 1 has to be on the bus, because fields quenched for metabolome and proteome must have the same interaction history as the fields that get sequenced."
+    },
+    {
+      "id": "a_f1",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        16.875,
+        68.5,
+        3.15
+      ],
+      "size": [
+        11.0,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 46.2,
+      "note": "Culture field 1 of 6 in the astrocyte lane, 1.54 cm2: QUENCHED IN PLACE for metabolome + proteome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 11 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "a_f2",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        35.025,
+        68.5,
+        3.15
+      ],
+      "size": [
+        11.0,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 46.2,
+      "note": "Culture field 2 of 6 in the astrocyte lane, 1.54 cm2: QUENCHED IN PLACE for metabolome + proteome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 11 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "a_f3",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        53.175,
+        68.5,
+        3.15
+      ],
+      "size": [
+        11.0,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 46.2,
+      "note": "Culture field 3 of 6 in the astrocyte lane, 1.54 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 11 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "a_f4",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        71.325,
+        68.5,
+        3.15
+      ],
+      "size": [
+        11.0,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 46.2,
+      "note": "Culture field 4 of 6 in the astrocyte lane, 1.54 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 11 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "a_f5",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        89.475,
+        68.5,
+        3.15
+      ],
+      "size": [
+        11.0,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 46.2,
+      "note": "Culture field 5 of 6 in the astrocyte lane, 1.54 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 11 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    },
+    {
+      "id": "a_f6",
+      "type": "culture",
+      "block": "pillar_array",
+      "center": [
+        107.625,
+        68.5,
+        3.15
+      ],
+      "size": [
+        11.0,
+        14.0,
+        0.3
+      ],
+      "mesh_pore_um": null,
+      "volume_ul": 46.2,
+      "note": "Culture field 6 of 6 in the astrocyte lane, 1.54 cm2: DISSOCIATED for the single-cell transcriptome. Replicated fields, not one big chamber (blocks.json: 'replicated fields and more lanes, not bigger fields'), which is what lets one subset be quenched while the other is harvested. block pillar_array: a 0.3 mm cavity 11 mm across would bow under bonding and operating pressure, so the lid stands on a pillar grid at a 5, 10 mm pitch - the block's first listed purpose - costing about 2% of the floor. NO retention feature of any kind: at the design flow a 12 um cell settles 88x faster than the liquid can carry it out, so even the non-adherent hemogenic progenitors stay where they are born."
+    }
+  ],
+  "channels": [
+    {
+      "id": "c_bus1",
+      "from": "bus_n2",
+      "to": "bus_n1",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Bus link: vertical, so it crosses nothing. The chain of links is what makes the six taps one shared node."
+    },
+    {
+      "id": "c_bus2",
+      "from": "bus_n1",
+      "to": "bus_g2",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Bus link: vertical, so it crosses nothing. The chain of links is what makes the six taps one shared node."
+    },
+    {
+      "id": "c_bus3",
+      "from": "bus_g2",
+      "to": "bus_g1",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Bus link: vertical, so it crosses nothing. The chain of links is what makes the six taps one shared node."
+    },
+    {
+      "id": "c_bus4",
+      "from": "bus_g1",
+      "to": "bus_a2",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Bus link: vertical, so it crosses nothing. The chain of links is what makes the six taps one shared node."
+    },
+    {
+      "id": "c_bus5",
+      "from": "bus_a2",
+      "to": "bus_a1",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Bus link: vertical, so it crosses nothing. The chain of links is what makes the six taps one shared node."
+    },
+    {
+      "id": "n_ds1",
+      "from": "n_dn1",
+      "to": "n_dn2",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 feed spine, tee 1 to tee 2. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "n_cs1",
+      "from": "n_cn1",
+      "to": "n_cn2",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 collection spine, tee 1 to tee 2. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "n_ds3",
+      "from": "n_dn3",
+      "to": "n_dn4",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed spine, tee 3 to tee 4. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "n_cs3",
+      "from": "n_cn3",
+      "to": "n_cn4",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 collection spine, tee 3 to tee 4. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "n_ds4",
+      "from": "n_dn4",
+      "to": "n_dn5",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed spine, tee 4 to tee 5. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "n_cs4",
+      "from": "n_cn4",
+      "to": "n_cn5",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 collection spine, tee 4 to tee 5. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "n_ds5",
+      "from": "n_dn5",
+      "to": "n_dn6",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed spine, tee 5 to tee 6. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "n_cs5",
+      "from": "n_cn5",
+      "to": "n_cn6",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 collection spine, tee 5 to tee 6. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "n_fr1",
+      "from": "n_dn1",
+      "to": "n_f1",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "n_dr1",
+      "from": "n_f1",
+      "to": "n_cn1",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "n_fr2",
+      "from": "n_dn2",
+      "to": "n_f2",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "n_dr2",
+      "from": "n_f2",
+      "to": "n_cn2",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "n_fr3",
+      "from": "n_dn3",
+      "to": "n_f3",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "n_dr3",
+      "from": "n_f3",
+      "to": "n_cn3",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "n_fr4",
+      "from": "n_dn4",
+      "to": "n_f4",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "n_dr4",
+      "from": "n_f4",
+      "to": "n_cn4",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "n_fr5",
+      "from": "n_dn5",
+      "to": "n_f5",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "n_dr5",
+      "from": "n_f5",
+      "to": "n_cn5",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "n_fr6",
+      "from": "n_dn6",
+      "to": "n_f6",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "n_dr6",
+      "from": "n_f6",
+      "to": "n_cn6",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "n_cin1",
+      "from": "p_n_in1",
+      "to": "n_dn1",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 feed line onto the left end of its ladder."
+    },
+    {
+      "id": "n_cex",
+      "from": "n_cn1",
+      "to": "p_n_ex",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 outlet line, off the LEFT end of its collection ladder: at the endpoint the quench therefore flows away from the harvest fields, which is half of why one subset can be quenched without disturbing the other."
+    },
+    {
+      "id": "n_cin2",
+      "from": "p_n_in2",
+      "to": "n_dn6",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed line onto the right end of its ladder."
+    },
+    {
+      "id": "n_csup",
+      "from": "n_cn3",
+      "to": "p_n_sup",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "liquid",
+      "note": "Supernatant sampling tap: straight up out of a group-2 collection tee."
+    },
+    {
+      "id": "n_cret",
+      "from": "n_cn6",
+      "to": "p_n_ret",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Recirculation return to the reservoir."
+    },
+    {
+      "id": "n_c2bus",
+      "from": "n_cn6",
+      "to": "bus_n2",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 spoke to the shared bus: the interaction and pooling route. Capped during differentiation."
+    },
+    {
+      "id": "n_c1jl",
+      "from": "n_cn2",
+      "to": "n_jl",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "liquid",
+      "note": "Group-1 spoke, part 1: straight up out of the band into the corridor."
+    },
+    {
+      "id": "n_jlbus",
+      "from": "n_jl",
+      "to": "bus_n1",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "liquid",
+      "note": "Group-1 spoke, part 2: along the corridor to the bus. Group 1 is on the interaction route too, so the fields that get quenched for metabolome and proteome have exactly the same interaction history as the fields that get sequenced. Without this link the multi-omic claim would be false."
+    },
+    {
+      "id": "g_ds1",
+      "from": "g_dn1",
+      "to": "g_dn2",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 feed spine, tee 1 to tee 2. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "g_cs1",
+      "from": "g_cn1",
+      "to": "g_cn2",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 collection spine, tee 1 to tee 2. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "g_ds3",
+      "from": "g_dn3",
+      "to": "g_dn4",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed spine, tee 3 to tee 4. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "g_cs3",
+      "from": "g_cn3",
+      "to": "g_cn4",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 collection spine, tee 3 to tee 4. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "g_ds4",
+      "from": "g_dn4",
+      "to": "g_dn5",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed spine, tee 4 to tee 5. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "g_cs4",
+      "from": "g_cn4",
+      "to": "g_cn5",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 collection spine, tee 4 to tee 5. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "g_ds5",
+      "from": "g_dn5",
+      "to": "g_dn6",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed spine, tee 5 to tee 6. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "g_cs5",
+      "from": "g_cn5",
+      "to": "g_cn6",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 collection spine, tee 5 to tee 6. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "g_fr1",
+      "from": "g_dn1",
+      "to": "g_f1",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "g_dr1",
+      "from": "g_f1",
+      "to": "g_cn1",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "g_fr2",
+      "from": "g_dn2",
+      "to": "g_f2",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "g_dr2",
+      "from": "g_f2",
+      "to": "g_cn2",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "g_fr3",
+      "from": "g_dn3",
+      "to": "g_f3",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "g_dr3",
+      "from": "g_f3",
+      "to": "g_cn3",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "g_fr4",
+      "from": "g_dn4",
+      "to": "g_f4",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "g_dr4",
+      "from": "g_f4",
+      "to": "g_cn4",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "g_fr5",
+      "from": "g_dn5",
+      "to": "g_f5",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "g_dr5",
+      "from": "g_f5",
+      "to": "g_cn5",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "g_fr6",
+      "from": "g_dn6",
+      "to": "g_f6",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "g_dr6",
+      "from": "g_f6",
+      "to": "g_cn6",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "g_cin1",
+      "from": "p_g_in1",
+      "to": "g_dn1",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 feed line onto the left end of its ladder."
+    },
+    {
+      "id": "g_cex",
+      "from": "g_cn1",
+      "to": "p_g_ex",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 outlet line, off the LEFT end of its collection ladder: at the endpoint the quench therefore flows away from the harvest fields, which is half of why one subset can be quenched without disturbing the other."
+    },
+    {
+      "id": "g_cin2",
+      "from": "p_g_in2",
+      "to": "g_dn6",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed line onto the right end of its ladder."
+    },
+    {
+      "id": "g_csup",
+      "from": "g_cn3",
+      "to": "p_g_sup",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "liquid",
+      "note": "Supernatant sampling tap: straight up out of a group-2 collection tee."
+    },
+    {
+      "id": "g_cret",
+      "from": "g_cn6",
+      "to": "p_g_ret",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Recirculation return to the reservoir."
+    },
+    {
+      "id": "g_c2bus",
+      "from": "g_cn6",
+      "to": "bus_g2",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 spoke to the shared bus: the interaction and pooling route. Capped during differentiation."
+    },
+    {
+      "id": "g_c1jl",
+      "from": "g_cn2",
+      "to": "g_jl",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "liquid",
+      "note": "Group-1 spoke, part 1: straight up out of the band into the corridor."
+    },
+    {
+      "id": "g_jlbus",
+      "from": "g_jl",
+      "to": "bus_g1",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "liquid",
+      "note": "Group-1 spoke, part 2: along the corridor to the bus. Group 1 is on the interaction route too, so the fields that get quenched for metabolome and proteome have exactly the same interaction history as the fields that get sequenced. Without this link the multi-omic claim would be false."
+    },
+    {
+      "id": "a_ds1",
+      "from": "a_dn1",
+      "to": "a_dn2",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 feed spine, tee 1 to tee 2. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "a_cs1",
+      "from": "a_cn1",
+      "to": "a_cn2",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 collection spine, tee 1 to tee 2. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "a_ds3",
+      "from": "a_dn3",
+      "to": "a_dn4",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed spine, tee 3 to tee 4. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "a_cs3",
+      "from": "a_cn3",
+      "to": "a_cn4",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 collection spine, tee 3 to tee 4. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "a_ds4",
+      "from": "a_dn4",
+      "to": "a_dn5",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed spine, tee 4 to tee 5. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "a_cs4",
+      "from": "a_cn4",
+      "to": "a_cn5",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 collection spine, tee 4 to tee 5. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "a_ds5",
+      "from": "a_dn5",
+      "to": "a_dn6",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed spine, tee 5 to tee 6. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "a_cs5",
+      "from": "a_cn5",
+      "to": "a_cn6",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 collection spine, tee 5 to tee 6. 1 mm wide on purpose: narrow enough that the seeding flow keeps cells in suspension over the whole run instead of letting them settle out before the far field, which is the demo chip's seeding failure at target scale."
+    },
+    {
+      "id": "a_fr1",
+      "from": "a_dn1",
+      "to": "a_f1",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "a_dr1",
+      "from": "a_f1",
+      "to": "a_cn1",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "a_fr2",
+      "from": "a_dn2",
+      "to": "a_f2",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "a_dr2",
+      "from": "a_f2",
+      "to": "a_cn2",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "a_fr3",
+      "from": "a_dn3",
+      "to": "a_f3",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "a_dr3",
+      "from": "a_f3",
+      "to": "a_cn3",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "a_fr4",
+      "from": "a_dn4",
+      "to": "a_f4",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "a_dr4",
+      "from": "a_f4",
+      "to": "a_cn4",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "a_fr5",
+      "from": "a_dn5",
+      "to": "a_f5",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "a_dr5",
+      "from": "a_f5",
+      "to": "a_cn5",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "a_fr6",
+      "from": "a_dn6",
+      "to": "a_f6",
+      "width_mm": 0.2,
+      "depth_mm": 0.3,
+      "block": "serpentine_channel",
+      "carries": "cells",
+      "note": "Feed riser AND flow restrictor: 200 x 300 um, folded to ~30 mm inside the 3 mm riser band (about 4 folds at the 0.4 mm wall floor). It does two jobs: it makes the six fields split the lane flow evenly, and it is wide enough (200 um vs a 12 um cell) to seed through. Drawn as one straight run between its two ends, which is what the planar checker sees; the folds live in the reserved band and nothing else is placed there."
+    },
+    {
+      "id": "a_dr6",
+      "from": "a_f6",
+      "to": "a_cn6",
+      "width_mm": 0.8,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Drain riser: short and wide, so the pressure drop on the way out is negligible and a harvested cell suspension does not have to pass the restrictor."
+    },
+    {
+      "id": "a_cin1",
+      "from": "p_a_in1",
+      "to": "a_dn1",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 feed line onto the left end of its ladder."
+    },
+    {
+      "id": "a_cex",
+      "from": "a_cn1",
+      "to": "p_a_ex",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-1 outlet line, off the LEFT end of its collection ladder: at the endpoint the quench therefore flows away from the harvest fields, which is half of why one subset can be quenched without disturbing the other."
+    },
+    {
+      "id": "a_cin2",
+      "from": "p_a_in2",
+      "to": "a_dn6",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 feed line onto the right end of its ladder."
+    },
+    {
+      "id": "a_csup",
+      "from": "a_cn3",
+      "to": "p_a_sup",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "liquid",
+      "note": "Supernatant sampling tap: straight up out of a group-2 collection tee."
+    },
+    {
+      "id": "a_cret",
+      "from": "a_cn6",
+      "to": "p_a_ret",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Recirculation return to the reservoir."
+    },
+    {
+      "id": "a_c2bus",
+      "from": "a_cn6",
+      "to": "bus_a2",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Group-2 spoke to the shared bus: the interaction and pooling route. Capped during differentiation."
+    },
+    {
+      "id": "a_c1jl",
+      "from": "a_cn2",
+      "to": "a_jl",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "liquid",
+      "note": "Group-1 spoke, part 1: straight up out of the band into the corridor."
+    },
+    {
+      "id": "a_jlbus",
+      "from": "a_jl",
+      "to": "bus_a1",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "liquid",
+      "note": "Group-1 spoke, part 2: along the corridor to the bus. Group 1 is on the interaction route too, so the fields that get quenched for metabolome and proteome have exactly the same interaction history as the fields that get sequenced. Without this link the multi-omic claim would be false."
+    },
+    {
+      "id": "c_bus_out",
+      "from": "bus_n2",
+      "to": "p_bus",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "cells",
+      "note": "Bus drain line, off the node at one end of the chain."
+    },
+    {
+      "id": "c_veh_in",
+      "from": "p_veh",
+      "to": "bus_a1",
+      "width_mm": 1.0,
+      "depth_mm": 0.3,
+      "block": "straight_channel",
+      "carries": "liquid",
+      "note": "Vehicle-control feed line, off the node at the other end."
+    }
+  ],
+  "ports": [
+    {
+      "id": "p_n_in1",
+      "type": "inlet",
+      "position": [
+        4.0,
+        3.75,
+        6.3
+      ],
+      "role": "medium",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Group-1 feed (fields 1-2). During culture it perfuses them from the lane's own vented reservoir, in proportion to their area. At the endpoint the SAME line delivers the rinse and then the cold solvent quench, which is why group 1 needs no extra port: the group has its own hydraulic path, so the quench cannot reach the harvest fields."
+    },
+    {
+      "id": "p_n_ex",
+      "type": "outlet",
+      "position": [
+        4.0,
+        25.25,
+        6.3
+      ],
+      "role": "harvest",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Group-1 outlet: its effluent during culture (so it doubles as a second supernatant tap) and the metabolome + proteome EXTRACT at the endpoint. At the left end of the collection spine, so quench flow runs away from fields 3-6."
+    },
+    {
+      "id": "p_n_in2",
+      "type": "inlet",
+      "position": [
+        118.0,
+        3.75,
+        6.3
+      ],
+      "role": "medium",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Group-2 feed (fields 3-6), from the same reservoir and the same pump as group 1, split off-chip with matched line lengths. Same medium, same age, same gas: that is what makes all six fields ONE sample population."
+    },
+    {
+      "id": "p_n_sup",
+      "type": "outlet",
+      "position": [
+        60.0,
+        27.3,
+        6.3
+      ],
+      "role": "waste",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "SUPERNATANT SAMPLING. A dedicated tap on the group-2 collection spine for repeated conditioned-medium draws (secretome / exometabolome), the arm the multi-omic design says answers the interaction question and that the demo chip has no port for at all. Drawing here pulls the lane's own effluent, so a draw does not break isolation; it is separate from the recirculation return so the sterile loop is never opened to sample it."
+    },
+    {
+      "id": "p_n_ret",
+      "type": "outlet",
+      "position": [
+        100.0,
+        27.3,
+        6.3
+      ],
+      "role": "waste",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Recirculation return: group 2's effluent back to this lane's vented gas-exchange reservoir (stages[]). The return is what makes the lane a CLOSED LOOP during differentiation, so the shared bus is capped and dead and the lanes are hydraulically separate - a stronger isolation than the demo's balanced flows."
+    },
+    {
+      "id": "p_g_in1",
+      "type": "inlet",
+      "position": [
+        4.0,
+        30.75,
+        6.3
+      ],
+      "role": "medium",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Group-1 feed (fields 1-2). During culture it perfuses them from the lane's own vented reservoir, in proportion to their area. At the endpoint the SAME line delivers the rinse and then the cold solvent quench, which is why group 1 needs no extra port: the group has its own hydraulic path, so the quench cannot reach the harvest fields."
+    },
+    {
+      "id": "p_g_ex",
+      "type": "outlet",
+      "position": [
+        4.0,
+        52.25,
+        6.3
+      ],
+      "role": "harvest",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Group-1 outlet: its effluent during culture (so it doubles as a second supernatant tap) and the metabolome + proteome EXTRACT at the endpoint. At the left end of the collection spine, so quench flow runs away from fields 3-6."
+    },
+    {
+      "id": "p_g_in2",
+      "type": "inlet",
+      "position": [
+        118.0,
+        30.75,
+        6.3
+      ],
+      "role": "medium",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Group-2 feed (fields 3-6), from the same reservoir and the same pump as group 1, split off-chip with matched line lengths. Same medium, same age, same gas: that is what makes all six fields ONE sample population."
+    },
+    {
+      "id": "p_g_sup",
+      "type": "outlet",
+      "position": [
+        60.0,
+        54.3,
+        6.3
+      ],
+      "role": "waste",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "SUPERNATANT SAMPLING. A dedicated tap on the group-2 collection spine for repeated conditioned-medium draws (secretome / exometabolome), the arm the multi-omic design says answers the interaction question and that the demo chip has no port for at all. Drawing here pulls the lane's own effluent, so a draw does not break isolation; it is separate from the recirculation return so the sterile loop is never opened to sample it."
+    },
+    {
+      "id": "p_g_ret",
+      "type": "outlet",
+      "position": [
+        100.0,
+        54.3,
+        6.3
+      ],
+      "role": "waste",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Recirculation return: group 2's effluent back to this lane's vented gas-exchange reservoir (stages[]). The return is what makes the lane a CLOSED LOOP during differentiation, so the shared bus is capped and dead and the lanes are hydraulically separate - a stronger isolation than the demo's balanced flows."
+    },
+    {
+      "id": "p_a_in1",
+      "type": "inlet",
+      "position": [
+        4.0,
+        57.75,
+        6.3
+      ],
+      "role": "medium",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Group-1 feed (fields 1-2). During culture it perfuses them from the lane's own vented reservoir, in proportion to their area. At the endpoint the SAME line delivers the rinse and then the cold solvent quench, which is why group 1 needs no extra port: the group has its own hydraulic path, so the quench cannot reach the harvest fields."
+    },
+    {
+      "id": "p_a_ex",
+      "type": "outlet",
+      "position": [
+        4.0,
+        79.25,
+        6.3
+      ],
+      "role": "harvest",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Group-1 outlet: its effluent during culture (so it doubles as a second supernatant tap) and the metabolome + proteome EXTRACT at the endpoint. At the left end of the collection spine, so quench flow runs away from fields 3-6."
+    },
+    {
+      "id": "p_a_in2",
+      "type": "inlet",
+      "position": [
+        118.0,
+        57.75,
+        6.3
+      ],
+      "role": "medium",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Group-2 feed (fields 3-6), from the same reservoir and the same pump as group 1, split off-chip with matched line lengths. Same medium, same age, same gas: that is what makes all six fields ONE sample population."
+    },
+    {
+      "id": "p_a_sup",
+      "type": "outlet",
+      "position": [
+        60.0,
+        81.3,
+        6.3
+      ],
+      "role": "waste",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "SUPERNATANT SAMPLING. A dedicated tap on the group-2 collection spine for repeated conditioned-medium draws (secretome / exometabolome), the arm the multi-omic design says answers the interaction question and that the demo chip has no port for at all. Drawing here pulls the lane's own effluent, so a draw does not break isolation; it is separate from the recirculation return so the sterile loop is never opened to sample it."
+    },
+    {
+      "id": "p_a_ret",
+      "type": "outlet",
+      "position": [
+        100.0,
+        81.3,
+        6.3
+      ],
+      "role": "waste",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "Recirculation return: group 2's effluent back to this lane's vented gas-exchange reservoir (stages[]). The return is what makes the lane a CLOSED LOOP during differentiation, so the shared bus is capped and dead and the lanes are hydraulically separate - a stronger isolation than the demo's balanced flows."
+    },
+    {
+      "id": "p_bus",
+      "type": "outlet",
+      "position": [
+        124.5,
+        25.25,
+        6.3
+      ],
+      "role": "harvest",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "The bus drain: vented when the three lanes are deliberately connected (harvest and pooling), CAPPED for all 80 days of differentiation. Only a capped port is a true block, so this one cap is what holds the three lanes apart."
+    },
+    {
+      "id": "p_veh",
+      "type": "inlet",
+      "position": [
+        124.5,
+        82.9,
+        6.3
+      ],
+      "role": "reagent",
+      "width_um": 800.0,
+      "pad": {
+        "shape": "square",
+        "size_mm": 1.2,
+        "note": "1.2 mm square cut in the fluidic layer under the 800 um bore: the bore plus a 0.2 mm rim (min_open_channel_mm) on every side. The port's channels end on it, so the bore opens onto liquid."
+      },
+      "note": "VEHICLE CONTROL inlet, straight into the bus. The interaction arm pushes a donor lane's conditioned medium across the bus into the other two; this port pushes the same medium, from an identical vented reservoir that never held cells, along exactly the same route at the same flow for the same time. Without it a recipient's response is confounded by the medium itself, which is what the audit found in the demo protocol. One port's state is the only difference between the two arms."
+    }
+  ],
+  "stages": [
+    {
+      "id": "n_gasx",
+      "type": "delay",
+      "from_port": "p_n_ret",
+      "to_port": "p_n_in2",
+      "location": "off_chip",
+      "temp_c": 37.0,
+      "time_min": [
+        120.0,
+        3600.0
+      ],
+      "volume_ul": [
+        5000.0,
+        10000.0
+      ],
+      "note": "VENTED GAS-EXCHANGE RESERVOIR, off-chip, one per lane, in the incubator. This is the part the demo Module 1 lacks and the reason its cells are anoxic two thirds of every day: the chip is deliberately NOT gas-permeable, so all gas exchange happens here and none of it in the chambers. It re-saturates the medium in minutes against a loop turnover of 21-42 h, so it is never the limiting step; it also reproduces the published 'top up rather than replace' regime, because the lane's own secreted factors stay in the loop. Half the reservoir is replaced with fresh medium every 24 h, which is the 300-600 uL/cm2/day of FRESH medium; the recirculation rate is a separate, oxygen-driven number. The group-1 line is fed from and returns to this same reservoir."
+    },
+    {
+      "id": "g_gasx",
+      "type": "delay",
+      "from_port": "p_g_ret",
+      "to_port": "p_g_in2",
+      "location": "off_chip",
+      "temp_c": 37.0,
+      "time_min": [
+        120.0,
+        3600.0
+      ],
+      "volume_ul": [
+        5000.0,
+        10000.0
+      ],
+      "note": "VENTED GAS-EXCHANGE RESERVOIR, off-chip, one per lane, in the incubator. This is the part the demo Module 1 lacks and the reason its cells are anoxic two thirds of every day: the chip is deliberately NOT gas-permeable, so all gas exchange happens here and none of it in the chambers. It re-saturates the medium in minutes against a loop turnover of 21-42 h, so it is never the limiting step; it also reproduces the published 'top up rather than replace' regime, because the lane's own secreted factors stay in the loop. Half the reservoir is replaced with fresh medium every 24 h, which is the 300-600 uL/cm2/day of FRESH medium; the recirculation rate is a separate, oxygen-driven number. The group-1 line is fed from and returns to this same reservoir."
+    },
+    {
+      "id": "a_gasx",
+      "type": "delay",
+      "from_port": "p_a_ret",
+      "to_port": "p_a_in2",
+      "location": "off_chip",
+      "temp_c": 37.0,
+      "time_min": [
+        120.0,
+        3600.0
+      ],
+      "volume_ul": [
+        5000.0,
+        10000.0
+      ],
+      "note": "VENTED GAS-EXCHANGE RESERVOIR, off-chip, one per lane, in the incubator. This is the part the demo Module 1 lacks and the reason its cells are anoxic two thirds of every day: the chip is deliberately NOT gas-permeable, so all gas exchange happens here and none of it in the chambers. It re-saturates the medium in minutes against a loop turnover of 21-42 h, so it is never the limiting step; it also reproduces the published 'top up rather than replace' regime, because the lane's own secreted factors stay in the loop. Half the reservoir is replaced with fresh medium every 24 h, which is the 300-600 uL/cm2/day of FRESH medium; the recirculation rate is a separate, oxygen-driven number. The group-1 line is fed from and returns to this same reservoir."
+    }
+  ],
+  "thermal_zones": [
+    {
+      "id": "tz_culture",
+      "chambers": [
+        "n_f1",
+        "n_f2",
+        "n_f3",
+        "n_f4",
+        "n_f5",
+        "n_f6",
+        "g_f1",
+        "g_f2",
+        "g_f3",
+        "g_f4",
+        "g_f5",
+        "g_f6",
+        "a_f1",
+        "a_f2",
+        "a_f3",
+        "a_f4",
+        "a_f5",
+        "a_f6"
+      ],
+      "max_temp_c": 37.0,
+      "min_temp_c": 37.0,
+      "purpose": "culture",
+      "note": "All 18 culture fields sit in one 37 C zone: the whole board is in an incubator, which is also why the gas-exchange reservoir can be off-chip and still be in the same environment."
+    }
+  ],
+  "features": [
+    {
+      "id": "optical_window",
+      "type": "optical_window",
+      "center": [
+        62.25,
+        41.5,
+        4.8
+      ],
+      "size": [
+        106.5,
+        77.0,
+        3.0
+      ],
+      "covers": [
+        "n_f1",
+        "n_f2",
+        "n_f3",
+        "n_f4",
+        "n_f5",
+        "n_f6",
+        "g_f1",
+        "g_f2",
+        "g_f3",
+        "g_f4",
+        "g_f5",
+        "g_f6",
+        "a_f1",
+        "a_f2",
+        "a_f3",
+        "a_f4",
+        "a_f5",
+        "a_f6"
+      ],
+      "note": "The lid is clear over every field. Imaging is not decoration here: colony count at day 0 is the seeding gate, and the imaged density is what sets each lane's perfusion rate, because oxygen demand scales with cells and not with area."
+    }
+  ],
+  "run_parameters": {
+    "variant": {
+      "values": [
+        "interaction",
+        "vehicle"
+      ],
+      "default": "interaction",
+      "description": "Which arm this board runs. interaction: a donor lane's conditioned medium crosses the bus to the other two. vehicle: the SAME medium, from an identical vented reservoir that never held cells, crosses the same route at the same flow through p_veh. Two boards, one spec; the comparison is what separates a secretome response from a medium-change response."
+    }
+  },
+  "barcoding": {
+    "lanes": 3
+  }
+}

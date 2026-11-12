@@ -36,6 +36,9 @@ export function byPattern(artifacts, re) {
  */
 export function candidates(runId, name, artifacts = []) {
   const hits = byName(artifacts, name).map((a) => a.path);
+  // The artifact list walks the run's whole work dir, so once it has answered, a file it
+  // does not name is not there: guessing anyway only logs a 404 per missing stage file.
+  if (artifacts.length) return hits;
   return [...new Set([...hits, `assay2chip/work/${runId}/${name}`, name])];
 }
 

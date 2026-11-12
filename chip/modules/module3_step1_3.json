@@ -7,7 +7,7 @@
       "Step 3 #2 Lysis",
       "Step 3 #3 Wash"
     ],
-    "inputs_from": "chip_geometry_requirements.xlsx (Sizing Calculator, Step 3 rows 1–3), 7 Nov 2026",
+    "inputs_from": "the project's geometry requirements sheet (sizing calculator, Step 3 substeps 1–3), 7 Nov 2026",
     "id_convention": "same ids as barcoding_geometry.json (main_trap, capsule_in, lysis_buffer, wash_buffer, waste)",
     "sources": {
       "CapSeq": "https://doi.org/10.1126/science.ady7227",
@@ -62,7 +62,7 @@
         ],
         "note": "bench washes run at 4 °C; 37 °C is needed later for hairpin ligation"
       },
-      "material_note": "must tolerate 4 M guanidinium thiocyanate"
+      "material_note": "must tolerate a strong chaotropic lysis buffer at high molarity (see contracts/parameters.json lysis.chaotropic); the salt and its concentration are not recorded in this repo"
     },
     "capsule_filter": {
       "id": "capsule_prefilter",
@@ -95,14 +95,14 @@
     },
     {
       "id": "lysis_buffer",
-      "role": "mild lysis, or 4 M GITC for fragile cells",
+      "role": "mild lysis, or the strong chaotropic lysis buffer for fragile cells",
       "chemically_resistant": true,
       "source": "CapSeq"
     },
     {
       "id": "wash_buffer",
       "role": "washes and back-flush",
-      "composition": "PBS + Pluronic F-68 (assumption from SPC washes; CapSeq buffer not yet pulled)"
+      "composition": "generic isotonic wash buffer with a non-ionic surfactant to stop capsules sticking to walls and to each other (assumption from the cited SPC washes; the CapSeq buffer was not pulled). No recipe is recorded in this repo - see CONFIDENTIALITY.md"
     }
   ],
   "outlets": [
@@ -118,7 +118,7 @@
       "capsule_passable": false,
       "chemically_resistant": true,
       "volume_ul_steps_1_3": 1824.0,
-      "safety": "GITC waste must never meet bleach (releases toxic gas)"
+      "safety": "chaotropic lysis waste must never meet bleach (releases toxic gas)"
     },
     {
       "id": "to_split_tree",
@@ -314,7 +314,7 @@
     {
       "id": "lysis_waste_separate",
       "pass": true,
-      "detail": "GITC goes to lysis_waste, not the general waste"
+      "detail": "chaotropic lysis waste goes to lysis_waste, not the general waste"
     }
   ],
   "assumptions": [

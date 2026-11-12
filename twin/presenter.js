@@ -11,6 +11,7 @@
 //   - an error in one step is shown quietly and the buttons keep working.
 // #step=N in the URL opens step N; tools/record_presenter.py reads `seconds` to pace the video.
 import { modeStates } from './network.js';
+import { notPrintable, shortStage } from './status.js';
 
 let FLOW = 2.4; // µL/min: Module 1's feed, derived from the chip by the twin (operator/network.py DEFAULT_FEED_UL_MIN)
 const NAMES = { n_cx: 'neuron', g_cx: 'glia', a_cx: 'astrocyte' };
@@ -76,7 +77,7 @@ function makeSteps(api) {
         player.setPlaying(false);
         await typeOut(s, PROMPT);
         await s.wait(700);
-        const verdict = check.passes ? `checker: PASSES, ${check.errors.length} errors` : `checker: ${check.errors.length + check.schema_errors.length} ERRORS`;
+        const verdict = check.passes ? `our checker passes it (${check.errors.length} errors)` : `our checker finds ${check.errors.length + check.schema_errors.length} errors`;
         s.caption(`${design.modules.length} Flowmatter parts (steps ${stepRange(design.modules.flatMap((m) => m.steps).sort((a, b) => a - b).filter((x, i, a) => a.indexOf(x) === i))}) → chip spec → ${verdict}. Cached run of Yuvraj’s tool.`);
         await s.wait(500);
         api.chip.group.visible = true;
@@ -91,7 +92,11 @@ function makeSteps(api) {
       caption: '',
       async enter(s) {
         await s.show('pipeline');
-        s.caption(`${chipsIn()} chips, 30 × 20 mm each: cells go in, capsules in the middle, a library out. Dashed: not built yet.`);
+        const entries = pipeline.data?.entries ?? [];
+        const ghosts = entries.some((e) => !e.spec);
+        const bought = entries.filter(notPrintable).map((e) => shortStage(pipeline.data?.status?.byChip.get(e.spec?.id)?.stage ?? e.name));
+        s.caption(`${chipsIn()} stages at real scale, 30 × 20 mm each: cells go in, capsules in the middle, a library out.`
+          + `${bought.length ? ` ${bought.join(', ')} runs our chemistry on bought hardware.` : ''}${ghosts ? ' Dashed: not designed yet.' : ''}`);
         pipeline.setSpeed(1.6);
         pipeline.seek(0);
         pipeline.setPlaying(true);
@@ -120,7 +125,7 @@ function makeSteps(api) {
         await s.wait(800);
         const v = m1.check(UNSAFE.mode, UNSAFE.states, UNSAFE.flows);
         if (v.status === 'blocked') {
-          s.caption(`AI operator: “${refusalSentence(UNSAFE, v)}” Safety check: BLOCKED, ports unchanged.`, 'blocked');
+          s.caption(`AI operator: “${refusalSentence(UNSAFE, v)}” Safety check: blocked, ports unchanged.`, 'blocked');
           const base = modeStates(UNSAFE.mode, FLOW).states;
           m1.flag([...Object.keys(v.sol?.routing?.foreign_medium ?? {}), ...Object.keys(UNSAFE.states).filter((p) => base[p] !== UNSAFE.states[p])]);
         } else {
@@ -188,13 +193,13 @@ export function createPresenter(api, { extraSteps = [] } = {}) {
   root.innerHTML = `
     <section class="pr-caption panel" aria-live="polite">
       <div class="pr-main">
-        <p class="pr-head"><span class="pr-count"></span><span class="pr-sim">Simulation · digital twin, not live hardware</span></p>
+        <p class="pr-head"><span class="pr-count"></span><span class="pr-sim">Simulation: the digital twin, not live hardware</span></p>
         <h2 class="pr-title"></h2>
         <p class="pr-text"></p>
       </div>
       <nav class="pr-nav" aria-label="Presenter">
-        <button class="pr-back" type="button">◀ Back</button>
-        <button class="pr-next primary" type="button">Next ▶</button>
+        <button class="pr-back" type="button">← Back</button>
+        <button class="pr-next primary" type="button">Next →</button>
         <ol class="pr-dots">${steps.map((st, i) => `<li data-i="${i}" title="${esc(st.title)}"></li>`).join('')}</ol>
       </nav>
     </section>

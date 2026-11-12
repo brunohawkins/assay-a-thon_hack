@@ -1,0 +1,1167 @@
+[
+  {
+    "chip_id": "cell_prep_v1",
+    "spec": "chip/cell_prep_v1.json",
+    "name": "Cell detachment and QC module v1 (demo scale)",
+    "placeholder": false,
+    "viscosity_pa_s": 0.001,
+    "pressure_limit_kpa": 20.0,
+    "window_s": [
+      10.0,
+      60.0
+    ],
+    "target_fill_s": 30.0,
+    "feed": "in_buffer",
+    "vent": "out_cells",
+    "headline": "cult_1",
+    "plug": [
+      "in_enz",
+      "in_quench"
+    ],
+    "flow_ul_min": 7.9,
+    "resistance_kpa_per_ul_min": 0.006482999622098699,
+    "pressure_kpa": 0.051215697014579724,
+    "port_hole_ul": 0.128,
+    "swept_ul": 7.287,
+    "total_s": 55.4,
+    "reaches_headline_s": 1.7,
+    "washout_tau_s": 36.0,
+    "washout_s": 107.8,
+    "sequence": [
+      {
+        "kind": "port",
+        "id": "in_buffer",
+        "volume_ul": 0.128,
+        "starts_s": 0.0,
+        "fill_s": 1.0,
+        "ends_s": 1.0,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_buf_cult",
+        "volume_ul": 0.0974,
+        "starts_s": 1.0,
+        "fill_s": 0.7,
+        "ends_s": 1.7,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "cult_1",
+        "volume_ul": 4.737,
+        "starts_s": 1.7,
+        "fill_s": 36.0,
+        "ends_s": 37.7,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_cult_mix",
+        "volume_ul": 0.0681,
+        "starts_s": 37.7,
+        "fill_s": 0.5,
+        "ends_s": 38.2,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "mix_1",
+        "volume_ul": 1.326,
+        "starts_s": 38.2,
+        "fill_s": 10.1,
+        "ends_s": 48.3,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_mix_qc",
+        "volume_ul": 0.0876,
+        "starts_s": 48.3,
+        "fill_s": 0.7,
+        "ends_s": 48.9,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "qc_1",
+        "volume_ul": 0.758,
+        "starts_s": 48.9,
+        "fill_s": 5.8,
+        "ends_s": 54.7,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_qc_out",
+        "volume_ul": 0.0853,
+        "starts_s": 54.7,
+        "fill_s": 0.6,
+        "ends_s": 55.3,
+        "filmable": false
+      }
+    ],
+    "watch": [
+      {
+        "kind": "chamber",
+        "id": "cult_1",
+        "volume_ul": 4.737,
+        "starts_s": 1.7,
+        "fill_s": 36.0,
+        "ends_s": 37.7,
+        "filmable": true
+      },
+      {
+        "kind": "chamber",
+        "id": "mix_1",
+        "volume_ul": 1.326,
+        "starts_s": 38.2,
+        "fill_s": 10.1,
+        "ends_s": 48.3,
+        "filmable": true
+      }
+    ],
+    "alternatives": [],
+    "other_inlets": [
+      "in_enz",
+      "in_quench"
+    ],
+    "cannot": [
+      "the streams meeting at mix_1: they come from 3 inlets (in_buffer, in_enz, in_quench) and one pump drives one at a time, so they never meet at once",
+      "every thermal step protocols/cell_prep_v1.json asks for (4, 37 C): no thermocycler and no incubator on the bench"
+    ]
+  },
+  {
+    "chip_id": "ipsc_to_mgl_chip_v1",
+    "spec": "chip/ipsc_to_mgl_chip_v1.json",
+    "name": "iPSC to microglia-like cell train v1",
+    "placeholder": false,
+    "viscosity_pa_s": 0.001,
+    "pressure_limit_kpa": 20.0,
+    "window_s": [
+      10.0,
+      60.0
+    ],
+    "target_fill_s": 30.0,
+    "feed": "inlet_1",
+    "vent": "waste_1",
+    "headline": "m1_expand",
+    "plug": [
+      "outlet_1"
+    ],
+    "flow_ul_min": 8.8,
+    "resistance_kpa_per_ul_min": 0.0013732486543471673,
+    "pressure_kpa": 0.012084588158255073,
+    "port_hole_ul": 1.92,
+    "swept_ul": 11.342,
+    "total_s": 77.4,
+    "reaches_headline_s": 13.6,
+    "washout_tau_s": 30.2,
+    "washout_s": 90.4,
+    "sequence": [
+      {
+        "kind": "port",
+        "id": "inlet_1",
+        "volume_ul": 1.92,
+        "starts_s": 0.0,
+        "fill_s": 13.1,
+        "ends_s": 13.1,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_in_m1",
+        "volume_ul": 0.0797,
+        "starts_s": 13.1,
+        "fill_s": 0.5,
+        "ends_s": 13.6,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "m1_expand",
+        "volume_ul": 4.424,
+        "starts_s": 13.6,
+        "fill_s": 30.2,
+        "ends_s": 43.8,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_m1_m2",
+        "volume_ul": 0.1152,
+        "starts_s": 43.8,
+        "fill_s": 0.8,
+        "ends_s": 44.6,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "m2_hemogenic",
+        "volume_ul": 4.424,
+        "starts_s": 44.6,
+        "fill_s": 30.2,
+        "ends_s": 74.7,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_m2_waste",
+        "volume_ul": 0.3792,
+        "starts_s": 74.7,
+        "fill_s": 2.6,
+        "ends_s": 77.3,
+        "filmable": false
+      }
+    ],
+    "watch": [
+      {
+        "kind": "chamber",
+        "id": "m1_expand",
+        "volume_ul": 4.424,
+        "starts_s": 13.6,
+        "fill_s": 30.2,
+        "ends_s": 43.8,
+        "filmable": true
+      },
+      {
+        "kind": "chamber",
+        "id": "m2_hemogenic",
+        "volume_ul": 4.424,
+        "starts_s": 44.6,
+        "fill_s": 30.2,
+        "ends_s": 74.7,
+        "filmable": true
+      }
+    ],
+    "alternatives": [
+      {
+        "vent": "outlet_1",
+        "extra_chambers": [
+          "m2_hemogenic",
+          "m3_concentrate",
+          "mat_2",
+          "m5_harvest"
+        ],
+        "swept_ul": 11.008,
+        "reach_s": 75.1
+      }
+    ],
+    "other_inlets": [],
+    "cannot": [
+      "retention in m3_concentrate, mat_1, mat_2, mat_3, mat_4, m5_harvest: a weir at 25 um retains NOTHING with no particles in the liquid. Dye passes it either way, so the demo says nothing about whether it would hold a capsule",
+      "every thermal step protocols/ipsc_to_mgl_v1.json asks for (4, 37 C): no thermocycler and no incubator on the bench",
+      "m3_concentrate, mat_1, mat_2, mat_3, mat_4, m5_harvest: not on the one-pump route, so they stay empty (a second run with a different vent, or a second pump, would reach them)"
+    ]
+  },
+  {
+    "chip_id": "module1_v1",
+    "spec": "chip/module1_v1.json",
+    "name": "Module 1: flow-gated three-lineage chamber",
+    "placeholder": false,
+    "viscosity_pa_s": 0.001,
+    "pressure_limit_kpa": 20.0,
+    "window_s": [
+      10.0,
+      60.0
+    ],
+    "target_fill_s": 30.0,
+    "feed": "p_in",
+    "vent": "p_mid",
+    "headline": "n_cx",
+    "plug": [
+      "p_a_in",
+      "p_a_out",
+      "p_g_in",
+      "p_g_out"
+    ],
+    "flow_ul_min": 6.3,
+    "resistance_kpa_per_ul_min": 0.00108930697082057,
+    "pressure_kpa": 0.006862633916169591,
+    "port_hole_ul": 1.92,
+    "swept_ul": 7.232,
+    "total_s": 68.8,
+    "reaches_headline_s": 20.8,
+    "washout_tau_s": 29.8,
+    "washout_s": 89.4,
+    "sequence": [
+      {
+        "kind": "port",
+        "id": "p_in",
+        "volume_ul": 1.92,
+        "starts_s": 0.0,
+        "fill_s": 18.3,
+        "ends_s": 18.3,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_in_n",
+        "volume_ul": 0.2639,
+        "starts_s": 18.3,
+        "fill_s": 2.5,
+        "ends_s": 20.8,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "n_cx",
+        "volume_ul": 3.132,
+        "starts_s": 20.8,
+        "fill_s": 29.8,
+        "ends_s": 50.6,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_n_j",
+        "volume_ul": 0.1407,
+        "starts_s": 50.6,
+        "fill_s": 1.3,
+        "ends_s": 52.0,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "j_mid",
+        "volume_ul": 1.728,
+        "starts_s": 52.0,
+        "fill_s": 16.5,
+        "ends_s": 68.4,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_j_mid",
+        "volume_ul": 0.047,
+        "starts_s": 68.4,
+        "fill_s": 0.4,
+        "ends_s": 68.9,
+        "filmable": false
+      }
+    ],
+    "watch": [
+      {
+        "kind": "chamber",
+        "id": "n_cx",
+        "volume_ul": 3.132,
+        "starts_s": 20.8,
+        "fill_s": 29.8,
+        "ends_s": 50.6,
+        "filmable": true
+      },
+      {
+        "kind": "chamber",
+        "id": "j_mid",
+        "volume_ul": 1.728,
+        "starts_s": 52.0,
+        "fill_s": 16.5,
+        "ends_s": 68.4,
+        "filmable": true
+      }
+    ],
+    "alternatives": [
+      {
+        "vent": "p_a_out",
+        "extra_chambers": [
+          "j_mid",
+          "a_cx"
+        ],
+        "swept_ul": 5.407,
+        "reach_s": 51.5
+      },
+      {
+        "vent": "p_g_out",
+        "extra_chambers": [
+          "j_mid",
+          "g_cx"
+        ],
+        "swept_ul": 5.407,
+        "reach_s": 51.5
+      }
+    ],
+    "other_inlets": [
+      "p_a_in",
+      "p_g_in"
+    ],
+    "cannot": [
+      "retention in g_cx, a_cx: a weir at 25 um retains NOTHING with no particles in the liquid. Dye passes it either way, so the demo says nothing about whether it would hold a capsule",
+      "the streams meeting at j_mid: they come from 3 inlets (p_a_in, p_g_in, p_in) and one pump drives one at a time, so they never meet at once",
+      "every thermal step protocols/module1_v1.json asks for (4, 37 C): no thermocycler and no incubator on the bench",
+      "g_cx, a_cx: not on the one-pump route, so they stay empty (a second run with a different vent, or a second pump, would reach them)"
+    ]
+  },
+  {
+    "chip_id": "module3_v1_translated",
+    "spec": "chip/module3_v1_translated.json",
+    "name": "Module 3: load, lysis, wash (translated from the project's geometry requirements sheet)",
+    "placeholder": true,
+    "viscosity_pa_s": 0.001,
+    "pressure_limit_kpa": 20.0,
+    "window_s": [
+      10.0,
+      60.0
+    ],
+    "target_fill_s": 30.0,
+    "feed": "reagent_in",
+    "vent": "to_split_tree",
+    "headline": "main_trap",
+    "plug": [
+      "backflush_in",
+      "capsule_in",
+      "lysis_waste",
+      "waste"
+    ],
+    "flow_ul_min": 77.0,
+    "resistance_kpa_per_ul_min": 0.001365130319850898,
+    "pressure_kpa": 0.10511503462851914,
+    "port_hole_ul": 0.64,
+    "swept_ul": 39.466,
+    "total_s": 30.8,
+    "reaches_headline_s": 0.7,
+    "washout_tau_s": 30.0,
+    "washout_s": 89.7,
+    "sequence": [
+      {
+        "kind": "port",
+        "id": "reagent_in",
+        "volume_ul": 0.64,
+        "starts_s": 0.0,
+        "fill_s": 0.5,
+        "ends_s": 0.5,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_reagent",
+        "volume_ul": 0.2364,
+        "starts_s": 0.5,
+        "fill_s": 0.2,
+        "ends_s": 0.7,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "main_trap",
+        "volume_ul": 38.443,
+        "starts_s": 0.7,
+        "fill_s": 30.0,
+        "ends_s": 30.6,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_to_split_tree",
+        "volume_ul": 0.1464,
+        "starts_s": 30.6,
+        "fill_s": 0.1,
+        "ends_s": 30.8,
+        "filmable": false
+      }
+    ],
+    "watch": [
+      {
+        "kind": "chamber",
+        "id": "main_trap",
+        "volume_ul": 38.443,
+        "starts_s": 0.7,
+        "fill_s": 30.0,
+        "ends_s": 30.6,
+        "filmable": true
+      }
+    ],
+    "alternatives": [],
+    "other_inlets": [
+      "backflush_in",
+      "capsule_in"
+    ],
+    "cannot": [
+      "retention in main_trap: a weir at 25 um retains NOTHING with no particles in the liquid. Dye passes it either way, so the demo says nothing about whether it would hold a capsule",
+      "every thermal step protocols/module3_v1.json asks for (42 C): no thermocycler and no incubator on the bench",
+      "capsule_prefilter: not on the one-pump route, so it stays empty (a second run with a different vent, or a second pump, would reach it)"
+    ]
+  },
+  {
+    "chip_id": "module4_v1",
+    "spec": "chip/module4_v1.json",
+    "name": "Module 4: sublibrary split and index PCR",
+    "placeholder": false,
+    "viscosity_pa_s": 0.001,
+    "pressure_limit_kpa": 20.0,
+    "window_s": [
+      10.0,
+      60.0
+    ],
+    "target_fill_s": 30.0,
+    "feed": "in_s1",
+    "vent": "p_vent",
+    "headline": "sub_1",
+    "plug": [
+      "in_s2",
+      "in_s3",
+      "in_s4",
+      "out_sub"
+    ],
+    "flow_ul_min": 16.0,
+    "resistance_kpa_per_ul_min": 0.0005675215042413964,
+    "pressure_kpa": 0.009080344067862343,
+    "port_hole_ul": 0.64,
+    "swept_ul": 9.942,
+    "total_s": 37.3,
+    "reaches_headline_s": 6.2,
+    "washout_tau_s": 30.0,
+    "washout_s": 89.9,
+    "sequence": [
+      {
+        "kind": "port",
+        "id": "in_s1",
+        "volume_ul": 0.64,
+        "starts_s": 0.0,
+        "fill_s": 2.4,
+        "ends_s": 2.4,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_in_1",
+        "volume_ul": 1.008,
+        "starts_s": 2.4,
+        "fill_s": 3.8,
+        "ends_s": 6.2,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "sub_1",
+        "volume_ul": 8,
+        "starts_s": 6.2,
+        "fill_s": 30.0,
+        "ends_s": 36.2,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_tap_1",
+        "volume_ul": 0.138,
+        "starts_s": 36.2,
+        "fill_s": 0.5,
+        "ends_s": 36.7,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "node_1",
+        "volume_ul": 0.108,
+        "starts_s": 36.7,
+        "fill_s": 0.4,
+        "ends_s": 37.1,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_vent",
+        "volume_ul": 0.048,
+        "starts_s": 37.1,
+        "fill_s": 0.2,
+        "ends_s": 37.3,
+        "filmable": false
+      }
+    ],
+    "watch": [
+      {
+        "kind": "chamber",
+        "id": "sub_1",
+        "volume_ul": 8,
+        "starts_s": 6.2,
+        "fill_s": 30.0,
+        "ends_s": 36.2,
+        "filmable": true
+      }
+    ],
+    "alternatives": [
+      {
+        "vent": "out_sub",
+        "extra_chambers": [
+          "node_1",
+          "node_2",
+          "node_3",
+          "node_4"
+        ],
+        "swept_ul": 3.09,
+        "reach_s": 11.6
+      }
+    ],
+    "other_inlets": [
+      "in_s2",
+      "in_s3",
+      "in_s4"
+    ],
+    "cannot": [
+      "the streams meeting at node_1, node_2, node_3, node_4: they come from 4 inlets (in_s1, in_s2, in_s3, in_s4) and one pump drives one at a time, so they never meet at once",
+      "every thermal step protocols/module4_v1.json asks for (4, 60, 72, 98 C): no thermocycler and no incubator on the bench",
+      "sub_2, sub_3, sub_4, node_2, node_3, node_4: not on the one-pump route, so they stay empty (a second run with a different vent, or a second pump, would reach them)"
+    ]
+  },
+  {
+    "chip_id": "module5_v1",
+    "spec": "chip/module5_v1.json",
+    "name": "Module 5: capsule release and library cleanup",
+    "placeholder": false,
+    "viscosity_pa_s": 0.001,
+    "pressure_limit_kpa": 20.0,
+    "window_s": [
+      10.0,
+      60.0
+    ],
+    "target_fill_s": 30.0,
+    "feed": "in_prot",
+    "vent": "out_lib",
+    "headline": "react_cx",
+    "plug": [
+      "in_bead",
+      "in_lib",
+      "out_waste"
+    ],
+    "flow_ul_min": 16.0,
+    "resistance_kpa_per_ul_min": 0.0006082575851121259,
+    "pressure_kpa": 0.009732121361794015,
+    "port_hole_ul": 0.64,
+    "swept_ul": 17.057,
+    "total_s": 64.0,
+    "reaches_headline_s": 4.1,
+    "washout_tau_s": 30.4,
+    "washout_s": 91.0,
+    "sequence": [
+      {
+        "kind": "port",
+        "id": "in_prot",
+        "volume_ul": 0.64,
+        "starts_s": 0.0,
+        "fill_s": 2.4,
+        "ends_s": 2.4,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_in_prot",
+        "volume_ul": 0.4614,
+        "starts_s": 2.4,
+        "fill_s": 1.7,
+        "ends_s": 4.1,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "react_cx",
+        "volume_ul": 8.1,
+        "starts_s": 4.1,
+        "fill_s": 30.4,
+        "ends_s": 34.5,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_react_bead",
+        "volume_ul": 1.3356,
+        "starts_s": 34.5,
+        "fill_s": 5.0,
+        "ends_s": 39.5,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "bead_cx",
+        "volume_ul": 6,
+        "starts_s": 39.5,
+        "fill_s": 22.5,
+        "ends_s": 62.0,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_out_lib",
+        "volume_ul": 0.5201,
+        "starts_s": 62.0,
+        "fill_s": 2.0,
+        "ends_s": 64.0,
+        "filmable": false
+      }
+    ],
+    "watch": [
+      {
+        "kind": "chamber",
+        "id": "react_cx",
+        "volume_ul": 8.1,
+        "starts_s": 4.1,
+        "fill_s": 30.4,
+        "ends_s": 34.5,
+        "filmable": true
+      },
+      {
+        "kind": "chamber",
+        "id": "bead_cx",
+        "volume_ul": 6,
+        "starts_s": 39.5,
+        "fill_s": 22.5,
+        "ends_s": 62.0,
+        "filmable": true
+      }
+    ],
+    "alternatives": [
+      {
+        "vent": "out_waste",
+        "extra_chambers": [
+          "bead_cx"
+        ],
+        "swept_ul": 8.999,
+        "reach_s": 33.7
+      }
+    ],
+    "other_inlets": [
+      "in_bead",
+      "in_lib"
+    ],
+    "cannot": [
+      "every thermal step protocols/module5_v1.json asks for (37 C): no thermocycler and no incubator on the bench"
+    ]
+  },
+  {
+    "chip_id": "module6_v1",
+    "spec": "chip/module6_v1.json",
+    "name": "Module 6: the extraction UNIT CELL - metabolome + proteome from one extraction of adherent cells (demo scale, one lane pattern)",
+    "placeholder": false,
+    "viscosity_pa_s": 0.001,
+    "pressure_limit_kpa": 20.0,
+    "window_s": [
+      10.0,
+      60.0
+    ],
+    "target_fill_s": 30.0,
+    "feed": "in_n",
+    "vent": "out_n",
+    "headline": "cx_n",
+    "plug": [
+      "in_a",
+      "in_g",
+      "out_a",
+      "out_g"
+    ],
+    "flow_ul_min": 5.8,
+    "resistance_kpa_per_ul_min": 0.00025258964095193677,
+    "pressure_kpa": 0.0014650199175212332,
+    "port_hole_ul": 0.64,
+    "swept_ul": 7.36,
+    "total_s": 76.2,
+    "reaches_headline_s": 26.5,
+    "washout_tau_s": 29.8,
+    "washout_s": 89.3,
+    "sequence": [
+      {
+        "kind": "port",
+        "id": "in_n",
+        "volume_ul": 0.64,
+        "starts_s": 0.0,
+        "fill_s": 6.6,
+        "ends_s": 6.6,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "comb_in_n",
+        "volume_ul": 1.92,
+        "starts_s": 6.6,
+        "fill_s": 19.9,
+        "ends_s": 26.5,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "cx_n",
+        "volume_ul": 2.88,
+        "starts_s": 26.5,
+        "fill_s": 29.8,
+        "ends_s": 56.3,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "comb_out_n",
+        "volume_ul": 1.92,
+        "starts_s": 56.3,
+        "fill_s": 19.9,
+        "ends_s": 76.1,
+        "filmable": false
+      }
+    ],
+    "watch": [
+      {
+        "kind": "chamber",
+        "id": "cx_n",
+        "volume_ul": 2.88,
+        "starts_s": 26.5,
+        "fill_s": 29.8,
+        "ends_s": 56.3,
+        "filmable": true
+      }
+    ],
+    "alternatives": [],
+    "other_inlets": [
+      "in_a",
+      "in_g"
+    ],
+    "cannot": [
+      "every thermal step protocols/module6_v1.json asks for (-20, 4, 37 C): no thermocycler and no incubator on the bench",
+      "cx_g, cx_a: not on the one-pump route, so they stay empty (a second run with a different vent, or a second pump, would reach them)"
+    ]
+  },
+  {
+    "chip_id": "placeholder_chip_v1",
+    "spec": "chip/placeholder_chip_spec.json",
+    "name": "Placeholder capsule processor v1",
+    "placeholder": true,
+    "viscosity_pa_s": 0.001,
+    "pressure_limit_kpa": 20.0,
+    "window_s": [
+      10.0,
+      60.0
+    ],
+    "target_fill_s": 30.0,
+    "feed": "inlet_1",
+    "vent": "outlet_1",
+    "headline": "exchange_1",
+    "plug": [],
+    "flow_ul_min": 7.3,
+    "resistance_kpa_per_ul_min": 0.008788445238569288,
+    "pressure_kpa": 0.0641556502415558,
+    "port_hole_ul": 1.28,
+    "swept_ul": 10.024,
+    "total_s": 82.4,
+    "reaches_headline_s": 11.9,
+    "washout_tau_s": 29.9,
+    "washout_s": 89.6,
+    "sequence": [
+      {
+        "kind": "port",
+        "id": "inlet_1",
+        "volume_ul": 1.28,
+        "starts_s": 0.0,
+        "fill_s": 10.5,
+        "ends_s": 10.5,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_1",
+        "volume_ul": 0.1618,
+        "starts_s": 10.5,
+        "fill_s": 1.3,
+        "ends_s": 11.9,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "exchange_1",
+        "volume_ul": 3.638,
+        "starts_s": 11.9,
+        "fill_s": 29.9,
+        "ends_s": 41.8,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_3",
+        "volume_ul": 0.2521,
+        "starts_s": 41.8,
+        "fill_s": 2.1,
+        "ends_s": 43.8,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "split_2",
+        "volume_ul": 1.273,
+        "starts_s": 43.8,
+        "fill_s": 10.5,
+        "ends_s": 54.3,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_7",
+        "volume_ul": 0.1963,
+        "starts_s": 54.3,
+        "fill_s": 1.6,
+        "ends_s": 55.9,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "pool_1",
+        "volume_ul": 2.911,
+        "starts_s": 55.9,
+        "fill_s": 23.9,
+        "ends_s": 79.8,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_10",
+        "volume_ul": 0.3117,
+        "starts_s": 79.8,
+        "fill_s": 2.6,
+        "ends_s": 82.4,
+        "filmable": false
+      }
+    ],
+    "watch": [
+      {
+        "kind": "chamber",
+        "id": "exchange_1",
+        "volume_ul": 3.638,
+        "starts_s": 11.9,
+        "fill_s": 29.9,
+        "ends_s": 41.8,
+        "filmable": true
+      },
+      {
+        "kind": "chamber",
+        "id": "split_2",
+        "volume_ul": 1.273,
+        "starts_s": 43.8,
+        "fill_s": 10.5,
+        "ends_s": 54.3,
+        "filmable": true
+      },
+      {
+        "kind": "chamber",
+        "id": "pool_1",
+        "volume_ul": 2.911,
+        "starts_s": 55.9,
+        "fill_s": 23.9,
+        "ends_s": 79.8,
+        "filmable": true
+      }
+    ],
+    "alternatives": [],
+    "other_inlets": [],
+    "cannot": [
+      "retention in exchange_1, split_1, split_2, split_3, split_4, pool_1: a weir at 25 um retains NOTHING with no particles in the liquid. Dye passes it either way, so the demo says nothing about whether it would hold a capsule",
+      "every thermal step protocols/placeholder_culture_then_scrnaseq.json, protocols/placeholder_scdnaseq.json, protocols/placeholder_scrnaseq.json asks for (37, 40, 50, 80 C): no thermocycler and no incubator on the bench",
+      "split_1, split_3, split_4: not on the one-pump route, so they stay empty (a second run with a different vent, or a second pump, would reach them)"
+    ]
+  },
+  {
+    "chip_id": "sctip_spc_v1",
+    "spec": "chip/sctip_spc_v1.json",
+    "name": "SPC barcoding and capsule handling (stage B)",
+    "placeholder": false,
+    "viscosity_pa_s": 0.001,
+    "pressure_limit_kpa": 20.0,
+    "window_s": [
+      10.0,
+      60.0
+    ],
+    "target_fill_s": 30.0,
+    "feed": "in_reagent",
+    "vent": "out_waste",
+    "headline": "trap_1",
+    "plug": [
+      "in_load",
+      "in_oil",
+      "out_drop"
+    ],
+    "flow_ul_min": 2.2,
+    "resistance_kpa_per_ul_min": 0.009257760531485852,
+    "pressure_kpa": 0.020367073169268876,
+    "port_hole_ul": 0.128,
+    "swept_ul": 1.716,
+    "total_s": 46.8,
+    "reaches_headline_s": 13.8,
+    "washout_tau_s": 29.6,
+    "washout_s": 88.6,
+    "sequence": [
+      {
+        "kind": "port",
+        "id": "in_reagent",
+        "volume_ul": 0.128,
+        "starts_s": 0.0,
+        "fill_s": 3.5,
+        "ends_s": 3.5,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_wash_trap",
+        "volume_ul": 0.379,
+        "starts_s": 3.5,
+        "fill_s": 10.3,
+        "ends_s": 13.8,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "trap_1",
+        "volume_ul": 1.084,
+        "starts_s": 13.8,
+        "fill_s": 29.6,
+        "ends_s": 43.4,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_trap_waste",
+        "volume_ul": 0.1251,
+        "starts_s": 43.4,
+        "fill_s": 3.4,
+        "ends_s": 46.8,
+        "filmable": false
+      }
+    ],
+    "watch": [
+      {
+        "kind": "chamber",
+        "id": "trap_1",
+        "volume_ul": 1.084,
+        "starts_s": 13.8,
+        "fill_s": 29.6,
+        "ends_s": 43.4,
+        "filmable": true
+      }
+    ],
+    "alternatives": [],
+    "other_inlets": [
+      "in_load",
+      "in_oil"
+    ],
+    "cannot": [
+      "anything two-phase at pack_1, nozzle_2, brk_1: droplets need oil and an aqueous stream at once, and there is no oil and one pump",
+      "the streams meeting at pack_1, nozzle_2: they come from 3 inlets (in_load, in_oil, in_reagent) and one pump drives one at a time, so they never meet at once",
+      "every thermal step protocols/sctip_spc_v1.json asks for (37, 72 C): no thermocycler and no incubator on the bench",
+      "pack_1, nozzle_2, brk_1: not on the one-pump route, so they stay empty (a second run with a different vent, or a second pump, would reach them)"
+    ]
+  },
+  {
+    "chip_id": "spc_demo_v1",
+    "spec": "chip/spc_demo_v1.json",
+    "name": "Flow-focusing geometry demo / reference board (not the pipeline's encapsulator)",
+    "placeholder": false,
+    "viscosity_pa_s": 0.001,
+    "pressure_limit_kpa": 20.0,
+    "window_s": [
+      10.0,
+      60.0
+    ],
+    "target_fill_s": 30.0,
+    "feed": "in_core",
+    "vent": "out_caps",
+    "headline": "delay_1",
+    "plug": [
+      "in_oil",
+      "in_shell"
+    ],
+    "flow_ul_min": 9.4,
+    "resistance_kpa_per_ul_min": 0.03286082723996644,
+    "pressure_kpa": 0.3088917760556845,
+    "port_hole_ul": 0.128,
+    "swept_ul": 5.263,
+    "total_s": 33.6,
+    "reaches_headline_s": 3.4,
+    "washout_tau_s": 29.9,
+    "washout_s": 89.5,
+    "sequence": [
+      {
+        "kind": "port",
+        "id": "in_core",
+        "volume_ul": 0.128,
+        "starts_s": 0.0,
+        "fill_s": 0.8,
+        "ends_s": 0.8,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_core_aq",
+        "volume_ul": 0.2196,
+        "starts_s": 0.8,
+        "fill_s": 1.4,
+        "ends_s": 2.2,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "aq_merge",
+        "volume_ul": 0.013,
+        "starts_s": 2.2,
+        "fill_s": 0.1,
+        "ends_s": 2.3,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_aq_xj",
+        "volume_ul": 0.1215,
+        "starts_s": 2.3,
+        "fill_s": 0.8,
+        "ends_s": 3.1,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "xj_1",
+        "volume_ul": 0.013,
+        "starts_s": 3.1,
+        "fill_s": 0.1,
+        "ends_s": 3.2,
+        "filmable": false
+      },
+      {
+        "kind": "channel",
+        "id": "ch_xj_delay",
+        "volume_ul": 0.0382,
+        "starts_s": 3.2,
+        "fill_s": 0.2,
+        "ends_s": 3.4,
+        "filmable": false
+      },
+      {
+        "kind": "chamber",
+        "id": "delay_1",
+        "volume_ul": 4.68,
+        "starts_s": 3.4,
+        "fill_s": 29.9,
+        "ends_s": 33.3,
+        "filmable": true
+      },
+      {
+        "kind": "channel",
+        "id": "ch_delay_out",
+        "volume_ul": 0.0495,
+        "starts_s": 33.3,
+        "fill_s": 0.3,
+        "ends_s": 33.6,
+        "filmable": false
+      }
+    ],
+    "watch": [
+      {
+        "kind": "chamber",
+        "id": "delay_1",
+        "volume_ul": 4.68,
+        "starts_s": 3.4,
+        "fill_s": 29.9,
+        "ends_s": 33.3,
+        "filmable": true
+      }
+    ],
+    "alternatives": [],
+    "other_inlets": [
+      "in_oil",
+      "in_shell"
+    ],
+    "cannot": [
+      "anything two-phase at xj_1: droplets need oil and an aqueous stream at once, and there is no oil and one pump",
+      "the streams meeting at aq_merge, xj_1: they come from 3 inlets (in_core, in_oil, in_shell) and one pump drives one at a time, so they never meet at once",
+      "oil_split, oil_nw, oil_ne, oil_sw, oil_se: not on the one-pump route, so they stay empty (a second run with a different vent, or a second pump, would reach them)"
+    ]
+  }
+]

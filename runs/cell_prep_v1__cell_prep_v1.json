@@ -4,7 +4,7 @@
   "chip_id": "cell_prep_v1",
   "chip_spec": "chip/cell_prep_v1.json",
   "operator": "planner",
-  "created_at": "2026-11-07T17:52:56Z",
+  "created_at": "2026-11-08T09:51:02Z",
   "placeholder": false,
   "sizing": {
     "capsule_count": null,
@@ -30,38 +30,43 @@
     ],
     "swollen_diameter_um": 140.0
   },
-  "total_duration_s": 4760.0,
+  "simulated_hardware": true,
+  "adapter": "sim",
+  "scenario": {
+    "description": "No scenario file: the sim adapter records the commands the planner sent and nothing else. No virtual chip, no sensors and no injected faults, so there is no reality to configure - and nothing was measured, which is why simulated_hardware is true."
+  },
+  "total_duration_s": 12527.0,
   "events": [
     {
       "t_s": 0.0,
-      "duration_s": 1711.0,
+      "duration_s": 1576.0,
       "command": "exchange",
       "args": {
         "target": "cult_1",
         "reagent": "wash_buffer",
-        "volume_ul": 4.737,
+        "volume_ul": 10.908,
         "washes": 2,
-        "flow_ul_min": 0.465
+        "flow_ul_min": 1.163
       },
-      "narration": "Rinse the adherent layer into a divalent-free buffer. The rinse matters more than it looks: leftover medium slows the enzyme and leftover divalent cations keep the cells stuck down, and both show up later as clumps.",
+      "narration": "Rinse the adherent layer into a divalent-free buffer. The rinse matters more than it looks: leftover medium slows the enzyme and leftover divalent cations keep the cells stuck down, and both show up later as clumps. Its job is to CLEAR the chamber, so it is sized from the 99% exchange goal: 4.6 chamber volumes in total, because a well-mixed chamber keeps exp(-V) of the old liquid after V volumes and one volume would leave over a third. The cells are still attached, so this runs at the culture shear ceiling.",
       "protocol_step": 1
     },
     {
-      "t_s": 1711.0,
-      "duration_s": 856.0,
+      "t_s": 1576.0,
+      "duration_s": 342.0,
       "command": "exchange",
       "args": {
         "target": "cult_1",
         "reagent": "dissociation_reagent",
         "volume_ul": 4.737,
         "washes": 1,
-        "flow_ul_min": 0.465
+        "flow_ul_min": 1.163
       },
-      "narration": "Flow in the dissociation reagent and warm the chamber. This is the only heated zone on the board.",
+      "narration": "Flow in the dissociation reagent and warm the chamber. This is the only heated zone on the board. One chamber volume: a fill to put the reagent in, and what it displaces is the rinse buffer from the step before, not medium.",
       "protocol_step": 2
     },
     {
-      "t_s": 2567.0,
+      "t_s": 1918.0,
       "duration_s": 420.0,
       "command": "hold_temp",
       "args": {
@@ -73,54 +78,54 @@
       "protocol_step": 3
     },
     {
-      "t_s": 2987.0,
-      "duration_s": 856.0,
+      "t_s": 2338.0,
+      "duration_s": 8466.0,
       "command": "transfer",
       "args": {
         "source": "cult_1",
         "target": "mix_1"
       },
-      "narration": "Carry the lifted cells from the culture chamber into the serpentine.",
+      "narration": "Carry the lifted cells from the culture chamber into the mixer. The cells now enter mix_1, so from here on the 0.01 dyn/cm2 ceiling is set by the mixer's 0.2 x 0.15 mm LANE and not by its 1.947 mm footprint: 0.056 uL/min instead of 0.55. That is why this step takes hours. It is a chip limit, not a protocol choice: see the module docstring and --report.",
       "protocol_step": 4
     },
     {
-      "t_s": 3843.0,
-      "duration_s": 240.0,
+      "t_s": 10804.0,
+      "duration_s": 643.0,
       "command": "mix",
       "args": {
         "target": "mix_1",
         "reagent": "quench_buffer",
-        "volume_ul": 1.326,
-        "flow_ul_min": 0.465
+        "volume_ul": 0.36,
+        "flow_ul_min": 0.047
       },
-      "narration": "Co-flow the quench with the lifted cells. Quenching here rather than in the chamber stops the enzyme as the cells leave instead of minutes later. The folded path is there because diffusion across the channel is too slow, so the mixing has to be advective.",
+      "narration": "Co-flow the quench with the lifted cells. Quenching here rather than in the chamber stops the enzyme as the cells leave instead of minutes later. The folded path is there because diffusion across the channel is too slow, so the mixing has to be advective. HONEST LIMIT: at the flow this lane allows, residence here is about 460 s, while a 12 um cell settles to mid-depth of the 150 um lane in about 15 s. The cells are on the floor for almost the whole path, in the one chamber whose purpose is mixing.",
       "protocol_step": 5
     },
     {
-      "t_s": 4083.0,
-      "duration_s": 240.0,
+      "t_s": 11447.0,
+      "duration_s": 643.0,
       "command": "mix",
       "args": {
         "target": "mix_1",
         "reagent": "quench_buffer",
-        "volume_ul": 1.326,
-        "flow_ul_min": 0.465
+        "volume_ul": 0.36,
+        "flow_ul_min": 0.047
       },
-      "narration": "Shear the remaining clumps apart against the serpentine turns. Published branching constrictions raise single cells from about 75% to about 92%, with viability unaffected when an enzyme has been used. It will not reach 100%, which is why a bought 40 um strainer still sits downstream.",
+      "narration": "Pass the suspension through the folded mixer again to break up what clumps are left. Published branching constrictions raise single cells from about 75% to about 92%, with viability unaffected when an enzyme has been used. HONEST LIMIT: those results come from shear far above the 0.01 dyn/cm2 culture ceiling, and this step is held to the ceiling, so it will not disaggregate the way they do. The bought 40 um strainer downstream is doing this job, not this step.",
       "protocol_step": 6
     },
     {
-      "t_s": 4323.0,
+      "t_s": 12090.0,
       "duration_s": 300.0,
       "command": "count",
       "args": {
         "target": "qc_1"
       },
-      "narration": "Stop the flow and image the window, chilled. Count about 400 cells for a 5% Poisson error, then dilute to the concentration the encapsulator needs: about 13 cells/uL for a 390 um capsule at a mean of 0.2. THAT NUMBER IS NOT TRANSFERABLE between capsule sizes, because it falls as the cube of the diameter. A 20% counting error only moves single occupancy by about 15%, so a window and a phone camera are enough and an in-line counter is not worth building.",
+      "narration": "Stop the flow and image the window, chilled. Count about 400 cells for a 5% Poisson error, then dilute to the concentration the encapsulator needs: about 1114 cells/uL for a 70 um capsule at a mean of 0.1. THAT NUMBER IS NOT TRANSFERABLE between capsule sizes, because it falls as the cube of the diameter: the demo encapsulation board's 150 um droplet would need about 113 cells/uL instead. A 20% counting error only moves single occupancy by about 15%, so a window and a phone camera are enough and an in-line counter is not worth building.",
       "protocol_step": 7
     },
     {
-      "t_s": 4623.0,
+      "t_s": 12390.0,
       "duration_s": 137.0,
       "command": "transfer",
       "args": {

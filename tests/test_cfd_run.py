@@ -33,6 +33,7 @@ import re
 import shutil
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -71,12 +72,21 @@ _TMP: list = []
 
 
 def setUpModule():
+    """Two real end-to-end runs, kept small enough that the suite finishes.
+
+    `max_steps=2` and `n_particles=4` cut the work; `timeout` bounds each sibling call.
+    `fix.py` re-simulates every candidate and takes minutes per chip on a full run, so
+    without the budget this module alone ran for over half an hour. The budget cuts it
+    off and reports `timed out`, which is a state the integration has to handle anyway -
+    so the tests exercise that path too. No assertion below depends on `fix.py` having
+    finished; the fix tables are checked against synthetic results in TestReport.
+    """
     root = Path(tempfile.mkdtemp(prefix="cfd_run_tests_"))
     _TMP.append(root)
     for chip_id, (chip_rel, protocol_rel) in CHIPS.items():
         _RUNS[chip_id] = cfd_run.run_chip(
             ROOT / chip_rel, ROOT / protocol_rel, out_dir=root / chip_id,
-            run_id=chip_id, max_steps=2, n_particles=4)
+            run_id=chip_id, max_steps=2, n_particles=4, timeout=90)
 
 
 def tearDownModule():
@@ -384,6 +394,47 @@ class TestSiblingGuards(TempDirMixin, unittest.TestCase):
 
         caller.call(boom, quiet=True)
         self.assertNotEqual(caller.report_row()["status"], "errored")
+
+    def test_a_slow_sibling_is_reported_not_waited_for(self):
+        messages = []
+        caller = cfd_run.Caller("mesh", ["build_mesh"], messages.append, timeout=2)
+
+        def slow():
+            end = time.time() + 30
+            while time.time() < end:
+                sum(i * i for i in range(20000))
+
+        started = time.time()
+        self.assertEqual(caller.call(slow), (None, False))
+        self.assertLess(time.time() - started, 8, "the budget was not enforced")
+        self.assertEqual(caller.report_row()["status"], "timed out")
+        self.assertIn("budget", caller.report_row()["detail"])
+
+    def test_the_budget_is_not_swallowed_by_the_sibling(self):
+        """`fix.py` wraps every candidate in `except Exception`, which is right and which
+        ate the first version of this timeout for half an hour."""
+        caller = cfd_run.Caller("fix", ["propose"], lambda _m: None, timeout=2)
+
+        def greedy():
+            end = time.time() + 30
+            while time.time() < end:
+                try:
+                    sum(i * i for i in range(20000))
+                except Exception:        # noqa: BLE001 - the point of the test
+                    pass
+
+        started = time.time()
+        caller.call(greedy)
+        self.assertLess(time.time() - started, 8,
+                        "the sibling's except Exception swallowed the budget")
+        self.assertFalse(issubclass(cfd_run.SiblingTimeout, Exception),
+                         "SiblingTimeout must not be catchable as Exception")
+
+    def test_zero_budget_means_wait(self):
+        caller = cfd_run.Caller("mesh", ["build_mesh"], lambda _m: None, timeout=0)
+        result, ok = caller.call(lambda: "done")
+        self.assertTrue(ok)
+        self.assertEqual(result, "done")
 
     def test_unexpected_keyword_arguments_are_dropped_not_fatal(self):
         caller = cfd_run.Caller("mesh", ["build_mesh"], lambda _m: None)

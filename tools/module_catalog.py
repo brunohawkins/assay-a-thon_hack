@@ -582,9 +582,23 @@ def build_catalog(root: Path = ROOT) -> dict:
             stages.append(stage)
     for r in pipe.get("roadmap") or []:
         arrives, leaves = joins(r.get("id"))
-        stages.append({"stage": r.get("id"), "name": r.get("name"), "kind": "OFF-CHIP",
-                       "status": "roadmap", "note": _clip(r.get("note") or "", 300) or None,
-                       "arrives": arrives, "leaves": leaves})
+        stage = {"stage": r.get("id"), "name": r.get("name"), "kind": "OFF-CHIP",
+                 "status": "roadmap", "note": _clip(r.get("note") or "", 300) or None,
+                 "arrives": arrives, "leaves": leaves}
+        # A branch the one-chain format files under roadmap although it has a real chip
+        # (Module 6 off Module 1): attach that chip and say where the branch leaves from.
+        text = f"{r.get('name') or ''} {r.get('note') or ''}"
+        if re.search(r"\bbranch", text, re.I):
+            stage["status"] = "branch"
+            stage["branch_from"] = next((h["from"]["stage"] for h in arrives if h["from"]["stage"]), None)
+            chip_rel = r.get("chip") if isinstance(r.get("chip"), str) else next(
+                (c for c in re.findall(r"chip/[\w.-]+\.json", text) if (root / c).is_file()), None)
+            if chip_rel and chip_rel not in seen_chips:
+                seen_chips.add(chip_rel)
+                stage["kind"] = "CHIP"
+                stage["module"] = chip_entry(root, chip_rel, {"name": r.get("name"), "protocol": r.get("protocol")},
+                                             None, status, runs, demo, videos)
+        stages.append(stage)
     for i, s in enumerate(stages, 1):
         s["order"] = i
 
@@ -829,6 +843,8 @@ def render_md(cat: dict) -> str:
         where = f"`{m['chip_id']}` ({m['scale']})" if m else s["kind"]
         printed = ("**YES**" if m["printed_for_demo"] else "no") if m else "—"
         no = s.get("order", "+")
+        if s.get("branch_from"):
+            no = f"{no} (branch off {s['branch_from']})"
         out.append(f"| {no} | {_cell(s['name'])} | {where} | {printed} | {_cell(s.get('status'))} |")
     out.append("")
     if cat["not_in_pipeline"]:

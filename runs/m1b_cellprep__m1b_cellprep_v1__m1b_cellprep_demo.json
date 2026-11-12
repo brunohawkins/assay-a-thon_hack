@@ -4,8 +4,25 @@
   "chip_id": "m1b_cellprep_v1",
   "chip_spec": "cad/m1b_cellprep_spec.json",
   "operator": "planner",
-  "created_at": "2026-11-07T17:47:46Z",
+  "created_at": "2026-11-08T09:51:03Z",
   "placeholder": true,
+  "simulated_hardware": true,
+  "adapter": "simulated_counter",
+  "scenario": {
+    "name": "m1b_cellprep_demo",
+    "protocol": "protocols/m1b_cellprep.json",
+    "chip": "cad/m1b_cellprep_spec.json",
+    "module2_chip": "cad/m2_encapsulation_spec.json",
+    "seed": 7,
+    "sample_volume_ul": 50,
+    "counter": {
+      "cells_per_ul": 4100,
+      "viability": 0.93,
+      "cv": 0.05
+    },
+    "file": "scenarios/m1b_cellprep_demo.json",
+    "description": "Healthy but concentrated cells: the operator dilutes them at m1b_resuspend_1 to ~0.1 cells per capsule and the safety checker lets them through to Module 2."
+  },
   "total_duration_s": 1362.0,
   "events": [
     {
@@ -115,35 +132,23 @@
       "t_s": 1302.0,
       "kind": "safety",
       "step": 7,
-      "message": "cells to Module 2: approved: 1,946 cells/uL -> 0.100 cells per capsule at Module 2's flows (target 0.1); viability 93%"
+      "message": "cells to Module 2 through m1b_to_module2_1: approved: 1,946 cells/uL -> 0.100 cells per capsule at Module 2's flows (target 0.1); viability 93%; this verdict rests on 1,946 cells/uL, which is ASSUMED, not measured: counted at the QC window (before the mixer) divided by the dilution the operator set. There is no counter after the mixer, so the dilution is commanded, not verified"
     }
   ],
-  "simulated_hardware": true,
-  "adapter": "simulated_counter",
   "loop": "closed",
   "status": "done",
-  "scenario": {
-    "name": "m1b_cellprep_demo",
-    "protocol": "protocols/m1b_cellprep.json",
-    "chip": "cad/m1b_cellprep_spec.json",
-    "module2_chip": "cad/m2_encapsulation_spec.json",
-    "seed": 7,
-    "sample_volume_ul": 50,
-    "counter": {
-      "cells_per_ul": 4100,
-      "viability": 0.93,
-      "cv": 0.05
-    },
-    "file": "scenarios/m1b_cellprep_demo.json",
-    "description": "Healthy but concentrated cells: the operator dilutes them at m1b_resuspend_1 to ~0.1 cells per capsule and the safety checker lets them through to Module 2."
-  },
   "summary": {
     "status": "done",
     "counted": {
       "cells_per_ul": 4048,
       "viability": 0.933
     },
+    "counted_where": "m1b_qc_window_1, by a SIMULATED counter",
     "dilution": 2.08,
+    "dilution_basis": "set by the operator; commanded, not verified",
+    "assumed_final_cells_per_ul": 1946,
+    "assumed_mean_cells_per_capsule": 0.0999,
+    "assumption_basis": "ASSUMED, not measured: counted at the QC window (before the mixer) divided by the dilution the operator set. There is no counter after the mixer, so the dilution is commanded, not verified",
     "final_cells_per_ul": 1946,
     "mean_cells_per_capsule": 0.0999,
     "target_mean": 0.1,
@@ -151,9 +156,11 @@
     "verdict": {
       "result": "approved",
       "reasons": [
-        "1,946 cells/uL -> 0.100 cells per capsule at Module 2's flows (target 0.1); viability 93%"
+        "1,946 cells/uL -> 0.100 cells per capsule at Module 2's flows (target 0.1); viability 93%",
+        "this verdict rests on 1,946 cells/uL, which is ASSUMED, not measured: counted at the QC window (before the mixer) divided by the dilution the operator set. There is no counter after the mixer, so the dilution is commanded, not verified"
       ]
-    }
+    },
+    "verdict_rests_on": "an assumed concentration (see assumption_basis)"
   },
   "report": "runs/m1b_cellprep__m1b_cellprep_v1__m1b_cellprep_demo_report.md"
 }

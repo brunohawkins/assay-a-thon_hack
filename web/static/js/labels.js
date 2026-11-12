@@ -13,6 +13,10 @@ export const STUB_TITLE =
 export const TODO_TITLE =
   'Not yet implemented: this stage of the pipeline does not exist yet, so there is no output.';
 
+export const PRINTED_TITLE =
+  'Printed for the demo: one of the six chips physically resin-printed for this weekend.';
+
+export const printedBadge = () => badge('PRINTED FOR THE DEMO', 'printed', PRINTED_TITLE);
 export const simBadge = () => badge('SIMULATED', 'sim', SIM_TITLE);
 export const demoBadge = () => badge('DEMO SCALE', 'demo', DEMO_TITLE);
 export const stubBadge = () => badge('LLM STUB', 'stub', STUB_TITLE);

@@ -51,6 +51,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 import shutil
 import sys
 from dataclasses import dataclass, field as dc_field
@@ -94,6 +95,15 @@ TUBE_RISE_DISPLAY_MM = 7.0
 #: structure, not from a list of stage names - see that function.
 KIT_WORDS = ("bought", "buy ", " kit", "kit ", "commercial", "off-the-shelf", "vendor",
              "catalogue")
+
+#: For a stage that HAS a chip, the bar is higher: the chain has to say the chip itself
+#: will not be made. "A bought mesh insert" inside a printed chip is a bought PART, not a
+#: bought kit, and Module 3 and cell prep both say exactly that - so the loose words above
+#: would badge two real printed designs as off-chip. These are the phrases that mean the
+#: design is not what will be used, and barcoding's build method says both of them.
+NOT_MADE_PHRASES = ("not printable", "not printed", "cannot be printed as drawn",
+                    "bought kit", "bought droplet kit", "bought hardware",
+                    "runs on a bought")
 
 CHIP_COLOUR = "#8aa6bd"
 PLACEHOLDER_COLOUR = "#6b5f45"
@@ -298,26 +308,40 @@ def chain_order(chain: Any) -> list[str]:
     return out
 
 
-def badge_for(stage: Any) -> str:
-    """The badge a stage with no chip wears, decided by the CHAIN, not by its name.
+def badge_for(stage: Any, extra: StageExtra | None = None, has_chip: bool = False) -> str:
+    """The badge a stage wears, decided by the CHAIN, not by its name.
 
-    Two different things look alike in a pipeline file and must not read alike on screen:
+    Three different things look alike in a pipeline file and must not read alike:
 
       a DROPPED placeholder    no chip and no protocol: nothing happens to the sample, it
                                just crosses the stage (`Stage.pass_through` in
                                `assay2chip/cfd/couple.py`). Badge: OFF-CHIP.
       real off-chip work       a stage that does something to the sample with bought
-                               reagents and instruments - the droplet kit, SPRI, QC,
-                               sequencing. Badge: OFF-CHIP / BOUGHT KIT.
+                               reagents and instruments - SPRI, QC, sequencing.
+                               Badge: OFF-CHIP / BOUGHT KIT.
+      a design that will not   a stage that HAS a chip the chain says will not be made:
+      be made                  barcoding's build method is "NOT PRINTABLE AS DRAWN ...
+                               re-injection, droplet making and emulsion breaking run on
+                               a BOUGHT DROPLET KIT". Its field is still worth drawing,
+                               so the chip is rendered AND badged OFF-CHIP / BOUGHT KIT,
+                               because nobody should leave the frame thinking it will be
+                               printed.
 
-    So when the corrected pipeline brings barcoding back as a real off-chip kit between
-    Module 3 and Module 4, the badge changes by itself: the chain stops calling it a
-    dropped placeholder and starts giving it work.
+    A chip stage needs NOT_MADE_PHRASES, not the looser KIT_WORDS: "a bought mesh insert"
+    is a bought PART inside a printed chip, and Module 3 and cell prep both say that. A
+    chip the chain is sending to print is never badged off-chip at all.
+
+    All three follow the file, so a merge changes the badges by itself.
     """
-    if stage.chip_path:
-        return ""
     text = " ".join(str(x or "").lower()
                     for x in (stage.name, stage.status, stage.off_chip_reason))
+    if extra is not None:
+        text = f"{text} {extra.text}"
+    if has_chip or stage.chip_path:
+        if extra is not None and extra.built_for_demo:
+            return ""                       # it is going to the printer; it is not a kit
+        return (f"{R.OFF_CHIP} / {R.BOUGHT_KIT}"
+                if any(p in text for p in NOT_MADE_PHRASES) else "")
     if any(word in text for word in KIT_WORDS):
         return f"{R.OFF_CHIP} / {R.BOUGHT_KIT}"
     if getattr(stage, "pass_through", False):
@@ -325,26 +349,73 @@ def badge_for(stage: Any) -> str:
     return f"{R.OFF_CHIP} / {R.BOUGHT_KIT}"
 
 
-def built_for_demo_map(path: Path | str) -> dict[str, bool]:
-    """`{module key: built_for_demo}` straight out of a pipeline file, if it says.
+#: `chip/<id>.json` / `protocols/<id>.json` named inside a stage's own prose.
+FILE_IN_PROSE = re.compile(r"\b((?:chip|protocols)/[A-Za-z0-9_.-]+\.json)\b")
 
-    `built_for_demo` is in `contracts/schemas/pipeline.schema.json` but is not part of
-    `couple.Stage`, so it is read here rather than guessed. A partition file has no such
-    key and gets an empty map.
+
+@dataclass(frozen=True)
+class StageExtra:
+    """What the chain file says about a stage that `couple.Stage` does not carry.
+
+    `couple.read_chain` gives the chain's structure; these are the three things the scene
+    needs on top of it, all read from the same file rather than inferred:
+
+    built_for_demo  the schema's own flag, which a merge sets when a chip goes to print
+    text            every word the stage says about itself - name, status note, build
+                    method, note - which is what `badge_for` reads
+    chip/protocol   a file the stage NAMES in its prose. A roadmap entry can be a real
+                    designed module filed under `roadmap` only because the pipeline
+                    format expresses one chain and the module is a branch; the current
+                    file says exactly that of Module 6, in those words. Taking the name
+                    it gives (and checking the file is there) is reading the data, and
+                    the alternative is drawing a designed chip as an empty block.
     """
+
+    built_for_demo: bool | None = None
+    text: str = ""
+    chip: str | None = None
+    protocol: str | None = None
+
+
+def chain_extras(path: Path | str) -> dict[str, StageExtra]:
+    """`{stage key: StageExtra}` from a pipeline file. A partition file gets an empty map."""
     try:
         doc = R.load_json(path)
     except Exception:
         return {}
-    out: dict[str, bool] = {}
-    for mod in (doc.get("modules") or []) if isinstance(doc, dict) else []:
-        key = mod.get("module")
-        if key is not None and "built_for_demo" in mod:
-            out[str(key)] = bool(mod["built_for_demo"])
+    if not isinstance(doc, dict):
+        return {}
+    out: dict[str, StageExtra] = {}
+    for entry, key_name in ((doc.get("modules") or [], "module"),
+                            (doc.get("roadmap") or [], "id")):
+        for item in entry:
+            key = item.get(key_name)
+            if key is None:
+                continue
+            build = item.get("build") or {}
+            text = " ".join(str(x) for x in (
+                item.get("name"), item.get("status"), item.get("status_note"),
+                item.get("note"), build.get("method"), build.get("connector")) if x)
+            named = FILE_IN_PROSE.findall(text)
+            chip = next((n for n in named if n.startswith("chip/")
+                         and (ROOT / n).is_file()), None)
+            proto = next((n for n in named if n.startswith("protocols/")
+                          and (ROOT / n).is_file()), None)
+            out[str(key)] = StageExtra(
+                built_for_demo=(bool(item["built_for_demo"])
+                                if "built_for_demo" in item else None),
+                text=text.lower(), chip=chip, protocol=proto)
     return out
 
 
-def printed_slot_for(stage: Any, built_for_demo: bool | None = None) -> str:
+def built_for_demo_map(path: Path | str) -> dict[str, bool]:
+    """`{module key: built_for_demo}` for callers that only want the flag."""
+    return {k: v.built_for_demo for k, v in chain_extras(path).items()
+            if v.built_for_demo is not None}
+
+
+def printed_slot_for(stage: Any, built_for_demo: bool | None = None,
+                     chip_path: str | None = None) -> str:
     """Which slot this stage's chip is printed for, or "" - from the data, in order.
 
     1. the chain file's own `built_for_demo` for this module. It is what a merge updates,
@@ -355,11 +426,12 @@ def printed_slot_for(stage: Any, built_for_demo: bool | None = None) -> str:
     Nothing is listed here, so when the corrected pipeline arrives with Module 6 - and
     whenever `built_for_demo` is turned on - the cards change by themselves.
     """
-    if not getattr(stage, "chip_path", None):
+    chip_path = chip_path or getattr(stage, "chip_path", None)
+    if not chip_path:
         return ""
     if built_for_demo:
         return str(getattr(stage, "name", "") or stage.key)
-    return R.is_printed(stage.chip_path) or ""
+    return R.is_printed(chip_path) or ""
 
 
 def _chip_size(chip_path: str | None) -> tuple[float, float, dict | None]:
@@ -377,7 +449,7 @@ def _chip_size(chip_path: str | None) -> tuple[float, float, dict | None]:
 
 
 def layout_for(chain: Any, *, per_row: int = STAGES_PER_ROW,
-               built_for_demo: dict[str, bool] | None = None
+               extras: dict[str, StageExtra] | None = None
                ) -> tuple[Layout, dict[str, dict]]:
     """Place every stage of the chain on one bench, in chain order. Pure data.
 
@@ -385,12 +457,23 @@ def layout_for(chain: Any, *, per_row: int = STAGES_PER_ROW,
     are always neighbours and a handoff tube never has to cross the whole bench.
     """
     order = chain_order(chain)
+    extras = extras or {}
     sizes: dict[str, tuple[float, float]] = {}
     chips: dict[str, dict] = {}
+    chip_paths: dict[str, str | None] = {}
+    proto_paths: dict[str, str | None] = {}
     for key in order:
         stage = chain.stages[key]
-        w, h, chip = _chip_size(stage.chip_path)
+        extra = extras.get(key)
+        # A stage filed under `roadmap` may still be a designed module: the format
+        # expresses one chain, so a branch has nowhere else to go. When the stage names
+        # its own chip file and that file is there, it is drawn as the chip it is.
+        chip_rel = stage.chip_path or (extra.chip if extra else None)
+        proto_rel = stage.protocol_path or (extra.protocol if extra else None)
+        w, h, chip = _chip_size(chip_rel)
         sizes[key] = (w, h)
+        chip_paths[key] = chip_rel if chip is not None else None
+        proto_paths[key] = proto_rel if chip is not None else None
         if chip is not None:
             chips[key] = chip
 
@@ -413,14 +496,17 @@ def layout_for(chain: Any, *, per_row: int = STAGES_PER_ROW,
             stage = chain.stages[key]
             w, h = sizes[key]
             x0, _ = spans[key]
+            extra = extras.get(key)
             placements[key] = Placement(
                 key=key, name=stage.name,
-                kind="chip" if (stage.chip_path and key in chips) else "placeholder",
-                badge=badge_for(stage), status=stage.status,
-                chip_path=stage.chip_path, protocol_path=stage.protocol_path,
+                kind="chip" if key in chips else "placeholder",
+                badge=badge_for(stage, extra, has_chip=key in chips),
+                status=stage.status,
+                chip_path=chip_paths[key], protocol_path=proto_paths[key],
                 x_mm=x0, y_mm=y + (row_h - h) / 2.0, w_mm=w, h_mm=h,
                 note=stage.off_chip_reason or "", stage_kind=stage.kind,
-                printed_slot=printed_slot_for(stage, (built_for_demo or {}).get(key)),
+                printed_slot=printed_slot_for(
+                    stage, extra.built_for_demo if extra else None, chip_paths[key]),
             )
         row_tops.append(y + row_h)
         y += row_h + GAP_Y_MM
@@ -460,7 +546,7 @@ def layout_from_file(path: Path | str, *, per_row: int = STAGES_PER_ROW
                      ) -> tuple[Layout, dict[str, dict]]:
     """`protocols/pipeline_mvp.json` or a `partition.json` -> a bench. Offline, no VTK."""
     return layout_for(cfd_couple.read_chain(path), per_row=per_row,
-                      built_for_demo=built_for_demo_map(path))
+                      extras=chain_extras(path))
 
 
 # --- captions (pure text, so the wording is testable without rendering) --------------
@@ -1079,7 +1165,19 @@ def _update_dynamic(plotter, layout: Layout, stages: dict[str, SceneStage], shot
     pv = R.pyvista()
     w, h = size
     focus = shot.get("key")
+    # ONLY THE STAGES ON SCREEN ANIMATE. Replacing a tracer actor on all eleven stages
+    # every frame costs eleven mapper rebuilds for ten chips the camera cannot see, and
+    # on a machine also running OpenFOAM that is the difference between a render that
+    # finishes and one that does not. The eye follows the camera anyway.
+    live = {focus} if focus else set()
+    if tube is not None:
+        live |= {tube.from_key, tube.to_key}
     for key, stage in stages.items():
+        if key not in live:
+            if getattr(stage, "_tracing", False):
+                plotter.remove_actor(f"tracers_{key}", render=False)
+                stage._tracing = False
+            continue
         # The chip the camera is on walks its protocol; the rest keep their first step.
         if key == focus and shot["kind"] == "stage" and stage.steps:
             show_step(plotter, stage, stage.index_at(phase))
@@ -1088,6 +1186,7 @@ def _update_dynamic(plotter, layout: Layout, stages: dict[str, SceneStage], shot
             continue
         plotter.add_points(pts, color="#ffe08a", point_size=7,
                            render_points_as_spheres=True, name=f"tracers_{key}")
+        stage._tracing = True
     if tube is not None:
         slug = _slug(tube, phase)
         plotter.add_mesh(pv.lines_from_points(slug).tube(radius=TUBE_BORE_MM * 0.42,

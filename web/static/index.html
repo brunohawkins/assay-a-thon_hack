@@ -4,41 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>assay2chip - wet-lab assay in, printable chips out</title>
+<meta name="color-scheme" content="dark">
+<title>Capsule processor · assay2chip</title>
+<link rel="stylesheet" href="css/theme.css">
 <link rel="stylesheet" href="css/app.css">
-<!-- Inline so the page makes no request we did not ask for: three ports on a chip. -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b1222'/%3E%3Ccircle cx='10' cy='16' r='3' fill='%235eead4'/%3E%3Ccircle cx='22' cy='11' r='3' fill='%237dd3fc'/%3E%3Ccircle cx='22' cy='21' r='3' fill='%23a78bfa'/%3E%3Cpath d='M13 16h4l2-5M17 16l2 5' stroke='%235eead4' stroke-width='1.4' fill='none'/%3E%3C/svg%3E">
+<!-- Inline so the page makes no request we did not ask for: one capsule, one cell. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23090d0b'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23a6ff72' stroke-width='2'/%3E%3Ccircle cx='17' cy='15' r='3.2' fill='%23a6ff72'/%3E%3C/svg%3E">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="topbar">
-  <div class="brand">
-    <span class="logo" aria-hidden="true"></span>
-    <div>
-      <h1>assay2chip</h1>
-      <p>wet-lab assay in, printable chips out</p>
-    </div>
-  </div>
-
-  <nav id="nav" class="tabs" aria-label="Views"></nav>
-
-  <label class="picker">
-    <span>Run</span>
-    <select id="run-select" aria-label="Select a run"></select>
-  </label>
-
-  <div id="badges" class="badges" aria-live="polite"></div>
+  <a class="brand" href="#/assay" aria-label="Capsule processor, home">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11"/><circle cx="17.5" cy="14.5" r="4"/></svg>
+    <span class="brand-name">Capsule processor</span>
+    <span class="brand-sub">assay2chip</span>
+  </a>
+  <nav id="nav" class="nav" aria-label="Sections"></nav>
+  <div id="status" class="status" aria-live="polite"></div>
 </header>
 
 <div id="banner" class="banner" role="status" hidden></div>
 
 <main id="main" tabindex="-1"></main>
 
+<footer class="foot">
+  <p>Runs entirely on this computer. No web fonts, no tracking, nothing fetched from the internet.</p>
+</footer>
+
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module" src="js/main.js"></script>
-<noscript><p style="padding:24px">This tool needs JavaScript. It runs entirely against the local
-backend on 127.0.0.1 and loads nothing from the network.</p></noscript>
+<noscript><p style="padding:24px">This page needs JavaScript. It talks only to the local server on this computer.</p></noscript>
 </body>
 </html>

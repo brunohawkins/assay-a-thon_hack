@@ -21,6 +21,7 @@ class Launcher(unittest.TestCase):
         self.assertEqual(demo.presenter_url(8000), "http://localhost:8000/twin/?present")
         self.assertEqual(demo.presenter_url(8001, step=4), "http://localhost:8001/twin/?present#step=4")
         self.assertEqual(demo.presenter_url(8000, twin=True), "http://localhost:8000/twin/")
+        self.assertEqual(demo.presenter_url(8000, bench=True), "http://localhost:8000/twin/#view=bench")
 
     def test_javascript_is_served_as_javascript(self):
         # ES modules refuse to load as text/plain (some Windows registries map .js to it)

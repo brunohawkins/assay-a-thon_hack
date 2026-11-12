@@ -7,8 +7,8 @@
     "pipeline": true,
     "status": true,
     "runs_index": true,
-    "demo_plan": null,
-    "demo_md": null
+    "demo_plan": "tools/demo_plan.py",
+    "demo_md": "docs/demo.md"
   },
   "printed_for_demo": [
     {
@@ -73,6 +73,26 @@
           "particle_source": null,
           "connector": "match",
           "note": "One counted suspension leaves j_mid through p_mid."
+        },
+        {
+          "id": "module1_to_module6",
+          "carries": "cells",
+          "from": {
+            "stage": "module1",
+            "ports": [
+              "p_mid"
+            ]
+          },
+          "to": {
+            "stage": "module6_bulk_omics",
+            "ports": []
+          },
+          "after_step": null,
+          "volume_ul": null,
+          "particle_um": null,
+          "particle_source": null,
+          "connector": null,
+          "note": "The bulk metabolome + proteome arm."
         }
       ],
       "module": {
@@ -97,10 +117,10 @@
             ],
             "volume_ul": 3.1,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 260.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 113.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -114,7 +134,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 42940.0,
+            "duration_s": 43087.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -179,10 +199,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -196,7 +216,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -213,10 +233,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -230,7 +250,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -247,10 +267,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -264,7 +284,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -281,10 +301,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -298,7 +318,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -315,10 +335,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -332,7 +352,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -349,10 +369,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -366,7 +386,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -381,12 +401,12 @@
             "reagent": [
               "neural_maturation_medium"
             ],
-            "volume_ul": 3.1,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 260.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -400,7 +420,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172540.0,
+            "duration_s": 172270.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -417,10 +437,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -434,7 +454,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -451,10 +471,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -468,7 +488,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -485,10 +505,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -502,7 +522,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -519,10 +539,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -536,7 +556,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -553,10 +573,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -570,7 +590,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -587,10 +607,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -604,7 +624,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -621,10 +641,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -638,7 +658,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -655,10 +675,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -672,7 +692,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -689,10 +709,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -706,7 +726,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -723,10 +743,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -740,7 +760,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -757,10 +777,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -774,7 +794,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -791,10 +811,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -808,7 +828,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172666.0,
+            "duration_s": 172742.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -825,10 +845,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -842,7 +862,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 43066.0,
+            "duration_s": 43142.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -859,10 +879,10 @@
             ],
             "volume_ul": 3.1,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 260.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 113.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -876,7 +896,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 42940.0,
+            "duration_s": 43087.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -941,10 +961,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -959,10 +979,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -976,7 +996,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 172532.0,
+            "duration_s": 172684.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -993,10 +1013,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1011,10 +1031,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1028,7 +1048,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 129332.0,
+            "duration_s": 129484.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1045,10 +1065,10 @@
             ],
             "volume_ul": 3.1,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 260.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 113.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -1062,7 +1082,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 42940.0,
+            "duration_s": 43087.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1079,10 +1099,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1097,10 +1117,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1130,7 +1150,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 84800.0,
+            "duration_s": 84952.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1163,10 +1183,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1180,7 +1200,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1197,10 +1217,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1215,10 +1235,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1232,7 +1252,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1249,10 +1269,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1266,7 +1286,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1283,10 +1303,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1301,10 +1321,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1318,7 +1338,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1335,10 +1355,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1352,7 +1372,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1369,10 +1389,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1387,10 +1407,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1404,7 +1424,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1421,10 +1441,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1438,7 +1458,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1455,10 +1475,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1471,12 +1491,12 @@
             "reagent": [
               "microglia_maturation_medium"
             ],
-            "volume_ul": 3.1,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 260.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -1490,7 +1510,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86006.0,
+            "duration_s": 85812.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1507,10 +1527,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1524,7 +1544,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1541,10 +1561,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1559,10 +1579,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1576,7 +1596,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1593,10 +1613,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1610,7 +1630,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1627,10 +1647,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1645,10 +1665,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1662,7 +1682,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1679,10 +1699,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1696,7 +1716,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1713,10 +1733,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1731,10 +1751,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1748,7 +1768,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1765,10 +1785,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1782,7 +1802,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1799,10 +1819,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1817,10 +1837,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1834,7 +1854,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1851,10 +1871,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1868,7 +1888,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1885,10 +1905,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1903,10 +1923,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1920,7 +1940,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1937,10 +1957,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1954,7 +1974,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -1971,10 +1991,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -1989,10 +2009,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2006,7 +2026,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2023,10 +2043,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2040,7 +2060,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2057,10 +2077,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2075,10 +2095,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2092,7 +2112,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2109,10 +2129,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2126,7 +2146,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2143,10 +2163,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2161,10 +2181,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2178,7 +2198,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2195,10 +2215,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2212,7 +2232,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2229,10 +2249,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2247,10 +2267,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2264,7 +2284,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2281,10 +2301,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2298,7 +2318,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2315,10 +2335,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2333,10 +2353,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2350,7 +2370,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2367,10 +2387,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2384,7 +2404,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2401,10 +2421,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2419,10 +2439,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2436,7 +2456,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2453,10 +2473,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2470,7 +2490,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2487,10 +2507,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2505,10 +2525,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2522,7 +2542,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86132.0,
+            "duration_s": 86284.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2539,10 +2559,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2556,7 +2576,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 86266.0,
+            "duration_s": 86342.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2573,10 +2593,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2591,10 +2611,10 @@
             ],
             "volume_ul": 1.6,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 58.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [],
             "vent": []
           },
@@ -2608,7 +2628,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 163892.0,
+            "duration_s": 164044.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2623,12 +2643,12 @@
             "reagent": [
               "neural_maturation_medium"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -2641,12 +2661,12 @@
             "reagent": [
               "microglia_maturation_medium"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -2659,12 +2679,12 @@
             "reagent": [
               "astro_medium"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -2678,7 +2698,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 8238.0,
+            "duration_s": 7050.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2695,10 +2715,10 @@
             ],
             "volume_ul": 3.1,
             "washes": 2,
-            "flow_ul_min": 1.0,
-            "duration_s": 521.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 226.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -2712,7 +2732,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 163639.0,
+            "duration_s": 163934.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2727,12 +2747,12 @@
             "reagent": [
               "neural_maturation_medium"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -2745,12 +2765,12 @@
             "reagent": [
               "microglia_maturation_medium"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -2763,12 +2783,12 @@
             "reagent": [
               "astro_medium"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -2782,7 +2802,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 8238.0,
+            "duration_s": 7050.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2799,10 +2819,10 @@
             ],
             "volume_ul": 3.1,
             "washes": 2,
-            "flow_ul_min": 1.0,
-            "duration_s": 521.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 226.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -2816,7 +2836,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 163639.0,
+            "duration_s": 163934.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2831,12 +2851,12 @@
             "reagent": [
               "neural_maturation_medium"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -2849,12 +2869,12 @@
             "reagent": [
               "microglia_maturation_medium"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -2867,12 +2887,12 @@
             "reagent": [
               "astro_medium"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -2886,7 +2906,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 8238.0,
+            "duration_s": 7050.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2903,10 +2923,10 @@
             ],
             "volume_ul": 3.1,
             "washes": 2,
-            "flow_ul_min": 1.0,
-            "duration_s": 521.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 226.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -2920,7 +2940,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 163639.0,
+            "duration_s": 163934.0,
             "temp_c": 37,
             "exchange_kind": null,
             "feed": [],
@@ -2967,12 +2987,12 @@
             "reagent": [
               "barcode_1"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 3.1,
             "washes": 1,
-            "flow_ul_min": 1.0,
+            "flow_ul_min": 2.3,
             "duration_s": 600.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -2985,12 +3005,12 @@
             "reagent": [
               "barcode_2"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 3.1,
             "washes": 1,
-            "flow_ul_min": 1.0,
+            "flow_ul_min": 2.3,
             "duration_s": 600.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -3003,12 +3023,12 @@
             "reagent": [
               "barcode_3"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 3.1,
             "washes": 1,
-            "flow_ul_min": 1.0,
+            "flow_ul_min": 2.3,
             "duration_s": 600.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -3021,12 +3041,12 @@
             "reagent": [
               "wash_buffer"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 7.3,
             "washes": 2,
-            "flow_ul_min": 1.0,
-            "duration_s": 269.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 533.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -3039,12 +3059,12 @@
             "reagent": [
               "wash_buffer"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 7.3,
             "washes": 2,
-            "flow_ul_min": 1.0,
-            "duration_s": 269.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 533.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -3057,12 +3077,12 @@
             "reagent": [
               "wash_buffer"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 7.3,
             "washes": 2,
-            "flow_ul_min": 1.0,
-            "duration_s": 269.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 533.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -3075,12 +3095,12 @@
             "reagent": [
               "dissociation_reagent"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 3.1,
             "washes": 1,
-            "flow_ul_min": 1.0,
+            "flow_ul_min": 2.3,
             "duration_s": 900.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -3093,12 +3113,12 @@
             "reagent": [
               "dissociation_reagent"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 3.1,
             "washes": 1,
-            "flow_ul_min": 1.0,
+            "flow_ul_min": 2.3,
             "duration_s": 900.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -3111,12 +3131,12 @@
             "reagent": [
               "dissociation_reagent"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 3.1,
             "washes": 1,
-            "flow_ul_min": 1.0,
+            "flow_ul_min": 2.3,
             "duration_s": 900.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [],
             "vent": []
           },
@@ -3129,12 +3149,12 @@
             "reagent": [
               "quench_buffer"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -3147,12 +3167,12 @@
             "reagent": [
               "quench_buffer"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -3165,12 +3185,12 @@
             "reagent": [
               "quench_buffer"
             ],
-            "volume_ul": 1.6,
+            "volume_ul": 14.5,
             "washes": 1,
-            "flow_ul_min": 1.0,
-            "duration_s": 134.0,
+            "flow_ul_min": 2.3,
+            "duration_s": 530.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [],
             "vent": []
           },
@@ -3323,11 +3343,11 @@
           },
           {
             "source": "chip description",
-            "text": "The weir is UNTESTED, and the z tolerance (about +/-20 um on a 25 um gap, roughly +/-71%) is the biggest unknown: the gap could close or leak outright."
+            "text": "The crest is not a fixed height - it is THIS chip's etch depth minus the gap, derived per chip, because a crest quoted for a 300 um layer cannot exist in a shallower one. 25 um is strictly below 0.4 x a 70 um capsule (2…"
           },
           {
             "source": "chip description",
-            "text": "UNTESTED: z tolerance of about +/-20 um on a 25 um gap is the main risk."
+            "text": "The weir is UNTESTED, and the z tolerance (about +/-20 um on a 25 um gap, roughly +/-71%) is the biggest unknown: the gap could close or leak outright."
           },
           {
             "source": "protocols/pipeline_mvp.json",
@@ -3338,7 +3358,18 @@
             "text": "Join 1 → 2: Module 1 already lifts and quenches cells. cell_prep_v1 steps 1-3 expect an adherent layer and dissociate again"
           }
         ],
-        "full_spec": null,
+        "full_spec": {
+          "label": "FULL SPEC",
+          "chip": "chip/module1_target_v1.json",
+          "id": "module1_target_v1",
+          "name": "Module 1 at target scale: three perfused lanes, replicated fields, one sample for every omic arm",
+          "scale": "TARGET 127.76 x 85.48 mm",
+          "plan_svgs": [
+            "cad/figures/module1_target_v1_features.svg",
+            "cad/figures/module1_target_v1_layout.svg",
+            "cad/figures/module1_target_v1_stack.svg"
+          ]
+        },
         "artifacts": {
           "plan_svgs": [
             "cad/figures/module1_v1_features.svg",
@@ -3353,7 +3384,9 @@
             "report": "assay2chip/work/pipeline_mvp/cfd/report.md",
             "steps_simulated": [
               1,
+              3,
               46,
+              48,
               57
             ],
             "figures": [
@@ -3361,10 +3394,18 @@
               "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s1_residence.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s1_shear.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s1_speed.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s3_pressure.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s3_residence.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s3_shear.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s3_speed.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s46_pressure.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s46_residence.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s46_shear.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s46_speed.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s48_pressure.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s48_residence.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s48_shear.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s48_speed.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s57_pressure.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s57_residence.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module1_v1_s57_shear.svg",
@@ -3375,7 +3416,11 @@
             "runs/module1_v1__module1_v1.json"
           ]
         },
-        "demo": null,
+        "demo": {
+          "source": "docs/demo.md",
+          "procedure": [],
+          "shot": null
+        },
         "video": {
           "module": "Module 1",
           "chip_id": "module1_v1",
@@ -3465,12 +3510,12 @@
             "reagent": [
               "wash_buffer"
             ],
-            "volume_ul": 4.737,
+            "volume_ul": 10.908,
             "washes": 2,
-            "flow_ul_min": 0.465,
-            "duration_s": 1711.0,
+            "flow_ul_min": 1.163,
+            "duration_s": 1576.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "in_buffer"
             ],
@@ -3489,10 +3534,10 @@
             ],
             "volume_ul": 4.737,
             "washes": 1,
-            "flow_ul_min": 0.465,
-            "duration_s": 856.0,
+            "flow_ul_min": 1.163,
+            "duration_s": 342.0,
             "temp_c": 37,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [
               "in_enz"
             ],
@@ -3526,7 +3571,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 856.0,
+            "duration_s": 8466.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -3545,10 +3590,10 @@
             "reagent": [
               "quench_buffer"
             ],
-            "volume_ul": 1.326,
+            "volume_ul": 0.36,
             "washes": null,
-            "flow_ul_min": 0.465,
-            "duration_s": 240.0,
+            "flow_ul_min": 0.047,
+            "duration_s": 643.0,
             "temp_c": 4,
             "exchange_kind": null,
             "feed": [
@@ -3567,10 +3612,10 @@
             "reagent": [
               "quench_buffer"
             ],
-            "volume_ul": 1.326,
+            "volume_ul": 0.36,
             "washes": null,
-            "flow_ul_min": 0.465,
-            "duration_s": 240.0,
+            "flow_ul_min": 0.047,
+            "duration_s": 643.0,
             "temp_c": 4,
             "exchange_kind": null,
             "feed": [
@@ -3657,7 +3702,7 @@
           {
             "id": "mix_1",
             "type": "mixer",
-            "block": "serpentine_channel",
+            "block": "herringbone_mixer",
             "volume_ul": 1.326
           },
           {
@@ -3697,7 +3742,10 @@
           }
         ],
         "off_chip": [
-          "Those four steps were costed against a bench tube and lost: at a 100 um feature floor, deterministic lateral displacement needs 12-45 um gaps, impedance counting needs a 20-50 um aperture, a pillar g…"
+          "out_cells: That mesh is the chip's declared cell_filter (gap_um 30, was written as a 40 um strainer) and it is OFF CHIP by necessity: the encapsulator's nozzle is 300 um, protecting it needs…",
+          "Those four steps were costed against a bench tube and lost: at a 100 um feature floor, deterministic lateral displacement needs 12-45 um gaps, impedance counting needs a 20-50 um aperture, a pillar g…",
+          "CELL FILTER BEFORE THE NOZZLE - OFF CHIP, AND NOW DECLARED.",
+          "The second bound is tighter: a chip that declares no encapsulation stage of its own is checked against contracts/parameters.json encapsulation.nozzle_um, the bought kit's 40 x 40 um flow-focusing noz…"
         ],
         "known_limits": [
           {
@@ -3770,7 +3818,11 @@
             "runs/cell_prep_v1__cell_prep_v1.json"
           ]
         },
-        "demo": null,
+        "demo": {
+          "source": "docs/demo.md",
+          "procedure": [],
+          "shot": null
+        },
         "video": null
       },
       "order": 2
@@ -3845,7 +3897,7 @@
       "module": {
         "chip_id": "spc_demo_v1",
         "chip": "chip/spc_demo_v1.json",
-        "chip_name": "Capsule generator, demo scale",
+        "chip_name": "Flow-focusing geometry demo / reference board (not the pipeline's encapsulator)",
         "scale": "DEMO 30 x 20 mm",
         "fluidic_depth_mm": 0.15,
         "printed_for_demo": true,
@@ -3862,12 +3914,12 @@
             "reagent": [
               "carrier_oil"
             ],
-            "volume_ul": 21.5,
+            "volume_ul": 4.68,
             "washes": 1,
-            "flow_ul_min": 3.107,
-            "duration_s": 581.0,
+            "flow_ul_min": 0.071,
+            "duration_s": 5537.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [
               "in_oil"
             ],
@@ -3926,7 +3978,7 @@
               "delay_1"
             ],
             "reagent": [
-              "photoinitiator"
+              "dye_solution"
             ],
             "volume_ul": null,
             "washes": null,
@@ -3958,7 +4010,7 @@
           {
             "id": "in_core",
             "type": "inlet",
-            "role": "cells",
+            "role": "reagent",
             "fed_in_steps": 2,
             "vented_in_steps": 0
           },
@@ -4017,7 +4069,7 @@
             "id": "delay_1",
             "type": "exchange",
             "block": "serpentine_channel",
-            "volume_ul": 21.5
+            "volume_ul": 4.68
           }
         ],
         "thermal_zones": [
@@ -4037,20 +4089,25 @@
         ],
         "off_chip": [
           "build: resin print + hot emboss, 30 x 20 mm, 0.15 mm deep, one fluidic layer; curing off-chip",
-          "Curing stays off-chip."
+          "ENCAPSULATION IS THEREFORE OFF-CHIP, on the existing commercial droplet kit, at 70 um.",
+          "No pillar arrays, no phase guides, no traps: a phase guide is a partial-height ridge and a trap gap would have to be under 100 um, and neither survives a single-depth 2D rule. oil_split takes one oil…"
         ],
         "known_limits": [
           {
             "source": "chip description",
-            "text": "DEMO SCALE: authored directly at demo scale, so the scale factor is 1.0 and fit_chip.py changes nothing. 30 x 20 mm, one fluidic layer, 0.15 mm deep (limit 0.3 mm), 4 ports (limit 6), so no ports were merged and no chan…"
+            "text": "WHAT IT CANNOT DO: MAKE 70 um CAPSULES."
           },
           {
             "source": "chip description",
-            "text": "Residual: the 100 um orifice is below the 0.2 mm open-channel floor, so it must be widened to 0.2 mm or be a documented exception, and droplets would then be about 260 um."
+            "text": "Our in-plane fabrication floor is 200 um for both routes we have, resin printing and hot embossing, so a 40 um orifice is five times below the floor: there is no on-chip path to 70 um here, by either process, at any flo…"
           },
           {
             "source": "chip description",
-            "text": "NOTE this is above the 40 um the published method uses, because 40 um is below the 200 um printable floor, so capsules from this chip will be much larger than 70 um."
+            "text": "THE GEOMETRY AS DRAWN, and every number in this file now agrees with it. 30 x 20 mm, one fluidic layer, ONE DEPTH of 0.15 mm everywhere, 4 ports (limit 6), every channel 0.3 mm wide, which is above the 0.2 mm open-chann…"
+          },
+          {
+            "source": "chip description",
+            "text": "Earlier versions of this file also claimed a 100 um orifice giving 260 um droplets; that orifice was never drawn, it is below the open-channel floor, and the claim is removed."
           },
           {
             "source": "protocols/pipeline_mvp.json",
@@ -4101,11 +4158,15 @@
             "runs/spc_demo_v1__spc_demo_v1.json"
           ]
         },
-        "demo": null,
+        "demo": {
+          "source": "docs/demo.md",
+          "procedure": [],
+          "shot": null
+        },
         "video": {
           "module": "Module 2",
           "chip_id": "spc_demo_v1",
-          "title": "Module 2: Capsule generator, demo scale (printed demo chip)",
+          "title": "Module 2: Flow-focusing geometry demo / reference board (not the pipeline's encapsulator) (printed demo chip)",
           "shot": "Top-down macro of spc_demo_v1 on a backlight, ruler in shot: food dye pushed in through in_oil, in_shell, in_core, filling delay_1, xj_1 in protocol order, then flushed out.",
           "shot_source": "generated from the protocol",
           "url": null,
@@ -4172,21 +4233,21 @@
           "to": {
             "stage": "barcoding",
             "ports": [
-              "TBC"
+              "in_load"
             ]
           },
-          "after_step": null,
+          "after_step": 9,
           "volume_ul": null,
           "particle_um": null,
           "particle_source": null,
           "connector": "unknown",
-          "note": "Washed capsules (after RT in the trap) into the split tree."
+          "note": "RT already ran inside Module 3's trap, so the RT-treated, resuspended bed leaves in one counted suspension (76.9 uL after step 9) with no barcode on the cDNA yet."
         }
       ],
       "module": {
         "chip_id": "module3_v1_translated",
         "chip": "chip/module3_v1_translated.json",
-        "chip_name": "Module 3: load, lysis, wash (translated from Szonja's file)",
+        "chip_name": "Module 3: load, lysis, wash (translated from the project's geometry requirements sheet)",
         "scale": "DEMO 30 x 20 mm",
         "fluidic_depth_mm": 0.3,
         "printed_for_demo": true,
@@ -4205,8 +4266,8 @@
             ],
             "volume_ul": 38.443,
             "washes": null,
-            "flow_ul_min": 10.8,
-            "duration_s": 214.0,
+            "flow_ul_min": 59.4,
+            "duration_s": 39.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4225,12 +4286,12 @@
             "reagent": [
               "lysis_buffer"
             ],
-            "volume_ul": 38.443,
-            "washes": 5,
-            "flow_ul_min": 10.8,
-            "duration_s": 1068.0,
+            "volume_ul": 177.037,
+            "washes": 1,
+            "flow_ul_min": 59.4,
+            "duration_s": 179.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "reagent_in"
             ],
@@ -4263,12 +4324,12 @@
             "reagent": [
               "wash_buffer"
             ],
-            "volume_ul": 38.443,
-            "washes": 15,
-            "flow_ul_min": 10.8,
-            "duration_s": 3204.0,
+            "volume_ul": 177.037,
+            "washes": 1,
+            "flow_ul_min": 59.4,
+            "duration_s": 179.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "reagent_in"
             ],
@@ -4287,10 +4348,10 @@
             ],
             "volume_ul": 38.443,
             "washes": 1,
-            "flow_ul_min": 10.8,
-            "duration_s": 214.0,
+            "flow_ul_min": 59.4,
+            "duration_s": 39.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [
               "reagent_in"
             ],
@@ -4323,12 +4384,12 @@
             "reagent": [
               "wash_buffer"
             ],
-            "volume_ul": 38.443,
-            "washes": 15,
-            "flow_ul_min": 10.8,
-            "duration_s": 3204.0,
+            "volume_ul": 177.037,
+            "washes": 1,
+            "flow_ul_min": 59.4,
+            "duration_s": 179.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "reagent_in"
             ],
@@ -4345,12 +4406,12 @@
             "reagent": [
               "resuspension_buffer"
             ],
-            "volume_ul": 38.443,
+            "volume_ul": 177.037,
             "washes": 1,
-            "flow_ul_min": 10.8,
-            "duration_s": 214.0,
+            "flow_ul_min": 59.4,
+            "duration_s": 179.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "backflush_in"
             ],
@@ -4369,8 +4430,8 @@
             ],
             "volume_ul": null,
             "washes": null,
-            "flow_ul_min": 10.8,
-            "duration_s": 428.0,
+            "flow_ul_min": 59.4,
+            "duration_s": 78.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4479,7 +4540,7 @@
           },
           {
             "source": "protocols/pipeline_mvp.json",
-            "text": "The one capsule trap, and the one place RT runs (steps 5-7: RT mix, 42 C hold, wash; no barcode or UMI added, cells already carry a per-lane barcode). Wins over m2_trap_1 and m3_wash_v1 (retired). Her file is the source of truth. Built for 70 um capsules and a 650,000 count; encapsulation makes abo…"
+            "text": "The one capsule trap, and the one place RT runs (steps 5-7: RT mix, 42 C hold, wash). Reverse transcription adds no barcode and no UMI itself; the per-cell barcode is added by the next module, barcoding, which overlap-extends a clonal per-capsule barcode onto this cDNA inside an oil droplet. Wins o…"
           },
           {
             "source": "protocols/pipeline_status.md",
@@ -4491,7 +4552,7 @@
           },
           {
             "source": "protocols/pipeline_status.md",
-            "text": "Join 4 → 5: Module3 releases 76.9 µL; module4 draws 9.6 µL at near-packed density. Concentration step undocumented. Valve and tubing off-chip"
+            "text": "Join 4 → 4b: Module3 releases 76.9 µL; stage 4b re-injects capsules close-packed, so the suspension has to be concentrated to a packed bed first. Undocumented. The join also crosses onto bought hardware, so it needs an adapter"
           }
         ],
         "full_spec": null,
@@ -4509,8 +4570,8 @@
             "steps_simulated": [
               1,
               2,
-              8,
-              9
+              4,
+              8
             ],
             "figures": [
               "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s1_pressure.svg",
@@ -4521,14 +4582,14 @@
               "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s2_residence.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s2_shear.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s2_speed.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s4_pressure.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s4_residence.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s4_shear.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s4_speed.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s8_pressure.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s8_residence.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s8_shear.svg",
-              "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s8_speed.svg",
-              "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s9_pressure.svg",
-              "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s9_residence.svg",
-              "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s9_shear.svg",
-              "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s9_speed.svg"
+              "assay2chip/work/pipeline_mvp/cfd/figures/module3_v1_translated_s8_speed.svg"
             ]
           },
           "flow_runs": [
@@ -4536,11 +4597,15 @@
             "runs/module3_v1_translated__module3_v1_translated.json"
           ]
         },
-        "demo": null,
+        "demo": {
+          "source": "docs/demo.md",
+          "procedure": [],
+          "shot": null
+        },
         "video": {
           "module": "Module 3",
           "chip_id": "module3_v1_translated",
-          "title": "Module 3: load, lysis, wash (translated from Szonja's file) (printed demo chip)",
+          "title": "Module 3: load, lysis, wash (translated from the project's geometry requirements sheet) (printed demo chip)",
           "shot": "Top-down macro of module3_v1_translated on a backlight, ruler in shot: food dye pushed in through capsule_in, reagent_in, backflush_in, filling main_trap in protocol order, then flushed out.",
           "shot_source": "generated from the protocol",
           "url": null,
@@ -4553,11 +4618,11 @@
     },
     {
       "stage": "barcoding",
-      "name": "Barcoding: split and pool (BC2, BC3)",
-      "status": "missing",
-      "status_note": "placeholder · dropped by MJ for now",
-      "owner": "TBC",
-      "kind": "PLACEHOLDER",
+      "name": "Barcoding: one clonal barcode per capsule, generated in its own oil droplet",
+      "status": "draft",
+      "status_note": "draft - the chemistry and the protocol exist; the droplet hardware is bought, not printed",
+      "owner": "MJ",
+      "kind": "CHIP",
       "arrives": [
         {
           "id": "module3_to_barcoding",
@@ -4571,83 +4636,25 @@
           "to": {
             "stage": "barcoding",
             "ports": [
-              "TBC"
+              "in_load"
             ]
           },
-          "after_step": null,
+          "after_step": 9,
           "volume_ul": null,
           "particle_um": null,
           "particle_source": null,
           "connector": "unknown",
-          "note": "Washed capsules (after RT in the trap) into the split tree."
+          "note": "RT already ran inside Module 3's trap, so the RT-treated, resuspended bed leaves in one counted suspension (76.9 uL after step 9) with no barcode on the cDNA yet."
         }
       ],
       "leaves": [
         {
-          "id": "barcoding_to_hairpin",
+          "id": "barcoding_to_module4",
           "carries": "capsules",
           "from": {
             "stage": "barcoding",
             "ports": [
-              "TBC"
-            ]
-          },
-          "to": {
-            "stage": "hairpin",
-            "ports": [
-              "TBC"
-            ]
-          },
-          "after_step": null,
-          "volume_ul": null,
-          "particle_um": null,
-          "particle_source": null,
-          "connector": "unknown",
-          "note": "Pooled capsules after the last barcode round."
-        }
-      ],
-      "note": "Placeholder. MJ dropped split-and-pool barcoding (fcc6ef2): the cells keep only the per-lane barcode they get in Module 1, so the data is lane-level, not single-cell. This stage comes back only if the team decides single-cell resolution is needed (open question in protocols/pipeline_status.md).",
-      "order": 7
-    },
-    {
-      "stage": "hairpin",
-      "name": "Hairpin ligation + pooled wash",
-      "status": "missing",
-      "status_note": "placeholder · dropped with the barcoding",
-      "owner": "TBC",
-      "kind": "PLACEHOLDER",
-      "arrives": [
-        {
-          "id": "barcoding_to_hairpin",
-          "carries": "capsules",
-          "from": {
-            "stage": "barcoding",
-            "ports": [
-              "TBC"
-            ]
-          },
-          "to": {
-            "stage": "hairpin",
-            "ports": [
-              "TBC"
-            ]
-          },
-          "after_step": null,
-          "volume_ul": null,
-          "particle_um": null,
-          "particle_source": null,
-          "connector": "unknown",
-          "note": "Pooled capsules after the last barcode round."
-        }
-      ],
-      "leaves": [
-        {
-          "id": "hairpin_to_module4",
-          "carries": "capsules",
-          "from": {
-            "stage": "hairpin",
-            "ports": [
-              "TBC"
+              "out_waste"
             ]
           },
           "to": {
@@ -4659,16 +4666,630 @@
               "in_s4"
             ]
           },
-          "after_step": null,
+          "after_step": 21,
           "volume_ul": null,
           "particle_um": null,
           "particle_source": null,
           "connector": "unknown",
-          "note": "RT already ran inside Module 3's trap, so the RT-treated, resuspended bed leaves in one counted suspension (76.9 uL after step 9)."
+          "note": "Barcoded capsules in one suspension."
         }
       ],
-      "note": "Placeholder: the hairpin ligation after the last barcode round and the wash of the pooled capsules. Dropped together with split-and-pool barcoding (fcc6ef2).",
-      "order": 8
+      "module": {
+        "chip_id": "sctip_spc_v1",
+        "chip": "chip/sctip_spc_v1.json",
+        "chip_name": "SPC barcoding and capsule handling (stage B)",
+        "scale": "DEMO 30 x 20 mm",
+        "fluidic_depth_mm": 0.15,
+        "printed_for_demo": false,
+        "slot": "Barcoding",
+        "placeholder": false,
+        "protocol": "protocols/sctip_spc_v1.json",
+        "function": [
+          {
+            "step": 1,
+            "operation": "encapsulate",
+            "target": [
+              "nozzle_2"
+            ],
+            "reagent": [],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 17417.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_load",
+              "in_reagent",
+              "in_oil"
+            ],
+            "vent": [
+              "out_drop"
+            ]
+          },
+          {
+            "step": 2,
+            "operation": "transfer",
+            "target": [
+              "out_drop"
+            ],
+            "reagent": [],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 600.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_oil"
+            ],
+            "vent": [
+              "out_drop"
+            ]
+          },
+          {
+            "step": 3,
+            "operation": "hold_temp",
+            "target": [
+              "nozzle_2"
+            ],
+            "reagent": [],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 7200.0,
+            "temp_c": 72,
+            "exchange_kind": null,
+            "feed": [],
+            "vent": []
+          },
+          {
+            "step": 4,
+            "operation": "load",
+            "target": [
+              "brk_1"
+            ],
+            "reagent": [
+              "emulsion"
+            ],
+            "volume_ul": 0.531,
+            "washes": null,
+            "flow_ul_min": 0.367,
+            "duration_s": 122.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_load"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 5,
+            "operation": "exchange",
+            "target": [
+              "brk_1"
+            ],
+            "reagent": [
+              "emulsion_breaker"
+            ],
+            "volume_ul": 0.531,
+            "washes": 5,
+            "flow_ul_min": 0.367,
+            "duration_s": 608.0,
+            "temp_c": null,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_reagent"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 6,
+            "operation": "load",
+            "target": [
+              "brk_1"
+            ],
+            "reagent": [
+              "emulsion"
+            ],
+            "volume_ul": 0.531,
+            "washes": null,
+            "flow_ul_min": 0.367,
+            "duration_s": 122.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_load"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 7,
+            "operation": "exchange",
+            "target": [
+              "brk_1"
+            ],
+            "reagent": [
+              "emulsion_breaker"
+            ],
+            "volume_ul": 0.531,
+            "washes": 5,
+            "flow_ul_min": 0.367,
+            "duration_s": 608.0,
+            "temp_c": null,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_reagent"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 8,
+            "operation": "load",
+            "target": [
+              "brk_1"
+            ],
+            "reagent": [
+              "emulsion"
+            ],
+            "volume_ul": 0.531,
+            "washes": null,
+            "flow_ul_min": 0.367,
+            "duration_s": 122.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_load"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 9,
+            "operation": "exchange",
+            "target": [
+              "brk_1"
+            ],
+            "reagent": [
+              "emulsion_breaker"
+            ],
+            "volume_ul": 0.531,
+            "washes": 5,
+            "flow_ul_min": 0.367,
+            "duration_s": 608.0,
+            "temp_c": null,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_reagent"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 10,
+            "operation": "load",
+            "target": [
+              "brk_1"
+            ],
+            "reagent": [
+              "emulsion"
+            ],
+            "volume_ul": 0.531,
+            "washes": null,
+            "flow_ul_min": 0.367,
+            "duration_s": 122.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_load"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 11,
+            "operation": "exchange",
+            "target": [
+              "brk_1"
+            ],
+            "reagent": [
+              "emulsion_breaker"
+            ],
+            "volume_ul": 0.531,
+            "washes": 5,
+            "flow_ul_min": 0.367,
+            "duration_s": 608.0,
+            "temp_c": null,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_reagent"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 12,
+            "operation": "load",
+            "target": [
+              "brk_1"
+            ],
+            "reagent": [
+              "emulsion"
+            ],
+            "volume_ul": 0.043,
+            "washes": null,
+            "flow_ul_min": 0.367,
+            "duration_s": 10.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_load"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 13,
+            "operation": "exchange",
+            "target": [
+              "brk_1"
+            ],
+            "reagent": [
+              "emulsion_breaker"
+            ],
+            "volume_ul": 0.531,
+            "washes": 5,
+            "flow_ul_min": 0.367,
+            "duration_s": 608.0,
+            "temp_c": null,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_reagent"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 14,
+            "operation": "exchange",
+            "target": [
+              "trap_1"
+            ],
+            "reagent": [
+              "wash_buffer"
+            ],
+            "volume_ul": 1.084,
+            "washes": 1,
+            "flow_ul_min": 0.642,
+            "duration_s": 142.0,
+            "temp_c": null,
+            "exchange_kind": "partial",
+            "feed": [
+              "in_reagent"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 15,
+            "operation": "exchange",
+            "target": [
+              "trap_1"
+            ],
+            "reagent": [
+              "wash_buffer"
+            ],
+            "volume_ul": 1.084,
+            "washes": 5,
+            "flow_ul_min": 0.642,
+            "duration_s": 1500.0,
+            "temp_c": null,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_reagent"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 16,
+            "operation": "exchange",
+            "target": [
+              "trap_1"
+            ],
+            "reagent": [
+              "wash_buffer"
+            ],
+            "volume_ul": 1.084,
+            "washes": 5,
+            "flow_ul_min": 0.642,
+            "duration_s": 1500.0,
+            "temp_c": null,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_reagent"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 17,
+            "operation": "hold_temp",
+            "target": [
+              "trap_1"
+            ],
+            "reagent": [],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 180.0,
+            "temp_c": 72,
+            "exchange_kind": null,
+            "feed": [],
+            "vent": []
+          },
+          {
+            "step": 18,
+            "operation": "exchange",
+            "target": [
+              "trap_1"
+            ],
+            "reagent": [
+              "transcription_mix"
+            ],
+            "volume_ul": 1.084,
+            "washes": 1,
+            "flow_ul_min": 0.642,
+            "duration_s": 300.0,
+            "temp_c": null,
+            "exchange_kind": "fill",
+            "feed": [
+              "in_reagent"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 19,
+            "operation": "hold_temp",
+            "target": [
+              "trap_1"
+            ],
+            "reagent": [],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 61200.0,
+            "temp_c": 37,
+            "exchange_kind": null,
+            "feed": [],
+            "vent": []
+          },
+          {
+            "step": 20,
+            "operation": "exchange",
+            "target": [
+              "trap_1"
+            ],
+            "reagent": [
+              "wash_buffer"
+            ],
+            "volume_ul": 1.084,
+            "washes": 5,
+            "flow_ul_min": 0.642,
+            "duration_s": 1500.0,
+            "temp_c": null,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_reagent"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          },
+          {
+            "step": 21,
+            "operation": "release",
+            "target": [
+              "trap_1"
+            ],
+            "reagent": [
+              "release_buffer"
+            ],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 101.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_reagent"
+            ],
+            "vent": [
+              "out_waste"
+            ]
+          }
+        ],
+        "ports": [
+          {
+            "id": "in_reagent",
+            "type": "inlet",
+            "role": "reagent",
+            "fed_in_steps": 12,
+            "vented_in_steps": 0
+          },
+          {
+            "id": "out_waste",
+            "type": "outlet",
+            "role": "waste",
+            "fed_in_steps": 0,
+            "vented_in_steps": 16
+          },
+          {
+            "id": "in_load",
+            "type": "inlet",
+            "role": "load",
+            "fed_in_steps": 6,
+            "vented_in_steps": 0
+          },
+          {
+            "id": "out_drop",
+            "type": "outlet",
+            "role": "transfer",
+            "fed_in_steps": 0,
+            "vented_in_steps": 2
+          },
+          {
+            "id": "in_oil",
+            "type": "inlet",
+            "role": "oil",
+            "fed_in_steps": 2,
+            "vented_in_steps": 0
+          }
+        ],
+        "chambers": [
+          {
+            "id": "pack_1",
+            "type": "junction",
+            "block": "flow_focusing_funnel",
+            "volume_ul": 0.006
+          },
+          {
+            "id": "nozzle_2",
+            "type": "junction",
+            "block": "flow_focusing",
+            "volume_ul": 0.006
+          },
+          {
+            "id": "brk_1",
+            "type": "filter",
+            "block": "phase_guide",
+            "volume_ul": 0.531
+          },
+          {
+            "id": "trap_1",
+            "type": "cell_wash",
+            "block": "trap_chamber",
+            "volume_ul": 1.084
+          }
+        ],
+        "thermal_zones": [
+          {
+            "id": "protocol_nozzle_2",
+            "chambers": [
+              "nozzle_2"
+            ],
+            "min_c": 72.0,
+            "max_c": 72.0,
+            "temps_c": [
+              72.0
+            ],
+            "purpose": null,
+            "source": "protocol temperatures (no thermal_zones in the chip)"
+          },
+          {
+            "id": "protocol_trap_1",
+            "chambers": [
+              "trap_1"
+            ],
+            "min_c": 37.0,
+            "max_c": 72.0,
+            "temps_c": [
+              37.0,
+              72.0
+            ],
+            "purpose": null,
+            "source": "protocol temperatures (no thermal_zones in the chip)"
+          }
+        ],
+        "off_chip": [
+          "build: NOT PRINTABLE AS DRAWN, and that is the position we take rather than a failure: stage B needs a close-packed re-injection entrance of about 0.85 x the capsule diameter and stage C needs 100 x 150 um slots, both far below the 200 um in-plane floor, so re-injection, droplet making and emulsion breaking run on a BOUGHT DROPLET KIT exactly as encapsulation does. chip/sctip_spc_v1.json is the demo-scale layout only; its pack_1 is clamped to 200 um, which is wider than a capsule and so cannot order them single file. The one part we do fabricate is capsule retention: a depth weir with a 25 um gap under the lid (crest = the chip's etch depth minus the gap), because the 200 um floor is IN-PLANE and z is free.",
+          "in_reagent: off-chip selector valve: shell polymer (stage A, to filt_shell) / amplification mix + single-copy barcode (stage B, to pack_1) / wash and reagent buffers (stage C, to trap_1).",
+          "out_waste: off-chip selector valve: oil waste, aqueous waste below the bed, and back-flushed capsule recovery.",
+          "in_load: off-chip selector valve: cured capsules, close-packed (stage B, to pack_1) / thermocycled emulsion back from the tube (stage C, to brk_1).",
+          "Sequential inlets share in_reagent and in_load behind off-chip selector valves.",
+          "The trap's retention opening cannot be printed in plane (200 um floor against a 70 um capsule) and must be a depth weir or a bought mesh - see contracts/blocks.json.",
+          "That weir does not transfer here - this fluidic layer is 0.15 mm, not 0.3 mm, and these capsules are 135 um, not 70 um - so trap_1 is deliberately given no retention at all: it relies on packed-bed g…"
+        ],
+        "known_limits": [
+          {
+            "source": "chip description",
+            "text": "The trap's retention opening cannot be printed in plane (200 um floor against a 70 um capsule) and must be a depth weir or a bought mesh - see contracts/blocks.json."
+          },
+          {
+            "source": "chip description",
+            "text": "The weir is UNTESTED, and z tolerance (about +/-20 um on a 25 um gap, roughly +/-71%) is the biggest unknown: the gap could close or leak outright."
+          },
+          {
+            "source": "protocols/pipeline_mvp.json",
+            "text": "THE STAGE THAT MAKES THIS A SINGLE-CELL ASSAY, and the stage the pipeline had quietly lost. Stages B and C of protocols/sctip_spc_v1.json are not a duplicate of module 3's trap; they are the missing barcoding step. IN: washed capsules from module 3, each holding one cell's cDNA with no barcode on i…"
+          },
+          {
+            "source": "protocols/pipeline_status.md",
+            "text": "Chain status: DESIGNED + PROTOCOL, NOT PRINTABLE: droplet handling on a bought kit"
+          },
+          {
+            "source": "protocols/pipeline_status.md",
+            "text": "Join 4 → 4b: Module3 releases 76.9 µL; stage 4b re-injects capsules close-packed, so the suspension has to be concentrated to a packed bed first. Undocumented. The join also crosses onto bought hardware, so it needs an adapter"
+          },
+          {
+            "source": "protocols/pipeline_status.md",
+            "text": "Join 4b → 5: Stage 4b back-flushes the bed out through its own waste line (step 21, routed by an off-chip selector valve); module4 draws 9.6 µL at near-packed density. Concentration step undocumented. Valve and tubing off-chip, and the kit-side fitting is unnamed"
+          },
+          {
+            "source": "protocols/pipeline_status.md",
+            "text": "The data is single-cell, and the earlier \"lane-level\" note was wrong. Dropping plate-based split-and-pool barcoding did not drop per-cell barcoding. What actually happened is narrower and worse: the pipeline file lost its barcoding stage and then rationalised…"
+          },
+          {
+            "source": "protocols/pipeline_status.md",
+            "text": "The droplet hardware is bought; the barcoding chemistry is ours. Stage B needs a close-packed entrance of about 0.85 × the capsule diameter and stage C needs 100 × 150 µm slots. Our in-plane floor is 200 µm. So, exactly as with encapsulation, re-injection, dr…"
+          }
+        ],
+        "full_spec": null,
+        "artifacts": {
+          "plan_svgs": [
+            "cad/figures/sctip_spc_v1_features.svg",
+            "cad/figures/sctip_spc_v1_layout.svg",
+            "cad/figures/sctip_spc_v1_stack.svg"
+          ],
+          "renders_3d": [],
+          "cfd": {
+            "field": null,
+            "mesh": null,
+            "report": null,
+            "steps_simulated": [],
+            "figures": []
+          },
+          "flow_runs": [
+            "runs/sctip_spc_v1__sctip_spc_v1.json"
+          ]
+        },
+        "demo": {
+          "source": "docs/demo.md",
+          "procedure": [],
+          "shot": null
+        },
+        "video": null
+      },
+      "order": 7
     },
     {
       "stage": "module4",
@@ -4679,12 +5300,12 @@
       "kind": "CHIP",
       "arrives": [
         {
-          "id": "hairpin_to_module4",
+          "id": "barcoding_to_module4",
           "carries": "capsules",
           "from": {
-            "stage": "hairpin",
+            "stage": "barcoding",
             "ports": [
-              "TBC"
+              "out_waste"
             ]
           },
           "to": {
@@ -4696,12 +5317,12 @@
               "in_s4"
             ]
           },
-          "after_step": null,
+          "after_step": 21,
           "volume_ul": null,
           "particle_um": null,
           "particle_source": null,
           "connector": "unknown",
-          "note": "RT already ran inside Module 3's trap, so the RT-treated, resuspended bed leaves in one counted suspension (76.9 uL after step 9)."
+          "note": "Barcoded capsules in one suspension."
         }
       ],
       "leaves": [
@@ -4711,7 +5332,7 @@
           "from": {
             "stage": "module4",
             "ports": [
-              "TBC"
+              "out_sub"
             ]
           },
           "to": {
@@ -4750,8 +5371,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4772,8 +5393,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4794,8 +5415,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4816,8 +5437,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4838,8 +5459,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4860,8 +5481,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4882,8 +5503,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4904,8 +5525,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4926,8 +5547,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4948,8 +5569,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4970,8 +5591,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -4992,8 +5613,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -5014,8 +5635,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -5036,8 +5657,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -5058,8 +5679,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -5080,8 +5701,8 @@
             ],
             "volume_ul": 0.6,
             "washes": null,
-            "flow_ul_min": 3.92,
-            "duration_s": 18.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -5102,10 +5723,10 @@
             ],
             "volume_ul": 0.6,
             "washes": 1,
-            "flow_ul_min": 3.92,
-            "duration_s": 13.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 1.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [
               "in_s1"
             ],
@@ -5124,10 +5745,10 @@
             ],
             "volume_ul": 0.6,
             "washes": 1,
-            "flow_ul_min": 3.92,
-            "duration_s": 13.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 1.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [
               "in_s2"
             ],
@@ -5146,10 +5767,10 @@
             ],
             "volume_ul": 0.6,
             "washes": 1,
-            "flow_ul_min": 3.92,
-            "duration_s": 13.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 1.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [
               "in_s3"
             ],
@@ -5168,10 +5789,10 @@
             ],
             "volume_ul": 0.6,
             "washes": 1,
-            "flow_ul_min": 3.92,
-            "duration_s": 13.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 1.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [
               "in_s4"
             ],
@@ -5188,12 +5809,12 @@
             "reagent": [
               "pcr_mix"
             ],
-            "volume_ul": 3.324,
+            "volume_ul": 3.68,
             "washes": 1,
-            "flow_ul_min": 3.92,
-            "duration_s": 72.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [
               "in_s1"
             ],
@@ -5210,12 +5831,12 @@
             "reagent": [
               "pcr_mix"
             ],
-            "volume_ul": 3.324,
+            "volume_ul": 3.68,
             "washes": 1,
-            "flow_ul_min": 3.92,
-            "duration_s": 72.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [
               "in_s2"
             ],
@@ -5232,12 +5853,12 @@
             "reagent": [
               "pcr_mix"
             ],
-            "volume_ul": 3.324,
+            "volume_ul": 3.68,
             "washes": 1,
-            "flow_ul_min": 3.92,
-            "duration_s": 72.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [
               "in_s3"
             ],
@@ -5254,12 +5875,12 @@
             "reagent": [
               "pcr_mix"
             ],
-            "volume_ul": 3.324,
+            "volume_ul": 3.68,
             "washes": 1,
-            "flow_ul_min": 3.92,
-            "duration_s": 72.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 6.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "fill",
             "feed": [
               "in_s4"
             ],
@@ -5890,43 +6511,138 @@
             "exchange_kind": null,
             "feed": [],
             "vent": []
+          },
+          {
+            "step": 64,
+            "operation": "release",
+            "target": [
+              "sub_1"
+            ],
+            "reagent": [
+              "air_chase"
+            ],
+            "volume_ul": 5.6,
+            "washes": null,
+            "flow_ul_min": 59.49,
+            "duration_s": 72.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_s1"
+            ],
+            "vent": [
+              "out_sub"
+            ]
+          },
+          {
+            "step": 65,
+            "operation": "release",
+            "target": [
+              "sub_2"
+            ],
+            "reagent": [
+              "air_chase"
+            ],
+            "volume_ul": 5.6,
+            "washes": null,
+            "flow_ul_min": 59.49,
+            "duration_s": 71.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_s2"
+            ],
+            "vent": [
+              "out_sub"
+            ]
+          },
+          {
+            "step": 66,
+            "operation": "release",
+            "target": [
+              "sub_3"
+            ],
+            "reagent": [
+              "air_chase"
+            ],
+            "volume_ul": 5.6,
+            "washes": null,
+            "flow_ul_min": 59.49,
+            "duration_s": 70.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_s3"
+            ],
+            "vent": [
+              "out_sub"
+            ]
+          },
+          {
+            "step": 67,
+            "operation": "release",
+            "target": [
+              "sub_4"
+            ],
+            "reagent": [
+              "air_chase"
+            ],
+            "volume_ul": 5.6,
+            "washes": null,
+            "flow_ul_min": 59.49,
+            "duration_s": 69.0,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_s4"
+            ],
+            "vent": [
+              "out_sub"
+            ]
           }
         ],
         "ports": [
           {
             "id": "in_s1",
             "type": "inlet",
-            "role": null,
-            "fed_in_steps": 6,
+            "role": "load",
+            "fed_in_steps": 7,
             "vented_in_steps": 0
           },
           {
             "id": "in_s2",
             "type": "inlet",
-            "role": null,
-            "fed_in_steps": 6,
+            "role": "load",
+            "fed_in_steps": 7,
             "vented_in_steps": 0
           },
           {
             "id": "in_s3",
             "type": "inlet",
-            "role": null,
-            "fed_in_steps": 6,
+            "role": "load",
+            "fed_in_steps": 7,
             "vented_in_steps": 0
           },
           {
             "id": "in_s4",
             "type": "inlet",
-            "role": null,
-            "fed_in_steps": 6,
+            "role": "load",
+            "fed_in_steps": 7,
             "vented_in_steps": 0
           },
           {
             "id": "p_vent",
             "type": "outlet",
-            "role": null,
+            "role": "waste",
             "fed_in_steps": 0,
             "vented_in_steps": 24
+          },
+          {
+            "id": "out_sub",
+            "type": "outlet",
+            "role": "transfer",
+            "fed_in_steps": 0,
+            "vented_in_steps": 4
           }
         ],
         "chambers": [
@@ -5953,6 +6669,30 @@
             "type": "split",
             "block": "polygon_chamber",
             "volume_ul": 8.0
+          },
+          {
+            "id": "node_1",
+            "type": "junction",
+            "block": "t_junction",
+            "volume_ul": 0.108
+          },
+          {
+            "id": "node_2",
+            "type": "junction",
+            "block": "t_junction",
+            "volume_ul": 0.108
+          },
+          {
+            "id": "node_3",
+            "type": "junction",
+            "block": "t_junction",
+            "volume_ul": 0.108
+          },
+          {
+            "id": "node_4",
+            "type": "junction",
+            "block": "t_junction",
+            "volume_ul": 0.108
           }
         ],
         "thermal_zones": [
@@ -5984,7 +6724,7 @@
           },
           {
             "source": "protocols/pipeline_status.md",
-            "text": "Join 4 → 5: Module3 releases 76.9 µL; module4 draws 9.6 µL at near-packed density. Concentration step undocumented. Valve and tubing off-chip"
+            "text": "Join 4b → 5: Stage 4b back-flushes the bed out through its own waste line (step 21, routed by an off-chip selector valve); module4 draws 9.6 µL at near-packed density. Concentration step undocumented. Valve and tubing off-chip, and the kit-side fitting is unnamed"
           },
           {
             "source": "protocols/pipeline_status.md",
@@ -6033,7 +6773,11 @@
             "runs/module4_v1__module4_v1.json"
           ]
         },
-        "demo": null,
+        "demo": {
+          "source": "docs/demo.md",
+          "procedure": [],
+          "shot": null
+        },
         "video": {
           "module": "Module 4",
           "chip_id": "module4_v1",
@@ -6046,7 +6790,7 @@
           "duration_s": null
         }
       },
-      "order": 9
+      "order": 8
     },
     {
       "stage": "module5",
@@ -6062,7 +6806,7 @@
           "from": {
             "stage": "module4",
             "ports": [
-              "TBC"
+              "out_sub"
             ]
           },
           "to": {
@@ -6121,10 +6865,10 @@
             "reagent": [
               "pcr_product_capsules"
             ],
-            "volume_ul": 4.22,
+            "volume_ul": 4.16,
             "washes": null,
-            "flow_ul_min": 2.86,
-            "duration_s": 144.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 26.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -6168,7 +6912,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 50.0,
+            "duration_s": 3.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -6201,12 +6945,12 @@
             "reagent": [
               "dilution_buffer"
             ],
-            "volume_ul": 8.1,
-            "washes": 5,
+            "volume_ul": 10.125,
+            "washes": 4,
             "flow_ul_min": 1.19,
             "duration_s": 2859.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "in_prot"
             ],
@@ -6223,12 +6967,12 @@
             "reagent": [
               "exchange_buffer"
             ],
-            "volume_ul": 6.0,
-            "washes": 2,
+            "volume_ul": 9.211,
+            "washes": 3,
             "flow_ul_min": 1.19,
-            "duration_s": 848.0,
+            "duration_s": 1951.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "in_bead"
             ],
@@ -6250,7 +6994,7 @@
             "flow_ul_min": 0.59,
             "duration_s": 428.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [
               "in_bead"
             ],
@@ -6289,10 +7033,10 @@
             "reagent": [
               "pcr_product_capsules"
             ],
-            "volume_ul": 4.22,
+            "volume_ul": 4.16,
             "washes": null,
-            "flow_ul_min": 2.86,
-            "duration_s": 144.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 26.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -6336,7 +7080,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 50.0,
+            "duration_s": 3.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -6369,12 +7113,12 @@
             "reagent": [
               "dilution_buffer"
             ],
-            "volume_ul": 8.1,
-            "washes": 5,
+            "volume_ul": 10.125,
+            "washes": 4,
             "flow_ul_min": 1.19,
             "duration_s": 2859.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "in_prot"
             ],
@@ -6391,12 +7135,12 @@
             "reagent": [
               "exchange_buffer"
             ],
-            "volume_ul": 6.0,
-            "washes": 2,
+            "volume_ul": 9.211,
+            "washes": 3,
             "flow_ul_min": 1.19,
-            "duration_s": 848.0,
+            "duration_s": 1951.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "in_bead"
             ],
@@ -6418,7 +7162,7 @@
             "flow_ul_min": 0.59,
             "duration_s": 428.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [
               "in_bead"
             ],
@@ -6457,10 +7201,10 @@
             "reagent": [
               "pcr_product_capsules"
             ],
-            "volume_ul": 4.22,
+            "volume_ul": 4.16,
             "washes": null,
-            "flow_ul_min": 2.86,
-            "duration_s": 144.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 26.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -6504,7 +7248,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 50.0,
+            "duration_s": 3.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -6537,12 +7281,12 @@
             "reagent": [
               "dilution_buffer"
             ],
-            "volume_ul": 8.1,
-            "washes": 5,
+            "volume_ul": 10.125,
+            "washes": 4,
             "flow_ul_min": 1.19,
             "duration_s": 2859.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "in_prot"
             ],
@@ -6559,12 +7303,12 @@
             "reagent": [
               "exchange_buffer"
             ],
-            "volume_ul": 6.0,
-            "washes": 2,
+            "volume_ul": 9.211,
+            "washes": 3,
             "flow_ul_min": 1.19,
-            "duration_s": 848.0,
+            "duration_s": 1951.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "in_bead"
             ],
@@ -6586,7 +7330,7 @@
             "flow_ul_min": 0.59,
             "duration_s": 428.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [
               "in_bead"
             ],
@@ -6625,10 +7369,10 @@
             "reagent": [
               "pcr_product_capsules"
             ],
-            "volume_ul": 4.22,
+            "volume_ul": 4.16,
             "washes": null,
-            "flow_ul_min": 2.86,
-            "duration_s": 144.0,
+            "flow_ul_min": 59.49,
+            "duration_s": 26.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -6672,7 +7416,7 @@
             "volume_ul": null,
             "washes": null,
             "flow_ul_min": null,
-            "duration_s": 50.0,
+            "duration_s": 3.0,
             "temp_c": null,
             "exchange_kind": null,
             "feed": [
@@ -6705,12 +7449,12 @@
             "reagent": [
               "dilution_buffer"
             ],
-            "volume_ul": 8.1,
-            "washes": 5,
+            "volume_ul": 10.125,
+            "washes": 4,
             "flow_ul_min": 1.19,
             "duration_s": 2859.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "in_prot"
             ],
@@ -6727,12 +7471,12 @@
             "reagent": [
               "exchange_buffer"
             ],
-            "volume_ul": 6.0,
-            "washes": 2,
+            "volume_ul": 9.211,
+            "washes": 3,
             "flow_ul_min": 1.19,
-            "duration_s": 848.0,
+            "duration_s": 1951.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "sweep",
             "feed": [
               "in_bead"
             ],
@@ -6754,7 +7498,7 @@
             "flow_ul_min": 0.59,
             "duration_s": 428.0,
             "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
+            "exchange_kind": "partial",
             "feed": [
               "in_bead"
             ],
@@ -6900,8 +7644,12 @@
             "text": "THERE IS NO MECHANICAL BEAD TRAP, and there cannot be: SPRI beads are about 1 um and the smallest feature either process can make is 200 um, so retention is purely magnetic and the geometry only shapes the flow."
           },
           {
+            "source": "chip description",
+            "text": "THE NARROWNESS IS IN THE CHANNEL, NOT THE BORE. ch_out_lib stays 0.3 mm wide, which is what keeps the wetted polymer area small; the PORT was also written as 300 um and that was wrong, because 300 um is below fabricatio…"
+          },
+          {
             "source": "protocols/pipeline_mvp.json",
-            "text": "Collagenase release at 37 C, then magnetic bead capture; one sublibrary per pass."
+            "text": "Matrix-digesting enzyme release at 37 C, then magnetic bead capture; one sublibrary per pass."
           },
           {
             "source": "protocols/pipeline_status.md",
@@ -6927,8 +7675,8 @@
             "steps_simulated": [
               1,
               2,
-              3,
-              5
+              5,
+              6
             ],
             "figures": [
               "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s1_pressure.svg",
@@ -6939,21 +7687,25 @@
               "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s2_residence.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s2_shear.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s2_speed.svg",
-              "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s3_pressure.svg",
-              "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s3_residence.svg",
-              "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s3_shear.svg",
-              "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s3_speed.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s5_pressure.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s5_residence.svg",
               "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s5_shear.svg",
-              "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s5_speed.svg"
+              "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s5_speed.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s6_pressure.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s6_residence.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s6_shear.svg",
+              "assay2chip/work/pipeline_mvp/cfd/figures/module5_v1_s6_speed.svg"
             ]
           },
           "flow_runs": [
             "runs/module5_v1__module5_v1.json"
           ]
         },
-        "demo": null,
+        "demo": {
+          "source": "docs/demo.md",
+          "procedure": [],
+          "shot": null
+        },
         "video": {
           "module": "Module 5",
           "chip_id": "module5_v1",
@@ -6966,14 +7718,14 @@
           "duration_s": null
         }
       },
-      "order": 10
+      "order": 9
     },
     {
       "stage": "spri_qc",
       "name": "SPRI size selection + QC (off-chip)",
       "kind": "OFF-CHIP",
       "status": "roadmap",
-      "note": "Qubit, TapeStation, qPCR. Undocumented: no protocol exists.",
+      "note": "Fluorometric quantification, fragment sizing and a quantitative amplification assay. Undocumented: no protocol exists.",
       "arrives": [
         {
           "id": "module5_to_spri_qc",
@@ -7016,6 +7768,902 @@
           "note": "Off-chip."
         }
       ],
+      "order": 10
+    },
+    {
+      "stage": "module6_bulk_omics",
+      "name": "Module 6: bulk metabolome + proteome arm (branches off culture, before encapsulation)",
+      "kind": "CHIP",
+      "status": "branch",
+      "note": "NOT a roadmap stub: chip/module6_v1.json and protocols/module6_v1.json both exist. It is filed here because the pipeline format expresses one chain and this is a branch. Metabolome AND proteome from ONE single-phase acidified polar-organic extraction of ADHERENT cells, in place on the chamber floor…",
+      "arrives": [
+        {
+          "id": "module1_to_module6",
+          "carries": "cells",
+          "from": {
+            "stage": "module1",
+            "ports": [
+              "p_mid"
+            ]
+          },
+          "to": {
+            "stage": "module6_bulk_omics",
+            "ports": []
+          },
+          "after_step": null,
+          "volume_ul": null,
+          "particle_um": null,
+          "particle_source": null,
+          "connector": null,
+          "note": "The bulk metabolome + proteome arm."
+        }
+      ],
+      "leaves": [],
+      "branch_from": "module1",
+      "module": {
+        "chip_id": "module6_v1",
+        "chip": "chip/module6_v1.json",
+        "chip_name": "Module 6: the extraction UNIT CELL - metabolome + proteome from one extraction of adherent cells (demo scale, one lane pattern)",
+        "scale": "DEMO 30 x 20 mm",
+        "fluidic_depth_mm": 0.3,
+        "printed_for_demo": true,
+        "slot": "Module 6",
+        "placeholder": false,
+        "protocol": "protocols/module6_v1.json",
+        "function": [
+          {
+            "step": 1,
+            "operation": "exchange",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [
+              "cell_suspension_n"
+            ],
+            "volume_ul": 2.095,
+            "washes": 2,
+            "flow_ul_min": 3.78,
+            "duration_s": 66.51,
+            "temp_c": 37.0,
+            "exchange_kind": "fill",
+            "feed": [
+              "in_n"
+            ],
+            "vent": [
+              "out_n"
+            ]
+          },
+          {
+            "step": 2,
+            "operation": "load",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [
+              "cell_suspension_n"
+            ],
+            "volume_ul": 2.88,
+            "washes": null,
+            "flow_ul_min": 3.78,
+            "duration_s": 45.72,
+            "temp_c": 37.0,
+            "exchange_kind": null,
+            "feed": [
+              "in_n"
+            ],
+            "vent": [
+              "out_n"
+            ]
+          },
+          {
+            "step": 3,
+            "operation": "exchange",
+            "target": [
+              "cx_g"
+            ],
+            "reagent": [
+              "cell_suspension_g"
+            ],
+            "volume_ul": 2.095,
+            "washes": 2,
+            "flow_ul_min": 3.78,
+            "duration_s": 66.51,
+            "temp_c": 37.0,
+            "exchange_kind": "fill",
+            "feed": [
+              "in_g"
+            ],
+            "vent": [
+              "out_g"
+            ]
+          },
+          {
+            "step": 4,
+            "operation": "load",
+            "target": [
+              "cx_g"
+            ],
+            "reagent": [
+              "cell_suspension_g"
+            ],
+            "volume_ul": 2.88,
+            "washes": null,
+            "flow_ul_min": 3.78,
+            "duration_s": 45.72,
+            "temp_c": 37.0,
+            "exchange_kind": null,
+            "feed": [
+              "in_g"
+            ],
+            "vent": [
+              "out_g"
+            ]
+          },
+          {
+            "step": 5,
+            "operation": "exchange",
+            "target": [
+              "cx_a"
+            ],
+            "reagent": [
+              "cell_suspension_a"
+            ],
+            "volume_ul": 2.095,
+            "washes": 2,
+            "flow_ul_min": 3.78,
+            "duration_s": 66.51,
+            "temp_c": 37.0,
+            "exchange_kind": "fill",
+            "feed": [
+              "in_a"
+            ],
+            "vent": [
+              "out_a"
+            ]
+          },
+          {
+            "step": 6,
+            "operation": "load",
+            "target": [
+              "cx_a"
+            ],
+            "reagent": [
+              "cell_suspension_a"
+            ],
+            "volume_ul": 2.88,
+            "washes": null,
+            "flow_ul_min": 3.78,
+            "duration_s": 45.72,
+            "temp_c": 37.0,
+            "exchange_kind": null,
+            "feed": [
+              "in_a"
+            ],
+            "vent": [
+              "out_a"
+            ]
+          },
+          {
+            "step": 7,
+            "operation": "hold_temp",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 14400.0,
+            "temp_c": 37.0,
+            "exchange_kind": null,
+            "feed": [],
+            "vent": []
+          },
+          {
+            "step": 8,
+            "operation": "culture",
+            "target": [
+              "cx_n",
+              "cx_g",
+              "cx_a"
+            ],
+            "reagent": [
+              "culture_medium"
+            ],
+            "volume_ul": 11.258,
+            "washes": null,
+            "flow_ul_min": 3.78,
+            "duration_s": 86400.0,
+            "temp_c": 37.0,
+            "exchange_kind": null,
+            "feed": [
+              "in_n",
+              "in_g",
+              "in_a"
+            ],
+            "vent": [
+              "out_n",
+              "out_g",
+              "out_a"
+            ]
+          },
+          {
+            "step": 9,
+            "operation": "hold_temp",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 106.5,
+            "temp_c": 4.0,
+            "exchange_kind": null,
+            "feed": [],
+            "vent": []
+          },
+          {
+            "step": 10,
+            "operation": "exchange",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [
+              "cold_volatile_rinse"
+            ],
+            "volume_ul": 17.452,
+            "washes": 1,
+            "flow_ul_min": 58.08,
+            "duration_s": 18.03,
+            "temp_c": 4.0,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_n"
+            ],
+            "vent": [
+              "out_n"
+            ]
+          },
+          {
+            "step": 11,
+            "operation": "exchange",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [
+              "cold_acidified_organic_quench"
+            ],
+            "volume_ul": 22.516,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 1.0,
+            "temp_c": -20.0,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_n"
+            ],
+            "vent": [
+              "out_n"
+            ]
+          },
+          {
+            "step": 12,
+            "operation": "exchange",
+            "target": [
+              "cx_g"
+            ],
+            "reagent": [
+              "cold_volatile_rinse"
+            ],
+            "volume_ul": 17.452,
+            "washes": 1,
+            "flow_ul_min": 58.08,
+            "duration_s": 18.03,
+            "temp_c": 4.0,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_g"
+            ],
+            "vent": [
+              "out_g"
+            ]
+          },
+          {
+            "step": 13,
+            "operation": "exchange",
+            "target": [
+              "cx_g"
+            ],
+            "reagent": [
+              "cold_acidified_organic_quench"
+            ],
+            "volume_ul": 22.516,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 1.0,
+            "temp_c": -20.0,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_g"
+            ],
+            "vent": [
+              "out_g"
+            ]
+          },
+          {
+            "step": 14,
+            "operation": "exchange",
+            "target": [
+              "cx_a"
+            ],
+            "reagent": [
+              "cold_volatile_rinse"
+            ],
+            "volume_ul": 17.452,
+            "washes": 1,
+            "flow_ul_min": 58.08,
+            "duration_s": 18.03,
+            "temp_c": 4.0,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_a"
+            ],
+            "vent": [
+              "out_a"
+            ]
+          },
+          {
+            "step": 15,
+            "operation": "exchange",
+            "target": [
+              "cx_a"
+            ],
+            "reagent": [
+              "cold_acidified_organic_quench"
+            ],
+            "volume_ul": 22.516,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 1.0,
+            "temp_c": -20.0,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_a"
+            ],
+            "vent": [
+              "out_a"
+            ]
+          },
+          {
+            "step": 16,
+            "operation": "hold_temp",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 102.0,
+            "temp_c": -20.0,
+            "exchange_kind": null,
+            "feed": [],
+            "vent": []
+          },
+          {
+            "step": 17,
+            "operation": "hold_temp",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 300.0,
+            "temp_c": -20.0,
+            "exchange_kind": null,
+            "feed": [],
+            "vent": []
+          },
+          {
+            "step": 18,
+            "operation": "exchange",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [
+              "cold_acidified_organic_quench"
+            ],
+            "volume_ul": 7.069,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 0.32,
+            "temp_c": -20.0,
+            "exchange_kind": "partial",
+            "feed": [
+              "in_n"
+            ],
+            "vent": [
+              "out_n"
+            ]
+          },
+          {
+            "step": 19,
+            "operation": "collect",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [],
+            "volume_ul": 7.069,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 22.05,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_n"
+            ],
+            "vent": [
+              "out_n"
+            ]
+          },
+          {
+            "step": 20,
+            "operation": "exchange",
+            "target": [
+              "cx_g"
+            ],
+            "reagent": [
+              "cold_acidified_organic_quench"
+            ],
+            "volume_ul": 7.069,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 0.32,
+            "temp_c": -20.0,
+            "exchange_kind": "partial",
+            "feed": [
+              "in_g"
+            ],
+            "vent": [
+              "out_g"
+            ]
+          },
+          {
+            "step": 21,
+            "operation": "collect",
+            "target": [
+              "cx_g"
+            ],
+            "reagent": [],
+            "volume_ul": 7.069,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 22.05,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_g"
+            ],
+            "vent": [
+              "out_g"
+            ]
+          },
+          {
+            "step": 22,
+            "operation": "exchange",
+            "target": [
+              "cx_a"
+            ],
+            "reagent": [
+              "cold_acidified_organic_quench"
+            ],
+            "volume_ul": 7.069,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 0.32,
+            "temp_c": -20.0,
+            "exchange_kind": "partial",
+            "feed": [
+              "in_a"
+            ],
+            "vent": [
+              "out_a"
+            ]
+          },
+          {
+            "step": 23,
+            "operation": "collect",
+            "target": [
+              "cx_a"
+            ],
+            "reagent": [],
+            "volume_ul": 7.069,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 22.05,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_a"
+            ],
+            "vent": [
+              "out_a"
+            ]
+          },
+          {
+            "step": 24,
+            "operation": "hold_temp",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 111.0,
+            "temp_c": 22.0,
+            "exchange_kind": null,
+            "feed": [],
+            "vent": []
+          },
+          {
+            "step": 25,
+            "operation": "exchange",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [
+              "denaturing_solubilisation_buffer"
+            ],
+            "volume_ul": 33.774,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 1.5,
+            "temp_c": 22.0,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_n"
+            ],
+            "vent": [
+              "out_n"
+            ]
+          },
+          {
+            "step": 26,
+            "operation": "exchange",
+            "target": [
+              "cx_g"
+            ],
+            "reagent": [
+              "denaturing_solubilisation_buffer"
+            ],
+            "volume_ul": 33.774,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 1.5,
+            "temp_c": 22.0,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_g"
+            ],
+            "vent": [
+              "out_g"
+            ]
+          },
+          {
+            "step": 27,
+            "operation": "exchange",
+            "target": [
+              "cx_a"
+            ],
+            "reagent": [
+              "denaturing_solubilisation_buffer"
+            ],
+            "volume_ul": 33.774,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 1.5,
+            "temp_c": 22.0,
+            "exchange_kind": "sweep",
+            "feed": [
+              "in_a"
+            ],
+            "vent": [
+              "out_a"
+            ]
+          },
+          {
+            "step": 28,
+            "operation": "hold_temp",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [],
+            "volume_ul": null,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 600.0,
+            "temp_c": 22.0,
+            "exchange_kind": null,
+            "feed": [],
+            "vent": []
+          },
+          {
+            "step": 29,
+            "operation": "exchange",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [
+              "denaturing_solubilisation_buffer"
+            ],
+            "volume_ul": 7.069,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 0.32,
+            "temp_c": 22.0,
+            "exchange_kind": "partial",
+            "feed": [
+              "in_n"
+            ],
+            "vent": [
+              "out_n"
+            ]
+          },
+          {
+            "step": 30,
+            "operation": "collect",
+            "target": [
+              "cx_n"
+            ],
+            "reagent": [],
+            "volume_ul": 7.069,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 22.05,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_n"
+            ],
+            "vent": [
+              "out_n"
+            ]
+          },
+          {
+            "step": 31,
+            "operation": "exchange",
+            "target": [
+              "cx_g"
+            ],
+            "reagent": [
+              "denaturing_solubilisation_buffer"
+            ],
+            "volume_ul": 7.069,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 0.32,
+            "temp_c": 22.0,
+            "exchange_kind": "partial",
+            "feed": [
+              "in_g"
+            ],
+            "vent": [
+              "out_g"
+            ]
+          },
+          {
+            "step": 32,
+            "operation": "collect",
+            "target": [
+              "cx_g"
+            ],
+            "reagent": [],
+            "volume_ul": 7.069,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 22.05,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_g"
+            ],
+            "vent": [
+              "out_g"
+            ]
+          },
+          {
+            "step": 33,
+            "operation": "exchange",
+            "target": [
+              "cx_a"
+            ],
+            "reagent": [
+              "denaturing_solubilisation_buffer"
+            ],
+            "volume_ul": 7.069,
+            "washes": 1,
+            "flow_ul_min": 1351.0,
+            "duration_s": 0.32,
+            "temp_c": 22.0,
+            "exchange_kind": "partial",
+            "feed": [
+              "in_a"
+            ],
+            "vent": [
+              "out_a"
+            ]
+          },
+          {
+            "step": 34,
+            "operation": "collect",
+            "target": [
+              "cx_a"
+            ],
+            "reagent": [],
+            "volume_ul": 7.069,
+            "washes": null,
+            "flow_ul_min": null,
+            "duration_s": 22.05,
+            "temp_c": null,
+            "exchange_kind": null,
+            "feed": [
+              "in_a"
+            ],
+            "vent": [
+              "out_a"
+            ]
+          }
+        ],
+        "ports": [
+          {
+            "id": "in_n",
+            "type": "inlet",
+            "role": "load",
+            "fed_in_steps": 10,
+            "vented_in_steps": 0
+          },
+          {
+            "id": "out_n",
+            "type": "outlet",
+            "role": "release",
+            "fed_in_steps": 0,
+            "vented_in_steps": 10
+          },
+          {
+            "id": "in_g",
+            "type": "inlet",
+            "role": "load",
+            "fed_in_steps": 10,
+            "vented_in_steps": 0
+          },
+          {
+            "id": "out_g",
+            "type": "outlet",
+            "role": "release",
+            "fed_in_steps": 0,
+            "vented_in_steps": 10
+          },
+          {
+            "id": "in_a",
+            "type": "inlet",
+            "role": "load",
+            "fed_in_steps": 10,
+            "vented_in_steps": 0
+          },
+          {
+            "id": "out_a",
+            "type": "outlet",
+            "role": "release",
+            "fed_in_steps": 0,
+            "vented_in_steps": 10
+          }
+        ],
+        "chambers": [
+          {
+            "id": "cx_n",
+            "type": "culture",
+            "block": "culture_chamber",
+            "volume_ul": 2.88
+          },
+          {
+            "id": "cx_g",
+            "type": "culture",
+            "block": "culture_chamber",
+            "volume_ul": 2.88
+          },
+          {
+            "id": "cx_a",
+            "type": "culture",
+            "block": "culture_chamber",
+            "volume_ul": 2.88
+          }
+        ],
+        "thermal_zones": [
+          {
+            "id": "tz_lane_fields",
+            "chambers": [
+              "cx_n",
+              "cx_g",
+              "cx_a"
+            ],
+            "min_c": -20.0,
+            "max_c": 37.0,
+            "purpose": "culture",
+            "source": "chip thermal_zones"
+          }
+        ],
+        "off_chip": [
+          "in_n: One off-chip five-position selector valve: cell suspension, culture medium, cold rinse, cold quench, solubilisation buffer.",
+          "out_n: One off-chip three-position fraction collector: waste, vial M (metabolome, pre-charged with neutraliser), vial P (proteome).",
+          "in_g: One off-chip five-position selector valve: cell suspension, culture medium, cold rinse, cold quench, solubilisation buffer.",
+          "out_g: One off-chip three-position fraction collector: waste, vial M (metabolome, pre-charged with neutraliser), vial P (proteome).",
+          "in_a: One off-chip five-position selector valve: cell suspension, culture medium, cold rinse, cold quench, solubilisation buffer.",
+          "out_a: One off-chip three-position fraction collector: waste, vial M (metabolome, pre-charged with neutraliser), vial P (proteome).",
+          "The field sits in SERIES with its combs and port stubs, so the numbers that matter are per LANE, and all of them are derived in protocols/build_module6.py from this file plus contracts/: inlet stub 1…",
+          "Fraction 1 is neutralised the moment it is collected (the vial is pre-charged off chip), because acid plus organic is only safe for RNA and acid-labile metabolites briefly.",
+          "That contradiction is resolved in thermal_map.md in favour of the rig needing a sub-ambient source, because the precipitated protein film is on this chamber's floor and cannot be moved off chip witho…"
+        ],
+        "known_limits": [
+          {
+            "source": "chip description",
+            "text": "Capping also fixes something real: the suspension front now stops at the FAR FIELD EDGE, so the OUTLET comb is never filled with cells and the 'stray cells settle in the comb' risk is handled by the volume instead of by…"
+          },
+          {
+            "source": "chip description",
+            "text": "Extracting from adherent cells has no gelatin background, is published practice (direct cold solvent on adherent cells beat scrape-in-buffer 7x, Dettmer 2011 doi 10.1007/s00216-010-4425-x; one extraction giving proteins…"
+          },
+          {
+            "source": "chip description",
+            "text": "Seed and culture the adherent cells in the field (cell-adhesion coat on the field floor only, masked off the combs: untested)."
+          },
+          {
+            "source": "chip description",
+            "text": "The protein is denatured by design: native complexes and enzyme activity are lost; bottom-up identification and quantification are not."
+          }
+        ],
+        "full_spec": null,
+        "artifacts": {
+          "plan_svgs": [
+            "cad/figures/module6_v1_features.svg",
+            "cad/figures/module6_v1_layout.svg",
+            "cad/figures/module6_v1_stack.svg"
+          ],
+          "renders_3d": [
+            "cad/exports/module6_v1/print/render_iso.svg",
+            "cad/exports/module6_v1/print/render_top.svg"
+          ],
+          "cfd": {
+            "field": null,
+            "mesh": null,
+            "report": null,
+            "steps_simulated": [],
+            "figures": []
+          },
+          "flow_runs": [
+            "runs/module6_v1__module6_v1.json"
+          ]
+        },
+        "demo": {
+          "source": "docs/demo.md",
+          "procedure": [],
+          "shot": null
+        },
+        "video": {
+          "module": "Module 6",
+          "chip_id": "module6_v1",
+          "title": "Module 6: the extraction UNIT CELL - metabolome + proteome from one extraction of adherent cells (demo scale, one lane pattern) (printed demo chip)",
+          "shot": "Top-down macro of module6_v1 on a backlight, ruler in shot: food dye pushed in through in_n, in_g, in_a, filling cx_n, cx_g, cx_a in protocol order, then flushed out.",
+          "shot_source": "generated from the protocol",
+          "url": null,
+          "release_tag": null,
+          "recorded": false,
+          "duration_s": null
+        }
+      },
       "order": 11
     },
     {
@@ -7058,838 +8706,5 @@
       "order": 13
     }
   ],
-  "not_in_pipeline": [
-    {
-      "stage": "module6_v1",
-      "name": "Module 6: bulk omics from adherent cells (metabolome + proteome from one extraction)",
-      "kind": "CHIP",
-      "status": "not in pipeline_mvp.json",
-      "in_pipeline": false,
-      "arrives": [],
-      "leaves": [],
-      "module": {
-        "chip_id": "module6_v1",
-        "chip": "chip/module6_v1.json",
-        "chip_name": "Module 6: bulk omics from adherent cells (metabolome + proteome from one extraction)",
-        "scale": "DEMO 30 x 20 mm",
-        "fluidic_depth_mm": 0.3,
-        "printed_for_demo": true,
-        "slot": "Module 6",
-        "placeholder": false,
-        "protocol": "protocols/module6_v1.json",
-        "function": [
-          {
-            "step": 1,
-            "operation": "load",
-            "target": [
-              "cx_n"
-            ],
-            "reagent": [
-              "cell_suspension_n"
-            ],
-            "volume_ul": 11.444,
-            "washes": null,
-            "flow_ul_min": 3.78,
-            "duration_s": 181.7,
-            "temp_c": null,
-            "exchange_kind": null,
-            "feed": [
-              "in_n"
-            ],
-            "vent": [
-              "out_n"
-            ]
-          },
-          {
-            "step": 2,
-            "operation": "load",
-            "target": [
-              "cx_g"
-            ],
-            "reagent": [
-              "cell_suspension_g"
-            ],
-            "volume_ul": 11.444,
-            "washes": null,
-            "flow_ul_min": 3.78,
-            "duration_s": 181.7,
-            "temp_c": null,
-            "exchange_kind": null,
-            "feed": [
-              "in_g"
-            ],
-            "vent": [
-              "out_g"
-            ]
-          },
-          {
-            "step": 3,
-            "operation": "load",
-            "target": [
-              "cx_a"
-            ],
-            "reagent": [
-              "cell_suspension_a"
-            ],
-            "volume_ul": 11.444,
-            "washes": null,
-            "flow_ul_min": 3.78,
-            "duration_s": 181.7,
-            "temp_c": null,
-            "exchange_kind": null,
-            "feed": [
-              "in_a"
-            ],
-            "vent": [
-              "out_a"
-            ]
-          },
-          {
-            "step": 4,
-            "operation": "culture",
-            "target": [
-              "cx_n",
-              "cx_g",
-              "cx_a"
-            ],
-            "reagent": [
-              "culture_medium"
-            ],
-            "volume_ul": 11.444,
-            "washes": null,
-            "flow_ul_min": 3.78,
-            "duration_s": 86400.0,
-            "temp_c": 37,
-            "exchange_kind": null,
-            "feed": [
-              "in_n",
-              "in_g",
-              "in_a"
-            ],
-            "vent": [
-              "out_n",
-              "out_g",
-              "out_a"
-            ]
-          },
-          {
-            "step": 5,
-            "operation": "exchange",
-            "target": [
-              "cx_n"
-            ],
-            "reagent": [
-              "cold_volatile_rinse"
-            ],
-            "volume_ul": 22.888,
-            "washes": 1,
-            "flow_ul_min": 1.93,
-            "duration_s": 712.0,
-            "temp_c": 4,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_n"
-            ],
-            "vent": [
-              "out_n"
-            ]
-          },
-          {
-            "step": 6,
-            "operation": "exchange",
-            "target": [
-              "cx_n"
-            ],
-            "reagent": [
-              "cold_acidified_organic_quench"
-            ],
-            "volume_ul": 22.888,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 1.0,
-            "temp_c": -20,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_n"
-            ],
-            "vent": [
-              "out_n"
-            ]
-          },
-          {
-            "step": 7,
-            "operation": "hold_temp",
-            "target": [
-              "cx_n"
-            ],
-            "reagent": [],
-            "volume_ul": null,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 30.0,
-            "temp_c": 4,
-            "exchange_kind": null,
-            "feed": [
-              "in_n"
-            ],
-            "vent": [
-              "out_n"
-            ]
-          },
-          {
-            "step": 8,
-            "operation": "exchange",
-            "target": [
-              "cx_n"
-            ],
-            "reagent": [
-              "cold_acidified_organic_quench"
-            ],
-            "volume_ul": 8.594,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 0.4,
-            "temp_c": -20,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_n"
-            ],
-            "vent": [
-              "out_n"
-            ]
-          },
-          {
-            "step": 9,
-            "operation": "collect",
-            "target": [
-              "cx_n"
-            ],
-            "reagent": [],
-            "volume_ul": 8.594,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 0.0,
-            "temp_c": null,
-            "exchange_kind": null,
-            "feed": [
-              "in_n"
-            ],
-            "vent": [
-              "out_n"
-            ]
-          },
-          {
-            "step": 10,
-            "operation": "exchange",
-            "target": [
-              "cx_n"
-            ],
-            "reagent": [
-              "denaturing_solubilisation_buffer"
-            ],
-            "volume_ul": 34.332,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 1.5,
-            "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_n"
-            ],
-            "vent": [
-              "out_n"
-            ]
-          },
-          {
-            "step": 11,
-            "operation": "hold_temp",
-            "target": [
-              "cx_n"
-            ],
-            "reagent": [],
-            "volume_ul": null,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 600.0,
-            "temp_c": 37,
-            "exchange_kind": null,
-            "feed": [
-              "in_n"
-            ],
-            "vent": [
-              "out_n"
-            ]
-          },
-          {
-            "step": 12,
-            "operation": "exchange",
-            "target": [
-              "cx_n"
-            ],
-            "reagent": [
-              "denaturing_solubilisation_buffer"
-            ],
-            "volume_ul": 8.594,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 0.4,
-            "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_n"
-            ],
-            "vent": [
-              "out_n"
-            ]
-          },
-          {
-            "step": 13,
-            "operation": "collect",
-            "target": [
-              "cx_n"
-            ],
-            "reagent": [],
-            "volume_ul": 8.594,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 0.0,
-            "temp_c": null,
-            "exchange_kind": null,
-            "feed": [
-              "in_n"
-            ],
-            "vent": [
-              "out_n"
-            ]
-          },
-          {
-            "step": 14,
-            "operation": "exchange",
-            "target": [
-              "cx_g"
-            ],
-            "reagent": [
-              "cold_volatile_rinse"
-            ],
-            "volume_ul": 22.888,
-            "washes": 1,
-            "flow_ul_min": 1.93,
-            "duration_s": 712.0,
-            "temp_c": 4,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_g"
-            ],
-            "vent": [
-              "out_g"
-            ]
-          },
-          {
-            "step": 15,
-            "operation": "exchange",
-            "target": [
-              "cx_g"
-            ],
-            "reagent": [
-              "cold_acidified_organic_quench"
-            ],
-            "volume_ul": 22.888,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 1.0,
-            "temp_c": -20,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_g"
-            ],
-            "vent": [
-              "out_g"
-            ]
-          },
-          {
-            "step": 16,
-            "operation": "hold_temp",
-            "target": [
-              "cx_g"
-            ],
-            "reagent": [],
-            "volume_ul": null,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 30.0,
-            "temp_c": 4,
-            "exchange_kind": null,
-            "feed": [
-              "in_g"
-            ],
-            "vent": [
-              "out_g"
-            ]
-          },
-          {
-            "step": 17,
-            "operation": "exchange",
-            "target": [
-              "cx_g"
-            ],
-            "reagent": [
-              "cold_acidified_organic_quench"
-            ],
-            "volume_ul": 8.594,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 0.4,
-            "temp_c": -20,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_g"
-            ],
-            "vent": [
-              "out_g"
-            ]
-          },
-          {
-            "step": 18,
-            "operation": "collect",
-            "target": [
-              "cx_g"
-            ],
-            "reagent": [],
-            "volume_ul": 8.594,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 0.0,
-            "temp_c": null,
-            "exchange_kind": null,
-            "feed": [
-              "in_g"
-            ],
-            "vent": [
-              "out_g"
-            ]
-          },
-          {
-            "step": 19,
-            "operation": "exchange",
-            "target": [
-              "cx_g"
-            ],
-            "reagent": [
-              "denaturing_solubilisation_buffer"
-            ],
-            "volume_ul": 34.332,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 1.5,
-            "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_g"
-            ],
-            "vent": [
-              "out_g"
-            ]
-          },
-          {
-            "step": 20,
-            "operation": "hold_temp",
-            "target": [
-              "cx_g"
-            ],
-            "reagent": [],
-            "volume_ul": null,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 600.0,
-            "temp_c": 37,
-            "exchange_kind": null,
-            "feed": [
-              "in_g"
-            ],
-            "vent": [
-              "out_g"
-            ]
-          },
-          {
-            "step": 21,
-            "operation": "exchange",
-            "target": [
-              "cx_g"
-            ],
-            "reagent": [
-              "denaturing_solubilisation_buffer"
-            ],
-            "volume_ul": 8.594,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 0.4,
-            "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_g"
-            ],
-            "vent": [
-              "out_g"
-            ]
-          },
-          {
-            "step": 22,
-            "operation": "collect",
-            "target": [
-              "cx_g"
-            ],
-            "reagent": [],
-            "volume_ul": 8.594,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 0.0,
-            "temp_c": null,
-            "exchange_kind": null,
-            "feed": [
-              "in_g"
-            ],
-            "vent": [
-              "out_g"
-            ]
-          },
-          {
-            "step": 23,
-            "operation": "exchange",
-            "target": [
-              "cx_a"
-            ],
-            "reagent": [
-              "cold_volatile_rinse"
-            ],
-            "volume_ul": 22.888,
-            "washes": 1,
-            "flow_ul_min": 1.93,
-            "duration_s": 712.0,
-            "temp_c": 4,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_a"
-            ],
-            "vent": [
-              "out_a"
-            ]
-          },
-          {
-            "step": 24,
-            "operation": "exchange",
-            "target": [
-              "cx_a"
-            ],
-            "reagent": [
-              "cold_acidified_organic_quench"
-            ],
-            "volume_ul": 22.888,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 1.0,
-            "temp_c": -20,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_a"
-            ],
-            "vent": [
-              "out_a"
-            ]
-          },
-          {
-            "step": 25,
-            "operation": "hold_temp",
-            "target": [
-              "cx_a"
-            ],
-            "reagent": [],
-            "volume_ul": null,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 30.0,
-            "temp_c": 4,
-            "exchange_kind": null,
-            "feed": [
-              "in_a"
-            ],
-            "vent": [
-              "out_a"
-            ]
-          },
-          {
-            "step": 26,
-            "operation": "exchange",
-            "target": [
-              "cx_a"
-            ],
-            "reagent": [
-              "cold_acidified_organic_quench"
-            ],
-            "volume_ul": 8.594,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 0.4,
-            "temp_c": -20,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_a"
-            ],
-            "vent": [
-              "out_a"
-            ]
-          },
-          {
-            "step": 27,
-            "operation": "collect",
-            "target": [
-              "cx_a"
-            ],
-            "reagent": [],
-            "volume_ul": 8.594,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 0.0,
-            "temp_c": null,
-            "exchange_kind": null,
-            "feed": [
-              "in_a"
-            ],
-            "vent": [
-              "out_a"
-            ]
-          },
-          {
-            "step": 28,
-            "operation": "exchange",
-            "target": [
-              "cx_a"
-            ],
-            "reagent": [
-              "denaturing_solubilisation_buffer"
-            ],
-            "volume_ul": 34.332,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 1.5,
-            "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_a"
-            ],
-            "vent": [
-              "out_a"
-            ]
-          },
-          {
-            "step": 29,
-            "operation": "hold_temp",
-            "target": [
-              "cx_a"
-            ],
-            "reagent": [],
-            "volume_ul": null,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 600.0,
-            "temp_c": 37,
-            "exchange_kind": null,
-            "feed": [
-              "in_a"
-            ],
-            "vent": [
-              "out_a"
-            ]
-          },
-          {
-            "step": 30,
-            "operation": "exchange",
-            "target": [
-              "cx_a"
-            ],
-            "reagent": [
-              "denaturing_solubilisation_buffer"
-            ],
-            "volume_ul": 8.594,
-            "washes": 1,
-            "flow_ul_min": 1373.3,
-            "duration_s": 0.4,
-            "temp_c": null,
-            "exchange_kind": "sweep (undeclared)",
-            "feed": [
-              "in_a"
-            ],
-            "vent": [
-              "out_a"
-            ]
-          },
-          {
-            "step": 31,
-            "operation": "collect",
-            "target": [
-              "cx_a"
-            ],
-            "reagent": [],
-            "volume_ul": 8.594,
-            "washes": null,
-            "flow_ul_min": null,
-            "duration_s": 0.0,
-            "temp_c": null,
-            "exchange_kind": null,
-            "feed": [
-              "in_a"
-            ],
-            "vent": [
-              "out_a"
-            ]
-          }
-        ],
-        "ports": [
-          {
-            "id": "in_n",
-            "type": "inlet",
-            "role": "load",
-            "fed_in_steps": 11,
-            "vented_in_steps": 0
-          },
-          {
-            "id": "out_n",
-            "type": "outlet",
-            "role": "release",
-            "fed_in_steps": 0,
-            "vented_in_steps": 11
-          },
-          {
-            "id": "in_g",
-            "type": "inlet",
-            "role": "load",
-            "fed_in_steps": 11,
-            "vented_in_steps": 0
-          },
-          {
-            "id": "out_g",
-            "type": "outlet",
-            "role": "release",
-            "fed_in_steps": 0,
-            "vented_in_steps": 11
-          },
-          {
-            "id": "in_a",
-            "type": "inlet",
-            "role": "load",
-            "fed_in_steps": 11,
-            "vented_in_steps": 0
-          },
-          {
-            "id": "out_a",
-            "type": "outlet",
-            "role": "release",
-            "fed_in_steps": 0,
-            "vented_in_steps": 11
-          }
-        ],
-        "chambers": [
-          {
-            "id": "cx_n",
-            "type": "culture",
-            "block": "culture_chamber",
-            "volume_ul": 2.88
-          },
-          {
-            "id": "cx_g",
-            "type": "culture",
-            "block": "culture_chamber",
-            "volume_ul": 2.88
-          },
-          {
-            "id": "cx_a",
-            "type": "culture",
-            "block": "culture_chamber",
-            "volume_ul": 2.88
-          }
-        ],
-        "thermal_zones": [
-          {
-            "id": "protocol_cx_a_cx_g_cx_n",
-            "chambers": [
-              "cx_a",
-              "cx_g",
-              "cx_n"
-            ],
-            "min_c": -20.0,
-            "max_c": 37.0,
-            "temps_c": [
-              -20.0,
-              4.0,
-              37.0
-            ],
-            "purpose": null,
-            "source": "protocol temperatures (no thermal_zones in the chip)"
-          }
-        ],
-        "off_chip": [
-          "in_n: One off-chip five-position selector valve: cell suspension, culture medium, cold rinse, cold quench, solubilisation buffer.",
-          "out_n: One off-chip three-position fraction collector: waste, vial M (metabolome, pre-charged with neutraliser), vial P (proteome).",
-          "in_g: One off-chip five-position selector valve: cell suspension, culture medium, cold rinse, cold quench, solubilisation buffer.",
-          "out_g: One off-chip three-position fraction collector: waste, vial M (metabolome, pre-charged with neutraliser), vial P (proteome).",
-          "in_a: One off-chip five-position selector valve: cell suspension, culture medium, cold rinse, cold quench, solubilisation buffer.",
-          "out_a: One off-chip three-position fraction collector: waste, vial M (metabolome, pre-charged with neutraliser), vial P (proteome).",
-          "Fraction 1 is neutralised the moment it is collected (the vial is pre-charged off chip), because acid plus organic is only safe for RNA and acid-labile metabolites briefly.",
-          "A resistor-network model of this lane (Hele-Shaw field plus rectangular-duct teeth and spines, mu = 2.5 mPa s for the cold quench solvent) gives 1.37e+10 Pa s/m3, tooth flows from 0.61 to 2.02 of the…",
-          "Each inlet sits behind its OWN off-chip selector valve (cell suspension, culture medium, cold rinse, cold quench, solubilisation buffer: five positions)."
-        ],
-        "known_limits": [
-          {
-            "source": "chip description",
-            "text": "Extracting from adherent cells has no gelatin background, is published practice (direct cold solvent on adherent cells beat scrape-in-buffer 7x, Dettmer 2011 doi 10.1007/s00216-010-4425-x; a brief rinse then cold methan…"
-          },
-          {
-            "source": "chip description",
-            "text": "Seed and culture the adherent cells in the field (cell-adhesion coat on the field floor only, masked off the combs, so stray cells do not stay in the comb: untested)."
-          },
-          {
-            "source": "chip description",
-            "text": "The protein is denatured by design: native complexes and enzyme activity are lost; bottom-up identification and quantification are not."
-          },
-          {
-            "source": "chip description",
-            "text": "Flow then crosses the field's SHORT dimension, 1.2 mm, not its 8 mm length, so displacement time no longer depends on chamber length."
-          }
-        ],
-        "full_spec": null,
-        "artifacts": {
-          "plan_svgs": [
-            "cad/figures/module6_v1_features.svg",
-            "cad/figures/module6_v1_layout.svg",
-            "cad/figures/module6_v1_stack.svg"
-          ],
-          "renders_3d": [
-            "cad/exports/module6_v1/print/render_iso.svg",
-            "cad/exports/module6_v1/print/render_top.svg"
-          ],
-          "cfd": {
-            "field": null,
-            "mesh": null,
-            "report": null,
-            "steps_simulated": [],
-            "figures": []
-          },
-          "flow_runs": [
-            "runs/module6_v1__module6_v1.json"
-          ]
-        },
-        "demo": null,
-        "video": {
-          "module": "Module 6",
-          "chip_id": "module6_v1",
-          "title": "Module 6: bulk omics from adherent cells (metabolome + proteome from one extraction) (printed demo chip)",
-          "shot": "Top-down macro of module6_v1 on a backlight, ruler in shot: food dye pushed in through in_n, in_g, in_a, filling cx_n, cx_g, cx_a in protocol order, then flushed out.",
-          "shot_source": "generated from the protocol",
-          "url": null,
-          "release_tag": null,
-          "recorded": false,
-          "duration_s": null
-        }
-      }
-    }
-  ]
+  "not_in_pipeline": []
 }

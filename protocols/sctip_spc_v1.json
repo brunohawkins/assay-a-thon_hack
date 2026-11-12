@@ -1,9 +1,9 @@
 {
   "id": "sctip_spc_v1",
-  "name": "Capsule generation and single-copy barcoding",
+  "name": "Single-cell barcoding: one clonal barcode per capsule, made in its own oil droplet",
   "source": "Chromatin workflow and the T7-promoter transposon: Bartlett DA et al., J Cell Biol 2021;220:e202103078, doi:10.1083/jcb.202103078 (TIP-seq; in-situ tagmentation in permeabilised cells, then T7 linear amplification). Single-copy barcode clonally amplified in a compartment and joined by overlap extension: Garcia-Bassets I et al., bioRxiv 2024, doi:10.1101/2024.08.13.607508 (AmpliDrop). Semipermeable core-shell capsules, the ~300 bp retention cutoff and capsule survival of thermocycling: Leonaviciene G & Mazutis L, Nucleic Acids Res 2023;51:e2, doi:10.1093/nar/gkac918, and Baronas D et al., Science 2026;391:1138, doi:10.1126/science.ady7227. Close-packed re-injection of hydrogel particles for single occupancy: Du X et al., Anal Chem 2025, doi:10.1021/acs.analchem.5c05488; Clark IC & Abate AR, Lab Chip 2018, doi:10.1039/C8LC00514A. Overlap extension: Horton RM et al., Gene 1989;77:61, doi:10.1016/0378-1119(89)90359-4.",
   "placeholder": false,
-  "description": "Gives each of about 22 capsules of 390 um (the packed bed the trap holds) a single-copy barcode from a large pool, clonally amplifies and attaches that barcode inside an oil droplet, then breaks the emulsion and traps and washes the capsules on chip in place of about twenty centrifugation steps. Capsules arrive from spc_demo_v1; stage A is retired. Replaces plate-based split-and-pool barcoding with one step. Runs about 20 h, mostly the overnight transcription hold. Every volume is a number of chamber volumes and every flow keeps wall shear in its chambers at or below 0.01 dyn/cm2 (nozzle streams excepted: a droplet junction is high shear by design). Reagent names are generic; see the source citation.",
+  "description": "THE PIPELINE'S SINGLE-CELL BARCODING STAGE, sitting between module 3 and module 4 in protocols/pipeline_mvp.json. IN: washed capsules from module 3, each holding one cell's cDNA with no barcode on it. OUT: the same capsules, with every molecule carrying one clonal, per-capsule barcode. Gives each of about 3,862 capsules of 70 um (the packed bed the trap holds) a single-copy barcode from a pool of 16 random bases (4.3e9, so under 0.002% of capsules collide), clonally amplifies and attaches that barcode INSIDE the capsule's own surrounding oil droplet - the emulsion is the containment, there is no anchor molecule and no cleavage step - then breaks the emulsion and traps and washes the capsules on chip in place of about twenty centrifugation steps. One capsule holds one cell, so this is what makes the data single-cell; the per-lane label from module 1 and module 4's four sublibrary indices (about twelve groups) are for demultiplexing, not resolution. Barcode loading is Poisson at a mean of 3: about 5% of droplets get no barcode and those cells are lost, and most get several and must be merged computationally. Steps 1-16 and 20-21 are the shared barcoding stage that every workflow runs; steps 17-19 (gap-fill, transcription mix, overnight linear amplification) are the chromatin/transposase VARIANT tail and are skipped in the RNA pipeline - they are kept here labelled, not merged in. Capsules arrive from spc_demo_v1 via module 3; stage A is retired. FABRICATION: the droplet handling is NOT printable - stage B needs a 115 um close-packed entrance and stage C 100 x 150 um slots against a 200 um in-plane floor - so re-injection and droplet making run on a bought droplet kit, exactly as encapsulation does; the chemistry is ours, the droplet hardware is bought. Capsule retention IS ours: a fabricated depth weir with a 25 um gap under the lid, since the floor is in-plane and z is free. Runs about 26 h, mostly the overnight transcription hold. Every volume is a number of chamber volumes and every flow keeps wall shear in its chambers at or below 0.01 dyn/cm2 at fluid.viscosity_37c_pa_s (nozzle streams excepted: a droplet junction is high shear by design). EVERY EXCHANGE DECLARES WHAT IT IS FOR in exchange_kind, and the builder refuses to write one that does not, because absence means sweep: 8 SWEEPs sized from exchange.target_fraction (99%, so 4.61 chamber volumes, 5 fills of one) - the five emulsion-break passes, because carried-over oil must not reach the capsule bed, and the three flow-through washes, because a wash that clears a reagent before an enzymatic step has to reach target (the guanidinium-class lysis residue upstream is the precedent: it inhibits reverse transcription at millimolar levels); 1 PARTIAL, the settle, which seats the bed rather than clearing it and says so; and 1 FILL, the transcription mix, which puts reagent into a packed bed and is bounded above by the chamber. SWEEPS CARRY THE SOAK AS WELL AS THE VOLUME: exchange here is diffusion-limited INTO the capsule at 2-5 min per fill, so each trap exchange is held to 5 min per fill, which is longer than the pump time and is what the timing now covers. Reagent names are generic; see the source citation.",
   "steps": [
     {
       "step": 1,
@@ -11,17 +11,17 @@
       "target": "nozzle_2",
       "reagent": null,
       "volume_ul": null,
-      "duration_s": 362,
+      "duration_s": 17417,
       "temp_c": null,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Re-inject the cured capsules close-packed through pack_1 and meet the amplification mix carrying the barcode pool, diluted to about 3 molecules per droplet. The capsule stream goes in as the core and the mix as the shell. The entrance is narrower than a capsule, so capsules deform slightly and arrive in single file: this is what beats Poisson on the capsule, where published work gets 93-97% single occupancy against about 30% by chance. One barcode molecule per droplet would be ideal but is unreachable: a free molecule cannot be ordered, so at a mean of 1 about 37% of droplets would get none. At 3 only 5% get none, and the droplets that get several are resolved afterwards by merging barcodes that share fragments, which is what the source method does. Oil then cuts each capsule plus its barcode into its own droplet at about 0.06 Hz: 22 capsules, the packed bed trap_1 holds. From here until the emulsion is broken, every capsule is chemically alone.",
+      "note": "SHARED BARCODING STAGE, and the step that makes this a single-cell assay. Re-inject the cured capsules close-packed through pack_1 and meet the amplification mix carrying the barcode pool, diluted to about 3 molecules per droplet. The capsule stream goes in as the core and the mix as the shell. The entrance is narrower than a capsule, so capsules deform slightly and arrive in single file: this is what beats Poisson on the capsule, where published work gets 93-97% single occupancy against about 30% by chance. That entrance has to be about 0.85 x the capsule, so 60 um here, which is far below our 200 um in-plane floor: THIS STEP RUNS ON A BOUGHT DROPLET KIT, as encapsulation does. The chemistry is ours; the droplet hardware is not. One barcode molecule per droplet would be ideal but is unreachable: a free molecule cannot be ordered, so at a mean of 1 about 37% of droplets would get none. At 3 about 5% of droplets still get no barcode at all and those cells are simply lost from the data, while most droplets get several barcodes and have to be merged computationally afterwards by spotting barcodes that share fragments, which is what the source method does. Oil then cuts each capsule plus its barcode into its own droplet at about 0.22 Hz: 3,862 capsules, the packed bed trap_1 holds. From here until the emulsion is broken, every capsule is chemically alone.",
       "flows_ul_h": {
-        "core": 10.6,
-        "shell": 15.9,
-        "oil": 97.6
+        "core": 0.2,
+        "shell": 0.3,
+        "oil": 2.2
       },
-      "capsules": 22,
+      "capsules": 3862,
       "ports": {
         "feed": [
           "in_load",
@@ -46,7 +46,7 @@
       "temp_c": null,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Send the droplets to a tube for thermocycling. On-chip cycling is not faster than a tube at this scale and invites evaporation and bubbles, so only the steps that genuinely need a chip are on it.",
+      "note": "SHARED BARCODING STAGE. Send the droplets to a tube for thermocycling. On-chip cycling is not faster than a tube at this scale and invites evaporation and bubbles, so only the steps that genuinely need a chip are on it.",
       "source": "nozzle_2",
       "ports": {
         "feed": [
@@ -72,7 +72,7 @@
       "temp_c": 72,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Thermocycle in the tube. Each droplet clonally amplifies its own barcode and, in the same reaction, overlap-extends it onto that cell's tagmented fragments. THIS IS THE STEP THE WHOLE DESIGN EXISTS TO PROTECT: the barcode copies are short enough to leak through the shell, so they are kept inside an oil droplet until they are part of a long molecule the capsule retains.",
+      "note": "SHARED BARCODING STAGE. Thermocycle in the tube. Each droplet clonally amplifies its own barcode and, in the same reaction, overlap-extends it onto that cell's own molecules - the cDNA made in module 3's trap in the RNA pipeline, or tagmented fragments in the chromatin variant. THIS IS THE STEP THE WHOLE DESIGN EXISTS TO PROTECT, and the step that makes the data single-cell rather than lane-level: the barcode copies are short enough to leak through the shell, so they are kept inside an oil droplet until they are part of a long molecule the capsule retains. The barcode is generated INSIDE the capsule's own surrounding oil droplet, so the emulsion is the containment and every capsule - and so every cell - ends up with its own clonal barcode.",
       "ports": {
         "feed": [],
         "vent": [],
@@ -95,7 +95,7 @@
       "temp_c": null,
       "washes": null,
       "flow_ul_min": 0.367,
-      "note": "Return the emulsion to the chip, pass 1 of 5: brk_1 holds 0.531 uL, so the 2.14 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
+      "note": "SHARED BARCODING STAGE. Return the emulsion to the chip, pass 1 of 5: brk_1 holds 0.531 uL, so the 2.17 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
       "ports": {
         "feed": [
           "in_load"
@@ -116,11 +116,12 @@
       "target": "brk_1",
       "reagent": "emulsion_breaker",
       "volume_ul": 0.531,
-      "duration_s": 122,
+      "duration_s": 608,
       "temp_c": null,
-      "washes": 1,
+      "washes": 5,
       "flow_ul_min": 0.367,
-      "note": "Separate the phases, pass 1 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow.",
+      "note": "SHARED BARCODING STAGE. SWEEP, 5 fills of 0.531 uL = 5.00 chamber volumes. Separate the phases, pass 1 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow. This is a SWEEP and not a partial because carried-over oil is exactly what must not reach the capsule bed: an oil film on a capsule blocks every buffer exchange after it, so the oil has to be cleared to exchange.target_fraction (99%) and not merely reduced. HONEST CAVEAT: 4.61 chamber volumes is the WELL-MIXED bound, and a two-phase filter chamber is not well mixed - take it as a design bound, not a measurement, and check it with a dye test.",
+      "exchange_kind": "sweep",
       "ports": {
         "feed": [
           "in_reagent"
@@ -145,7 +146,7 @@
       "temp_c": null,
       "washes": null,
       "flow_ul_min": 0.367,
-      "note": "Return the emulsion to the chip, pass 2 of 5: brk_1 holds 0.531 uL, so the 2.14 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
+      "note": "SHARED BARCODING STAGE. Return the emulsion to the chip, pass 2 of 5: brk_1 holds 0.531 uL, so the 2.17 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
       "ports": {
         "feed": [
           "in_load"
@@ -166,11 +167,12 @@
       "target": "brk_1",
       "reagent": "emulsion_breaker",
       "volume_ul": 0.531,
-      "duration_s": 122,
+      "duration_s": 608,
       "temp_c": null,
-      "washes": 1,
+      "washes": 5,
       "flow_ul_min": 0.367,
-      "note": "Separate the phases, pass 2 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow.",
+      "note": "SHARED BARCODING STAGE. SWEEP, 5 fills of 0.531 uL = 5.00 chamber volumes. Separate the phases, pass 2 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow. This is a SWEEP and not a partial because carried-over oil is exactly what must not reach the capsule bed: an oil film on a capsule blocks every buffer exchange after it, so the oil has to be cleared to exchange.target_fraction (99%) and not merely reduced. HONEST CAVEAT: 4.61 chamber volumes is the WELL-MIXED bound, and a two-phase filter chamber is not well mixed - take it as a design bound, not a measurement, and check it with a dye test.",
+      "exchange_kind": "sweep",
       "ports": {
         "feed": [
           "in_reagent"
@@ -195,7 +197,7 @@
       "temp_c": null,
       "washes": null,
       "flow_ul_min": 0.367,
-      "note": "Return the emulsion to the chip, pass 3 of 5: brk_1 holds 0.531 uL, so the 2.14 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
+      "note": "SHARED BARCODING STAGE. Return the emulsion to the chip, pass 3 of 5: brk_1 holds 0.531 uL, so the 2.17 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
       "ports": {
         "feed": [
           "in_load"
@@ -216,11 +218,12 @@
       "target": "brk_1",
       "reagent": "emulsion_breaker",
       "volume_ul": 0.531,
-      "duration_s": 122,
+      "duration_s": 608,
       "temp_c": null,
-      "washes": 1,
+      "washes": 5,
       "flow_ul_min": 0.367,
-      "note": "Separate the phases, pass 3 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow.",
+      "note": "SHARED BARCODING STAGE. SWEEP, 5 fills of 0.531 uL = 5.00 chamber volumes. Separate the phases, pass 3 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow. This is a SWEEP and not a partial because carried-over oil is exactly what must not reach the capsule bed: an oil film on a capsule blocks every buffer exchange after it, so the oil has to be cleared to exchange.target_fraction (99%) and not merely reduced. HONEST CAVEAT: 4.61 chamber volumes is the WELL-MIXED bound, and a two-phase filter chamber is not well mixed - take it as a design bound, not a measurement, and check it with a dye test.",
+      "exchange_kind": "sweep",
       "ports": {
         "feed": [
           "in_reagent"
@@ -245,7 +248,7 @@
       "temp_c": null,
       "washes": null,
       "flow_ul_min": 0.367,
-      "note": "Return the emulsion to the chip, pass 4 of 5: brk_1 holds 0.531 uL, so the 2.14 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
+      "note": "SHARED BARCODING STAGE. Return the emulsion to the chip, pass 4 of 5: brk_1 holds 0.531 uL, so the 2.17 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
       "ports": {
         "feed": [
           "in_load"
@@ -266,11 +269,12 @@
       "target": "brk_1",
       "reagent": "emulsion_breaker",
       "volume_ul": 0.531,
-      "duration_s": 122,
+      "duration_s": 608,
       "temp_c": null,
-      "washes": 1,
+      "washes": 5,
       "flow_ul_min": 0.367,
-      "note": "Separate the phases, pass 4 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow.",
+      "note": "SHARED BARCODING STAGE. SWEEP, 5 fills of 0.531 uL = 5.00 chamber volumes. Separate the phases, pass 4 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow. This is a SWEEP and not a partial because carried-over oil is exactly what must not reach the capsule bed: an oil film on a capsule blocks every buffer exchange after it, so the oil has to be cleared to exchange.target_fraction (99%) and not merely reduced. HONEST CAVEAT: 4.61 chamber volumes is the WELL-MIXED bound, and a two-phase filter chamber is not well mixed - take it as a design bound, not a measurement, and check it with a dye test.",
+      "exchange_kind": "sweep",
       "ports": {
         "feed": [
           "in_reagent"
@@ -290,12 +294,12 @@
       "operation": "load",
       "target": "brk_1",
       "reagent": "emulsion",
-      "volume_ul": 0.011,
-      "duration_s": 3,
+      "volume_ul": 0.043,
+      "duration_s": 10,
       "temp_c": null,
       "washes": null,
       "flow_ul_min": 0.367,
-      "note": "Return the emulsion to the chip, pass 5 of 5: brk_1 holds 0.531 uL, so the 2.14 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
+      "note": "SHARED BARCODING STAGE. Return the emulsion to the chip, pass 5 of 5: brk_1 holds 0.531 uL, so the 2.17 uL batch goes in as 5 fills. The bench version of this step is where the published workflow loses most of its capsules, which is the single biggest reason this module exists.",
       "ports": {
         "feed": [
           "in_load"
@@ -316,11 +320,12 @@
       "target": "brk_1",
       "reagent": "emulsion_breaker",
       "volume_ul": 0.531,
-      "duration_s": 122,
+      "duration_s": 608,
       "temp_c": null,
-      "washes": 1,
+      "washes": 5,
       "flow_ul_min": 0.367,
-      "note": "Separate the phases, pass 5 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow.",
+      "note": "SHARED BARCODING STAGE. SWEEP, 5 fills of 0.531 uL = 5.00 chamber volumes. Separate the phases, pass 5 of 5. Oil leaves through the waste line; the capsules go on to the trap in the aqueous stream. Driven by a pressure difference, so it needs a controller rather than a fixed flow. This is a SWEEP and not a partial because carried-over oil is exactly what must not reach the capsule bed: an oil film on a capsule blocks every buffer exchange after it, so the oil has to be cleared to exchange.target_fraction (99%) and not merely reduced. HONEST CAVEAT: 4.61 chamber volumes is the WELL-MIXED bound, and a two-phase filter chamber is not well mixed - take it as a design bound, not a measurement, and check it with a dye test.",
+      "exchange_kind": "sweep",
       "ports": {
         "feed": [
           "in_reagent"
@@ -345,7 +350,8 @@
       "temp_c": null,
       "washes": 1,
       "flow_ul_min": 0.642,
-      "note": "Settle the capsules into a packed bed. Retention is by chamber geometry and downward flow, not by a size gap: a liquid-core capsule deforms, and the gap that would reliably hold one is below what we can make.",
+      "note": "SHARED BARCODING STAGE. PARTIAL: 1 chamber volume, and deliberately no more. This step SEATS THE BED, it does not clear anything - the capsules arrive in the aqueous stream and pack against the retention, and the liquid they arrive in is cleared by the two sweeps that follow. Sizing it as a sweep would be sizing the wrong job. The capsules are held by a fabricated depth weir: the 200 um fabrication floor is IN-PLANE and z is free, so the crest is this chip's etch depth minus a 25 um gap under the lid. No bought mesh insert and no sedimentation step. Packed-bed geometry and downward flow do the rest, because a liquid-core capsule deforms and an in-plane gap that would reliably hold one is below what we can make. It carries no diffusion soak either, for the same reason: it is not trying to equilibrate the capsule interiors, and the sweep straight after it is.",
+      "exchange_kind": "partial",
       "ports": {
         "feed": [
           "in_reagent"
@@ -366,11 +372,12 @@
       "target": "trap_1",
       "reagent": "wash_buffer",
       "volume_ul": 1.084,
-      "duration_s": 425,
+      "duration_s": 1500,
       "temp_c": null,
-      "washes": 3,
+      "washes": 5,
       "flow_ul_min": 0.642,
-      "note": "Flow-through wash after the emulsion break, replacing a centrifugation. Exchange is limited by diffusion into the capsule rather than by flushing, so each one takes a few minutes however fast the pump runs.",
+      "note": "SHARED BARCODING STAGE. SWEEP, 5 fills of 1.084 uL = 5.00 chamber volumes, which is what exchange.target_fraction (99%) needs at 4.61 chamber volumes. Flow-through wash after the emulsion break, replacing a centrifugation. It must reach target because it carries out the emulsion breaker and the last of the oil. AND IT NEEDS THE SOAK AS WELL AS THE VOLUME: exchange here is limited by diffusion INTO the capsule (2-5 min per fill), not by flushing, so the duration is 5 x 5 min of soak rather than the 8.4 min the pump alone would take. Running it any faster clears the chamber and leaves the capsule interiors untouched.",
+      "exchange_kind": "sweep",
       "ports": {
         "feed": [
           "in_reagent"
@@ -391,11 +398,12 @@
       "target": "trap_1",
       "reagent": "wash_buffer",
       "volume_ul": 1.084,
-      "duration_s": 425,
+      "duration_s": 1500,
       "temp_c": null,
-      "washes": 3,
+      "washes": 5,
       "flow_ul_min": 0.642,
-      "note": "Flow-through wash before transcription, replacing a centrifugation. Exchange is limited by diffusion into the capsule rather than by flushing, so each one takes a few minutes however fast the pump runs.",
+      "note": "SHARED BARCODING STAGE. SWEEP, 5 fills of 1.084 uL = 5.00 chamber volumes, which is what exchange.target_fraction (99%) needs at 4.61 chamber volumes. Flow-through wash before the next enzymatic step, replacing a centrifugation. It must reach target because carry-over inhibits what comes next - the guanidinium-class lysis residue upstream is the precedent: it inhibits reverse transcription at millimolar levels, so 'mostly gone' is not a specification. AND IT NEEDS THE SOAK AS WELL AS THE VOLUME: exchange here is limited by diffusion INTO the capsule (2-5 min per fill), not by flushing, so the duration is 5 x 5 min of soak rather than the 8.4 min the pump alone would take. Running it any faster clears the chamber and leaves the capsule interiors untouched.",
+      "exchange_kind": "sweep",
       "ports": {
         "feed": [
           "in_reagent"
@@ -420,7 +428,7 @@
       "temp_c": 72,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Gap-fill. The highest temperature any capsule sees in the whole workflow, and it is well inside what the shell and the board tolerate.",
+      "note": "VARIANT WORKFLOW, chromatin/transposase flavour: NOT part of the shared barcoding stage and NOT run by the pipeline in protocols/pipeline_mvp.json, where module 3's reverse transcription has already made the template. Gap-fill. The highest temperature any capsule sees in the whole workflow, and it is well inside what the shell and the board tolerate.",
       "ports": {
         "feed": [],
         "vent": [],
@@ -439,11 +447,12 @@
       "target": "trap_1",
       "reagent": "transcription_mix",
       "volume_ul": 1.084,
-      "duration_s": 142,
+      "duration_s": 300,
       "temp_c": null,
       "washes": 1,
       "flow_ul_min": 0.642,
-      "note": "Load the transcription mix. The polymerase is small enough to cross the shell; the barcoded template is far too large to leave it.",
+      "note": "VARIANT WORKFLOW, chromatin/transposase flavour: skipped in the RNA pipeline. FILL: one chamber volume of reaction mix into the packed bed. A fill, not a sweep - the preceding sweep already cleared the chamber, and this step is putting the reagent IN, so it is bounded above by the chamber and has no clearance target. It still needs the diffusion soak, because the polymerase has to cross the shell: 5 min, against the 1.7 min the pump alone would take. The polymerase is small enough to cross the shell; the barcoded template is far too large to leave it.",
+      "exchange_kind": "fill",
       "ports": {
         "feed": [
           "in_reagent"
@@ -468,7 +477,7 @@
       "temp_c": 37,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Linear amplification in place, overnight. Linear rather than exponential because a single transposon insertion is enough, errors do not propagate and coverage stays even. Held in an incubator with the ports sealed, not on a chip heater.",
+      "note": "VARIANT WORKFLOW, chromatin/transposase flavour: skipped in the RNA pipeline, where module 4's index PCR does the amplifying. Linear amplification in place, overnight. Linear rather than exponential because a single transposon insertion is enough, errors do not propagate and coverage stays even. Held in an incubator with the ports sealed, not on a chip heater.",
       "ports": {
         "feed": [],
         "vent": [],
@@ -487,11 +496,12 @@
       "target": "trap_1",
       "reagent": "wash_buffer",
       "volume_ul": 1.084,
-      "duration_s": 425,
+      "duration_s": 1500,
       "temp_c": null,
-      "washes": 3,
+      "washes": 5,
       "flow_ul_min": 0.642,
-      "note": "Final wash before recovery.",
+      "note": "SHARED BARCODING STAGE. SWEEP, 5 fills of 1.084 uL = 5.00 chamber volumes against the 4.61 that reaches exchange.target_fraction (99%). Final wash before recovery, and a sweep for the same reason as the others: whatever is left here is carried into the downstream library chemistry. Soak-limited too, so 5 x 5 min.",
+      "exchange_kind": "sweep",
       "ports": {
         "feed": [
           "in_reagent"
@@ -516,7 +526,7 @@
       "temp_c": null,
       "washes": null,
       "flow_ul_min": null,
-      "note": "Back-flush the bed out through out_waste, which the off-chip selector valve routes to the recovery tube for this step. Reverse the flow on a slow ramp: the bed lifts at well under a pascal, so a sharp start throws capsules at the walls. Downstream library steps are bulk and off-chip.",
+      "note": "SHARED BARCODING STAGE. Back-flush the bed out through out_waste, which the off-chip selector valve routes to the recovery tube for this step. Reverse the flow on a slow ramp: the bed lifts at well under a pascal, so a sharp start throws capsules at the walls. In the pipeline the recovered, now barcoded capsules go on to module 4 for the sublibrary split and index PCR; the remaining library steps are bulk and off-chip.",
       "ports": {
         "feed": [
           "in_reagent"

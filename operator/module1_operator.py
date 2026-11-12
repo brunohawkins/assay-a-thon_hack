@@ -16,7 +16,11 @@ Every change is checked first with the network solver (operator/network.py):
 
     python operator/module1_operator.py                       # scripted (offline) decisions
     python operator/module1_operator.py --operator llm        # Claude decides (ANTHROPIC_API_KEY); else scripted
-    python operator/module1_operator.py --times --flow 50     # predicted dye times for the bench demo
+    python operator/module1_operator.py --times               # predicted dye times at the bench dye rate
+
+--times defaults to the bench dye rate (contracts/parameters.json dye_demo.bench_flow_ul_min,
+derived by tools/demo_plan.py); everything else defaults to the culture feed. Pass --flow to
+override either.
 
 Writes runs/module1_v1/operator_<scripted|llm>.json for the twin.
 """
@@ -39,10 +43,49 @@ PORTS = ["p_in", "p_g_in", "p_a_in", "p_mid", "p_g_out", "p_a_out"]
 CULTURE = ["n_cx", "g_cx", "a_cx"]
 SHEAR_CEILING = 0.01           # dyn/cm2, culture chambers
 BACKPRESSURE_WARN = 0.7        # warn when the rest of the chip pushes back with >= 70% of a feed's own pressure
-PORT_HOLE_UL = nw.PORT_HOLE_MM * nw.PORT_HOLE_MM * 3.0  # the port bore (contracts/blocks.json) through the 3 mm lid
 FIRST_TINT = 2.0 / 3.0         # a slot's centre moves at 1.5x the mean: first colour at ~2/3 of the mean transit
-BENCH_FLOW_UL_MIN = 50.0       # default syringe rate for the dye demo (no cells: shear doesn't matter)
 NAMES = {"n_cx": "N", "g_cx": "G", "a_cx": "A"}
+
+
+def _parameter(name: str) -> float:
+    """One value from contracts/parameters.json, with no local fallback copy.
+
+    Same rule as operator/network.py: an unreadable or missing contract raises instead of
+    quietly reverting to a literal, because a literal kept here is exactly how the two
+    numbers below went stale.
+    """
+    params = json.loads((ROOT / "contracts" / "parameters.json").read_text())["parameters"]
+    return float(params[name]["value"])
+
+
+def port_hole_ul(chip: dict) -> float:
+    """uL held by one port hole: the contract bore, squared, through THIS chip's lid.
+
+    THE SHARED DERIVATION. tools/demo_plan.py imports this function and twin/contracts.js
+    portHoleUl() applies the same rule, so the bench document, the Python prediction and the
+    twin cannot disagree about how much dye disappears into a port before anything is
+    visible on the chip.
+
+    It replaces PORT_HOLE_UL = 2.0 * 2.0 * 3.0 = 12 uL, a 2 x 2 mm hole through a 3 mm lid.
+    That bore no longer exists: it is contracts/blocks.json fabrication_floors.min_port_mm
+    (0.8 mm), which operator/network.py already reads, and the hole runs through the chip's
+    own top layer rather than a second copy of "3 mm". On module1_v1 the true figure is
+    0.8 * 0.8 * 3 = 1.92 uL. The stale 12 uL was more than the chip's entire wetted volume
+    and stretched every predicted dye time by about a factor of three (dye at j_mid: ~85 s
+    instead of ~30 s at 11 uL/min).
+    """
+    bore = nw.PORT_HOLE_MM
+    lid = chip["layers"][-1]["thickness_mm"]
+    return bore * bore * float(lid)
+
+
+MODULE1_CHIP = json.loads((ROOT / "chip" / "module1_v1.json").read_text())
+PORT_HOLE_UL = port_hole_ul(MODULE1_CHIP)       # 1.92 uL on module1_v1, derived not typed
+# Syringe rate for the bench dye demo. No cells, so neither the culture shear ceiling nor the
+# capsule escape pressure applies; the rate is the one tools/demo_plan.py derives for
+# module1_v1 from demo.target_fill_s and demo.max_drive_pressure_kpa, and the twin reads the
+# same key. tests/test_demo_plan.py checks the contract still matches the derivation.
+BENCH_FLOW_UL_MIN = _parameter("dye_demo.bench_flow_ul_min")
 
 
 def states_of(mode: str, flow: float | dict = nw.DEFAULT_FEED_UL_MIN) -> tuple[dict, dict]:
@@ -279,25 +322,30 @@ def run_llm(net, flow: float, api_key: str, max_calls: int = 20) -> list[dict]:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Module 1 v1 operator: port states and pump rates only.")
     ap.add_argument("--operator", choices=["scripted", "llm"], default="scripted")
-    ap.add_argument("--flow", type=float, default=nw.DEFAULT_FEED_UL_MIN, help="uL/min per FEED port")
-    ap.add_argument("--times", action="store_true", help="print predicted dye times per mode at --flow")
+    ap.add_argument("--flow", type=float, default=None, help="uL/min per FEED port")
+    ap.add_argument("--times", action="store_true", help="print predicted dye times per mode at the bench dye rate")
     args = ap.parse_args(argv)
+    # The dye demo and a culture run are not the same flow: coloured water has no shear
+    # ceiling, so --times defaults to the bench rate and everything else to the culture feed.
+    flow = args.flow if args.flow is not None else (BENCH_FLOW_UL_MIN if args.times else nw.DEFAULT_FEED_UL_MIN)
     net = nw.module1_network()
     if args.times:
         for mode in ("grow", "int_n", "int_g", "int_a", "harvest", "seed", "collect"):
-            states, flows = states_of(mode, args.flow)
-            print(f"{nw.MODULE1_MODES[mode]['label']} at {args.flow:g} uL/min per syringe:")
+            states, flows = states_of(mode, flow)
+            print(f"{nw.MODULE1_MODES[mode]['label']} at {flow:g} uL/min per syringe:")
             for src, t in dye_times(net, states, flows).items():
-                print(f"  dye from {src}: " + ", ".join(f"{k} {v['first_s'] / 60:.1f}-{v['mean_s'] / 60:.1f} min" for k, v in t.items()))
+                # Seconds, not minutes: with the port bore corrected to 0.8 mm these are tens
+                # of seconds, and "0.6-0.9 min" hid the whole range the demo is watching.
+                print(f"  dye from {src}: " + ", ".join(f"{k} {v['first_s']:.0f}-{v['mean_s']:.0f} s" for k, v in t.items()))
         return 0
     kind = args.operator
     if kind == "llm" and not os.environ.get("ANTHROPIC_API_KEY", "").strip():
         print("ANTHROPIC_API_KEY is not set: using the scripted (offline) operator.")
         kind = "scripted"
-    decisions = run_scripted(net, args.flow) if kind == "scripted" else run_llm(net, args.flow, os.environ["ANTHROPIC_API_KEY"])
+    decisions = run_scripted(net, flow) if kind == "scripted" else run_llm(net, flow, os.environ["ANTHROPIC_API_KEY"])
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     out = OUT_DIR / f"operator_{kind}.json"
-    out.write_text(json.dumps({"chip": "module1_v1", "operator": kind, "flow_ul_min": args.flow,
+    out.write_text(json.dumps({"chip": "module1_v1", "operator": kind, "flow_ul_min": flow,
                                "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                                "note": "scripted = a fixed decision list (offline demo), not model output" if kind == "scripted" else "",
                                "decisions": decisions}, indent=1) + "\n")

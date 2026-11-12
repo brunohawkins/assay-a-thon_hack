@@ -497,8 +497,8 @@ def _limits(result, lines):
     if gaps:
         lines += ["### Gaps recorded rather than guessed", ""]
         lines += table(["subject", "what is missing"],
-                       [[cell(g.get("subject"), 32), cell(g.get("question")
-                                                          or g.get("note"), 110)]
+                       [[cell(g.get("subject"), 60), cell(g.get("question")
+                                                          or g.get("note"), 180)]
                         for g in gaps])
 
 
@@ -515,16 +515,24 @@ def _foam(result, lines):
     foam = result.get("foam")
     lines += [FOAM_SECTION, ""]
     if not isinstance(foam, dict) or not foam:
+        exists = (ROOT / "assay2chip" / "foam" / "run.py").exists()
         lines += [
-            "**NOT YET AVAILABLE.** Every number in this report comes from the "
-            "depth-averaged 2D model in section 6. No 3D solve has been run, so nothing "
-            "here has checked the places that model is known to be weakest: a region "
-            "above Re 1 (section 6), real recirculation, a sudden expansion, or a "
-            "chamber whose width is only a few times its depth.",
+            "**NOT YET AVAILABLE - NOT INTEGRATED.** Every number in this report comes "
+            "from the depth-averaged 2D model in section 6. No 3D solve has been run "
+            "through S10, so nothing here has checked the places that model is known to "
+            "be weakest: a region above Re 1 (section 6), real recirculation, a sudden "
+            "expansion, or a chamber whose width is only a few times its depth.",
             "",
-            "`assay2chip/foam/` is being built in parallel and has its own CLI and "
-            "renderer. When it lands, its cases, its figures and - the useful part - "
-            "anywhere it DISAGREES with the 2D result appear here.",
+            (f"`assay2chip/foam/` is on disk and has its own CLI "
+             f"(`python assay2chip/foam/run.py`) and renderer; S10 does not call it yet, "
+             f"so run it separately for now."
+             if exists else
+             "`assay2chip/foam/` is being built in parallel, with its own CLI and "
+             "renderer."),
+            "",
+            "When it is wired in, `result[\"foam\"]` fills this section with its cases, "
+            "its figures and - the useful part - anywhere it DISAGREES with the 2D "
+            "result. Nothing above has to be restructured to hold it.",
             "",
         ]
         return

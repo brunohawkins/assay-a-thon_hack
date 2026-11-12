@@ -291,12 +291,23 @@ class View:
 # --- tolerant readers for whatever the siblings hand over -----------------------------
 
 def as_dict(obj):
-    """A Mesh/Field/anything as a plain dict, whether it is one already or a dataclass."""
+    """A Mesh/Field/anything as a plain dict, whether it is one already or a dataclass.
+
+    SHALLOW, deliberately. Drawing only ever reads scalars off a node or an edge, so
+    `dataclasses.asdict` is both wrong for the job and ruinously slow: it DEEP-COPIES,
+    and on a 3,500-cell mesh one call ran 638,000 deepcopies and five seconds. A
+    dataclass keeps its fields in `__dict__`, so a shallow copy of that is the same
+    answer for pennies. Nested values stay as objects and the callers convert them if
+    they need to (`run.jsonable` does, on the way to JSON).
+    """
     if obj is None:
         return {}
     if isinstance(obj, dict):
         return obj
-    for attr in ("to_dict", "as_dict", "asdict", "json_dict"):
+    d = getattr(obj, "__dict__", None)
+    if isinstance(d, dict) and d:
+        return dict(d)
+    for attr in ("to_dict", "as_dict", "asdict", "json_dict", "to_json"):
         fn = getattr(obj, attr, None)
         if callable(fn):
             try:
@@ -308,11 +319,11 @@ def as_dict(obj):
     try:
         import dataclasses
         if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
-            return dataclasses.asdict(obj)
+            return {f.name: getattr(obj, f.name, None)
+                    for f in dataclasses.fields(obj)}
     except Exception:
         pass
-    d = getattr(obj, "__dict__", None)
-    return dict(d) if isinstance(d, dict) else {}
+    return {}
 
 
 def _rows(container, id_keys=("id",)):
@@ -335,12 +346,36 @@ def _rows(container, id_keys=("id",)):
     return out
 
 
+# Converting a Mesh's 3,500 dataclass nodes and 7,000 edges into plain dicts costs a
+# deep copy each time, and one map asks for them about ten times (the values, the
+# colour span, the node index, and once per finding being placed). Uncached, a single
+# figure on a real mesh took twenty seconds and a whole-repo run would not have
+# finished. The cache is keyed on object identity and holds the last few meshes, which
+# is exactly the access pattern: four maps in a row off one mesh.
+_CONVERTED: dict = {}
+_CONVERT_KEEP = 6
+
+
+def _converted(mesh, key):
+    if mesh is None:
+        return []
+    slot = _CONVERTED.get(id(mesh))
+    if slot is None or slot[0] is not mesh:
+        if len(_CONVERTED) >= _CONVERT_KEEP:
+            _CONVERTED.clear()
+        data = as_dict(mesh)
+        slot = (mesh, {"nodes": _rows(data.get("nodes")),
+                       "edges": _rows(data.get("edges"))})
+        _CONVERTED[id(mesh)] = slot
+    return slot[1][key]
+
+
 def mesh_nodes(mesh):
-    return _rows(as_dict(mesh).get("nodes"))
+    return _converted(mesh, "nodes")
 
 
 def mesh_edges(mesh):
-    return _rows(as_dict(mesh).get("edges"))
+    return _converted(mesh, "edges")
 
 
 def series(field, *keys):
@@ -434,36 +469,68 @@ def channel_path(chip, channel, anchor_table=None):
     return [tuple(p0), tuple(p1)]
 
 
+def _feature_index(chip, mesh):
+    """{feature or node or edge id: (x_mm, y_mm)} for this chip, built once.
+
+    Every finding has to be placed on the drawing, and walking the chambers, the
+    channels, 3,500 mesh nodes and 7,000 edges once per finding is what made a figure
+    with fifteen findings fifteen times slower than one with none.
+    """
+    key = (id(chip), id(mesh))
+    cached = _FEATURE_INDEX.get(key)
+    if cached is not None and cached[0] is chip and cached[1] is mesh:
+        return cached[2]
+    index = {}
+    nodes = {}
+    for nd in mesh_nodes(mesh):
+        point = (_f(nd.get("x_mm"), 0.0), _f(nd.get("y_mm"), 0.0))
+        nodes[str(nd.get("id"))] = point
+        index.setdefault(str(nd.get("id")), point)
+        if nd.get("feature_id"):
+            index.setdefault(str(nd.get("feature_id")), point)
+    for ed in mesh_edges(mesh):
+        a, b = nodes.get(str(ed.get("a"))), nodes.get(str(ed.get("b")))
+        if a and b:
+            index.setdefault(str(ed.get("id")),
+                             ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2))
+    # The chip spec wins over the mesh: a chamber's own centre is the honest place for a
+    # finding about that chamber, not whichever of its cells happened to come first.
+    table = anchors(chip)
+    for ch in (chip or {}).get("channels") or []:
+        pts = channel_path(chip, ch, table)
+        if pts:
+            index[str(ch.get("id"))] = pts[len(pts) // 2]
+    for p in (chip or {}).get("ports") or []:
+        index[str(p.get("id"))] = (_f(p["position"][0], 0.0),
+                                   _f(p["position"][1], 0.0))
+    for c in (chip or {}).get("chambers") or []:
+        index[str(c.get("id"))] = (_f(c["center"][0], 0.0), _f(c["center"][1], 0.0))
+    if len(_FEATURE_INDEX) >= _CONVERT_KEEP:
+        _FEATURE_INDEX.clear()
+    _FEATURE_INDEX[key] = (chip, mesh, index)
+    return index
+
+
+_FEATURE_INDEX: dict = {}
+
+
 def feature_point(chip, mesh, feature_id):
     """Where a finding happened, in mm, or None when it is chip-wide."""
     if not feature_id:
         return None
     fid = str(feature_id)
-    for c in (chip or {}).get("chambers") or []:
-        if c.get("id") == fid:
-            return (_f(c["center"][0], 0.0), _f(c["center"][1], 0.0))
-    for p in (chip or {}).get("ports") or []:
-        if p.get("id") == fid:
-            return (_f(p["position"][0], 0.0), _f(p["position"][1], 0.0))
-    table = anchors(chip)
-    for ch in (chip or {}).get("channels") or []:
-        if ch.get("id") == fid:
-            pts = channel_path(chip, ch, table)
-            if pts:
-                return pts[len(pts) // 2]
-    nodes = {str(nd.get("id")): nd for nd in mesh_nodes(mesh)}
-    if fid in nodes:
-        nd = nodes[fid]
-        return (_f(nd.get("x_mm"), 0.0), _f(nd.get("y_mm"), 0.0))
-    for ed in mesh_edges(mesh):
-        if str(ed.get("id")) == fid:
-            a, b = nodes.get(str(ed.get("a"))), nodes.get(str(ed.get("b")))
-            if a and b:
-                return ((_f(a.get("x_mm"), 0.0) + _f(b.get("x_mm"), 0.0)) / 2,
-                        (_f(a.get("y_mm"), 0.0) + _f(b.get("y_mm"), 0.0)) / 2)
-    for nd in mesh_nodes(mesh):
-        if str(nd.get("feature_id")) == fid:
-            return (_f(nd.get("x_mm"), 0.0), _f(nd.get("y_mm"), 0.0))
+    index = _feature_index(chip, mesh)
+    if fid in index:
+        return index[fid]
+    # analyse.py qualifies some ids: a leak is raised against `p:p_g_in`, not `p_g_in`,
+    # because a port and a chamber can share a name. Strip one qualifier and retry
+    # rather than drop the marker to the chip-wide list.
+    for separator in (":", "/", "#"):
+        if separator in fid:
+            head, _, tail = fid.partition(separator)
+            for part in (tail, head):
+                if part in index:
+                    return index[part]
     return None
 
 

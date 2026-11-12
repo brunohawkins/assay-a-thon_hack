@@ -7,7 +7,8 @@ the same run format (the LLM operator is in llm_operator.py).
               capsule_count_drop   -> stop and report
               sensor_disagreement  -> distrust that sensor, fall back to the model, re-plan
   scripted  replays a saved transcript of operator tool calls (e.g. from an LLM run),
-            so a demo works offline
+            so a demo works offline. A replay that runs out of calls before the protocol is
+            finished reports "stopped", never "done".
 """
 
 from __future__ import annotations
@@ -108,4 +109,12 @@ def run_scripted(ctl, transcript: dict) -> None:
             break
         dispatch(ctl, call["tool"], call.get("input", {}), call.get("explanation", ""))
     if ctl.status == "running":
-        ctl.status = "done"
+        # A transcript can end anywhere - it may have been truncated, or recorded from a run
+        # that stopped - so finishing the calls is not the same as finishing the protocol.
+        # This used to set "done" unconditionally, so replaying half a transcript reported a
+        # completed run. Same rule as llm_operator.run_llm.
+        unfinished = [n for n in ctl.steps if n not in ctl.step_results]
+        ctl.status = "done" if not unfinished else "stopped"
+        if unfinished:
+            ctl.status_reason = (f"the transcript ran out after {len(transcript['calls'])} call(s) without "
+                                 f"completing step(s) {unfinished}")

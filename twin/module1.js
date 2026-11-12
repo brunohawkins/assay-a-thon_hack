@@ -1,6 +1,6 @@
 // Module 1 v1 (MJ's valve-free culture chip, chip/module1_v1.json): its flow twin.
 //
-// The chip is drawn from its spec with channel paths taken from the laser-cut DXF
+// The chip is drawn from its spec with channel paths taken from the embossing DXF
 // (cad/exports/module1_v1/module1_v1.dxf) and its STLs where present, at real scale. The
 // liquid is driven by twin/network.js (the same model as operator/network.py): pick a mode
 // (or set each port to FEED / VENT / CAP), the network is solved, and dye is advected along
@@ -12,20 +12,23 @@ import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import {
   Network, parseDxfChannels, MODES, DESIGN_MODES, modeStates, solverPorts, keyResult, safetyCheck, dyeTimes,
-  diffusionMm, PORT_HOLE_UL, PORT_HOLE_MM, configure, defaultFeed,
+  diffusionMm, shearCeiling, defaultFeed,
 } from './network.js';
+import { contracts } from './contracts.js';
 
 export const CHIP_ID = 'module1_v1';
 const PORTS = ['p_in', 'p_g_in', 'p_a_in', 'p_mid', 'p_g_out', 'p_a_out'];
 const INLET_OF = { n_cx: 'p_in', g_cx: 'p_g_in', a_cx: 'p_a_in' };
 // Physical demo colours: n = red, g = yellow, a = blue. A port feeds its chamber's colour.
 const DYE_RGB = [[0.94, 0.27, 0.27], [0.98, 0.8, 0.08], [0.23, 0.51, 0.96]];
-const DYE_OF_PORT = { p_in: 0, p_g_in: 1, p_g_out: 1, p_a_in: 2, p_a_out: 2 };
-const DYE_NAMES = ['red', 'yellow', 'blue'];
+export const DYE_OF_PORT = { p_in: 0, p_g_in: 1, p_g_out: 1, p_a_in: 2, p_a_out: 2 };
+export const DYE_NAMES = ['red', 'yellow', 'blue'];
 const CELLS = 14;                      // cells per channel in the advection grid
 const D_MM2_S = (8.8 ** 2) / (2 * 12 * 3600); // mm^2/s from the design doc's 8.8 mm in 12 h
-let PROTOCOL_FEED = 2.4;               // uL/min; prepare() derives it from the chip (operator/network.py DEFAULT_FEED_UL_MIN)
-const BENCH_DEFAULT = 50;              // uL/min, dye demo default (no cells: shear doesn't matter)
+// uL/min. NOT the old hard-coded 11 from build_module1.py, which went stale the moment the
+// chip was rescaled: prepare() derives it from THIS chip with network.js defaultFeed(), the
+// same rule as operator/network.py's DEFAULT_FEED_UL_MIN, off the contract shear ceiling.
+let PROTOCOL_FEED = 2.4;
 const SPEEDS = [1, 10, 100, 1000, 10000];
 const CHAMBER_INFO = { n_cx: 'neuron chamber', g_cx: 'glia (microglia) chamber', a_cx: 'astrocyte chamber', j_mid: 'junction (not a culture chamber)' };
 
@@ -45,6 +48,7 @@ function dyeColor(c, out = new THREE.Color()) {
   return out.setRGB(Math.max(0, r), Math.max(0, g), Math.max(0, b), THREE.SRGBColorSpace);
 }
 const amount = (c) => Math.min(1, c[0] + c[1] + c[2]);
+const CLEAR_MEDIUM = new THREE.Color(0x9fb4d1);   // no dye: the medium, a pale blue-grey
 
 // Protocol step -> mode and port states (build_module1.py: one lane fed at a time in growth).
 export function stepMode(ev) {
@@ -74,6 +78,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
   let sim = null;          // advection grid
   let speed = 100;
   let demo = false;
+  let benchMode = false;   // twin/bench.js drives the clock and shows its own timer
   let follow = true;       // follow the protocol while it plays
   let stopwatch = { running: false, t: 0 };
   let simT = 0;
@@ -82,7 +87,9 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
   let measured = {};
   let flagged = null;      // presenter: { ids, t } parts pulsing red (a refused request)
   let asbuilt = null;      // cad/exports/module1_v1/asbuilt.json, when the as-built CAD differs (tools/check_asbuilt.py)
-  const bench = Object.fromEntries(PORTS.map((p) => [p, BENCH_DEFAULT]));
+  // Dye-demo syringe rate. contracts/ carries no parameter for it yet, so contracts.js hands
+  // back the operator's value and lists it in `missing`; the panel names where it came from.
+  const bench = Object.fromEntries(PORTS.map((p) => [p, contracts().benchFlowUlMin]));
   const group = new THREE.Group();
   const objs = { arrows: null, cells: null, portIcons: {}, m2: null, disc: null, discLabel: null };
   const panel = $('m1-panel');
@@ -93,14 +100,15 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
 
   try { measured = JSON.parse(localStorage.getItem('m1v1-measured') ?? '{}'); } catch { measured = {}; }
 
+  // The chip's own top layer, so "the N mm lid" is never a second copy of a number.
+  const lidMm = () => net?.chip.layers?.at(-1)?.thickness_mm ?? '?';
+
   // ---------------------------------------------------------------- loading
 
   async function prepare(spec) {
-    // Port bore from contracts/blocks.json, as operator/network.py and the CAD generator read it.
-    try {
-      const blocks = await (await fetch(`${root}contracts/blocks.json`, { cache: 'no-store' })).json();
-      configure({ portHoleMm: blocks.fabrication_floors?.min_port_mm, lidMm: spec.layers.at(-1)?.thickness_mm });
-    } catch { configure({ lidMm: spec.layers.at(-1)?.thickness_mm }); }
+    // The port bore is not fetched or configured here: twin/contracts.js has already read it
+    // from contracts/blocks.json, the same file operator/network.py and the CAD generator read,
+    // and each Network carries it (net.portHoleMm / net.portHoleUl) with this chip's own lid.
     PROTOCOL_FEED = defaultFeed(spec);
     // What was printed wins: if tools/check_asbuilt.py found the as-built CAD differs from the spec,
     // draw and solve on its normalised outline. The listing is read first, so no 404 when there is none.
@@ -117,13 +125,14 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     const rects = res.ok ? parseDxfChannels(await res.text()) : [];
     net = new Network(spec, rects);
     // Draw-only additions (the spec file itself is not changed): channel paths from the DXF,
-    // the 2 mm port holes, and a module block so ports and cells draw as on module chips.
+    // the port holes at the contract bore, and a module block so ports and cells draw as on
+    // module chips.
     const view = structuredClone(spec);
     for (const ch of view.channels) {
       const g = net.geometry[ch.id];
       ch.path = [g.a, g.b];
     }
-    for (const p of view.ports) p.width_um = PORT_HOLE_MM * 1000;
+    for (const p of view.ports) p.width_um = net.portHoleMm * 1000;
     view.module = { id: 'm1v1', name: 'Module 1 v1', status: 'designed', printed: true };
     return { view, dxf: rects.length };
   }
@@ -139,14 +148,16 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       l.element.remove();
       return false;
     });
-    // The chamber STLs are drawn over the liquid; keep them nearly clear so the dye colours read true.
-    chip.loadStls(`${root}cad/exports/${CHIP_ID}/`).then(() => {
-      if (chip !== c) return;
-      for (const ch of c.spec.chambers) {
-        const stl = c.parts.get(ch.id)?.stl;
-        if (stl) { stl.material.opacity = 0.07; stl.material.emissiveIntensity = 0; }
-      }
-    });
+    // STLs are loaded by main.js, from the folder this chip OWNS (it awaits loadChipCad before
+    // attaching, so they are already in place here). The chamber STLs are drawn over the
+    // liquid, so keep them nearly clear and unlit: that is what makes the dye colours read true.
+    // Module 1's chambers are Flowmatter blocks (twin/blocks.js), so dim those as well as any STL.
+    // No loadStls() here: main.js loaded this chip's own CAD folder before attaching (MJ).
+    for (const ch of c.spec.chambers) {
+      const part = c.parts.get(ch.id);
+      for (const m of [part?.block?.mesh, part?.stl]) if (m) { m.material.opacity = 0.05; m.material.emissiveIntensity = 0; }
+    }
+    for (const pid of PORTS) { const part = c.parts.get(pid); if (part) part.portState = null; } // colour the port STLs on the next draw
     buildOverlays();
     attached = true;
     panel.hidden = false;
@@ -221,7 +232,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     // Flow arrows: one cone per channel at its middle, above the lid.
     const coneGeom = new THREE.ConeGeometry(0.9 * k, 2.4 * k, 18).rotateZ(-Math.PI / 2); // points along +x
     objs.arrows = net.edges.map((e) => {
-      const mesh = new THREE.Mesh(coneGeom, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x5eead4, emissiveIntensity: 0.5, transparent: true, opacity: 0.9 }));
+      const mesh = new THREE.Mesh(coneGeom, new THREE.MeshStandardMaterial({ color: 0x57606a, roughness: 0.5, transparent: true, opacity: 0.92 }));
       mesh.position.set((e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2, top + 0.9 * k);
       mesh.renderOrder = 8;
       group.add(mesh);
@@ -245,10 +256,10 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     const boxPos = new THREE.Vector3(pm[0], -16 * k, top + 1 * k);
     const tubeCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(pm[0], pm[1], top), new THREE.Vector3(pm[0], pm[1], top + 5 * k),
       new THREE.Vector3(pm[0] + 3 * k, 4 * k, top + 5 * k), boxPos.clone().setY(boxPos.y + 6 * k)]);
-    const tubeMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, emissive: 0x334155, emissiveIntensity: 0.4, transparent: true, opacity: 0.7 });
-    const tube = new THREE.Mesh(new THREE.TubeGeometry(tubeCurve, 80, Math.max(0.45 * k, PORT_HOLE_MM / 2), 10, false), tubeMat);
+    const tubeMat = new THREE.MeshStandardMaterial({ color: 0x8c959f, emissive: 0x000000, emissiveIntensity: 0.4, transparent: true, opacity: 0.6 });
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(tubeCurve, 80, Math.max(0.45 * k, net.portHoleMm / 2), 10, false), tubeMat);
     group.add(tube);
-    const boxMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, emissive: 0x2dd4bf, emissiveIntensity: 0.12, transparent: true, opacity: 0.75 });
+    const boxMat = new THREE.MeshStandardMaterial({ color: 0xd8dee4, emissive: 0x1b9e8f, emissiveIntensity: 0.05, transparent: true, opacity: 0.85 });
     const box = new THREE.Mesh(new THREE.BoxGeometry(26 * k, 10 * k, 4 * k), boxMat);
     box.position.copy(boxPos);
     group.add(box);
@@ -281,14 +292,14 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       const s = part.spec;
       part.box.userData.info = part.kind === 'chamber'
         ? `<b>${s.id}</b> · ${CHAMBER_INFO[s.id] ?? s.type}<br>${s.size[0]} × ${s.size[1]} × ${s.size[2]} mm · ${s.volume_ul} µL${s.mesh_pore_um ? ` · ${s.mesh_pore_um} µm mesh (bought membrane?)` : ' · no mesh'}`
-        : `<b>${s.id}</b> · port: ${PORT_HOLE_MM} mm bore through the lid (${PORT_HOLE_UL.toFixed(2)} µL)<br>at (${s.position[0]}, ${s.position[1]}) mm`;
+        : `<b>${s.id}</b> · port: ${net.portHoleMm} mm hole through the ${lidMm()} mm lid (${net.portHoleUl.toFixed(2)} µL)<br>at (${s.position[0]}, ${s.position[1]}) mm`;
       part.box.userData.port = part.kind === 'port' ? s.id : null;
       hoverTargets.push(part.box);
     }
     for (const ch of chip.channels) {
       const g = net.geometry[ch.id];
       for (const seg of ch.group.children) {
-        seg.userData.info = `<b>${ch.id}</b> · channel ${ch.from} → ${ch.to}<br>${g.width_mm.toFixed(2)} × ${g.depth_mm} mm · ${g.length_mm.toFixed(2)} mm long (from the DXF) · ${(g.length_mm * g.width_mm * g.depth_mm).toFixed(2)} µL`;
+        seg.userData.info = `<b>${ch.id}</b> · channel ${ch.from} → ${ch.to}<br>${g.width_mm.toFixed(2)} × ${g.depth_mm} mm · ${g.length_mm.toFixed(2)} mm long (${g.source}) · ${(g.length_mm * g.width_mm * g.depth_mm).toFixed(2)} µL`;
         seg.userData.channel = ch.id;
         hoverTargets.push(seg);
       }
@@ -324,7 +335,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
   function newSim() {
     const node = {};
     for (const c of net.chip.chambers) node[c.id] = { c: [0, 0, 0], v: c.volume_ul };
-    for (const p of net.chip.ports) node[p.id] = { c: [0, 0, 0], v: PORT_HOLE_UL };
+    for (const p of net.chip.ports) node[p.id] = { c: [0, 0, 0], v: net.portHoleUl };
     const cells = net.edges.map(() => Array.from({ length: CELLS }, () => [0, 0, 0]));
     return { node, cells };
   }
@@ -342,7 +353,9 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       cfl = Math.max(cfl, (qin * dt) / n.v);
     }
     const nSub = Math.max(1, Math.ceil(cfl / 0.45));
-    if (nSub > 20000) { snapSteady(); return; } // that long at this flow: everything has long reached steady state
+    // That long at this flow: everything has long reached its steady colours, and catching up
+    // step by step would stall the frame (the demo pace moves days per second), so jump there.
+    if (nSub > 1500) { snapSteady(); return; }
     const h = dt / nSub;
     for (let s = 0; s < nSub; s++) substep(h, flows);
   }
@@ -457,7 +470,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     if (stopwatch.running) stopwatch.t += dt * (demo ? 1 : speed);
     draw();
     if (flagged) pulseFlagged(dt);
-    overlays.setStopwatch?.(demo ? { t: stopwatch.t, running: stopwatch.running } : null);
+    overlays.setStopwatch?.(demo && !benchMode ? { t: stopwatch.t, running: stopwatch.running } : null);
   }
 
   function advance(simDt) {
@@ -522,7 +535,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
         arrow.quaternion.setFromUnitVectors(new THREE.Vector3(1, 0, 0), dir);
         arrow.scale.setScalar(0.45 + 0.55 * Math.min(1, Math.log10(1 + qa) / Math.log10(1 + 60)));
         const mid = sim.cells[k][Math.floor(CELLS / 2)];
-        arrow.material.color.copy(dyeColor(mid, col).lerp(new THREE.Color(0xffffff), 1 - amount(mid)));
+        arrow.material.color.copy(dyeColor(mid, col).lerp(new THREE.Color(0x57606a), 1 - amount(mid)));
       }
     });
     objs.cells.instanceColor.needsUpdate = true;
@@ -533,32 +546,45 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       const a = amount(conc);
       part.fluid.visible = true;
       part.fluid.scale.z = Math.max(part.size.z * 0.96, 0.0001);
-      dyeColor(conc, part.fluidMaterial.color).lerp(new THREE.Color(0x9fb4d1), 1 - a);
-      part.fluidMaterial.emissive.copy(part.fluidMaterial.color);
-      // A low glow keeps the dye saturated: brighter, the tone mapping washes yellow out to white.
-      part.fluidMaterial.emissiveIntensity = 0.18;
-      part.fluidMaterial.opacity = 0.3 + 0.62 * a;
+      // The dye shows its own colour, unlit, like the channels: lit, it bleaches towards white.
+      dyeColor(conc, part.fluidMaterial.emissive).lerp(CLEAR_MEDIUM, 1 - a);
+      part.fluidMaterial.color.setRGB(0, 0, 0);
+      part.fluidMaterial.emissiveIntensity = 0.95;
+      part.fluidMaterial.envMapIntensity = 0;
+      part.fluidMaterial.opacity = 0.35 + 0.6 * a;
     }
-    // port icons
+    // port icons, and each port coloured by what is on it: its dye when fed, grey when open, dark when plugged
     for (const pid of PORTS) {
       const el = objs.portIcons[pid].element;
       const st = state.states[pid];
       const html = `${ICONS[st]}<span>${pid} · ${st}${st === 'FEED' ? ` ${state.flows[pid]} µL/min` : ''}</span>`;
       if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; el.className = `port-icon ${st.toLowerCase()}`; }
+      const part = chip.parts.get(pid);
+      const key = st === 'FEED' ? `F${DYE_OF_PORT[pid]}` : st;
+      if (part?.ringMaterial && part.portState !== key) {
+        part.portState = key;
+        const k = DYE_OF_PORT[pid];
+        if (st === 'FEED' && k !== undefined) col.setRGB(...DYE_RGB[k], THREE.SRGBColorSpace);
+        else col.setHex(st === 'VENT' ? 0x8c959f : 0x424a53);
+        for (const m of [part.ringMaterial, part.box.material, part.stl?.material]) if (m) { m.color.copy(col); m.emissive?.copy(col); }
+        part.stl?.children[0]?.material.color.copy(col);   // its outline (chip.js outlineOf)
+      }
     }
     // Module 2 box: lit while flow leaves p_mid
     const out = sol.ports.p_mid?.into_chip_ul_min ?? 0;
     const pm = sim.node.p_mid.c;
     objs.m2.tubeMat.emissive.copy(dyeColor(pm, col));
-    objs.m2.tubeMat.emissiveIntensity = out < -1e-6 ? 0.9 : 0.2;
-    objs.m2.boxMat.emissiveIntensity = out < -1e-6 ? 0.35 : 0.12;
+    objs.m2.tubeMat.emissiveIntensity = out < -1e-6 ? 0.7 * amount(pm) : 0;
+    objs.m2.boxMat.emissiveIntensity = out < -1e-6 ? 0.25 : 0.05;
     // diffusion disc while nothing flows
     const still = !Object.values(sol.channels).some((c) => c.flow_ul_min);
-    objs.disc.visible = still && idleT > 60;
+    // Only when the pumps are stopped by hand (the flow panel's idle mode): when the protocol is in
+    // charge the chip is capped for days between operations, and the disc would swamp the chip.
+    objs.disc.visible = still && idleT > 60 && !follow;
     objs.discLabel.visible = objs.disc.visible;
     if (objs.disc.visible) {
       const r = diffusionMm(idleT);
-      objs.disc.scale.setScalar(Math.max(r, 0.5));
+      objs.disc.scale.setScalar(Math.min(Math.max(r, 0.5), 0.45 * chip.footprint.y));   // the label keeps the true figure
       objs.disc.material.color.copy(dyeColor(sim.node.j_mid.c, col));
       objs.discLabel.element.textContent = `diffusion: ~${r.toFixed(1)} mm after ${fmtT(idleT)} (doc: 8.8 mm in 12 h)`;
     }
@@ -574,6 +600,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
 
   function renderPanel() {
     if (!panel || !net) return;
+    const C = contracts();
     const s = state ?? modeStates('grow', PROTOCOL_FEED);
     const times = sol ? dyeTimes(net, sol, s.states, s.flows) : {};
     const modeBtn = (m) => `<button data-m1mode="${m}" aria-pressed="${state?.mode === m}">${esc(MODES[m].label)}</button>`;
@@ -596,14 +623,18 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       const c = sol.channels[e.id];
       return `<tr><td>${e.id}</td><td class="num">${Math.abs(c.flow_ul_min).toFixed(2)}</td><td>${c.flow_ul_min ? `${c.from}→${c.to}` : '–'}</td><td class="num">${c.shear_dyn_cm2.toFixed(3)}</td></tr>`;
     }).join('') : '';
+    const ceiling = shearCeiling();
     const chamberRows = sol ? ['n_cx', 'g_cx', 'a_cx', 'j_mid'].map((c) => `<tr><td>${c}</td><td class="num">${sol.chambers[c].throughput_ul_min.toFixed(2)}</td><td></td>
-      <td class="num ${c !== 'j_mid' && sol.chambers[c].shear_dyn_cm2 > 0.01 ? 'off' : ''}">${sol.chambers[c].shear_dyn_cm2.toFixed(4)}</td></tr>`).join('') : '';
+      <td class="num ${c !== 'j_mid' && sol.chambers[c].shear_dyn_cm2 > ceiling ? 'off' : ''}">${sol.chambers[c].shear_dyn_cm2.toFixed(4)}</td></tr>`).join('') : '';
     const decisionRows = decisions.map((d, k) => `<li class="dec ${d.status}" data-decision="${k}" tabindex="0">
         <span class="tag ${d.status}">${d.status}</span> <b>${esc(MODES[d.intent]?.label ?? 'custom')}</b> · ${esc(d.reason)}
         <div class="meta">${esc(d.summary)}</div>${[...(d.reasons ?? []).map((r) => `<div class="blk">✕ ${esc(r)}</div>`), ...(d.warnings ?? []).map((w) => `<div class="wrn">! ${esc(w)}</div>`)].join('')}</li>`).join('');
     panel.innerHTML = `
       <div class="cp-head"><h2>Module 1 v1 · flow</h2>
-        <p class="meta">MJ's chip · real scale · channels from ${asbuilt ? `the AS-BUILT file ${esc(asbuilt.source_dxf)} (${asbuilt.differences.length} differences from the spec)` : 'the DXF'} · solver: twin/network.js = operator/network.py</p></div>
+        <p class="meta">MJ's chip (resin print + hot emboss) · real scale · channels from ${asbuilt ? `the AS-BUILT file ${esc(asbuilt.source_dxf)} (${asbuilt.differences.length} differences from the spec)` : 'module1_v1.dxf'} · same model as operator/network.py (parity checked by hand, not by a test)</p>
+        <p class="meta">µ = ${C.mu_pa_s} Pa s (fluid.viscosity_37c_pa_s: culture medium at 37 °C, not the ${C.muWater20cPaS} Pa s water-at-20 °C value) · shear ceiling ${ceiling} dyn/cm² · port bore ${net.portHoleMm} mm — all from contracts/</p>
+        ${net.estimated.length ? `<p class="wrn">! no DXF rectangle matched ${esc(net.estimated.join(', '))}: those lengths are straight-line estimates, not cut geometry</p>` : ''}
+        ${C.missing.map((m) => `<p class="wrn">! ${esc(m.wanted)} does not exist: ${esc(String(m.name))} = ${m.value} comes from ${esc(m.from)}</p>`).join('')}</div>
       <section><h3>Mode</h3><div class="m1-modes">${DESIGN_MODES.map(modeBtn).join('')}</div>
         <div class="m1-modes sub">${['collect', 'idle'].map(modeBtn).join('')}</div>
         <p class="m1-result">${sol ? esc(keyResult(state?.mode, sol)) : ''}</p>
@@ -623,7 +654,7 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
       </section>
       <section><h3>Dye arrival, predicted <small>first tint – plug flow, at these rates</small></h3>
         <table class="m1-times"><thead><tr><th>dye</th><th>predicted</th><th>measured</th></tr></thead><tbody>${timeRows || '<tr><td colspan="3">no flow</td></tr>'}</tbody></table>
-        <p class="meta">Includes the ${PORT_HOLE_MM} mm inlet bore (${PORT_HOLE_UL.toFixed(2)} µL); tubing to the chip not included.</p>
+        <p class="meta">Includes the ${net.portHoleMm} × ${net.portHoleMm} × ${lidMm()} mm inlet hole (${net.portHoleUl.toFixed(2)} µL); tubing to the chip not included.</p>
       </section>
       <details><summary>Solver: every channel</summary>
         <table class="m1-solver"><thead><tr><th></th><th>µL/min</th><th>direction</th><th>shear dyn/cm²</th></tr></thead><tbody>${chRows}${chamberRows}</tbody></table>
@@ -712,6 +743,18 @@ export function createModule1View({ ctx, ui, overlays, root, operatorKinds = ['l
     // presenter view (twin/presenter.js)
     reset() { if (net) { sim = newSim(); simT = 0; idleT = 0; } },   // clear medium everywhere: dye starts at the feeds
     setSpeed(x) { speed = x; demo = false; renderPanel(); },
+    // twin/bench.js: dye only (shear warns, no block), the protocol is not followed, and the bench
+    // view advances the simulation itself (advance()) so it stays in step with its own timer.
+    setBench(on) {
+      benchMode = on;
+      demo = on;
+      follow = !on;
+      speed = on ? 0 : 100;
+      stopwatch = { running: false, t: 0 };
+      renderPanel();
+    },
+    get benchMode() { return benchMode; },
+    apply: (next, source = 'bench') => apply(next, source),
     flag: setFlag,
     check: (mode, states, flows) => safetyCheck(net, mode, states, flows, { cells: true }),
     get decisions() { return decisions; },

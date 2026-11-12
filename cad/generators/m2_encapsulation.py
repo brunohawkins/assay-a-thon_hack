@@ -63,12 +63,17 @@ DEPTH_MM = _ENV["max_depth_mm"]                       # the ONE etch depth
 DEPTH_UM = DEPTH_MM * 1000
 WEIR_GAP_UM = _WEIR["gap_um"]
 WEIR_CREST_UM = DEPTH_UM - WEIR_GAP_UM                # crest = this chip's etch depth minus the gap
+WEIR_CREST_THICK_UM = _WEIR["crest_thickness_um"]     # in plane, so it IS the in-plane floor
 MIN_OPEN_UM = _FLOORS["min_open_channel_mm"] * 1000   # in-plane floor
 PORT_UM = _FLOORS["min_port_mm"] * 1000
 PITCH_MM = _FLOORS["min_port_pitch_mm"]
 MAX_PORTS = _FLOORS["max_ports_per_chip"]
-RETENTION = {"type": "weir", "opening_um": WEIR_GAP_UM, "source": "fabricated"}
-MU_PA_S = 0.8e-3                # buffer viscosity for the wall-shear check
+# The weir as DATA: the gap is in z (no in-plane floor applies), the crest height is derived
+# from THIS chip's etch depth, the thickness is the in-plane floor. retains_um is added in
+# build(), where the capsule diameter is known.
+RETENTION = {"type": "weir", "opening_um": WEIR_GAP_UM, "source": "fabricated",
+             "crest_height_um": WEIR_CREST_UM, "crest_thickness_um": WEIR_CREST_THICK_UM}
+MU_PA_S = genlib.parameter("fluid.viscosity_37c_pa_s")   # 37 C medium, not water at 20 C
 SHEAR_MAX_DYN_CM2 = 0.01        # capsules on the trap: wall shear ceiling
 
 BASE_MM, LID_MM = 1.0, 1.0
@@ -115,7 +120,7 @@ def sizing_for(p: dict) -> dict:
     """operator/sizing.py with this module's parameters."""
     return sizing.compute({
         "capsule_diameter_um": p["capsule_diameter_um"], "capsule_count": p["capsule_count"],
-        "gelma_flow_ul_h": p["shell_flow_ul_h"], "cell_flow_ul_h": p["core_flow_ul_h"],
+        "shell_flow_ul_h": p["shell_flow_ul_h"], "cell_flow_ul_h": p["core_flow_ul_h"],
         "oil_flow_ul_h": p["oil_flow_ul_h"], "cell_conc_per_ul": p["cell_conc_per_ul"],
         "nozzle_width_um": p["nozzle_width_um"], "cell_filter_gap_um": p["cell_filter_gap_um"],
     })
@@ -209,15 +214,26 @@ def build(p: dict) -> dict:
                 "volume_ul": r(size_mm * size_mm * h, 6), "block": block, "note": note}
 
     def filt(cid, xy, purpose, gap_um, note):
+        # An opening quoted below the in-plane floor must say so: it is NOT a buildable in-plane
+        # gap, and the only reason this chamber exists is that the same number works in z.
+        why = (f"Its {gap_um:g} um opening is BELOW THE {MIN_OPEN_UM:g} um IN-PLANE FLOOR, so it cannot be built as a "
+               f"pillar gap or an in-plane slit at all. " if gap_um < MIN_OPEN_UM else "")
         return {"id": cid, "type": "filter", "center": [r(xy[0], 3), r(xy[1], 3), z], "size": [FILTER_LEN, FILTER_W, r(h)],
                 "volume_ul": r(FILTER_LEN * FILTER_W * h, 6), "block": "trap_chamber", "mesh_pore_um": None,
                 "filter": {"type": "mesh", "gap_um": gap_um, "purpose": purpose},
-                "note": f"{note} Built as a depth weir: {DEPTH_UM - gap_um:g} um crest, {gap_um:g} um gap under the lid "
-                        f"(z, not in plane), not as pillars. Not a capsule trap."}
+                "note": f"{note} {why}It is built as a DEPTH WEIR instead: a {DEPTH_UM - gap_um:g} um tall x "
+                        f"{WEIR_CREST_THICK_UM:g} um thick crest (this chip's {DEPTH_UM:g} um etch depth minus the gap, "
+                        f"thickness = the in-plane floor) leaves the {gap_um:g} um gap under the lid in Z, where the "
+                        f"in-plane floor does not apply. Not pillars, not a mesh, and not a capsule trap."}
 
+    coflow_clamped = ("" if p["coflow_width_um"] >= MIN_OPEN_UM else
+                      f" BUILT {MIN_OPEN_UM:g} um WIDE, not the {p['coflow_width_um']:g} um this design asks for: that is below "
+                      f"the {MIN_OPEN_UM:g} um in-plane floor, so the junction and the co-flow channel are clamped UP and the two "
+                      f"streams meet {MIN_OPEN_UM / p['coflow_width_um']:.1f}x wider than designed.")
     chambers = [
         junction("m2_yjunction_1", (yj_x, cy), MIN_OPEN_UM / 1000, "y_junction",
-                 f"Y-junction: core and shell meet at {p['y_junction_angle_deg']:g} degrees and flow on side by side."),
+                 f"Y-junction: core and shell meet at {p['y_junction_angle_deg']:g} degrees and flow on side by side."
+                 + coflow_clamped),
         junction("m2_nozzle_1", (nz_x, cy), nozzle_um / 1000, "flow_focusing",
                  f"Flow-focusing nozzle, {nozzle_um:g} x {DEPTH_UM:g} um as BUILT (design intent {p['nozzle_width_um']:g} um, clamped to "
                  f"the {MIN_OPEN_UM:g} um floor): oil from both sides pinches the co-flow. Will not make 70 um capsules."),
@@ -271,9 +287,12 @@ def build(p: dict) -> dict:
     in_y, under_y = y_top + PORT_ROW_MM, y_bot - PORT_ROW_MM
     chambers.append({"id": "m2_trap_1", "type": "exchange", "center": [r(tx, 3), r(cy, 3), z], "size": [tw, th, r(h)],
                      "height_um": DEPTH_UM, "volume_ul": trap_ul, "mesh_pore_um": None, "block": "trap_chamber",
-                     "retention": dict(RETENTION),
+                     "retention": {**RETENTION, "retains_um": d},
                      "note": f"Finishing trap: one layer of capsules held by a {weir} at the outlet, under the curing window. "
-                             f"Not a mesh (the 25 um mesh cannot be printed)."})
+                             f"Not a mesh (a {p['trap_mesh_um']:g} um mesh cannot be printed). The crest is "
+                             f"{WEIR_CREST_THICK_UM:g} um thick in plane (the floor) and {WEIR_CREST_UM:g} um tall in z "
+                             f"(this chip's {DEPTH_UM:g} um etch depth minus the gap); all of it is in retention "
+                             f"(crest_height_um, crest_thickness_um, opening_um, retains_um {d:g} um), not just in this note."})
     chambers.append(filt("m2_agg_filter_1", (fa_x, cy), "capsule_aggregates", p["aggregate_filter_gap_um"],
                          "Capsule-aggregate filter: single capsules pass, clumps stay."))
     ports += [
@@ -313,16 +332,26 @@ def build(p: dict) -> dict:
             "waste and back-flush share m2_under_mesh_1, so carry-over and dead volume are real. Every chamber and channel carries a "
             "block from contracts/blocks.json; chamber volumes are computed from their boxes. "
             f"RETENTION: the finishing trap and the three filters are DEPTH WEIRS (trap_chamber block), not meshes or pillar arrays: "
-            f"the {MIN_OPEN_UM:g} um floor is in plane and z is free, so a {WEIR_CREST_UM:g} um tall crest leaves a "
-            f"{WEIR_GAP_UM:g} um gap under the lid, still one layer. The weir is untested (run a 40 / 60 / 80 um gap coupon first). "
+            f"the {MIN_OPEN_UM:g} um floor is in plane and z is free, so a {WEIR_CREST_UM:g} um tall, {WEIR_CREST_THICK_UM:g} um "
+            f"thick crest leaves a {WEIR_GAP_UM:g} um gap under the lid, still one layer. That crest height is not quoted from "
+            f"anywhere: it is this chip's {DEPTH_UM:g} um etch depth minus the gap, and the trap carries it as data "
+            f"(m2_trap_1.retention.crest_height_um / crest_thickness_um / retains_um), so the weir can be machined from this spec. "
+            f"The weir is untested: coupon 21 / 24 / 27 um gaps, which span the legal band around {WEIR_GAP_UM:g} um (a 40-80 um "
+            f"gap would simply pass a {d:g} um capsule). "
             "Core (cells in dextran) and shell (GelMA) meet at a Y-junction and co-flow into the nozzle with oil from both sides; "
             "droplets would phase-separate along a straight channel, gel in an off-chip cold delay, and come back to the trap: "
             "emulsion breaker, rinse x2, photoinitiator, 405 nm cure over one capsule layer, washes, back-flush out through the "
             "aggregate filter. CLAMPS: " + ("; ".join(clamps) if clamps else "none") + ". "
             "GENERATED by cad/generators/m2_encapsulation.py; edit the generator, not this file."),
         "placeholder": True,
-        "module": {"id": "m2", "name": "Encapsulation", "status": "draft", "printed": False,
-                   "note": "reference only: nozzle clamped to 200 um, cannot make capsules; encapsulation is off-chip (spc_demo_v1)"},
+        "module": {"id": "m2", "name": "Encapsulation (retired)", "status": "superseded", "printed": False,
+                   "superseded_by": "chip/spc_demo_v1.json",
+                   "note": "Superseded, not draft: the nozzle clamps to the 200 um in-plane floor, so this board "
+                           "cannot make the pipeline's 70 um capsule, and protocols/pipeline_mvp.json has already "
+                           "replaced it with spc_demo_v1 for the flow-focusing geometry and the commercial droplet "
+                           "kit for the capsules themselves. It stayed 'draft' long after that decision, which read "
+                           "as work in progress rather than a design that lost. Kept for reference, out of the "
+                           "pipeline."},
         "generator": {"script": "cad/generators/m2_encapsulation.py",
                       "params_schema": "contracts/schemas/generators/m2_encapsulation.schema.json", "params": p},
         "units": "mm",

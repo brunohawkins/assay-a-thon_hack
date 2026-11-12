@@ -7,9 +7,9 @@
 //
 // Capsules are instanced meshes, so a real-scale chip can show all 10,000 of them.
 import * as THREE from 'three';
-import { ORDER, VALVE_COLORS } from './chip.js';
+import { ORDER, CHANNEL } from './chip.js';
 
-export const LIBRARY_COLOR = '#ff5fd2';
+export const LIBRARY_COLOR = '#bf3989';
 const CARRIER = 'carrier';
 
 // ------------------------------------------------------------------ colours
@@ -24,8 +24,8 @@ function hashHue(name) {
 }
 
 // Fixed colours for things people recognise; everything else gets a hashed hue.
-const NAMED = { oil: '#fbbf24', photoinitiator: '#a78bfa', dextran_buffer: '#fda4af', quench_medium: '#86efac' };
-const FATE = { neuron: '#a78bfa', astrocyte: '#34d399', microglia: '#f59e0b' };
+const NAMED = { oil: '#d4a72c', photoinitiator: '#8250df', dextran_buffer: '#f08a7e', quench_medium: '#4ac26b' };
+const FATE = { neuron: '#8250df', astrocyte: '#2da44e', microglia: '#d4a72c' };
 export function fateCss(chamberId) {
   const key = Object.keys(FATE).find((k) => chamberId.includes(k));
   return key ? FATE[key] : reagentCss(chamberId);
@@ -53,6 +53,36 @@ export function tempCss(t) {
 }
 
 // How long each command takes on screen at 1x, in seconds.
+// Demo pace (the clean view): each phase of the protocol once, briskly. A run of a repeating
+// pattern of commands (Module 1's medium exchange and hold, day after day for weeks; Module 4's 39
+// thermocycling holds; Module 5's four identical passes) is ONE phase that plays in DEMO_PHASE_S,
+// and any other command plays at most DEMO_STEP_S, so a 12-minute protocol reads in about half a
+// minute. Full pace, every command at its own length, is the engineering view's.
+const DEMO_STEP_S = 2.0;
+const DEMO_PHASE_S = 2.8;
+const DEMO_HOLD_S = 1.2;     // a lone hold (incubating between operations) is a pause, not a step
+const MAX_PERIOD = 8;
+
+// [{ first, last, repeat, period }]: consecutive events grouped wherever a pattern of up to
+// MAX_PERIOD commands repeats back to back (the longest such run wins).
+export function phasesOf(events) {
+  const sig = events.map((e) => e.command);
+  const out = [];
+  let i = 0;
+  while (i < sig.length) {
+    let best = { p: 1, k: 1 };
+    for (let p = 1; p <= MAX_PERIOD && i + 2 * p <= sig.length; p++) {
+      let k = 1;
+      while (i + (k + 1) * p <= sig.length && sig.slice(i + k * p, i + (k + 1) * p).every((c, j) => c === sig[i + j])) k++;
+      if (k >= 2 && p * k > best.p * best.k) best = { p, k };
+    }
+    const n = best.k >= 2 ? best.p * best.k : 1;
+    out.push({ first: i, last: i + n - 1, repeat: best.k >= 2 ? best.k : 1, period: best.k >= 2 ? best.p : 1 });
+    i += n;
+  }
+  return out;
+}
+
 export function playDuration(ev) {
   const lg = Math.log10(1 + (ev.duration_s ?? 0));
   switch (ev.command) {
@@ -175,6 +205,9 @@ function applyEvent(prev, ev, chip) {
       break;
     }
     case 'valve':
+      // Off-chip valves only (rotary selector, pinch valves): nothing to draw on the chip,
+      // which is one fluidic layer with no on-chip valves. The state is still recorded and
+      // shown in the narration panel.
       for (const v of a.valves) s.valves[v] = a.state;
       break;
     case 'culture':
@@ -302,6 +335,7 @@ export class Player {
     this.events = [];
     this.playing = false;
     this.speed = 1;
+    this.pacing = 'full';   // main.js: 'demo' in the clean view, 'full' in engineering and the presenter
     this.t = 0;
     this.stopAt = null;
     this.fade = 1;
@@ -322,7 +356,7 @@ export class Player {
     for (let i = 0; i < 3; i++) {
       const blob = new THREE.Mesh(
         blobGeometry,
-        new THREE.MeshBasicMaterial({ color: LIBRARY_COLOR, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }),
+        new THREE.MeshBasicMaterial({ color: LIBRARY_COLOR, transparent: true, depthWrite: false }),
       );
       blob.visible = false;
       blob.renderOrder = ORDER.glow;
@@ -339,14 +373,7 @@ export class Player {
     for (const ev of this.events) if (ev.command === 'culture') for (const t of ev.args.targets) cult[t] = (cult[t] ?? 0) + ev.args.duration_s;
     this.maxCulture = Math.max(0, ...Object.values(cult));
     this.paths.clear();
-    // Timeline: when each event starts, in playback seconds at 1x.
-    this.starts = [];
-    let t = 0;
-    for (const ev of this.events) {
-      this.starts.push(t);
-      t += playDuration(ev);
-    }
-    this.total = t;
+    this.#computeTimeline();
     // Chip state before each event (states[n] = final).
     this.states = [emptyState()];
     for (const ev of this.events) this.states.push(applyEvent(this.states[this.states.length - 1], ev, this.chip));
@@ -371,8 +398,58 @@ export class Player {
     });
   }
 
+  // Timeline: when each event starts and how long it shows, in playback seconds at 1x, at the
+  // current pace.
+  #computeTimeline() {
+    const demo = this.pacing === 'demo';
+    this.phases = demo ? phasesOf(this.events) : this.events.map((_, i) => ({ first: i, last: i, repeat: 1, period: 1 }));
+    this.phaseAt = new Array(this.events.length);
+    this.durations = new Array(this.events.length);
+    this.phases.forEach((ph, k) => {
+      const n = ph.last - ph.first + 1;
+      for (let i = ph.first; i <= ph.last; i++) {
+        this.phaseAt[i] = k;
+        const full = playDuration(this.events[i]);
+        const pause = ph.repeat < 2 && this.events.slice(ph.first, ph.last + 1).every((e) => e.command === 'hold_temp');
+        this.durations[i] = !demo ? full : pause ? DEMO_HOLD_S / n : n > 1 ? DEMO_PHASE_S / n : Math.min(full, DEMO_STEP_S);
+      }
+    });
+    this.starts = [];
+    let t = 0;
+    for (let i = 0; i < this.events.length; i++) { this.starts.push(t); t += this.durations[i]; }
+    this.total = t;
+  }
+
   timeline() {
-    return this.events.map((ev, i) => ({ ev, start: this.starts[i], duration: playDuration(ev) }));
+    return this.events.map((ev, i) => ({ ev, start: this.starts[i], duration: this.durations[i] }));
+  }
+
+  // 'demo' (each phase once, briskly) or 'full' (every command at its own length). Keeps the
+  // event on screen. Resolves true if the pace changed.
+  setPacing(mode) {
+    if (mode === this.pacing) return false;
+    this.pacing = mode;
+    if (!this.run) return true;
+    const i = this.events.length ? this.#indexAt(this.t) : 0;
+    this.#computeTimeline();
+    this.t = this.starts[i] ?? 0;
+    this.stopAt = null;
+    this.currentIndex = -2;
+    this.render();
+    return true;
+  }
+
+  // The phase an event belongs to (one event per phase at full pace).
+  phaseOf(i) {
+    const k = this.phaseAt?.[i];
+    return k === undefined ? null : { ...this.phases[k], index: k, count: this.phases.length };
+  }
+
+  // A line for the run summary: how the demo pace shows this run.
+  paceNote() {
+    if (this.pacing !== 'demo' || !this.events?.length) return '';
+    const merged = this.phases.filter((ph) => ph.repeat > 1).length;
+    return merged ? `demo pace: ${this.events.length} commands shown as ${this.phases.length} phases (Engineering shows the full timing)` : '';
   }
 
   // Redraw and re-announce the current event (e.g. after the UI rebuilt).
@@ -397,8 +474,10 @@ export class Player {
   step() {
     if (!this.events.length) return;
     if (this.t >= this.total - 1e-6) this.t = 0;
+    // To the end of the current phase (a single command at full pace).
     const i = this.#indexAt(this.t);
-    this.stopAt = i + 1 < this.events.length ? this.starts[i + 1] : this.total;
+    const last = this.phases?.[this.phaseAt?.[i]]?.last ?? i;
+    this.stopAt = last + 1 < this.events.length ? this.starts[last + 1] : this.total;
     this.playing = true;
     this.handlers.onPlayState?.(true);
   }
@@ -520,7 +599,7 @@ export class Player {
     const n = this.events.length;
     const done = n === 0 || this.t >= this.total - 1e-6;
     const i = done ? n : this.#indexAt(this.t);
-    const p = done ? 1 : clamp01((this.t - this.starts[i]) / playDuration(this.events[i]));
+    const p = done ? 1 : clamp01((this.t - this.starts[i]) / this.durations[i]);
 
     if (this.chip.flowOwned) {
       // Module 1 v1: twin/module1.js draws the liquid from the network solver; the player
@@ -568,19 +647,13 @@ export class Player {
       }
     }
     for (const ch of this.chip.channels) {
-      ch.material.emissive.setHex(0x3b82f6);
-      ch.material.emissiveIntensity = 0.35;
-      ch.material.opacity = 0.5;
+      ch.material.emissive.setHex(CHANNEL.emissive);
+      ch.material.emissiveIntensity = CHANNEL.emissiveIntensity;
+      ch.material.opacity = CHANNEL.opacity;
     }
     for (const b of this.blobs) b.visible = false;
 
-    // Module parts: valves, differentiation colour, labels, the counter reading, the cold coil.
-    for (const v of this.chip.valves.values()) {
-      const st = state.valves[v.id] ?? v.normal;
-      v.material.color.setHex(VALVE_COLORS[st]);
-      v.material.emissive.setHex(VALVE_COLORS[st]);
-      v.disc.scale.setScalar(1);
-    }
+    // Module parts: differentiation colour, labels, the counter reading, the cold coil.
     const maxCulture = this.maxCulture || 1;
     for (const [cid, secs] of Object.entries(state.culture)) {
       const part = this.chip.chamber(cid);
@@ -608,9 +681,9 @@ export class Player {
       }
     }
     for (const st of this.chip.stages.values()) {
-      st.material.emissive.setHex(state.emulsion ? 0xfbbf24 : 0x3b82f6);
-      st.material.emissiveIntensity = state.emulsion ? 0.6 : 0.3;
-      st.blockMat.emissiveIntensity = 0.15;
+      st.material.emissive.setHex(state.emulsion ? 0xbf8700 : CHANNEL.emissive);
+      st.material.emissiveIntensity = state.emulsion ? 0.45 : CHANNEL.emissiveIntensity;
+      st.blockMat.emissiveIntensity = 0.08;
     }
     for (const f of this.chip.features.values()) {
       f.material.color.setHex(f.color);
@@ -632,8 +705,8 @@ export class Player {
   #pulseChannels(channels, color, strength) {
     for (const ch of channels) {
       ch.material.emissive.copy(color);
-      ch.material.emissiveIntensity = 0.35 + 1.4 * strength;
-      ch.material.opacity = 0.5 + 0.4 * strength;
+      ch.material.emissiveIntensity = CHANNEL.emissiveIntensity + 1.1 * strength;
+      ch.material.opacity = CHANNEL.opacity + 0.35 * strength;
     }
   }
 
@@ -813,25 +886,6 @@ export class Player {
         }
         break;
       }
-      case 'valve': {
-        // Valves switch halfway; the control line flashes.
-        for (const id of a.valves) {
-          const v = chip.valves.get(id);
-          if (!v) continue;
-          const from = before.valves[id] ?? v.normal;
-          const st = p < 0.5 ? from : a.state;
-          v.material.color.setHex(VALVE_COLORS[st]);
-          v.material.emissive.setHex(VALVE_COLORS[st]);
-          v.material.emissiveIntensity = 0.6 + 1.2 * envelope(p, 0.3);
-          v.disc.scale.setScalar(1 + 0.6 * Math.sin(Math.PI * p));
-          if (v.line) v.line.material.opacity = 0.45 + 0.5 * envelope(p, 0.3);
-          if (v.kind === 'pair') {
-            const ch = chip.channel(v.spec.channel);
-            if (ch && a.state === 'open') this.#pulseChannels([ch], new THREE.Color(0xfde047), ease(span(p, 0.5, 1)));
-          }
-        }
-        break;
-      }
       case 'culture': {
         // Days pass: each chamber shifts towards its cell type's colour, and every medium
         // change (one per exchange_interval_s) pulses fresh medium through each lane.
@@ -856,12 +910,6 @@ export class Player {
             if (fIn) this.#pulseChannels(chip.channelsBetween(fIn, t).slice(0, 1), reagentColor(a.factors[n]), pulse);
           }
         });
-        // Pair valves open: signals cross the microgrooves.
-        for (const v of chip.valves.values()) {
-          if (v.kind !== 'pair' || (before.valves[v.id] ?? v.normal) !== 'open') continue;
-          const ch = chip.channel(v.spec.channel);
-          if (ch) this.#pulseChannels([ch], new THREE.Color(0xfde047), 0.5 + 0.5 * Math.sin(p * Math.PI * 2 * changes));
-        }
         for (const f of chip.features.values()) {
           if (f.type !== 'heat_zone') continue;
           f.material.opacity = f.baseOpacity + 0.12 * (0.6 + 0.4 * Math.sin(p * Math.PI * 6));

@@ -33,7 +33,8 @@ class Catalogue(unittest.TestCase):
     def test_off_chip_stages_are_marked(self):
         for r in self.pipe.get("roadmap", []):
             stage = next(s for s in self.cat["stages"] if s["stage"] == r["id"])
-            self.assertEqual(stage["kind"], "OFF-CHIP")
+            # A branch filed under roadmap carries its real chip; everything else is off chip.
+            self.assertEqual(stage["kind"], "CHIP" if stage.get("module") else "OFF-CHIP")
         md = (ROOT / mc.OUT_MD).read_text() if (ROOT / mc.OUT_MD).is_file() else mc.render_md(self.cat)
         self.assertIn("OFF-CHIP", md)
 

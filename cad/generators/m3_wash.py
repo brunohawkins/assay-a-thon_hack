@@ -11,7 +11,10 @@ Parameters: contracts/schemas/generators/m3_wash.schema.json.
 One trap chamber holds the capsules as a single layer behind a DEPTH WEIR (area from
 operator/sizing.py). A 25 um mesh cannot be printed (the floor is 200 um IN PLANE, z is
 free), so the mesh_opening_um parameter is converted to the weir of contracts/blocks.json
-("retention"): a crest leaving a 60 um gap under the lid, block trap_chamber. Everything is
+("retention"): a crest leaving the agreed 25 um gap under the lid, block trap_chamber. The
+crest is NOT a number in blocks.json; it is derived here as this chip's etch depth minus that
+gap, and written to the spec as retention.crest_height_um (with crest_thickness_um and
+retains_um) so the feature can be machined from the spec. Everything is
 ONE etch depth (0.3 mm) in one fluidic layer inside the 30 x 20 mm envelope. Liquid comes in
 at the top, leaves through the waste outlet past the weir (capsules stay behind it), a
 back-flush inlet on the far side lifts the capsules, and a release outlet lets them out.
@@ -63,11 +66,12 @@ DEPTH_MM = _ENV["max_depth_mm"]                       # the ONE etch depth
 DEPTH_UM = DEPTH_MM * 1000
 WEIR_GAP_UM = _WEIR["gap_um"]
 WEIR_CREST_UM = DEPTH_UM - WEIR_GAP_UM                # crest = this chip's etch depth minus the gap
+WEIR_CREST_THICK_UM = _WEIR["crest_thickness_um"]     # in plane, so it IS the in-plane floor
 MIN_OPEN_UM = _FLOORS["min_open_channel_mm"] * 1000   # in-plane floor
 MIN_PORT_UM = _FLOORS["min_port_mm"] * 1000
 PITCH_MM = _FLOORS["min_port_pitch_mm"]
 MAX_PORTS = _FLOORS["max_ports_per_chip"]
-MU_PA_S = 0.8e-3                # buffer viscosity for the wall-shear check
+MU_PA_S = genlib.parameter("fluid.viscosity_37c_pa_s")   # 37 C medium, not water at 20 C
 SHEAR_MAX_DYN_CM2 = 0.01        # capsules on the trap: wall shear ceiling
 GAP_MM = 0.6                    # clear space between neighbouring features (floor is 0.4 mm)
 PORT_ROW_MM = 1.5               # top / bottom ports sit this far beyond the trap
@@ -114,7 +118,7 @@ def trap_side_mm(p: dict) -> float:
 def hydraulics(p: dict) -> dict:
     """flow_calc: mesh + full capsule bed resistance, the safe wash flow, and its pressure."""
     side = trap_side_mm(p)
-    mu = _param("fluid.viscosity_pa_s")
+    mu = _param("fluid.viscosity_37c_pa_s")
     opening = WEIR_GAP_UM if retention_is_weir(p) else p["mesh_opening_um"]
     clean = flow_calc.mesh_clean_resistance(opening, side * side, _param("mesh.open_fraction"), mu)
     bed = _param("mesh.bed_resistance_kpa_per_ul_min")
@@ -183,9 +187,12 @@ def build(p: dict) -> dict:
     if len(ports) > MAX_PORTS:
         raise ParamError(f"{len(ports)} ports > the {MAX_PORTS} allowed per chip")
     retention = (f"a DEPTH WEIR at the waste side (block trap_chamber): the {MIN_OPEN_UM:g} um floor is in plane and z is free, so a "
-                 f"{WEIR_CREST_UM:g} um crest, {_WEIR['crest_thickness_um']:g} um thick, leaves a {WEIR_GAP_UM:g} um gap "
+                 f"{WEIR_CREST_UM:g} um crest, {WEIR_CREST_THICK_UM:g} um thick, leaves a {WEIR_GAP_UM:g} um gap "
                  f"under the lid, still one etch depth and one fluidic layer; the {p['mesh_opening_um']:g} um mesh of the original "
-                 f"design cannot be printed. The weir is untested: z tolerance on a gap this small is the biggest unknown, so run a gap coupon first"
+                 f"design cannot be printed. The crest height is not quoted from anywhere: it is this chip's {DEPTH_UM:g} um etch "
+                 f"depth minus the gap, and it is in the spec as m3_trap_1.retention.crest_height_um. The weir is untested: z "
+                 f"tolerance on a gap this small is the biggest unknown, so run a 21 / 24 / 27 um gap coupon first (those span the "
+                 f"legal band; 40-80 um gaps would let a {d:g} um capsule through)"
                  if weir else f"a bought {p['mesh_opening_um']:g} um mesh")
     chamber = {
         "id": "m3_trap_1", "type": "exchange", "center": [cx, cy, round(BASE_MM + h / 2, 4)], "size": [side, side, h],
@@ -194,8 +201,16 @@ def build(p: dict) -> dict:
     }
     if weir:
         chamber["mesh_pore_um"] = None
-        chamber["retention"] = {"type": "weir", "opening_um": WEIR_GAP_UM, "source": "fabricated"}
-        chamber["note"] += f" Retention is a depth weir ({WEIR_CREST_UM:g} um crest, {WEIR_GAP_UM:g} um gap), not a mesh."
+        # The whole weir as DATA, not prose: the crest height is derived here (this chip's etch
+        # depth minus the gap), the thickness is the in-plane floor, and retains_um says what the
+        # gap is for. A machinist can cut the feature from these three numbers alone.
+        chamber["retention"] = {"type": "weir", "opening_um": WEIR_GAP_UM, "source": "fabricated",
+                                "crest_height_um": WEIR_CREST_UM, "crest_thickness_um": WEIR_CREST_THICK_UM,
+                                "retains_um": d}
+        chamber["note"] += (f" Retention is a depth weir, not a mesh: a {WEIR_CREST_UM:g} um tall x "
+                            f"{WEIR_CREST_THICK_UM:g} um thick crest leaves a {WEIR_GAP_UM:g} um gap in z under the lid "
+                            f"and holds a {d:g} um capsule. Those four numbers are in retention (crest_height_um, "
+                            f"crest_thickness_um, opening_um, retains_um), so the weir is buildable from the spec.")
     else:
         chamber["retention"] = {"type": "mesh", "opening_um": p["mesh_opening_um"], "source": "bought"}
     spec = {

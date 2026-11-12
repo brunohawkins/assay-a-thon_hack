@@ -175,6 +175,7 @@ export function normStage(s, i) {
     note: String(pick(o, 'note') ?? ''),
     protocol: String(pick(o, 'protocol') ?? ''),
     source: pick(o, 'source') ?? null,
+    branch_from: pick(o, 'branch_from') ?? null,
     arrives: (Array.isArray(o.arrives) ? o.arrives : []).map(normHandoff).filter(Boolean),
     leaves: (Array.isArray(o.leaves) ? o.leaves : []).map(normHandoff).filter(Boolean),
     chip,
@@ -220,10 +221,11 @@ export function normVideoManifest(raw) {
   };
 }
 
-/** Only play media the manifest actually points at, over http(s). */
+/** Only play media the manifest actually points at: http(s), or a file under this site's own media/. */
 export function playableUrl(url) {
   const s = String(url || '').trim();
   if (!s) return null;
+  if (/^media\/[\w./-]+$/.test(s) && !s.includes('..')) return s;
   if (!/^https?:\/\//i.test(s)) return null;
   return s;
 }
